@@ -1,92 +1,117 @@
 import * as React from "react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
+import { Upload, X, Loader2, Image as ImageIcon, Link as LinkIcon, Check, Layers } from 'lucide-react';
 import { toast } from "sonner";
 import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
+import { uploadMediaUniversal } from "@/services/storage.functions";
+import { cn } from "@/lib/utils";
 
 interface MediaUploaderProps {
   value: string;
   onChange: (value: string) => void;
   label?: string;
   bucket?: string;
+  className?: string;
 }
+
+const PRESET_DEMO_IMAGES = [
+  {
+    label: "Moda / Editorial",
+    url: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&auto=format&fit=crop&q=80",
+  },
+  {
+    label: "Turismo & Viagens",
+    url: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&auto=format&fit=crop&q=80",
+  },
+  {
+    label: "Gastronomia",
+    url: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1600&auto=format&fit=crop&q=80",
+  },
+  {
+    label: "Produtos Minimalistas",
+    url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1600&auto=format&fit=crop&q=80",
+  },
+];
 
 export function MediaUploader({
   value,
   onChange,
   label,
-  bucket = "product-media",
+  bucket = "store-assets",
+  className,
 }: MediaUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [activeMode, setActiveMode] = useState<"upload" | "url">("upload");
+  const [showPresets, setShowPresets] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Crop state
+  // Crop dialog state
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [currentImageFile, setCurrentImageFile] = useState<File | null>(null);
   const [currentImageSrc, setCurrentImageSrc] = useState<string | null>(null);
 
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.type.startsWith("image/")) {
-      // SVG and GIF files cannot be safely cropped without losing animation or vector properties
+      // SVGs e GIFs não devem ser cropados
       if (file.type.includes("svg") || file.type.includes("gif")) {
-        handleUploadMediaDirectly(file);
+        uploadFileDirectly(file);
         return;
       }
 
       setCurrentImageFile(file);
       const reader = new FileReader();
-      reader.readAsDataURL(file);
       reader.onload = () => {
         setCurrentImageSrc(reader.result as string);
         setCropModalOpen(true);
       };
-      reader.onerror = () => toast.error("Erro ao processar imagem local");
+      reader.onerror = () => toast.error("Erro ao ler imagem local");
+      reader.readAsDataURL(file);
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
-    // Video upload fallback (no crop)
-    handleUploadMediaDirectly(file);
+    // Arquivos não-imagem (ex: vídeo)
+    uploadFileDirectly(file);
   };
 
-  const handleUploadMediaDirectly = async (file: File) => {
+  const uploadFileDirectly = async (file: File) => {
+    setIsUploading(true);
     try {
-      setIsUploading(true);
       const reader = new FileReader();
       reader.onload = async (event) => {
-        if (event.target?.result) {
-          try {
-            const base64 = event.target.result as string;
-            const { directUploadMedia } = await import("@/lib/upload-helper");
-            const res = await directUploadMedia({
+        try {
+          const base64Data = (event.target?.result as string) || "";
+          const res = await uploadMediaUniversal({
+            data: {
               fileName: file.name,
-              file: file,
-              bucket: bucket as any,
-            });
+              fileType: file.type || "application/octet-stream",
+              base64Data,
+              bucket,
+              folder: "builder",
+            },
+          });
 
+          if (res?.url) {
             onChange(res.url);
-            toast.success("Mídia carregada com sucesso");
-          } catch (err: unknown) {
-            toast.error((err instanceof Error ? err.message : String(err)) || "Erro no upload");
-          } finally {
-            setIsUploading(false);
+            toast.success("Mídia carregada com sucesso!");
+          } else {
+            throw new Error("URL de resposta não encontrada.");
           }
+        } catch (uploadErr: any) {
+          console.error("[MediaUploader] uploadFileDirectly error:", uploadErr);
+          toast.error(uploadErr?.message || "Erro no upload da mídia.");
+        } finally {
+          setIsUploading(false);
         }
       };
       reader.readAsDataURL(file);
-    } catch (error: unknown) {
-      toast.error(
-        (error instanceof Error
-          ? error instanceof Error
-            ? error.message
-            : String(error)
-          : String(error)) || "Erro ao iniciar upload",
-      );
+    } catch (err: any) {
+      toast.error(err?.message || "Falha ao processar arquivo.");
       setIsUploading(false);
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -94,34 +119,31 @@ export function MediaUploader({
   };
 
   const handleCropComplete = async (croppedBase64: string) => {
-    if (!currentImageFile) return;
     setIsUploading(true);
     try {
-      const { directUploadMedia } = await import("@/lib/upload-helper");
+      const fileName = currentImageFile
+        ? `cropped-${currentImageFile.name.replace(/\.[^/.]+$/, "")}.png`
+        : `cropped-${Date.now()}.png`;
 
-      const byteString = atob(croppedBase64.split(",")[1]);
-      const ab = new ArrayBuffer(byteString.length);
-      const ia = new Uint8Array(ab);
-      for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-      }
-      const blob = new Blob([ab], { type: "image/png" });
-
-      const res = await directUploadMedia({
-        fileName: currentImageFile.name.replace(/\.[^/.]+$/, "") + ".png",
-        file: blob,
-        bucket: bucket as any,
+      const res = await uploadMediaUniversal({
+        data: {
+          fileName,
+          fileType: "image/png",
+          base64Data: croppedBase64,
+          bucket,
+          folder: "builder",
+        },
       });
-      onChange(res.url);
-      toast.success("Imagem enviada com sucesso");
-    } catch (error: unknown) {
-      toast.error(
-        (error instanceof Error
-          ? error instanceof Error
-            ? error.message
-            : String(error)
-          : String(error)) || "Erro ao fazer upload da imagem",
-      );
+
+      if (res?.url) {
+        onChange(res.url);
+        toast.success("Imagem recortada e salva com sucesso!");
+      } else {
+        throw new Error("URL da imagem recortada não retornada.");
+      }
+    } catch (err: any) {
+      console.error("[MediaUploader] handleCropComplete error:", err);
+      toast.error(err?.message || "Erro ao salvar imagem recortada.");
     } finally {
       setIsUploading(false);
     }
@@ -130,63 +152,149 @@ export function MediaUploader({
   const isVideo = value ? !!value.split("?")[0].match(/\.(mp4|webm|mov|ogg)$/i) : false;
 
   return (
-    <div className="flex flex-col gap-2">
-      {label && <label className="text-xs font-medium">{label}</label>}
+    <div className={cn("flex flex-col gap-2", className)}>
+      {label && (
+        <label className="text-xs font-bold text-foreground flex items-center justify-between">
+          <span>{label}</span>
+          <span className="text-[10px] font-normal text-muted-foreground">
+            {value ? "Mídia ativa" : "Vazio"}
+          </span>
+        </label>
+      )}
 
+      {/* ── 1. PREVIEW DO ARQUIVO ATIVO (SE HOUVER) ── */}
       {value ? (
-        <div className="relative rounded-xl overflow-hidden  group p-2 bg-[linear-gradient(45deg,#e2e8f0_25%,transparent_25%),linear-gradient(-45deg,#e2e8f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e2e8f0_75%),linear-gradient(-45deg,transparent_75%,#e2e8f0_75%)] bg-[length:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0px] bg-muted/30 flex items-center justify-center">
-          {isVideo ? (
-            <video src={value} className="w-full h-32 object-cover" muted />
-          ) : (
-            <img
-              src={value}
-              alt="Media preview"
-              className="max-h-32 w-auto max-w-full object-contain"
-            />
-          )}
-          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+        <div className="relative rounded-xl overflow-hidden border border-border/80 bg-muted/30 group transition-all">
+          <div className="h-32 w-full flex items-center justify-center p-1 bg-[radial-gradient(#00000010_1px,transparent_1px)] dark:bg-[radial-gradient(#ffffff10_1px,transparent_1px)] [background-size:12px_12px]">
+            {isVideo ? (
+              <video src={value} className="w-full h-full object-cover rounded-lg" muted />
+            ) : (
+              <img
+                src={value}
+                alt="Media preview"
+                className="max-h-30 w-auto max-w-full object-contain rounded-lg shadow-2xs"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src =
+                    "https://placehold.co/600x400/18181b/ffffff?text=Imagem+Indispon%C3%ADvel";
+                }}
+              />
+            )}
+          </div>
+
+          {/* Overlay com Ações Rápidas */}
+          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2 backdrop-blur-xs">
             <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="h-8 text-xs font-semibold rounded-lg gap-1.5 cursor-pointer bg-white text-black hover:bg-white/90"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="size-3.5" />
+              <span>Trocar</span>
+            </Button>
+            <Button
+              type="button"
               variant="destructive"
               size="icon"
-              className="h-8 w-8 rounded-full"
+              className="h-8 w-8 rounded-lg cursor-pointer"
               onClick={() => onChange("")}
+              title="Remover mídia"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
             </Button>
           </div>
         </div>
       ) : (
+        /* ── 2. ÁREA DE DROP / UPLOAD QUANDO VAZIO ── */
         <div
-          className="h-32 rounded-xl border border-dashed flex flex-col items-center justify-center gap-2 text-muted-foreground bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+          className={cn(
+            "h-28 rounded-xl border border-dashed border-border/80 flex flex-col items-center justify-center gap-2 text-muted-foreground bg-muted/20 hover:bg-muted/40 hover:border-primary/60 transition-all cursor-pointer select-none",
+            isUploading && "pointer-events-none opacity-60",
+          )}
           onClick={() => fileInputRef.current?.click()}
         >
           {isUploading ? (
-            <Loader2 className="h-6 w-6 animate-spin" />
+            <>
+              <Loader2 className="size-6 animate-spin text-primary" />
+              <span className="text-xs font-semibold text-foreground">Enviando mídia...</span>
+            </>
           ) : (
-            <Upload className="h-6 w-6" />
+            <>
+              <div className="size-9 rounded-xl bg-background border border-border/60 flex items-center justify-center shadow-2xs">
+                <Upload className="size-4.5 text-muted-foreground" />
+              </div>
+              <div className="text-center space-y-0.5">
+                <p className="text-xs font-bold text-foreground">Clique para enviar arquivo</p>
+                <p className="text-[10px] text-muted-foreground">PNG, JPG, WEBP, GIF ou MP4</p>
+              </div>
+            </>
           )}
-          <span className="text-xs font-medium">
-            {isUploading ? "Enviando..." : "Fazer Upload"}
-          </span>
         </div>
       )}
 
-      <div className="flex gap-2">
-        <Input
-          className="h-8 text-xs bg-background flex-1"
-          placeholder="Ou cole uma URL (https://...)"
-          value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
-        />
+      {/* ── 3. ENTRADA MANUAL DE URL / PRESETS ── */}
+      <div className="space-y-1.5 pt-1">
+        <div className="flex gap-1.5">
+          <div className="relative flex-1">
+            <Input
+              className="h-8 pl-7 pr-2 text-xs bg-background rounded-lg border-border/70 font-sans"
+              placeholder="Cole a URL da imagem (https://...)"
+              value={value || ""}
+              onChange={(e) => onChange(e.target.value)}
+            />
+            <LinkIcon className="size-3.5 absolute left-2 top-2.5 text-muted-foreground pointer-events-none" />
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowPresets(!showPresets)}
+            className="h-8 px-2 text-[11px] rounded-lg gap-1 border-border/70 shrink-0 cursor-pointer"
+            title="Escolher uma imagem de amostra"
+          >
+            <Layers className="size-3 text-amber-500" />
+            <span>Exemplos</span>
+          </Button>
+        </div>
+
+        {/* Menu rápido de Presets de Imagens */}
+        {showPresets && (
+          <div className="p-2 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 animate-in fade-in duration-150">
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">
+              Imagens de Exemplo em Alta Definição:
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {PRESET_DEMO_IMAGES.map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() => {
+                    onChange(preset.url);
+                    setShowPresets(false);
+                    toast.success(`Exemplo "${preset.label}" aplicado!`);
+                  }}
+                  className="text-left text-[11px] p-1.5 rounded-lg bg-background hover:bg-primary/10 hover:text-primary border border-border/50 truncate cursor-pointer transition-colors"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* Hidden File Input */}
       <input
         type="file"
-        accept="image/*,video/mp4,video/webm"
+        accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
         className="hidden"
         ref={fileInputRef}
-        onChange={handleUpload}
+        onChange={handleFileSelect}
       />
+
+      {/* Diálogo de Recorte */}
       <ImageCropperDialog
         open={cropModalOpen}
         onOpenChange={setCropModalOpen}

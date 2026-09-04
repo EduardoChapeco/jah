@@ -7,7 +7,7 @@ import {
   FileText,
   Copy,
   ExternalLink,
-  Sparkles,
+  LayoutTemplate,
   Layers,
   Smartphone,
   CheckCircle2,
@@ -51,7 +51,7 @@ import { listAdminPages, createPage, deletePage } from "@/services/cms.functions
 import { createExperienceDocument, duplicateExperienceDocument } from "@/services/builder.functions";
 
 export const Route = createFileRoute("/workspace/cms/paginas/")({
-  head: () => ({ meta: [{ title: "Páginas & Landing Pages | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Páginas & Landing Pages | Workspace JAH Master OS" }] }),
   loader: async () => {
     const res = await listAdminPages();
     return res || [];
@@ -190,7 +190,7 @@ function CmsPagesPage() {
                 <SheetTitle className="text-base font-bold text-foreground">Nova Página</SheetTitle>
               </SheetHeader>
               <form onSubmit={handleCreate} className="flex-1 flex flex-col justify-between overflow-hidden">
-                <div className="p-6 space-y-4 overflow-y-auto">
+                <div className="p-6 space-y-4 overflow-y-auto no-scrollbar">
                   <div className="space-y-1.5">
                     <Label htmlFor="title" className="text-xs font-bold">Título da Página *</Label>
                     <Input
@@ -273,7 +273,7 @@ function CmsPagesPage() {
                     disabled={isSubmitting}
                     className="h-10 rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5 shadow-sm"
                   >
-                    <Sparkles className="size-3.5" />
+                    <LayoutTemplate className="size-3.5" />
                     <span>{isSubmitting ? "Criando..." : "Criar & Abrir no Builder"}</span>
                   </Button>
                 </SheetFooter>
@@ -360,7 +360,7 @@ function CmsPagesPage() {
                             to="/workspace/builder/$documentId/editor"
                             params={{ documentId: page.id }}
                           >
-                            <Sparkles className="size-3.5" />
+                            <LayoutTemplate className="size-3.5" />
                             <span>Editar no Builder</span>
                           </Link>
                         </Button>

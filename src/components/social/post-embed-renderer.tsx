@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "@tanstack/react-router";
-import { Calendar, MapPin, Store, Tag, Newspaper, ArrowUpRight, Sparkles } from "lucide-react";
+import { Calendar, MapPin, Store, Tag, Newspaper, ArrowUpRight, Layers } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 
 export interface PostEmbedData {

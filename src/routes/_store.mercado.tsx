@@ -100,7 +100,7 @@ const DIETARY_FILTERS = [
 export const Route = createFileRoute("/_store/mercado")({
   head: () => ({
     meta: [
-      { title: "Mercado — Supermercados & Mercearias da Região | Wider" },
+      { title: "Mercado — Supermercados & Mercearias da Região | JAH Master OS" },
       {
         name: "description",
         content:
@@ -255,7 +255,7 @@ function SupermarketMasterPage() {
 
       {/* ── 3. Seletor de Supermercados Parceiros (Multi-Store Filter) ── */}
       {availableStores.length > 0 && (
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 scrollbar-none">
           <button
             type="button"
             onClick={() => setSelectedStore("todos")}
@@ -307,7 +307,7 @@ function SupermarketMasterPage() {
       />
 
       {/* ── 6. Filtros Especiais de Dieta & Estilo de Vida (Pills) ── */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 scrollbar-none">
         {DIETARY_FILTERS.map((f) => {
           const isSelected = selectedDietary === f.id;
           return (
@@ -352,7 +352,7 @@ function SupermarketMasterPage() {
                 ))}
               </div>
             ) : (
-              <div className="py-16 text-center space-y-3 bg-muted/10 rounded-3xl border-0 p-8">
+              <div className="py-16 text-center space-y-3 bg-muted/10 rounded-2xl border-0 p-8">
                 <EmptyState title="Nenhum produto encontrado neste corredor ou supermercado." />
                 <div className="pt-2">
                   <Button
@@ -379,7 +379,7 @@ function SupermarketMasterPage() {
       {currentView === "grid" && (
         <div>
           {displayedProducts.length === 0 ? (
-            <div className="py-24 text-center space-y-3 bg-muted/10 rounded-3xl  p-8">
+            <div className="py-24 text-center space-y-3 bg-muted/10 rounded-2xl  p-8">
               <EmptyState title="Nenhum item encontrado nos supermercados" />
             </div>
           ) : (
@@ -396,7 +396,7 @@ function SupermarketMasterPage() {
       {currentView === "list" && (
         <div className="space-y-3 w-full">
           {displayedProducts.length === 0 ? (
-            <div className="py-24 text-center space-y-3 bg-muted/10 rounded-3xl  p-8">
+            <div className="py-24 text-center space-y-3 bg-muted/10 rounded-2xl  p-8">
               <EmptyState title="Nenhum item encontrado nos supermercados" />
             </div>
           ) : (

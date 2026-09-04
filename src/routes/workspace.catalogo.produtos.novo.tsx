@@ -9,7 +9,8 @@ import {
   ImagePlus,
   Eye,
   ShoppingBag,
-  Sparkles,
+  Globe,
+  Download,
   Package,
   Tag,
   DollarSign,
@@ -73,13 +74,13 @@ import {
   type FoodSpecsData,
 } from "@/components/admin/catalog/product-food-specs-card";
 import { importProductFromUrl } from "@/services/api-orchestrator.functions";
-import { getStoreSettings } from "@/services/store.functions";
 import { getNicheCatalogContext } from "@/lib/catalog-niche-context";
+import { getNicheSemantics } from "@/lib/niche-semantics";
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/catalogo/produtos/novo")({
-  head: () => ({ meta: [{ title: "Criar Novo Produto | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Criar Novo Produto | Workspace JAH Master OS" }] }),
   loader: async () => {
     try {
       const [catsRes, typesRes, groupsRes, storeRes] = await Promise.all([
@@ -151,9 +152,8 @@ export function UnifiedNewProductPage() {
     }
   };
 
-  const nicheCtx = getNicheCatalogContext(
-    store?.segment || store?.type || store?.settings?.segment || (store as any)?.category
-  );
+  const semantics = getNicheSemantics(store);
+  const nicheCtx = getNicheCatalogContext(store);
 
   const [activeTab, setActiveTab] = useState("basico");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -178,6 +178,7 @@ export function UnifiedNewProductPage() {
   });
 
   const isTourismStore =
+    semantics.nicheId === "tourism" ||
     Boolean(nicheCtx.isTourismBusiness) ||
     store?.segment === "tourism_agency" ||
     store?.type === "tourism_agency" ||
@@ -373,7 +374,7 @@ export function UnifiedNewProductPage() {
         },
       });
 
-      toast.success("Produto cadastrado com sucesso no catálogo!");
+      toast.success(`${nicheCtx.entityName} cadastrado com sucesso no catálogo!`);
       navigate({ to: "/workspace/catalogo/produtos" });
     } catch (err: any) {
       toast.error(err?.message || "Erro ao salvar o produto.");
@@ -429,8 +430,8 @@ export function UnifiedNewProductPage() {
               onClick={() => setIsImportModalOpen(true)}
               className="rounded-xl text-xs font-bold gap-1.5"
             >
-              <Sparkles className="size-3.5 text-primary" />
-              <span>Importar com IA</span>
+              <Globe className="size-3.5 text-primary" />
+              <span>Importar por Link</span>
             </Button>
             <Button variant="outline" asChild size="sm" className="rounded-xl text-xs font-bold">
               <Link to="/workspace/catalogo/produtos">
@@ -513,17 +514,17 @@ export function UnifiedNewProductPage() {
         <SheetContent side="right" className="sm:max-w-md w-full flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
           <SheetHeader className="p-6 pb-4 border-b border-border/80 bg-muted/20">
             <SheetTitle className="text-base font-bold flex items-center gap-2">
-              <Sparkles className="size-4 text-primary" />
-              <span>Importar {nicheCtx.entityName} com IA</span>
+              <Globe className="size-4 text-primary" />
+              <span>Importar {nicheCtx.entityName} por Link</span>
             </SheetTitle>
             <SheetDescription className="text-xs text-muted-foreground mt-0.5">
-              Cole o link de uma página da web ou cardápio online para preencher as informações automaticamente.
+              Cole o link de uma página da web ou catálogo online para preencher as informações automaticamente.
             </SheetDescription>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Link da Página ou Cardápio</Label>
+              <Label className="text-xs font-bold">Link da Página ou Catálogo Online</Label>
               <Input
                 value={importUrl}
                 onChange={(e) => setImportUrl(e.target.value)}
@@ -574,7 +575,7 @@ export function UnifiedNewProductPage() {
                 </>
               ) : (
                 <>
-                  <Sparkles className="size-3.5" />
+                  <Download className="size-3.5" />
                   <span>Extrair & Preencher</span>
                 </>
               )}
@@ -603,9 +604,11 @@ export function UnifiedNewProductPage() {
               <TabsTrigger value="midias" className="rounded-xl text-xs font-bold whitespace-nowrap shrink-0 px-3">
                 Fotos
               </TabsTrigger>
-              <TabsTrigger value="insumos" className="rounded-xl text-xs font-bold whitespace-nowrap shrink-0 px-3">
-                Insumos / BOM
-              </TabsTrigger>
+              {nicheCtx.isFoodBusiness && (
+                <TabsTrigger value="insumos" className="rounded-xl text-xs font-bold whitespace-nowrap shrink-0 px-3">
+                  Insumos / BOM
+                </TabsTrigger>
+              )}
               <TabsTrigger value="opcoes" className="rounded-xl text-xs font-bold whitespace-nowrap shrink-0 px-3">
                 Opções
               </TabsTrigger>
@@ -1050,17 +1053,19 @@ export function UnifiedNewProductPage() {
             </TabsContent>
 
             {/* ── ABA: FICHA TÉCNICA, INSUMOS & PRODUTO COMPOSTO (BOM) ── */}
-            <TabsContent value="insumos" className="space-y-4 m-0">
-              <ProductBomCard
-                initialItems={bomItems}
-                productPriceCents={livePriceCents}
-                onApplyCostToProduct={(calculatedCostCents) => {
-                  setValue("cost_cents", calculatedCostCents);
-                  toast.success(`Custo calculado de ${(calculatedCostCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} aplicado ao produto!`);
-                }}
-                onItemsChange={setBomItems}
-              />
-            </TabsContent>
+            {nicheCtx.isFoodBusiness && (
+              <TabsContent value="insumos" className="space-y-4 m-0">
+                <ProductBomCard
+                  initialItems={bomItems}
+                  productPriceCents={formValues.price_cents || 0}
+                  onApplyCostToProduct={(calculatedCostCents) => {
+                    setValue("cost_cents", calculatedCostCents);
+                    toast.success(`Custo calculado de ${(calculatedCostCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} aplicado ao produto!`);
+                  }}
+                  onItemsChange={setBomItems}
+                />
+              </TabsContent>
+            )}
 
             {/* ── ABA 4: ADICIONAIS & MODIFICADORES ── */}
             <TabsContent value="opcoes" className="space-y-4 m-0">
@@ -1131,7 +1136,7 @@ export function UnifiedNewProductPage() {
                 </div>
 
                 {images.length > 1 && (
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 scrollbar-none">
                     {images.map((img, idx) => (
                       <button
                         key={idx}
@@ -1321,7 +1326,7 @@ export function UnifiedNewProductPage() {
       <Sheet open={isAddDimensionOpen} onOpenChange={setIsAddDimensionOpen}>
         <SheetContent
           side="right"
-          className="sm:max-w-md w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto bg-card flex flex-col justify-between"
+          className="sm:max-w-md w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto no-scrollbar bg-card flex flex-col justify-between"
         >
           <div className="p-6 space-y-4">
             <SheetHeader className="pb-2 text-left">

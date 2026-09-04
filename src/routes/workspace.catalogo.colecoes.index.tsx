@@ -35,7 +35,7 @@ import {
 import { listCollections, updateCollection } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/workspace/catalogo/colecoes/")({
-  head: () => ({ meta: [{ title: "Coleções & Agrupamentos | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Coleções & Agrupamentos | Workspace JAH Master OS" }] }),
   loader: async () => {
     try {
       const res = await listCollections();
@@ -128,7 +128,7 @@ function AdminCollectionsPage() {
       </div>
 
       {filteredCollections.length === 0 ? (
-        <div className="py-12 text-center rounded-3xl border-0 bg-card/60 space-y-4">
+        <div className="py-12 text-center rounded-2xl border-0 bg-card/60 space-y-4">
           <div className="size-12 rounded-2xl bg-muted flex items-center justify-center mx-auto text-muted-foreground">
             <Plus className="size-6" />
           </div>
@@ -153,7 +153,7 @@ function AdminCollectionsPage() {
         </div>
       ) : (
         <div className="rounded-2xl overflow-hidden bg-card border border-border/60">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto no-scrollbar">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40">

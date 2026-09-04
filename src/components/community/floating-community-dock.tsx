@@ -181,7 +181,7 @@ export function FloatingCommunityDock({ session }: FloatingCommunityDockProps) {
     <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3 pointer-events-auto">
       {/* ── Card Minimalista Expansível (Estilo Threads / Apple Floating Panel) ── */}
       {isExpanded && (
-        <div className="w-[90vw] sm:w-[420px] bg-background/95 backdrop-blur-xl border border-border/80 rounded-3xl p-4 shadow-2xl space-y-3.5 animate-in fade-in zoom-in-95 duration-200">
+        <div className="w-[90vw] sm:w-[420px] bg-background/95 backdrop-blur-xl border border-border/80 rounded-2xl p-4 shadow-2xl space-y-3.5 animate-in fade-in zoom-in-95 duration-200">
           {/* Header do Floating Composer */}
           <div className="flex items-center justify-between pb-2 border-b border-border/40">
             <div className="flex items-center gap-2.5">
@@ -276,7 +276,7 @@ export function FloatingCommunityDock({ session }: FloatingCommunityDockProps) {
 
           {/* Mídias Anexadas */}
           {mediaPreviews.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto pb-1">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
               {mediaPreviews.map((media, idx) => (
                 <div
                   key={idx}

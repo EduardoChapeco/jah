@@ -1,16 +1,7 @@
 import { useState } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Ticket,
-  Sparkles,
-  Calendar,
-  Clock,
-  CheckCircle2,
-  ArrowRight,
-  ShieldCheck,
-  Zap,
-} from "lucide-react";
+import { Ticket, Layers, Calendar, Clock, CheckCircle2, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import { toast } from "sonner";
 
 import { formatMoney } from "@/lib/money";
@@ -99,7 +90,7 @@ export function ServicePackagesRail({
           return (
             <div
               key={pkg.id}
-              className="p-5 rounded-3xl  bg-card space-y-4 flex flex-col justify-between hover:border-foreground/20 transition-all  group"
+              className="p-5 rounded-2xl  bg-card space-y-4 flex flex-col justify-between hover:border-foreground/20 transition-all  group"
             >
               <div className="space-y-3">
                 {/* Header com Loja e Badges */}
@@ -181,7 +172,7 @@ export function ServicePackagesRail({
 
       {/* ── Modal de Compra do Pacote ── */}
       <Dialog open={isBuyModalOpen} onOpenChange={setIsBuyModalOpen}>
-        <DialogContent className="sm:max-w-md sm:rounded-3xl sm:p-6 p-5">
+        <DialogContent className="sm:max-w-md sm:rounded-2xl sm:p-6 p-5">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <Ticket className="size-5 text-primary" />

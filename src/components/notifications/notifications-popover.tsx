@@ -1,16 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Bell,
-  CheckCheck,
-  Tag,
-  Briefcase,
-  Store,
-  Info,
-  Sparkles,
-  ArrowRight,
-} from "lucide-react";
+import { Bell, CheckCheck, Tag, Briefcase, Store, Info, Layers, ArrowRight } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -131,7 +122,7 @@ export function NotificationsPopover({ session }: NotificationsPopoverProps) {
       <PopoverContent
         align="end"
         sideOffset={8}
-        className="w-[360px] sm:w-[400px] p-0 rounded-3xl  bg-card  overflow-hidden"
+        className="w-[360px] sm:w-[400px] p-0 rounded-2xl  bg-card  overflow-hidden"
       >
         {/* ── 1. Header do Painel de Notificações ── */}
         <div className="p-4 pb-3  flex items-center justify-between">

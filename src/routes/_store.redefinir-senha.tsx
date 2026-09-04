@@ -63,7 +63,7 @@ function ResetPasswordPage() {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md bg-card border border-border/60 rounded-3xl p-6 sm:p-8 shadow-xs">
+      <div className="w-full max-w-md bg-card border border-border/60 rounded-2xl p-6 sm:p-8 shadow-xs">
         {success ? (
           <div className="text-center space-y-4 py-2">
             <div className="size-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center">

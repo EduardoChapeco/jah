@@ -31,6 +31,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { FileAttachmentUpload } from "@/components/ui/file-attachment-upload";
 import {
   createCustomerDocument,
   deleteCustomerDocument,
@@ -350,15 +351,16 @@ export function DocumentsPanel({
               </div>
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-xs font-medium">Link do Arquivo / Anexo (Opcional)</Label>
-              <Input
-                value={fileUrl}
-                onChange={(e) => setFileUrl(e.target.value)}
-                placeholder="https://... ou link do PDF/Imagem"
-                className="h-9 rounded-xl text-xs bg-background"
-              />
-            </div>
+            <FileAttachmentUpload
+              value={fileUrl}
+              onChange={setFileUrl}
+              onRemove={() => setFileUrl("")}
+              label="Arquivo / Documento Digitalizado (Opcional)"
+              helperText="Envie a foto ou PDF do documento (RG, Passaporte, Visto ou Contrato)"
+              accept="image/*,application/pdf"
+              bucket="cms-media"
+              compact
+            />
 
             <div className="space-y-1">
               <Label className="text-xs font-medium">Observações</Label>

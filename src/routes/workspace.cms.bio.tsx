@@ -1,9 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { Sparkles } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { getOrCreateBiolinkExperienceDocument } from "@/services/builder.functions";
 
 export const Route = createFileRoute("/workspace/cms/bio")({
-  head: () => ({ meta: [{ title: "Abrindo Construtor Visual do Link da Bio | Wider" }] }),
+  head: () => ({ meta: [{ title: "Abrindo Construtor Visual do Link da Bio | JAH Master OS" }] }),
   loader: async () => {
     try {
       const res = await getOrCreateBiolinkExperienceDocument();
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/workspace/cms/bio")({
 function BiolinkRedirectPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-      <Sparkles className="size-8 text-primary animate-spin" />
+      <Loader2 className="size-8 text-primary animate-spin" />
       <p className="text-sm font-bold text-foreground">Abrindo o Construtor Visual do Link da Bio...</p>
       <p className="text-xs text-muted-foreground">Carregando canvas, nós visuais e temas responsivos.</p>
     </div>

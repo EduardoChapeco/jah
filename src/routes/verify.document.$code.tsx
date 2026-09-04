@@ -39,6 +39,7 @@ export const Route = createFileRoute("/verify/document/$code")({
 });
 
 const CATEGORY_LABELS: Record<string, string> = {
+  tourism: "Contrato de Prestação de Serviços Turísticos",
   real_estate_rental: "Contrato de Locação Imobiliária",
   vehicle_sale: "Contrato de Compra e Venda de Veículo",
   service_agreement: "Prestação de Serviços",

@@ -1,20 +1,5 @@
 import { useState, useMemo } from "react";
-import {
-  Search,
-  CheckCheck,
-  XSquare,
-  Plus,
-  Edit2,
-  Trash2,
-  Check,
-  X,
-  DollarSign,
-  MapPin,
-  Sparkles,
-  Percent,
-  TrendingDown,
-  Clock,
-} from "lucide-react";
+import { Search, CheckCheck, XSquare, Plus, Edit2, Trash2, Check, X, DollarSign, MapPin, Layers, Percent, TrendingDown, Clock } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CurrencyField } from "@/components/ui/currency-field";
@@ -372,7 +357,7 @@ export function NeighborhoodsManager({
       )}
 
       {/* ── LISTA DE BAIRROS DE ALTA DENSIDADE ── */}
-      <div className="rounded-2xl border border-border/80 bg-background/50 divide-y divide-border/40 max-h-72 overflow-y-auto shadow-2xs">
+      <div className="rounded-2xl border border-border/80 bg-background/50 divide-y divide-border/40 max-h-72 overflow-y-auto no-scrollbar shadow-2xs">
         {filteredList.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground space-y-1">
             <MapPin className="size-6 mx-auto opacity-40 mb-1" />

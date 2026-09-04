@@ -43,7 +43,7 @@ export function ContextualStoriesRail({
         className={`w-full py-1.5 focus:outline-none ${className}`}
       >
         <div
-          className="flex items-center gap-3.5 sm:gap-4 overflow-x-auto pb-1 scrollbar-none focus:outline-none px-0.5"
+          className="flex items-center gap-3.5 sm:gap-4 overflow-x-auto no-scrollbar pb-1 scrollbar-none focus:outline-none px-0.5"
           tabIndex={0}
         >
           {/* Botão de Adicionar Story (se habilitado) */}

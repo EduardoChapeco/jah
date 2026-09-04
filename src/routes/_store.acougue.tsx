@@ -58,7 +58,7 @@ const ACOUQUE_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/acougue")({
   head: () => ({
     meta: [
-      { title: "Boutiques de Carnes, Açougues & Churrasco | Wider" },
+      { title: "Boutiques de Carnes, Açougues & Churrasco | JAH Master OS" },
       {
         name: "description",
         content:
@@ -221,7 +221,7 @@ function AcougueVerticalPage() {
       ) : (
         <section aria-label="Vitrine de Cortes & Produtos">
           {filteredProducts.length === 0 ? (
-            <div className="py-12 text-center bg-card rounded-3xl p-6">
+            <div className="py-12 text-center bg-card rounded-2xl p-6">
               <EmptyState
                 title="Nenhum corte encontrado"
                 description="Tente selecionar outro departamento ou busque por tipos de cortes."

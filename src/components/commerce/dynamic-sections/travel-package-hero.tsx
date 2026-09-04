@@ -46,7 +46,7 @@ export function TravelPackageHero({
   };
 
   return (
-    <section className="relative w-full rounded-3xl overflow-hidden border border-border/70 min-h-[460px] flex flex-col justify-end p-6 sm:p-10 shadow-lg group">
+    <section className="relative w-full rounded-2xl overflow-hidden border border-border/70 min-h-[460px] flex flex-col justify-end p-6 sm:p-10 shadow-lg group">
       {/* Imagem de Fundo com Parallax e Gradiente Editorial */}
       <img
         src={coverImageUrl}

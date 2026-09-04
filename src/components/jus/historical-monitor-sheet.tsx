@@ -198,7 +198,7 @@ export function HistoricalMonitorSheet({
         </SheetHeader>
 
         {/* Corpo com Grid Dividido (Formulário + Filtros Especializados) */}
-        <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
           {/* Coluna 1: Documentos & Identificação (5 Colunas no Desktop) */}
           <div className="md:col-span-6 space-y-5">
             <div className="space-y-2">
@@ -252,7 +252,7 @@ export function HistoricalMonitorSheet({
                   Nenhum documento adicionado ainda. Insira CPFs, CNPJs ou OABs acima.
                 </div>
               ) : (
-                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-56 overflow-y-auto no-scrollbar pr-1">
                   {documentKeys.map((doc) => (
                     <div
                       key={doc}

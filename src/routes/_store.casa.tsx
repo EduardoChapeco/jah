@@ -58,7 +58,7 @@ const CASA_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/casa")({
   head: () => ({
     meta: [
-      { title: "Casa, Móveis, Decoração & Utilidades | Wider" },
+      { title: "Casa, Móveis, Decoração & Utilidades | JAH Master OS" },
       {
         name: "description",
         content:
@@ -218,7 +218,7 @@ function CasaVerticalPage() {
       ) : (
         <section aria-label="Vitrine de Produtos para Casa">
           {filteredProducts.length === 0 ? (
-            <div className="py-12 text-center bg-card rounded-3xl p-6">
+            <div className="py-12 text-center bg-card rounded-2xl p-6">
               <EmptyState
                 title="Nenhum item para casa encontrado"
                 description="Tente selecionar outro departamento ou busque por marcas e modelos específicos."

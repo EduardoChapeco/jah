@@ -1,16 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import {
-  SlidersHorizontal,
-  Plus,
-  Edit2,
-  ExternalLink,
-  CheckCircle2,
-  Layers,
-  Sparkles,
-  Utensils,
-  PlusCircle,
-} from "lucide-react";
+import { SlidersHorizontal, Plus, Edit2, ExternalLink, CheckCircle2, Layers, Sliders, Utensils, PlusCircle } from 'lucide-react';
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

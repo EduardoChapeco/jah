@@ -135,7 +135,7 @@ export function PropertyFeaturesGridSection({
 
         {/* Diferenciais e Lazer */}
         {features.amenities && features.amenities.length > 0 && (
-          <div className="p-6 rounded-3xl border border-border/80 bg-card space-y-4 shadow-2xs">
+          <div className="p-6 rounded-2xl border border-border/80 bg-card space-y-4 shadow-2xs">
             <h3 className="text-sm font-bold text-foreground">Diferenciais e Infraestrutura</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {features.amenities.map((item, idx) => (

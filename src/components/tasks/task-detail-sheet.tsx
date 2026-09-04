@@ -360,7 +360,7 @@ export function TaskDetailSheet({
         </SheetHeader>
 
         {/* Conteúdo com Scroll */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+        <div className="flex-1 overflow-y-auto no-scrollbar px-6 py-5 space-y-6">
           {/* Título Principal */}
           <div className="space-y-1">
             <h2

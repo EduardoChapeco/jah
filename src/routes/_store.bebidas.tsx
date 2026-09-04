@@ -59,7 +59,7 @@ const BEBIDAS_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/bebidas")({
   head: () => ({
     meta: [
-      { title: "Distribuidoras de Bebidas, Adegas & Gelo | Wider" },
+      { title: "Distribuidoras de Bebidas, Adegas & Gelo | JAH Master OS" },
       {
         name: "description",
         content:
@@ -221,7 +221,7 @@ function BebidasVerticalPage() {
       ) : (
         <section aria-label="Vitrine de Bebidas">
           {filteredProducts.length === 0 ? (
-            <div className="py-12 text-center bg-card rounded-3xl p-6">
+            <div className="py-12 text-center bg-card rounded-2xl p-6">
               <EmptyState
                 title="Nenhuma bebida encontrada"
                 description="Tente selecionar outro departamento ou busque por marcas e produtos específicos."

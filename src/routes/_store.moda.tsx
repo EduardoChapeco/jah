@@ -58,7 +58,7 @@ const MODA_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/moda")({
   head: () => ({
     meta: [
-      { title: "Moda, Roupas, Calçados & Acessórios | Wider" },
+      { title: "Moda, Roupas, Calçados & Acessórios | JAH Master OS" },
       {
         name: "description",
         content:
@@ -191,7 +191,7 @@ function ModaVerticalPage() {
       ) : (
         <section aria-label="Vitrine de Roupas & Calçados">
           {allProducts.length === 0 ? (
-            <div className="py-12 text-center bg-card rounded-3xl p-6">
+            <div className="py-12 text-center bg-card rounded-2xl p-6">
               <EmptyState
                 title="Nenhuma peça de roupa encontrada"
                 description="Tente selecionar outro departamento ou busque por marcas e tamanhos."

@@ -25,7 +25,7 @@ import { MediaUploader } from "@/components/ui/media-uploader";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/processos")({
-  head: () => ({ meta: [{ title: "Meus Processos & Demandas | Wider" }] }),
+  head: () => ({ meta: [{ title: "Meus Processos & Demandas | JAH Master OS" }] }),
   component: UserLawsuitsPage,
 });
 

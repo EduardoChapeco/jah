@@ -377,7 +377,7 @@ function MobilityPage() {
         </div>
 
         {/* ── SELETOR DE CATEGORIAS (Pills Horizontais: Corrida, Entrega, Frete, Moto) ── */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 scrollbar-none">
           {CATEGORY_TABS.map((tab) => {
             const Icon = tab.icon;
             const isSelected = selectedService === tab.id;
@@ -461,7 +461,7 @@ function MobilityPage() {
           </div>
 
           {/* Atalhos Rápidos de Destinos Frequentes */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 scrollbar-none">
             {PRESET_PLACES.slice(0, 4).map((p, idx) => (
               <button
                 key={idx}

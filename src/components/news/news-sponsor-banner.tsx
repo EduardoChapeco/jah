@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ExternalLink, Sparkles, Megaphone } from "lucide-react";
+import { ExternalLink, Layers, Megaphone } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { type SponsorDTO } from "@/services/news.functions";
 import { recordAdTelemetry } from "@/services/telemetry.functions";
@@ -95,7 +95,7 @@ export function NewsSponsorBanner({
   return (
     <div
       ref={containerRef}
-      className="my-6 p-4 sm:p-5 rounded-3xl border border-primary/20 bg-linear-to-br from-card via-muted/30 to-primary/5  overflow-hidden"
+      className="my-6 p-4 sm:p-5 rounded-2xl border border-primary/20 bg-linear-to-br from-card via-muted/30 to-primary/5  overflow-hidden"
     >
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground">

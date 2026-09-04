@@ -1,17 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { getPublicBrandSettings } from "@/services/master.functions";
-import {
-  MessageSquare,
-  Mail,
-  Phone,
-  Clock,
-  MapPin,
-  Send,
-  CheckCircle2,
-  Sparkles,
-  ShieldCheck,
-} from "lucide-react";
+import { MessageSquare, Mail, Phone, Clock, MapPin, Send, CheckCircle2, Layers, ShieldCheck } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,7 +9,7 @@ import { toast } from "sonner";
 import { submitContactMessage } from "@/services/contact.functions";
 
 export const Route = createFileRoute("/_store/contato")({
-  head: () => ({ meta: [{ title: "Fale Conosco & Suporte | Wider" }] }),
+  head: () => ({ meta: [{ title: "Fale Conosco & Suporte | JAH Master OS" }] }),
   loader: async () => {
     try {
       const brand = await getPublicBrandSettings();
@@ -182,7 +172,7 @@ function ContatoPage() {
       </div>
 
       {/* Formulário Interativo de Mensagem */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border/70 shadow-xs max-w-3xl mx-auto space-y-6">
+      <div className="p-6 sm:p-8 rounded-2xl bg-card border border-border/70 shadow-xs max-w-3xl mx-auto space-y-6">
         <div className="space-y-1">
           <h2 className="text-lg sm:text-xl font-bold text-foreground">Envie uma Mensagem</h2>
           <p className="text-xs text-muted-foreground">

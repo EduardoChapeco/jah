@@ -1,4 +1,4 @@
-import { Plus, Store, Calendar, Sparkles } from "lucide-react";
+import { Plus, Store, Calendar, Layers } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -134,7 +134,7 @@ export function StoryRail({ stories = [], onCreateStory }: StoryRailProps) {
                 )
               ) : (
                 <div className="absolute inset-0 bg-neutral-900 flex items-center justify-center">
-                  <Sparkles className="size-12 text-primary animate-pulse" />
+                  <Layers className="size-12 text-primary animate-pulse" />
                 </div>
               )}
 

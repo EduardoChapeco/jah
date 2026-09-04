@@ -105,7 +105,7 @@ export function InstantSearchDialog({ open, onOpenChange }: InstantSearchDialogP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl p-0 overflow-hidden sm:rounded-3xl border-border/80 bg-card">
+      <DialogContent className="sm:max-w-2xl p-0 overflow-hidden sm:rounded-2xl border-border/80 bg-card">
         <DialogHeader className="sr-only">
           <DialogTitle>Buscar Produtos, Lojas e Eventos</DialogTitle>
         </DialogHeader>
@@ -138,7 +138,7 @@ export function InstantSearchDialog({ open, onOpenChange }: InstantSearchDialogP
         </div>
 
         {/* Corpo de Resultados ou Histórico */}
-        <div className="max-h-[65vh] overflow-y-auto p-4 space-y-5">
+        <div className="max-h-[65vh] overflow-y-auto no-scrollbar p-4 space-y-5">
           {/* Se query vazia: Exibe Histórico e Tags em Alta */}
           {!query && (
             <div className="space-y-4">

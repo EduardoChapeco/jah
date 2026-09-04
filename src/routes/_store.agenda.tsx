@@ -272,7 +272,7 @@ function AgendaPage() {
           </div>
 
           {/* Presets Rápidos */}
-          <div className="hidden sm:flex items-center gap-2 overflow-x-auto scrollbar-none">
+          <div className="hidden sm:flex items-center gap-2 overflow-x-auto no-scrollbar scrollbar-none">
             {PRESET_DATE_FILTERS.map((preset) => {
               const isSelected = selectedDateFilter === preset.id;
               return (
@@ -294,7 +294,7 @@ function AgendaPage() {
         </div>
 
         {/* ── Trilho Panorâmico de Cards de Dias Grandes (Squircle Inflado) ── */}
-        <div className="flex items-center gap-3 overflow-x-auto pb-2 pt-1 scrollbar-none">
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2 pt-1 scrollbar-none">
           {/* Card 'Todos os Dias' */}
           <button
             type="button"
@@ -427,7 +427,7 @@ function AgendaPage() {
                   key={event.id}
                   to="/evento/$id"
                   params={{ id: event.id }}
-                  className="min-w-[290px] sm:min-w-[320px] max-w-[340px] rounded-3xl  bg-card overflow-hidden hover:border-foreground/30 transition-all flex flex-col justify-between shrink-0 group select-none block"
+                  className="min-w-[290px] sm:min-w-[320px] max-w-[340px] rounded-2xl  bg-card overflow-hidden hover:border-foreground/30 transition-all flex flex-col justify-between shrink-0 group select-none block"
                 >
                   <div className="space-y-3 block">
                     <div className="aspect-16/10 relative overflow-hidden bg-muted">
@@ -500,7 +500,7 @@ function AgendaPage() {
               {filteredEvents.map((event) => (
                 <div
                   key={event.id}
-                  className="flex flex-col justify-between overflow-hidden rounded-3xl  bg-card  hover:border-foreground/30 transition-all group"
+                  className="flex flex-col justify-between overflow-hidden rounded-2xl  bg-card  hover:border-foreground/30 transition-all group"
                 >
                   <Link to="/evento/$id" params={{ id: event.id }} className="block">
                     <div className="aspect-16/10 relative overflow-hidden bg-muted">
@@ -567,7 +567,7 @@ function AgendaPage() {
           {filteredEvents.map((event) => (
             <div
               key={event.id}
-              className="flex flex-col justify-between overflow-hidden rounded-3xl  bg-card  hover:border-foreground/30 transition-all group"
+              className="flex flex-col justify-between overflow-hidden rounded-2xl  bg-card  hover:border-foreground/30 transition-all group"
             >
               <Link to="/evento/$id" params={{ id: event.id }} className="block">
                 <div className="aspect-16/10 relative overflow-hidden bg-muted">
@@ -632,7 +632,7 @@ function AgendaPage() {
           {filteredEvents.map((event) => (
             <div
               key={event.id}
-              className="flex items-center justify-between p-4 rounded-3xl  bg-card  hover:border-foreground/30 transition-all gap-4 w-full group"
+              className="flex items-center justify-between p-4 rounded-2xl  bg-card  hover:border-foreground/30 transition-all gap-4 w-full group"
             >
               <div className="flex items-center gap-4 min-w-0 flex-1">
                 <div className="size-24 sm:size-28 rounded-2xl overflow-hidden bg-muted  shrink-0 relative">

@@ -76,7 +76,7 @@ export const RmaMessageCard: React.FC<RmaMessageCardProps> = ({
             <ImageIcon className="size-3" />
             Evidências anexadas ({payload.photo_urls.length})
           </span>
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
             {payload.photo_urls.map((url, idx) => (
               <a
                 key={idx}

@@ -1,3 +1,37 @@
+
+function resolveAnimationClasses(designTokens?: Record<string, any>, layoutRules?: Record<string, any>): string {
+  const anim = designTokens?.animation || layoutRules?.animation;
+  if (!anim || anim.trigger === "none") return "";
+
+  const classes: string[] = ["transition-all"];
+
+  // Scroll Trigger
+  if (anim.trigger === "fade_up") {
+    classes.push("animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out fill-mode-both");
+  } else if (anim.trigger === "zoom_in") {
+    classes.push("animate-in fade-in zoom-in-95 duration-500 ease-out fill-mode-both");
+  } else if (anim.trigger === "slide_left") {
+    classes.push("animate-in fade-in slide-in-from-left-6 duration-600 ease-out fill-mode-both");
+  } else if (anim.trigger === "slide_right") {
+    classes.push("animate-in fade-in slide-in-from-right-6 duration-600 ease-out fill-mode-both");
+  } else if (anim.trigger === "parallax") {
+    classes.push("motion-safe:hover:-translate-y-1 transition-transform duration-500");
+  } else if (anim.trigger === "stagger") {
+    classes.push("animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out fill-mode-both");
+  }
+
+  // Hover effect
+  if (anim.hover === "lift") {
+    classes.push("hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300");
+  } else if (anim.hover === "scale") {
+    classes.push("hover:scale-[1.015] transition-transform duration-300");
+  } else if (anim.hover === "glow") {
+    classes.push("hover:ring-2 hover:ring-primary/40 hover:shadow-lg transition-all duration-300");
+  }
+
+  return classes.join(" ");
+}
+
 import * as React from "react";
 import { ExperienceNode } from "@/lib/builder-types";
 import { builderRegistry } from "@/lib/builder-registry";
@@ -53,6 +87,17 @@ import { TourismDestinationsCarouselSection } from "./dynamic-sections/tourism-d
 import { FoodMenuStreamlinedSection } from "./dynamic-sections/food-menu-streamlined";
 import { CuratedHitsRailSection } from "./dynamic-sections/curated-hits-rail";
 import { TableOrderComandaSection } from "./dynamic-sections/table-order-comanda";
+import { PortalContractsWidget } from "./dynamic-sections/portal-contracts-widget";
+import { PortalCarnesBillsWidget } from "./dynamic-sections/portal-carnes-bills-widget";
+import { PortalAppointmentsWidget } from "./dynamic-sections/portal-appointments-widget";
+import { PortalOrdersRentalsWidget } from "./dynamic-sections/portal-orders-rentals-widget";
+import { CareersHeroBanner } from "./dynamic-sections/careers-hero-banner";
+import { CareersJobFilters } from "./dynamic-sections/careers-job-filters";
+import { CareersJobGrid } from "./dynamic-sections/careers-job-grid";
+import { ReputationScoreHeader } from "./dynamic-sections/reputation-score-header";
+import { ReputationBadgesStrip } from "./dynamic-sections/reputation-badges-strip";
+import { ReputationTimelineFeed } from "./dynamic-sections/reputation-timeline-feed";
+import { OfficeContractViewer } from "./dynamic-sections/office-contract-viewer";
 import { TrackView } from "./analytics-provider";
 
 // ---------------------------------------------------------------------------
@@ -114,6 +159,16 @@ const componentMap: Record<string, React.FC<any>> = {
   food_menu_streamlined: FoodMenuStreamlinedSection,
   curated_hits_rail: CuratedHitsRailSection,
   table_order_comanda: TableOrderComandaSection,
+  portal_contracts: PortalContractsWidget,
+  portal_carnes_bills: PortalCarnesBillsWidget,
+  portal_appointments: PortalAppointmentsWidget,
+  portal_orders_rentals: PortalOrdersRentalsWidget,
+  careers_hero_banner: CareersHeroBanner,
+  careers_job_filters: CareersJobFilters,
+  careers_job_grid: CareersJobGrid,
+  reputation_score_header: ReputationScoreHeader,
+  reputation_badges_strip: ReputationBadgesStrip,
+  reputation_timeline_feed: ReputationTimelineFeed,
   chef_special_banner: ChefSpecialBannerSection,
   restaurant_hours_delivery: RestaurantHoursDeliverySection,
   table_booking_card: TableBookingSection,
@@ -264,14 +319,77 @@ interface ExperienceNodeRendererProps {
   onSelectNode?: (id: string) => void;
 }
 
+
+// ---------------------------------------------------------------------------
+// Sanitizador Defensivo de Nós (Zero TypeError: cannot read .map of undefined)
+// ---------------------------------------------------------------------------
+export function sanitizeNodeProps(rawNode: ExperienceNode): ExperienceNode {
+  if (!rawNode || typeof rawNode !== "object") {
+    return {
+      id: "safe-empty-node",
+      node_type: "block",
+      block_type: "rich_text",
+      content: { text: "", items: [], slides: [], buttons: [] },
+      design_tokens: {},
+      layout_rules: {},
+      responsive_overrides: {},
+      data_bindings: {},
+      action_bindings: {},
+      sort_order: 0,
+      is_hidden: false,
+    } as ExperienceNode;
+  }
+
+  const content = (rawNode.content && typeof rawNode.content === "object") ? { ...rawNode.content } : {};
+
+  // Chaves de arrays que componentes frequentemente iteram com .map()
+  const arrayKeys = [
+    "items", "slides", "buttons", "features", "reviews", "hotspots", "badges",
+    "cards", "steps", "faq_items", "categories", "banners", "destinations",
+    "packages", "services", "tabs", "columns", "tags", "images", "options",
+    "social_links", "business_hours", "schedule", "questions", "highlights", "links"
+  ];
+
+  for (const key of arrayKeys) {
+    if (key in content) {
+      if (!Array.isArray(content[key])) {
+        content[key] = [];
+      }
+    } else {
+      // Se a chave não existir mas for padrão em certos tipos, inicializa seguro
+      if (key === "items" || key === "slides" || key === "buttons" || key === "features") {
+        content[key] = [];
+      }
+    }
+  }
+
+  // Fallbacks de strings comuns
+  if (content.title === undefined) content.title = "";
+  if (content.subtitle === undefined) content.subtitle = "";
+  if (content.description === undefined) content.description = "";
+
+  return {
+    ...rawNode,
+    content,
+    design_tokens: (rawNode.design_tokens && typeof rawNode.design_tokens === "object") ? rawNode.design_tokens : {},
+    layout_rules: (rawNode.layout_rules && typeof rawNode.layout_rules === "object") ? rawNode.layout_rules : {},
+    responsive_overrides: (rawNode.responsive_overrides && typeof rawNode.responsive_overrides === "object") ? rawNode.responsive_overrides : {},
+    data_bindings: (rawNode.data_bindings && typeof rawNode.data_bindings === "object") ? rawNode.data_bindings : {},
+    action_bindings: (rawNode.action_bindings && typeof rawNode.action_bindings === "object") ? rawNode.action_bindings : {},
+    children: Array.isArray(rawNode.children) ? rawNode.children.map(sanitizeNodeProps) : undefined,
+  };
+}
+
 function ExperienceNodeRenderer({
-  node,
+  node: rawNode,
   transientData,
   bindings,
   isEditing,
   selectedNodeId,
   onSelectNode,
 }: ExperienceNodeRendererProps) {
+  const node = sanitizeNodeProps(rawNode);
+  if (!node || (node.is_hidden && !isEditing)) return null;
   const effectiveType = BLOCK_TYPE_ALIASES[node.block_type] || node.block_type;
   const manifest = builderRegistry[node.block_type] || builderRegistry[effectiveType] || {
     type: node.block_type as any,
@@ -289,8 +407,14 @@ function ExperienceNodeRenderer({
   };
 
   // ── Interactive editing wrapper ────────────────────────────────────────────
-  const wrapInteractive = (children: React.ReactNode, className: string = "") => {
-    if (!isEditing) return children;
+  const wrapInteractive = (children: React.ReactNode, className: string = "", style?: React.CSSProperties) => {
+    const animClasses = resolveAnimationClasses(node.design_tokens as any, node.layout_rules as any);
+    if (!isEditing) {
+      if (style || className) {
+        return <div className={cn(className, animClasses)} style={style}>{children}</div>;
+      }
+      return children;
+    }
     const isSelected = selectedNodeId === node.id;
     return (
       <div
@@ -300,7 +424,9 @@ function ExperienceNodeRenderer({
             ? "ring-2 ring-primary ring-inset z-10"
             : "hover:ring-2 hover:ring-primary/50 hover:ring-inset z-0",
           className,
+          animClasses,
         )}
+        style={style}
         onClick={(e) => {
           e.stopPropagation();
           if (onSelectNode) onSelectNode(node.id);
@@ -322,6 +448,21 @@ function ExperienceNodeRenderer({
     const variant = (node.design_tokens as any)?.surfaceVariant ?? "default";
     const elevation = (node.design_tokens as any)?.surfaceElevation ?? "none";
     const padding = (node.design_tokens as any)?.surfacePadding ?? "none";
+    const bgColor = (node.design_tokens as any)?.backgroundColor;
+    const textColor = (node.design_tokens as any)?.textColor;
+    const rules = (node.layout_rules as any) || {};
+
+    const pyClass =
+      (
+        {
+          none: "py-0",
+          sm: "py-4",
+          md: "py-8",
+          lg: "py-12",
+          xl: "py-16",
+          "2xl": "py-24",
+        } as Record<string, string>
+      )[rules.paddingY as string] ?? "";
 
     return wrapInteractive(
       <Surface
@@ -329,8 +470,10 @@ function ExperienceNodeRenderer({
         variant={variant as any}
         elevation={elevation as any}
         padding={padding as any}
-        className={cn("w-full relative")}
+        className={cn("w-full relative", pyClass)}
         style={{
+          backgroundColor: bgColor || undefined,
+          color: textColor || undefined,
           backgroundImage: bgImage ? `url(${bgImage})` : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -360,6 +503,8 @@ function ExperienceNodeRenderer({
   // ── Structural: container ──────────────────────────────────────────────────
   if (node.block_type === "container") {
     const rules = (node.layout_rules as any) || {};
+    const bgColor = (node.design_tokens as any)?.backgroundColor;
+    const textColor = (node.design_tokens as any)?.textColor;
 
     const maxWidthClass =
       (
@@ -428,6 +573,10 @@ function ExperienceNodeRenderer({
           pxClass,
           pyClass,
         )}
+        style={{
+          backgroundColor: bgColor || undefined,
+          color: textColor || undefined,
+        }}
       >
         {node.children && node.children.length > 0 ? (
           node.children.map((child: ExperienceNode) => (
@@ -474,71 +623,98 @@ function ExperienceNodeRenderer({
   const nodeTransientData = (node as any).transient_data ?? null;
   const bindingSource = (node.data_bindings as any)?.source || null;
 
-  // Props for store profile blocks: extract the correct sub-key
+  // Props for store profile blocks: extract the correct sub-key com fallback defensivo seguro
+  const fallbackStore = {
+    name: "Nossa Loja",
+    slug: "loja",
+    description: "",
+    phone: "",
+    whatsapp: "",
+    email: "",
+    address: "",
+    city: "",
+    state: "",
+    logo_url: null,
+    cover_url: null,
+    business_hours: [],
+    settings: {},
+  };
+
   let storeProfileProps: Record<string, any> = {};
   if (STORE_PROFILE_BLOCKS.has(node.block_type)) {
-    const rawStore = nodeTransientData?.store_hero ?? nodeTransientData?.store ?? nodeTransientData ?? transientData?.store ?? null;
+    const rawStore = nodeTransientData?.store_hero ?? nodeTransientData?.store ?? nodeTransientData ?? transientData?.store ?? fallbackStore;
+    const storeObj = typeof rawStore === "object" && rawStore !== null ? { ...fallbackStore, ...rawStore } : fallbackStore;
     if (node.block_type === "store_profile_hero") {
-      storeProfileProps = { storeData: nodeTransientData?.store_hero ?? rawStore };
+      storeProfileProps = { storeData: nodeTransientData?.store_hero ?? storeObj };
     } else if (node.block_type === "store_hours" || node.block_type === "restaurant_hours_delivery") {
-      storeProfileProps = { storeData: nodeTransientData?.store_hours ?? rawStore };
+      storeProfileProps = { storeData: nodeTransientData?.store_hours ?? storeObj };
     } else if (node.block_type === "store_contact" || node.block_type === "table_booking_card") {
-      storeProfileProps = { storeData: nodeTransientData?.store_contact ?? rawStore };
+      storeProfileProps = { storeData: nodeTransientData?.store_contact ?? storeObj };
     } else {
-      storeProfileProps = { storeData: rawStore };
+      storeProfileProps = { storeData: storeObj };
     }
   }
 
-  // Props for product blocks: always an array
-  let resolvedProducts: any[] | null = null;
+  // Props for product blocks: sempre um array seguro
+  let resolvedProducts: any[] = [];
   if (PRODUCT_DATA_BLOCKS.has(node.block_type)) {
-    if (nodeTransientData?.products) {
+    if (Array.isArray(nodeTransientData?.products)) {
       resolvedProducts = nodeTransientData.products;
-    } else if (transientData?.products) {
+    } else if (Array.isArray(transientData?.products)) {
       resolvedProducts = transientData.products;
     } else if (bindingSource && bindings) {
       const key = `${node.id}_${bindingSource}`;
-      resolvedProducts = bindings[key] ?? null;
+      resolvedProducts = Array.isArray(bindings[key]) ? bindings[key] : [];
     }
   }
 
-  // Props for review blocks: always an array
-  let resolvedReviews: any[] | null = null;
+  // Props for review blocks: sempre um array seguro
+  let resolvedReviews: any[] = [];
   if (REVIEW_DATA_BLOCKS.has(node.block_type)) {
-    if (nodeTransientData?.reviews) {
+    if (Array.isArray(nodeTransientData?.reviews)) {
       resolvedReviews = nodeTransientData.reviews;
-    } else if (transientData?.reviews) {
+    } else if (Array.isArray(transientData?.reviews)) {
       resolvedReviews = transientData.reviews;
     }
   }
 
   // Props for event blocks
-  let resolvedEvents: any[] | null = null;
+  let resolvedEvents: any[] = [];
   if (EVENT_DATA_BLOCKS.has(node.block_type)) {
-    if (nodeTransientData?.events) {
+    if (Array.isArray(nodeTransientData?.events)) {
       resolvedEvents = nodeTransientData.events;
-    } else if (transientData?.events) {
+    } else if (Array.isArray(transientData?.events)) {
       resolvedEvents = transientData.events;
     }
   }
 
   // Props for classifieds blocks
-  let resolvedClassifieds: any[] | null = null;
+  let resolvedClassifieds: any[] = [];
   if (CLASSIFIEDS_DATA_BLOCKS.has(node.block_type)) {
-    if (nodeTransientData?.classifieds) {
+    if (Array.isArray(nodeTransientData?.classifieds)) {
       resolvedClassifieds = nodeTransientData.classifieds;
-    } else if (transientData?.classifieds) {
+    } else if (Array.isArray(transientData?.classifieds)) {
       resolvedClassifieds = transientData.classifieds;
     }
   }
 
   // Props for banner blocks
-  let resolvedBanners: any[] | null = null;
+  let resolvedBanners: any[] = [];
   if (BANNER_DATA_BLOCKS.has(node.block_type)) {
-    if (nodeTransientData?.banners) {
+    if (Array.isArray(nodeTransientData?.banners)) {
       resolvedBanners = nodeTransientData.banners;
-    } else if (transientData?.banners) {
+    } else if (Array.isArray(transientData?.banners)) {
       resolvedBanners = transientData.banners;
+    }
+  }
+
+  // Props for destination blocks
+  let resolvedDestinations: any[] = [];
+  if (node.block_type === "tourism_destinations_carousel" || bindingSource === "destinations_catalog") {
+    if (Array.isArray(nodeTransientData?.destinations)) {
+      resolvedDestinations = nodeTransientData.destinations;
+    } else if (Array.isArray(transientData?.destinations)) {
+      resolvedDestinations = transientData.destinations;
     }
   }
 
@@ -546,6 +722,7 @@ function ExperienceNodeRenderer({
   const content = (node.content as Record<string, any>) ?? {};
   const designTokens = (node.design_tokens as Record<string, any>) ?? {};
   const layoutRules = (node.layout_rules as Record<string, any>) ?? {};
+  const effectiveLayoutVariant = node.layout_variant || layoutRules.variant;
 
   return wrapInteractive(
     <TrackView nodeId={node.id} blockType={node.block_type}>
@@ -557,7 +734,7 @@ function ExperienceNodeRenderer({
         // ── Extra canonical props ───────────────────────────────────────────
         node_id={node.id}
         block_type={node.block_type}
-        layout_variant={node.layout_variant}
+        layout_variant={effectiveLayoutVariant}
         design_tokens={designTokens}
         layout_rules={layoutRules}
         data_bindings={node.data_bindings}
@@ -574,8 +751,15 @@ function ExperienceNodeRenderer({
         classifieds={resolvedClassifieds}
         resolvedBanners={resolvedBanners}
         banners={resolvedBanners}
+        resolvedDestinations={resolvedDestinations}
+        destinations={resolvedDestinations}
         {...storeProfileProps}
       />
     </TrackView>,
+    "",
+    {
+      backgroundColor: designTokens.backgroundColor || undefined,
+      color: designTokens.textColor || undefined,
+    }
   );
 }

@@ -29,6 +29,7 @@ import {
 import { EmptyState } from "@/components/state/states";
 
 import { getStoreSettings } from "@/services/store.functions";
+import { NicheOperationalGuard } from "@/components/workspace/niche-operational-guard";
 import {
   listVehicleLayouts,
   createVehicleLayout,
@@ -37,7 +38,7 @@ import {
 } from "@/services/vehicle-layouts.functions";
 
 export const Route = createFileRoute("/workspace/turismo/frota/")({
-  head: () => ({ meta: [{ title: "Frota & Ônibus | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Frota & Ônibus | Workspace JAH Master OS" }] }),
   loader: async () => {
     const store = await getStoreSettings().catch(() => null);
     const storeId = store?.id || "";
@@ -153,10 +154,16 @@ function VehicleLayoutsListPage() {
   });
 
   return (
-    <div className="w-full space-y-6 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 pb-24">
-      {/* ── 1. Page Header ── */}
-      <PageHeader
-        eyebrow="Turismo & Transporte"
+    <NicheOperationalGuard
+      targetNiche="tourism"
+      toolTitle="Modelos de Frota & Ônibus 2D"
+      toolDescription="Editor interativo de plantas baixas de ônibus (Double Decker, Executivo, Leito) com mapa de assentos para agências de turismo e fretamento."
+      store={store}
+    >
+      <div className="w-full space-y-6 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 pb-24">
+        {/* ── 1. Page Header ── */}
+        <PageHeader
+          eyebrow="Turismo & Transporte"
         title="Modelos de Frota & Ônibus"
         actions={
           <Button
@@ -181,7 +188,7 @@ function VehicleLayoutsListPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar pb-1 sm:pb-0">
           <Button
             type="button"
             variant={typeFilter === "all" ? "default" : "outline"}
@@ -397,6 +404,7 @@ function VehicleLayoutsListPage() {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </NicheOperationalGuard>
   );
 }

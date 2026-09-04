@@ -23,7 +23,7 @@ import {
 } from "@/services/group-tour-tokens.functions";
 
 export const Route = createFileRoute("/m/excursao/$token")({
-  head: () => ({ meta: [{ title: "Confirmação de Passageiro | Wider" }] }),
+  head: () => ({ meta: [{ title: "Confirmação de Passageiro | JAH Master OS" }] }),
   loader: async ({ params }: { params: { token: string } }) => {
     const formData = await getPublicPassengerForm({ data: { token: params.token } }).catch(
       (err) => {
@@ -41,7 +41,7 @@ function PublicPassengerRegistrationPage() {
   if (!formData || formData.error) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="max-w-md w-full p-6 rounded-3xl bg-card border border-border/80 text-center space-y-4">
+        <div className="max-w-md w-full p-6 rounded-2xl bg-card border border-border/80 text-center space-y-4">
           <div className="size-12 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center mx-auto">
             <AlertCircle className="size-6" />
           </div>
@@ -108,7 +108,7 @@ function PublicPassengerRegistrationPage() {
   if (submitted) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="max-w-md w-full p-8 rounded-3xl bg-card border border-border/80 text-center space-y-4 shadow-sm">
+        <div className="max-w-md w-full p-8 rounded-2xl bg-card border border-border/80 text-center space-y-4 shadow-sm">
           <div className="size-16 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-500/20">
             <CheckCircle2 className="size-8" />
           </div>
@@ -149,7 +149,7 @@ function PublicPassengerRegistrationPage() {
     <div className="min-h-screen bg-muted/20 py-8 px-4 flex justify-center">
       <div className="max-w-lg w-full space-y-6">
         {/* Header da Viagem */}
-        <div className="p-6 rounded-3xl bg-card border border-border/70 space-y-3 shadow-xs">
+        <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-3 shadow-xs">
           <div className="flex items-center justify-between">
             <Badge variant="outline" className="text-[10px] font-mono gap-1 text-primary border-primary/30">
               <Bus className="size-3" /> Ficha de Embarque
@@ -180,7 +180,7 @@ function PublicPassengerRegistrationPage() {
         {/* Formulário de Passageiro */}
         <form
           onSubmit={handleSubmit}
-          className="p-6 rounded-3xl bg-card border border-border/70 space-y-5 shadow-xs"
+          className="p-6 rounded-2xl bg-card border border-border/70 space-y-5 shadow-xs"
         >
           <div className="border-b border-border/60 pb-3">
             <h2 className="text-sm font-bold text-foreground">Identificação do Passageiro</h2>

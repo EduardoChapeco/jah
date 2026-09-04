@@ -173,7 +173,7 @@ export function RmaWizard({
 
             <div className="space-y-3">
               <Label>Quais itens deseja incluir?</Label>
-              <div className="space-y-2 border rounded-xl p-2 max-h-[300px] overflow-y-auto">
+              <div className="space-y-2 border rounded-xl p-2 max-h-[300px] overflow-y-auto no-scrollbar">
                 {items.map((item) => {
                   const state = selectedItems[item.id] || {
                     selected: false,
@@ -210,7 +210,7 @@ export function RmaWizard({
 
         {step === 2 && (
           <div className="space-y-6 py-4">
-            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+            <div className="space-y-4 max-h-[400px] overflow-y-auto no-scrollbar pr-2">
               {Object.entries(selectedItems)
                 .filter(([_, s]) => s.selected)
                 .map(([id, state]) => {

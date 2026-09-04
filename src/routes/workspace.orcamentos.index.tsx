@@ -29,7 +29,7 @@ import { formatRelativeTime } from "@/lib/datetime";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/orcamentos/")({
-  head: () => ({ meta: [{ title: "Orçamentos & Pipeline de Vendas | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Orçamentos & Pipeline de Vendas | Workspace JAH Master OS" }] }),
   loader: async () => {
     const res = await listQuotes({ data: { limit: 50 } });
     return { initialData: res };
@@ -219,7 +219,7 @@ function QuotesListPage() {
       )}
 
       {!isLoading && !isError && quotes.length > 0 && viewMode === "kanban" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+        <div className="flex gap-4 items-stretch pb-8 overflow-x-auto no-scrollbar [scrollbar-width:thin] scrollbar-thumb-border/60 scrollbar-track-transparent">
           {KANBAN_COLUMNS.map((col) => {
             const colQuotes = quotes.filter((q) => col.statuses.includes(q.status));
             const colTotalCents = colQuotes.reduce((acc, q) => acc + q.total_cents, 0);
@@ -227,7 +227,7 @@ function QuotesListPage() {
             return (
               <div
                 key={col.id}
-                className="bg-muted/30 border border-border/60 rounded-2xl p-3 space-y-3 flex flex-col min-h-[420px]"
+                className="bg-card/60 border border-border/70 rounded-2xl p-3.5 space-y-3 flex flex-col w-[320px] min-w-[320px] shrink-0 min-h-[500px] shadow-2xs"
               >
                 {/* Header da Coluna */}
                 <div className="flex items-center justify-between pb-2 border-b border-border/40">
@@ -243,7 +243,7 @@ function QuotesListPage() {
                 </div>
 
                 {/* Cards da Coluna */}
-                <div className="space-y-2.5 flex-1 overflow-y-auto">
+                <div className="space-y-2.5 flex-1 overflow-y-auto no-scrollbar">
                   {colQuotes.length === 0 ? (
                     <div className="h-32 border border-dashed border-border/40 rounded-xl flex items-center justify-center text-center p-3">
                       <span className="text-[11px] text-muted-foreground font-medium">Nenhum orçamento</span>

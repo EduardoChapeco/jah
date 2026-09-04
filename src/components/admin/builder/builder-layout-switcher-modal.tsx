@@ -1,16 +1,5 @@
 import * as React from "react";
-import {
-  X,
-  Grid as GridIcon,
-  LayoutGrid,
-  Columns,
-  Sliders,
-  Sparkles,
-  Check,
-  Film,
-  Layers,
-  StretchHorizontal,
-} from "lucide-react";
+import { X, Grid as GridIcon, LayoutGrid, Columns, Sliders, Check, Film, Layers, StretchHorizontal } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -82,7 +71,7 @@ export function BuilderLayoutSwitcherModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs select-none animate-in fade-in duration-150">
-      <div className="w-full max-w-lg bg-card border border-border rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
         {/* Cabeçalho do Seletor (Wix Pro Gallery Standard — Imagem 2) */}
         <div className="p-5 border-b border-border/70 flex items-center justify-between bg-muted/20">
           <div className="flex items-center gap-2.5">
@@ -109,7 +98,7 @@ export function BuilderLayoutSwitcherModal({
         </div>
 
         {/* Grade de Layouts Visuais com Diagramas */}
-        <div className="p-5 grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[65vh] overflow-y-auto">
+        <div className="p-5 grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[65vh] overflow-y-auto no-scrollbar">
           {CANONICAL_LAYOUT_OPTIONS.map((layout) => {
             const Icon = layout.icon;
             const isSelected = currentVariant === layout.id;

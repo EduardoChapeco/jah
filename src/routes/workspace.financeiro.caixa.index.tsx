@@ -4,31 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  Calculator,
-  History,
-  Lock,
-  Play,
-  ReceiptText,
-  DollarSign,
-  AlertTriangle,
-  Plus,
-  Minus,
-  CheckCircle2,
-  Clock,
-  User,
-  ShieldCheck,
-  CreditCard,
-  QrCode,
-  Banknote,
-  MonitorCheck,
-  Sparkles,
-  ExternalLink,
-  ChevronRight,
-  TrendingUp,
-} from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Calculator, History, Lock, Play, ReceiptText, DollarSign, AlertTriangle, Plus, Minus, CheckCircle2, Clock, User, ShieldCheck, CreditCard, QrCode, Banknote, MonitorCheck, Layers, ExternalLink, ChevronRight, TrendingUp } from 'lucide-react';
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { ErrorState, EmptyState } from "@/components/state/states";
@@ -89,7 +65,7 @@ import { formatDateTime } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/financeiro/caixa/")({
-  head: () => ({ meta: [{ title: "Fluxo de Caixa & Turnos | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Fluxo de Caixa & Turnos | Workspace JAH Master OS" }] }),
   loader: async () => {
     const [registerRes, historyRes] = await Promise.all([
       getActiveRegister().catch(() => null),
@@ -275,7 +251,7 @@ function CashRegisterManagerPage() {
               className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground h-9 px-4 cursor-pointer shadow-xs"
             >
               <Link to="/workspace/pdv">
-                <Sparkles className="size-3.5" />
+                <Layers className="size-3.5" />
                 <span>Abrir Terminal PDV</span>
               </Link>
             </Button>
@@ -531,7 +507,7 @@ function CashRegisterManagerPage() {
               </div>
               <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-bold h-9">
                 <Link to="/workspace/pdv">
-                  <Sparkles className="size-3.5 mr-1" />
+                  <Layers className="size-3.5 mr-1" />
                   Ir para Terminal PDV
                 </Link>
               </Button>
@@ -658,7 +634,7 @@ function CashRegisterManagerPage() {
 
           <Form {...openForm}>
             <form onSubmit={openForm.handleSubmit(handleOpenRegister)} className="flex-1 flex flex-col justify-between">
-              <div className="p-6 space-y-4 overflow-y-auto">
+              <div className="p-6 space-y-4 overflow-y-auto no-scrollbar">
                 <FormField
                   control={openForm.control}
                   name="initialBalance"
@@ -745,7 +721,7 @@ function CashRegisterManagerPage() {
 
           <Form {...closeForm}>
             <form onSubmit={closeForm.handleSubmit(handleCloseRegister)} className="flex-1 flex flex-col justify-between">
-              <div className="p-6 space-y-4 overflow-y-auto">
+              <div className="p-6 space-y-4 overflow-y-auto no-scrollbar">
                 <div className="p-3.5 rounded-xl bg-muted/40 border border-border/60 space-y-1">
                   <span className="text-[11px] font-bold text-muted-foreground block">
                     Saldo Esperado em Dinheiro:
@@ -854,7 +830,7 @@ function CashRegisterManagerPage() {
 
           <Form {...movementForm}>
             <form onSubmit={movementForm.handleSubmit(handleMovement)} className="flex-1 flex flex-col justify-between">
-              <div className="p-6 space-y-4 overflow-y-auto">
+              <div className="p-6 space-y-4 overflow-y-auto no-scrollbar">
                 <FormField
                   control={movementForm.control}
                   name="amount"

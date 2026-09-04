@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { X, Search, Plus, Sparkles, LayoutTemplate, ArrowRight } from "lucide-react";
+import { X, Search, Plus, Layers, LayoutTemplate, ArrowRight } from 'lucide-react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,7 +86,7 @@ export function GuidedSectionPicker({
             />
           </div>
 
-          <div className="flex gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar scrollbar-none pb-0.5">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}

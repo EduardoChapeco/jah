@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Clock, Globe, Users, Lock, Check } from "lucide-react";
+import { Layers, Clock, Globe, Users, Lock, Check } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -68,10 +68,10 @@ export function MomentsStatusPicker({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md sm:rounded-3xl sm:p-6 p-5 space-y-6">
+      <DialogContent className="sm:max-w-md sm:rounded-2xl sm:p-6 p-5 space-y-6">
         <DialogHeader className="text-left space-y-1">
           <DialogTitle className="text-lg font-black tracking-tight flex items-center gap-2">
-            <Sparkles className="size-5 text-primary" />
+            <Layers className="size-5 text-primary" />
             <span>Definir Momento & Status</span>
           </DialogTitle>
           <p className="text-xs text-muted-foreground">

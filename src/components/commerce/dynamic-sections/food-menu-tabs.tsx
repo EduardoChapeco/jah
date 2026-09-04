@@ -141,7 +141,7 @@ export function FoodMenuTabsSection({
         </div>
 
         {/* Abas de Categorias */}
-        <div className="flex items-center justify-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        <div className="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar pb-2 scrollbar-none">
           {effectiveCategories.map((cat) => {
             const isSelected = activeTab === cat.id;
             return (

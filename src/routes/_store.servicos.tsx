@@ -149,7 +149,7 @@ const SERVICE_CATEGORIES: ServiceCategory[] = [
 export const Route = createFileRoute("/_store/servicos")({
   head: () => ({
     meta: [
-      { title: "Serviços Especializados & Orçamentos | Wider" },
+      { title: "Serviços Especializados & Orçamentos | JAH Master OS" },
       {
         name: "description",
         content:
@@ -310,7 +310,7 @@ function ServicosVerticalPage() {
       {/* ── 4. Lista de Prestadores & Empresas ── */}
       <section aria-label="Profissionais & Empresas Verificadas">
         {serviceStores.length === 0 ? (
-          <div className="py-12 text-center bg-card rounded-3xl  p-6 ">
+          <div className="py-12 text-center bg-card rounded-2xl  p-6 ">
             <EmptyState
               title="Nenhum prestador encontrado"
               description="Tente selecionar outra categoria ou busque por termos mais amplos."

@@ -14,7 +14,6 @@ import {
   ClockCounterClockwise,
   ChartBar,
   TrendUp,
-  Sparkle,
   CursorClick,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
@@ -201,7 +200,7 @@ function WorkspaceTelemetriaPage() {
               { label: "Convertidos", value: wa.converted_leads, sub: "Fecharam negócio", icon: <CheckCircle size={18} weight="bold" className="text-primary" /> },
               { label: "Taxa de Conversão", value: `${(wa.conversion_rate ?? 0).toFixed(1)}%`, sub: "De leads → fechados", icon: <TrendUp size={18} weight="bold" className="text-info" /> },
             ].map((card) => (
-              <div key={card.label} className="p-5 rounded-3xl  bg-card space-y-2 ">
+              <div key={card.label} className="p-5 rounded-2xl  bg-card space-y-2 ">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-xs font-bold uppercase tracking-wider">{card.label}</span>
                   {card.icon}
@@ -216,7 +215,7 @@ function WorkspaceTelemetriaPage() {
           {(wa.entity_distribution.length > 0 || wa.top_items.length > 0) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {wa.entity_distribution.length > 0 && (
-                <div className="p-5 rounded-3xl  bg-card space-y-3 ">
+                <div className="p-5 rounded-2xl  bg-card space-y-3 ">
                   <div className="flex items-center gap-2">
                     <Buildings size={18} weight="bold" className="text-muted-foreground" />
                     <h3 className="text-sm font-bold text-foreground">Leads por Módulo</h3>
@@ -240,9 +239,9 @@ function WorkspaceTelemetriaPage() {
                 </div>
               )}
               {wa.top_items.length > 0 && (
-                <div className="p-5 rounded-3xl  bg-card space-y-3 ">
+                <div className="p-5 rounded-2xl  bg-card space-y-3 ">
                   <div className="flex items-center gap-2">
-                    <Sparkle size={18} weight="bold" className="text-amber-500" />
+                    <CursorClick size={18} weight="bold" className="text-primary" />
                     <h3 className="text-sm font-bold text-foreground">Mais Clicados</h3>
                   </div>
                   <div className="space-y-2">
@@ -265,7 +264,7 @@ function WorkspaceTelemetriaPage() {
           )}
 
           {/* Tabela de Gestão de Leads */}
-          <div className="p-5 sm:p-6 rounded-3xl  bg-card space-y-4 ">
+          <div className="p-5 sm:p-6 rounded-2xl  bg-card space-y-4 ">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-base font-bold text-foreground">Gestão de Leads</h3>
@@ -300,7 +299,7 @@ function WorkspaceTelemetriaPage() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto no-scrollbar">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className=" text-muted-foreground">
@@ -336,7 +335,7 @@ function WorkspaceTelemetriaPage() {
               { label: "Cliques nos Anúncios", value: totalClicks, sub: "Interações diretas para o anunciante", icon: <CursorClick size={18} weight="bold" className="text-info" /> },
               { label: "CTR Médio", value: `${avgCtr}%`, sub: "Taxa de conversão por impressão", icon: <Percent size={18} weight="bold" className="text-primary" /> },
             ].map((card) => (
-              <div key={card.label} className="p-5 rounded-3xl  bg-card space-y-2 ">
+              <div key={card.label} className="p-5 rounded-2xl  bg-card space-y-2 ">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-xs font-bold uppercase tracking-wider">{card.label}</span>
                   {card.icon}
@@ -347,7 +346,7 @@ function WorkspaceTelemetriaPage() {
             ))}
           </div>
 
-          <div className="p-5 sm:p-6 rounded-3xl  bg-card space-y-4 ">
+          <div className="p-5 sm:p-6 rounded-2xl  bg-card space-y-4 ">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold text-foreground">Desempenho por Anunciante</h3>
@@ -364,7 +363,7 @@ function WorkspaceTelemetriaPage() {
                 Nenhum dado de telemetria registrado ainda. Cadastre patrocinadores e publique matérias para iniciar a mensuração.
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto no-scrollbar">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className=" text-muted-foreground">

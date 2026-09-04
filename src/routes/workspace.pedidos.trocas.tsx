@@ -376,7 +376,7 @@ function ExchangesDashboardPage() {
           </Table>
         </div>
       ) : (
-        <div className="flex gap-4 overflow-x-auto pb-4 items-start min-h-[600px]">
+        <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 items-start min-h-[600px]">
           {KANBAN_COLUMNS.map((col) => {
             const columnExchanges = filteredExchanges.filter((r: any) => r.status === col.id);
             return (

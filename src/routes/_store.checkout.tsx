@@ -24,27 +24,7 @@ import { calculateShipping } from "@/services/shipping.functions";
 import { getPublicStoreProfile } from "@/services/catalog.functions";
 import { getProfile } from "@/services/auth.functions";
 import { getCustomerAddresses } from "@/services/customer.functions";
-import {
-  Check,
-  CheckCircle2,
-  Ticket,
-  User,
-  Truck,
-  CreditCard,
-  ShoppingBag,
-  AlertCircle,
-  MapPin,
-  Loader2,
-  Gift,
-  QrCode,
-  Clock,
-  Store,
-  ChevronRight,
-  ArrowLeft,
-  Navigation,
-  Sparkles,
-  Plus,
-} from "lucide-react";
+import { Check, CheckCircle2, Ticket, User, Truck, CreditCard, ShoppingBag, AlertCircle, MapPin, Loader2, Gift, QrCode, Clock, Store, ChevronRight, ArrowLeft, Navigation, Layers, Plus } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -57,7 +37,7 @@ import { toast } from "sonner";
 import { Surface } from "@/components/ui/surface";
 
 export const Route = createFileRoute("/_store/checkout")({
-  head: () => ({ meta: [{ title: "Checkout | Wider" }] }),
+  head: () => ({ meta: [{ title: "Checkout | JAH Master OS" }] }),
   validateSearch: (search: Record<string, unknown>): { store?: string } => {
     return {
       store: (search.store as string) || undefined,
@@ -800,7 +780,7 @@ export function CheckoutPage() {
                     <div className="sm:col-span-2 space-y-3 pt-3 border-t border-border/40">
                       <div className="space-y-0.5">
                         <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                          <Sparkles className="size-3.5 text-primary" /> Informações Complementares ({storeProfile.name})
+                          <Layers className="size-3.5 text-primary" /> Informações Complementares ({storeProfile.name})
                         </Label>
                         <p className="text-[11px] text-muted-foreground">
                           Dados necessários para a emissão e processamento deste pedido.

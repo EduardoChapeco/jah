@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   Loader2,
   Building2,
-  Star,
   Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -175,7 +174,7 @@ function WorkspacePatrocinadoresPage() {
 
       {/* Grid de Patrocinadores */}
       {sponsors.length === 0 ? (
-        <div className="py-16 text-center rounded-3xl border-0 bg-card/50 space-y-4">
+        <div className="py-16 text-center rounded-2xl border-0 bg-card/50 space-y-4">
           <Megaphone className="size-12 text-muted-foreground/40 mx-auto" />
           <div className="space-y-1">
             <h3 className="text-base font-bold text-foreground">Nenhum patrocinador cadastrado</h3>
@@ -193,7 +192,7 @@ function WorkspacePatrocinadoresPage() {
           {sponsors.map((sp) => (
             <div
               key={sp.id}
-              className="p-5 rounded-3xl  bg-card hover-elevate transition-all space-y-4 flex flex-col justify-between"
+              className="p-5 rounded-2xl  bg-card hover-elevate transition-all space-y-4 flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -267,7 +266,7 @@ function WorkspacePatrocinadoresPage() {
 
       {/* Modal de Criação / Edição */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-lg p-0 overflow-hidden sm:rounded-3xl bg-background">
+        <DialogContent className="sm:max-w-lg p-0 overflow-hidden sm:rounded-2xl bg-background">
           <DialogHeader className="p-6 pb-4  bg-muted/20">
             <DialogTitle className="flex items-center gap-2 text-lg font-black tracking-tight">
               <Megaphone className="size-5 text-primary" />
@@ -278,7 +277,7 @@ function WorkspacePatrocinadoresPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+          <form onSubmit={handleSave} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto no-scrollbar">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Nome da Empresa / Marca</Label>
               <Input

@@ -131,7 +131,7 @@ function ContractEditorPage() {
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 overflow-hidden bg-muted/20">
         
         {/* Lado Esquerdo: Editor Markdown e Configurações */}
-        <div className="border-r overflow-y-auto p-6 space-y-8 bg-card">
+        <div className="border-r overflow-y-auto no-scrollbar p-6 space-y-8 bg-card">
           <div className="space-y-3">
             <Label className="text-lg font-bold">Corpo do Documento (Markdown)</Label>
             <p className="text-xs text-muted-foreground">Utilize formatação Markdown para criar as cláusulas do documento.</p>
@@ -217,7 +217,7 @@ function ContractEditorPage() {
         </div>
 
         {/* Lado Direito: Preview WYSIWYG */}
-        <div className="overflow-y-auto p-8 bg-muted/40">
+        <div className="overflow-y-auto no-scrollbar p-8 bg-muted/40">
           <div className="max-w-[800px] mx-auto bg-white border shadow-sm min-h-[1056px] p-12 sm:p-20 relative">
             {/* Margens tipo folha A4 */}
             <div className="prose prose-sm sm:prose-base prose-slate max-w-none prose-headings:font-bold prose-a:text-primary">

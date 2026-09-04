@@ -254,7 +254,7 @@ function WorkspacePudoLogisticsPage() {
 
       {/* Tabs & Search */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 scrollbar-none">
           {[
             { id: "all", label: "Todos", count: packages.length },
             {
@@ -301,7 +301,7 @@ function WorkspacePudoLogisticsPage() {
 
       {/* Lista de Pacotes */}
       {filteredPackages.length === 0 ? (
-        <div className="py-16 text-center rounded-3xl border-0 bg-card/60 space-y-2">
+        <div className="py-16 text-center rounded-2xl border-0 bg-card/60 space-y-2">
           <Package className="size-10 text-muted-foreground/40 mx-auto" />
           <h3 className="text-base font-bold text-foreground">Nenhum pacote no momento</h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -313,7 +313,7 @@ function WorkspacePudoLogisticsPage() {
           {filteredPackages.map((pkg) => (
             <div
               key={pkg.id}
-              className="p-5 rounded-3xl  bg-card  space-y-4 flex flex-col justify-between hover:border-primary/40 transition-colors"
+              className="p-5 rounded-2xl  bg-card  space-y-4 flex flex-col justify-between hover:border-primary/40 transition-colors"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
@@ -407,7 +407,7 @@ function WorkspacePudoLogisticsPage() {
 
       {/* Modal: Receber Novo Pacote */}
       <Dialog open={isCheckInModalOpen} onOpenChange={setIsCheckInModalOpen}>
-        <DialogContent className="sm:max-w-md sm:p-6 sm:rounded-3xl bg-card">
+        <DialogContent className="sm:max-w-md sm:p-6 sm:rounded-2xl bg-card">
           <DialogHeader>
             <DialogTitle className="text-lg font-black">Registrar Entrada de Pacote</DialogTitle>
             <DialogDescription className="text-xs">
@@ -479,7 +479,7 @@ function WorkspacePudoLogisticsPage() {
 
       {/* Modal: Relatar Avaria & Devolução Reversa */}
       <Dialog open={!!damageModalPkg} onOpenChange={(open) => !open && setDamageModalPkg(null)}>
-        <DialogContent className="sm:max-w-md sm:p-6 sm:rounded-3xl bg-card">
+        <DialogContent className="sm:max-w-md sm:p-6 sm:rounded-2xl bg-card">
           <DialogHeader>
             <DialogTitle className="text-lg font-black text-destructive">
               Solicitar Logística Reversa & Avaria

@@ -22,7 +22,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/noticias/$slug")({
   head: ({ loaderData }: any) => ({
     meta: [
-      { title: loaderData?.article ? `${loaderData.article.title} | Wider Notícias` : "Notícia | Wider" },
+      { title: loaderData?.article ? `${loaderData.article.title} | Wider Notícias` : "Notícia | JAH Master OS" },
       { name: "description", content: loaderData?.article?.subtitle || "Notícia local no Wider." },
     ],
   }),
@@ -180,7 +180,7 @@ function NoticiaDetailPage() {
         {/* ── Capa Principal (Imagem ou Vídeo) ── */}
         {article.cover_media_url && (
           <div className="space-y-2">
-            <div className="relative aspect-16/9 rounded-3xl overflow-hidden bg-muted ">
+            <div className="relative aspect-16/9 rounded-2xl overflow-hidden bg-muted ">
               {article.cover_media_type === "video" ? (
                 <video
                   src={article.cover_media_url}

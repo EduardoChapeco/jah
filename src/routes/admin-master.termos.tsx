@@ -1,21 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  ShieldCheck,
-  FileText,
-  History,
-  Search,
-  CheckCircle2,
-  Edit,
-  Eye,
-  Loader2,
-  Lock,
-  Globe,
-  User,
-  Hash,
-  Clock,
-  Sparkles,
-} from "lucide-react";
+import { ShieldCheck, FileText, History, Search, CheckCircle2, Edit, Eye, Loader2, Lock, Globe, User, Hash, Clock, Layers } from 'lucide-react';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,7 +42,7 @@ import {
 } from "@/services/legal.functions";
 
 export const Route = createFileRoute("/admin-master/termos")({
-  head: () => ({ meta: [{ title: "Termos & Políticas da Plataforma | Wider Master" }] }),
+  head: () => ({ meta: [{ title: "Termos & Políticas da Plataforma | JAH Master" }] }),
   loader: async () => {
     const [documents, logsRes, stats] = await Promise.all([
       listLegalDocuments().catch(() => []),
@@ -381,7 +366,7 @@ function AdminMasterTermosPage() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto no-scrollbar">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -455,7 +440,7 @@ function AdminMasterTermosPage() {
 
       {/* Sheet para Edição de Documento Legal */}
       <Sheet open={isEditingDoc} onOpenChange={setIsEditingDoc}>
-        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto no-scrollbar">
           <SheetHeader>
             <SheetTitle>Editar Documento Legal</SheetTitle>
             <SheetDescription>

@@ -13,7 +13,7 @@ import {
   Eye,
   ShoppingBag,
   CreditCard,
-  Sparkles,
+  Utensils,
   Percent,
   TrendingUp,
   Package,
@@ -97,11 +97,12 @@ import {
 } from "@/services/admin-catalog.functions";
 import { getStoreSettings } from "@/services/store.functions";
 import { getNicheCatalogContext } from "@/lib/catalog-niche-context";
+import { getNicheSemantics } from "@/lib/niche-semantics";
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/catalogo/produtos/$id")({
-  head: () => ({ meta: [{ title: "Editor Avançado de Produto | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Editor Avançado de Produto | Workspace JAH Master OS" }] }),
   loader: async ({ params }) => {
     try {
       const [product, catsRes, typesRes, groupsRes, storeRes] = await Promise.all([
@@ -135,9 +136,8 @@ function EditProductPage() {
   const { product, categories, productTypes, optionGroupsList, store } = Route.useLoaderData();
   const router = useRouter();
 
-  const nicheCtx = getNicheCatalogContext(
-    store?.segment || store?.type || store?.settings?.segment || (store as any)?.category
-  );
+  const semantics = getNicheSemantics(store);
+  const nicheCtx = getNicheCatalogContext(store);
 
   if (!product) {
     return (
@@ -150,7 +150,7 @@ function EditProductPage() {
             </Link>
           </Button>
         </div>
-        <div className="p-12 text-center border-0 rounded-3xl bg-card">
+        <div className="p-12 text-center border-0 rounded-2xl bg-card">
           <h2 className="text-base font-bold text-foreground">{nicheCtx.entityName} não encontrado</h2>
           <p className="text-xs text-muted-foreground mt-1">
             O {nicheCtx.entityName.toLowerCase()} solicitado não existe ou foi removido do catálogo.
@@ -251,13 +251,14 @@ function EditProductPage() {
           },
         },
       });
-      toast.success("Especificações do cardápio atualizadas!");
+      toast.success("Especificações atualizadas com sucesso!");
     } catch {
       toast.error("Erro ao salvar especificações.");
     }
   };
 
   const isTourismStore =
+    semantics.nicheId === "tourism" ||
     Boolean(nicheCtx.isTourismBusiness) ||
     store?.segment === "tourism_agency" ||
     store?.type === "tourism_agency" ||
@@ -369,7 +370,7 @@ function EditProductPage() {
       <ProductEditorLayout
         preview={
           isTravelPackageMode ? (
-            <div className="w-full max-w-[380px] rounded-3xl border border-border/80 bg-background overflow-hidden shadow-md max-h-[750px] overflow-y-auto no-scrollbar">
+            <div className="w-full max-w-[380px] rounded-2xl border border-border/80 bg-background overflow-hidden shadow-md max-h-[750px] overflow-y-auto no-scrollbar">
               <TravelPackageDetailView
                 packageData={travelData}
                 productTitle={liveTitle || travelData.destination?.name || "Pacote de Viagem"}
@@ -470,7 +471,7 @@ function EditProductPage() {
             : []),
           { id: "geral", label: "Informações Básicas", icon: <Box className="size-4" /> },
           ...(nicheCtx.isFoodBusiness
-            ? [{ id: "especificacoes", label: "Cardápio & Restrições", icon: <Sparkles className="size-4" /> }]
+            ? [{ id: "especificacoes", label: "Cardápio & Restrições", icon: <Utensils className="size-4" /> }]
             : []),
           { id: "midias", label: "Galeria de Fotos", icon: <ImagePlus className="size-4" /> },
           { id: "variantes", label: nicheCtx.variationsSectionTitle, icon: <LayoutList className="size-4" /> },
@@ -603,7 +604,7 @@ function EditProductPage() {
         </div>
 
         {/* ── SEÇÃO 5: FICHA TÉCNICA & ESTOQUE COMPOSTO (EXCLUSIVO GASTRONOMIA) ── */}
-        {(nicheCtx.isFoodBusiness || bomItems.length > 0 || true) && (
+        {(nicheCtx.isFoodBusiness || bomItems.length > 0) && (
           <div id="ficha-tecnica" className="scroll-mt-32 pt-12 border-t">
             <ProductBomCard
               initialItems={bomItems}
@@ -1306,7 +1307,7 @@ function VariantsManager({ product }: { product: any }) {
         <AccordionItem value="builder" className="bg-card rounded-2xl px-5 border border-border/80">
           <AccordionTrigger className="hover:no-underline text-sm font-bold">
             <div className="flex items-center gap-2">
-              <Sparkles className="size-4 text-primary" />
+              <Layers className="size-4 text-primary" />
               <span>Gerador em Lote de Opções (Tamanhos, Cores, Voltagens)</span>
             </div>
           </AccordionTrigger>

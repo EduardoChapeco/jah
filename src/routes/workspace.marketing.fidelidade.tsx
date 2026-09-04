@@ -25,10 +25,8 @@ import {
 } from "@/components/ui/dialog";
 import {
   Award,
-  Sparkles,
   QrCode,
   Smartphone,
-  Star,
   Coffee,
   Utensils,
   Gift,
@@ -53,18 +51,18 @@ import type { CustomerLoyaltyCard } from "@/services/loyalty.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/marketing/fidelidade")({
-  head: () => ({ meta: [{ title: "Programa de Fidelidade | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Programa de Fidelidade | Workspace JAH Master OS" }] }),
   component: LoyaltyDashboardPage,
 });
 
 const STAMP_ICONS: Array<{ id: string; label: string; icon: any }> = [
-  { id: "star", label: "Estrela", icon: Star },
+  { id: "award", label: "Medalha", icon: Award },
   { id: "coffee", label: "Café", icon: Coffee },
   { id: "utensils", label: "Prato", icon: Utensils },
   { id: "gift", label: "Presente", icon: Gift },
   { id: "scissors", label: "Tesoura", icon: Scissors },
   { id: "plane", label: "Viagem", icon: Plane },
-  { id: "sparkles", label: "Brilho", icon: Sparkles },
+  { id: "heart", label: "Coração", icon: HeartHandshake },
 ];
 
 export default function LoyaltyDashboardPage() {
@@ -151,7 +149,7 @@ export default function LoyaltyDashboardPage() {
   const [stampsToAdd, setStampsToAdd] = useState(1);
 
   const SelectedIconComponent =
-    STAMP_ICONS.find((i) => i.id === stampIcon)?.icon || Star;
+    STAMP_ICONS.find((i) => i.id === stampIcon)?.icon || Award;
 
   return (
     <div className="flex-1 space-y-6 p-4 sm:p-6 max-w-7xl mx-auto w-full pb-20">
@@ -403,7 +401,7 @@ export default function LoyaltyDashboardPage() {
 
             {/* Simulador de Cartão Wallet em Tempo Real */}
             <div className="lg:col-span-5 flex flex-col items-center">
-              <div className="w-full max-w-[340px] bg-card rounded-3xl border-4 border-foreground/10 p-4 shadow-xl space-y-4">
+              <div className="w-full max-w-[340px] bg-card rounded-2xl border-4 border-foreground/10 p-4 shadow-xl space-y-4">
                 {/* Cartão de Fidelidade Digital (Wallet Pass) */}
                 <div
                   style={{ backgroundColor: cardBgColor, color: cardTextColor }}

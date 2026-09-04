@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_store/privacidade")({
       {
         title: loaderData?.title
           ? `${loaderData.title} | Wider`
-          : "Política de Privacidade e Proteção de Dados (LGPD) | Wider",
+          : "Política de Privacidade e Proteção de Dados (LGPD) | JAH Master OS",
       },
     ],
   }),

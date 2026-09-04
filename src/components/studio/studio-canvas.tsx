@@ -1,168 +1,189 @@
-import React, { useRef, useEffect } from "react";
-import {
-  type StudioElement,
-  type SlideBackground,
-  type StudioAspectRatio,
-  type TextProperties,
-  type ShapeProperties,
-  type ImageProperties,
-  STUDIO_DIMENSIONS,
-} from "@/types/studio";
+import React, { useState } from 'react';
+import { Layers, Type, Image as ImageIcon, Square, Download, Send, RefreshCw, Palette } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
-interface StudioCanvasProps {
-  aspectRatio: StudioAspectRatio;
-  background: SlideBackground;
-  elements: StudioElement[];
-  selectedElementId: string | null;
-  onSelectElement: (id: string | null) => void;
-  onUpdateElementPosition: (id: string, pos: { x: number; y: number }) => void;
-  zoom?: number;
+export interface CanvasLayer {
+  id: string;
+  type: 'text' | 'shape' | 'image';
+  text?: string;
+  fontSize?: number;
+  color?: string;
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  imageUrl?: string;
 }
 
-export function StudioCanvas({
-  aspectRatio,
-  background,
-  elements,
-  selectedElementId,
-  onSelectElement,
-  onUpdateElementPosition,
-  zoom = 1,
-}: StudioCanvasProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const dimensions = STUDIO_DIMENSIONS[aspectRatio] || STUDIO_DIMENSIONS["1:1"];
+interface StudioCanvasProps {
+  onExportToHero?: (imageUrl: string) => void;
+  className?: string;
+}
 
-  const getBackgroundStyle = (): React.CSSProperties => {
-    if (background.type === "color") {
-      return { backgroundColor: background.value || "#0F172A" };
-    }
-    if (background.type === "gradient" && background.gradient) {
-      const colors = background.gradient.colors.map((c) => `${c.color} ${c.position}%`).join(", ");
-      return {
-        background: `linear-gradient(${background.gradient.angle || 135}deg, ${colors})`,
-      };
-    }
-    if (background.type === "image" && background.imageUrl) {
-      return {
-        backgroundImage: `url(${background.imageUrl})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      };
-    }
-    return { backgroundColor: "#0F172A" };
+export function StudioCanvas({ onExportToHero, className = '' }: StudioCanvasProps) {
+  const [aspect, setAspect] = useState<'1:1' | '16:9' | '9:16'>('16:9');
+  const [bgColor, setBgColor] = useState('#0f172a');
+  const [layers, setLayers] = useState<CanvasLayer[]>([
+    {
+      id: 'l-1',
+      type: 'text',
+      text: 'OFERTA ESPECIAL DA SEMANA',
+      fontSize: 24,
+      color: '#38bdf8',
+      x: 30,
+      y: 40,
+    },
+    {
+      id: 'l-2',
+      type: 'text',
+      text: 'Até 40% OFF em toda a linha de produtos selecionados',
+      fontSize: 16,
+      color: '#ffffff',
+      x: 30,
+      y: 80,
+    },
+  ]);
+  const [selectedLayerId, setSelectedLayerId] = useState<string | null>('l-1');
+
+  const selectedLayer = layers.find((l) => l.id === selectedLayerId);
+
+  const addTextLayer = () => {
+    const newL: CanvasLayer = {
+      id: 'l-' + Date.now(),
+      type: 'text',
+      text: 'Novo Texto',
+      fontSize: 18,
+      color: '#ffffff',
+      x: 50,
+      y: 120,
+    };
+    setLayers((prev) => [...prev, newL]);
+    setSelectedLayerId(newL.id);
   };
 
-  // Sort elements by zIndex and layer
-  const sortedElements = [...elements].sort((a, b) => {
-    if (a.layer !== b.layer) return a.layer - b.layer;
-    return a.zIndex - b.zIndex;
-  });
+  const handleExport = () => {
+    // In real app, creates canvas data URL. For now, emits svg / placeholder data url
+    const fakeUrl = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400"><rect width="800" height="400" fill="%230f172a"/><text x="40" y="100" fill="%2338bdf8" font-size="32" font-family="sans-serif">PROMOÇÃO JAH</text></svg>';
+    if (onExportToHero) onExportToHero(fakeUrl);
+  };
 
   return (
-    <div
-      ref={containerRef}
-      onClick={(e) => {
-        if (e.target === containerRef.current) {
-          onSelectElement(null);
-        }
-      }}
-      className="relative flex items-center justify-center p-8 select-none overflow-hidden"
-      style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}
-    >
-      <div
-        id="studio-canvas-stage"
-        className="relative overflow-hidden rounded-3xl transition-all duration-200 border border-white/10"
-        style={{
-          width: `${dimensions.width / 2.5}px`,
-          height: `${dimensions.height / 2.5}px`,
-          ...getBackgroundStyle(),
-        }}
-      >
-        {sortedElements.map((el) => {
-          if (!el.visible) return null;
-          const isSelected = el.id === selectedElementId;
+    <div className={'p-6 rounded-2xl bg-card border border-border shadow-xl space-y-5 ' + className}>
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center bg-muted/60 p-1 rounded-xl gap-1">
+            {(['16:9', '1:1', '9:16'] as const).map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setAspect(r)}
+                className={'px-3 py-1.5 rounded-lg text-xs font-bold transition-all ' + (
+                  aspect === r ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+                )}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
 
-          return (
-            <div
-              key={el.id}
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelectElement(el.id);
-              }}
-              style={{
-                position: "absolute",
-                left: `${el.position.x}%`,
-                top: `${el.position.y}%`,
-                width: el.size.width ? `${el.size.width}%` : "auto",
-                height: el.size.height ? `${el.size.height}%` : "auto",
-                transform: `translate(-50%, -50%) rotate(${el.rotation}deg)`,
-                opacity: el.opacity,
-                zIndex: el.zIndex,
-                cursor: el.locked ? "default" : "move",
-              }}
-              className={`group transition-all ${
-                isSelected
-                  ? "ring-2 ring-primary ring-offset-2 ring-offset-transparent"
-                  : "hover:outline-dashed hover:outline-1 hover:outline-primary/50"
-              }`}
+          <div className="flex items-center gap-1.5 pl-2">
+            <span className="text-xs text-muted-foreground">Fundo:</span>
+            <input
+              type="color"
+              value={bgColor}
+              onChange={(e) => setBgColor(e.target.value)}
+              className="w-7 h-7 rounded-lg border border-border cursor-pointer bg-transparent"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addTextLayer}
+            className="min-h-[40px] px-3 rounded-xl text-xs flex items-center gap-1.5"
+          >
+            <Type className="w-4 h-4" />
+            Adicionar Texto
+          </Button>
+
+          {onExportToHero && (
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleExport}
+              className="min-h-[40px] px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-xs flex items-center gap-1.5 shadow-md"
             >
-              {/* Element Rendering based on Type */}
-              {el.type === "text" && (
-                <div
-                  style={{
-                    fontFamily: (el.properties as TextProperties).fontFamily || "Inter",
-                    fontSize: `${((el.properties as TextProperties).fontSize || 36) / 2.5}px`,
-                    fontWeight: (el.properties as TextProperties).fontWeight || 700,
-                    color: (el.properties as TextProperties).color || "#FFFFFF",
-                    textAlign: (el.properties as TextProperties).textAlign || "center",
-                    lineHeight: (el.properties as TextProperties).lineHeight || 1.2,
-                    letterSpacing: `${(el.properties as TextProperties).letterSpacing || 0}px`,
-                    textTransform: (el.properties as TextProperties).textTransform || "none",
-                  }}
-                  className="w-full h-full p-2 break-words"
-                >
-                  {(el.properties as TextProperties).content}
-                </div>
-              )}
-
-              {el.type === "shape" && (
-                <div
-                  style={{
-                    backgroundColor: (el.properties as ShapeProperties).fill || "#FACC15",
-                    borderRadius: `${((el.properties as ShapeProperties).borderRadius || 0) / 2.5}px`,
-                    borderWidth: (el.properties as ShapeProperties).strokeWidth
-                      ? `${(el.properties as ShapeProperties).strokeWidth}px`
-                      : 0,
-                    borderColor: (el.properties as ShapeProperties).strokeColor || "transparent",
-                  }}
-                  className="size-full"
-                />
-              )}
-
-              {el.type === "image" && (el.properties as ImageProperties).src && (
-                <img
-                  src={(el.properties as ImageProperties).src}
-                  alt={(el.properties as ImageProperties).alt || "Mídia"}
-                  style={{
-                    borderRadius: `${((el.properties as ImageProperties).borderRadius || 0) / 2.5}px`,
-                    objectFit: (el.properties as ImageProperties).objectFit || "cover",
-                  }}
-                  className="size-full pointer-events-none"
-                />
-              )}
-
-              {/* Selection Handles */}
-              {isSelected && !el.locked && (
-                <>
-                  <div className="absolute -top-1.5 -left-1.5 size-3 rounded-full bg-primary border-2 border-white" />
-                  <div className="absolute -top-1.5 -right-1.5 size-3 rounded-full bg-primary border-2 border-white" />
-                  <div className="absolute -bottom-1.5 -left-1.5 size-3 rounded-full bg-primary border-2 border-white" />
-                  <div className="absolute -bottom-1.5 -right-1.5 size-3 rounded-full bg-primary border-2 border-white" />
-                </>
-              )}
-            </div>
-          );
-        })}
+              <Send className="w-3.5 h-3.5" />
+              Aplicar ao Hero Banner
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Canvas Area */}
+      <div className="flex justify-center items-center p-6 bg-muted/20 rounded-2xl overflow-hidden min-h-[300px]">
+        <div
+          style={{ backgroundColor: bgColor }}
+          className={'w-full max-w-2xl rounded-2xl relative shadow-2xl overflow-hidden border border-white/10 ' + (
+            aspect === '16:9' ? 'aspect-video' : aspect === '9:16' ? 'aspect-[9/16] max-w-xs' : 'aspect-square max-w-sm'
+          )}
+        >
+          {layers.map((l) => (
+            <div
+              key={l.id}
+              onClick={() => setSelectedLayerId(l.id)}
+              style={{
+                position: 'absolute',
+                left: l.x,
+                top: l.y,
+                color: l.color,
+                fontSize: l.fontSize,
+              }}
+              className={'cursor-pointer p-1 border rounded transition-all ' + (
+                selectedLayerId === l.id ? 'border-primary bg-primary/10' : 'border-transparent'
+              )}
+            >
+              {l.text}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Selected Layer Properties */}
+      {selectedLayer && (
+        <div className="p-4 rounded-2xl bg-muted/30 border border-border flex flex-wrap items-center gap-4 text-xs">
+          <span className="font-bold text-foreground">Editar Camada:</span>
+          <Input
+            value={selectedLayer.text || ''}
+            onChange={(e) => {
+              const val = e.target.value;
+              setLayers((prev) =>
+                prev.map((l) => (l.id === selectedLayerId ? { ...l, text: val } : l))
+              );
+            }}
+            className="h-8 max-w-xs text-xs rounded-lg"
+          />
+          <div className="flex items-center gap-1.5">
+            <span className="text-muted-foreground">Cor:</span>
+            <input
+              type="color"
+              value={selectedLayer.color || '#ffffff'}
+              onChange={(e) => {
+                const val = e.target.value;
+                setLayers((prev) =>
+                  prev.map((l) => (l.id === selectedLayerId ? { ...l, color: val } : l))
+                );
+              }}
+              className="w-6 h-6 rounded cursor-pointer bg-transparent"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

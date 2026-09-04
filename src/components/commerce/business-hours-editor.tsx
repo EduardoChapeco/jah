@@ -1,19 +1,5 @@
 import React, { useState } from "react";
-import {
-  Clock,
-  Plus,
-  Trash2,
-  Copy,
-  Sparkles,
-  CheckCircle2,
-  Calendar,
-  AlertCircle,
-  PauseCircle,
-  PlayCircle,
-  Zap,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { Clock, Plus, Trash2, Copy, Layers, CheckCircle2, Calendar, AlertCircle, PauseCircle, PlayCircle, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

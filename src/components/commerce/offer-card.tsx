@@ -113,7 +113,7 @@ export function OfferCard({
     <Link
       to="/produto/$slug"
       params={{ slug }}
-      className="group relative flex items-stretch w-[330px] sm:w-[370px] h-[145px] sm:h-[155px] shrink-0 snap-start rounded-3xl  bg-card hover:border-primary/50 transition-all duration-200 overflow-hidden select-none block p-0"
+      className="group relative flex items-stretch w-[330px] sm:w-[370px] h-[145px] sm:h-[155px] shrink-0 snap-start rounded-2xl  bg-card hover:border-primary/50 transition-all duration-200 overflow-hidden select-none block p-0"
     >
       {/* ── LADO ESQUERDO: Imagem FULL BLEED (Encosta 100% nas bordas, sem padding) ── */}
       <div className="relative w-36 sm:w-44 h-full bg-muted overflow-hidden shrink-0">

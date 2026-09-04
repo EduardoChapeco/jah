@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_store/trocas-e-devolucoes")({
       {
         title: loaderData?.title
           ? `${loaderData.title} | Wider`
-          : "Políticas de Trocas, Devoluções e Cancelamentos | Wider",
+          : "Políticas de Trocas, Devoluções e Cancelamentos | JAH Master OS",
       },
     ],
   }),

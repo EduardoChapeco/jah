@@ -14,7 +14,7 @@ import { getUserSession } from "@/services/auth.functions";
 import { getUserTokenWallet } from "@/services/tokens.functions";
 
 export const Route = createFileRoute("/_store/conta/tokens")({
-  head: () => ({ meta: [{ title: "Tokens de Fidelidade | Wider" }] }),
+  head: () => ({ meta: [{ title: "Tokens de Fidelidade | JAH Master OS" }] }),
   loader: async () => {
     const session = await getUserSession().catch(() => null);
 

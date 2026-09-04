@@ -6,7 +6,6 @@ import {
   Trash2,
   Save,
   RotateCcw,
-  Sparkles,
   ChevronDown,
   ChevronUp,
   FileUp,
@@ -294,7 +293,7 @@ export function AgencyClausesEditorModal({
           </div>
 
           {/* ABA 1: EDITOR VISUAL DE CLÁUSULAS */}
-          <TabsContent value="editor" className="flex-1 overflow-y-auto p-6 space-y-4 m-0">
+          <TabsContent value="editor" className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4 m-0">
             {isLoading ? (
               <div className="py-16 text-center text-xs text-muted-foreground space-y-2">
                 <Loader2 className="size-6 animate-spin mx-auto text-primary" />
@@ -380,10 +379,10 @@ export function AgencyClausesEditorModal({
           </TabsContent>
 
           {/* ABA 2: IMPORTADOR / COLAR MINUTA PRÓPRIA */}
-          <TabsContent value="import" className="flex-1 overflow-y-auto p-6 space-y-4 m-0">
+          <TabsContent value="import" className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4 m-0">
             <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-2">
               <div className="flex items-center gap-2">
-                <Sparkles className="size-4 text-primary" />
+                <FileText className="size-4 text-primary" />
                 <h3 className="text-xs font-bold text-foreground">Importador Inteligente de Minuta Jurídica</h3>
               </div>
               <p className="text-xs text-muted-foreground">

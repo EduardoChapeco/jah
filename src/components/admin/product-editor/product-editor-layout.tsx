@@ -70,7 +70,7 @@ export function ProductEditorLayout({ sections, children, preview }: ProductEdit
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
-      const scrollParent = el.closest(".overflow-y-auto") as HTMLElement | null;
+      const scrollParent = el.closest(".overflow-y-auto no-scrollbar") as HTMLElement | null;
       if (!scrollParent || scrollParent === document.documentElement || scrollParent === document.body) {
         const y = el.getBoundingClientRect().top + window.scrollY - 100;
         window.scrollTo({ top: y, behavior: "smooth" });
@@ -88,7 +88,7 @@ export function ProductEditorLayout({ sections, children, preview }: ProductEdit
       {/* Mobile Navigation Pills */}
       <div
         ref={mobileNavRef}
-        className="flex lg:hidden overflow-x-auto pb-4 gap-2 sticky top-[72px] bg-background/95 backdrop-blur z-40 border-b col-span-1 scrollbar-none"
+        className="flex lg:hidden overflow-x-auto no-scrollbar pb-4 gap-2 sticky top-[72px] bg-background/95 backdrop-blur z-40 border-b col-span-1 scrollbar-none"
       >
         {sections.map((section) => {
           const isActive = activeSection === section.id;

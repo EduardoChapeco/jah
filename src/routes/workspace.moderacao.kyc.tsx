@@ -98,7 +98,7 @@ function KycAuditPage() {
       {isLoading ? (
         <div className="py-20 flex justify-center"><Loader2 className="animate-spin text-muted-foreground" size={40} /></div>
       ) : verifications?.length === 0 ? (
-        <div className="py-20 text-center space-y-4 bg-muted/10 rounded-3xl p-8 border border-dashed">
+        <div className="py-20 text-center space-y-4 bg-muted/10 rounded-2xl p-8 border border-dashed">
           <BadgeAlert size={48} className="text-muted-foreground/30 mx-auto" />
           <h2 className="text-lg font-bold text-foreground">Nenhuma submissão encontrada</h2>
           <p className="text-sm text-muted-foreground">Não há processos KYC pendentes na fila.</p>
@@ -106,7 +106,7 @@ function KycAuditPage() {
       ) : (
         <div className="grid gap-4">
           {verifications?.map((v: any) => (
-            <div key={v.id} className="bg-card p-6 rounded-3xl border shadow-sm space-y-4">
+            <div key={v.id} className="bg-card p-6 rounded-2xl border shadow-sm space-y-4">
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="font-bold text-lg flex items-center gap-2">

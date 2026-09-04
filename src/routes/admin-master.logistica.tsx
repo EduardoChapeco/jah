@@ -1,23 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  Truck,
-  Bike,
-  ShieldCheck,
-  Zap,
-  Users,
-  BadgePercent,
-  Image as ImageIcon,
-  Smartphone,
-  Tablet,
-  Monitor,
-  Loader2,
-  Save,
-  CheckCircle2,
-  Sparkles,
-  Info,
-} from "lucide-react";
+import { Truck, Bike, ShieldCheck, Zap, Users, BadgePercent, Image as ImageIcon, Smartphone, Tablet, Monitor, Loader2, Save, CheckCircle2, Layers, Info } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,7 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin-master/logistica")({
-  head: () => ({ meta: [{ title: "CMS Logística & MotoLink | Wider Master" }] }),
+  head: () => ({ meta: [{ title: "CMS Logística & MotoLink | JAH Master" }] }),
   loader: async () => {
     try {
       const settings = await getLogisticsPresentationSettings();
@@ -134,7 +118,7 @@ function AdminMasterLogisticaPage() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16 animate-in fade-in duration-200">
       {/* ── Topo & Ações ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card p-6 rounded-3xl border border-border/70">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-border/70">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
@@ -175,10 +159,10 @@ function AdminMasterLogisticaPage() {
         {/* ── Coluna da Esquerda: Formulário de Configuração (7 colunas) ── */}
         <div className="lg:col-span-7 space-y-6">
           {/* 1. Textos Principais */}
-          <Card className="p-6 rounded-3xl border border-border/70 space-y-4 bg-card">
+          <Card className="p-6 rounded-2xl border border-border/70 space-y-4 bg-card">
             <div className="space-y-0.5 pb-2 border-b border-border/60">
               <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <Sparkles className="size-4 text-primary" />
+                <Layers className="size-4 text-primary" />
                 <span>Textos da Apresentação</span>
               </h2>
               <p className="text-[11px] text-muted-foreground">
@@ -234,7 +218,7 @@ function AdminMasterLogisticaPage() {
           </Card>
 
           {/* 2. Manifesto & Disclaimer Legal de Não-Intermediação */}
-          <Card className="p-6 rounded-3xl border border-border/70 space-y-4 bg-card">
+          <Card className="p-6 rounded-2xl border border-border/70 space-y-4 bg-card">
             <div className="space-y-0.5 pb-2 border-b border-border/60">
               <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <ShieldCheck className="size-4 text-primary" />
@@ -260,7 +244,7 @@ function AdminMasterLogisticaPage() {
           </Card>
 
           {/* 3. Upload de 3 Imagens Responsivas (Mobile, Tablet, Desktop) */}
-          <Card className="p-6 rounded-3xl border border-border/70 space-y-4 bg-card">
+          <Card className="p-6 rounded-2xl border border-border/70 space-y-4 bg-card">
             <div className="space-y-0.5 pb-2 border-b border-border/60">
               <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <ImageIcon className="size-4 text-primary" />
@@ -336,7 +320,7 @@ function AdminMasterLogisticaPage() {
 
         {/* ── Coluna da Direita: Truthful Live Preview Responsivo (5 colunas) ── */}
         <div className="lg:col-span-5 space-y-4">
-          <Card className="p-5 rounded-3xl border border-border/70 bg-card space-y-4 sticky top-6">
+          <Card className="p-5 rounded-2xl border border-border/70 bg-card space-y-4 sticky top-6">
             <div className="flex items-center justify-between pb-2 border-b border-border/60">
               <div className="flex items-center gap-2">
                 <Info className="size-4 text-primary" />

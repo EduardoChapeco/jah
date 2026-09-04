@@ -22,7 +22,6 @@ import {
   ChevronRight,
   ClipboardList,
   ShieldAlert,
-  Sparkles,
   Megaphone,
   Flame,
   Newspaper,
@@ -49,7 +48,6 @@ import {
   Scale,
   Wrench,
   MapPin,
-  Star,
   Navigation,
   Briefcase,
   Plane,
@@ -93,95 +91,112 @@ import {
   type NavGroup,
   type NavItem,
 } from "@/lib/workspace-navigation";
+import { getNicheSemantics } from "@/lib/niche-semantics";
 import { WorkspaceAccountSwitcher } from "./workspace-account-switcher";
 import { WorkspaceAllToolsDialog } from "./workspace-all-tools-dialog";
 import { WorkspaceSidebarFlyout } from "./workspace-sidebar-flyout";
 
 
 function getStoreContextualAction(storeData: any) {
-  const segment = (
-    storeData?.segment ||
-    storeData?.type ||
-    storeData?.category ||
-    storeData?.settings?.segment ||
-    ""
-  ).toLowerCase();
+  const semantics = getNicheSemantics(storeData);
 
-  if (
-    segment.includes("gastro") ||
-    segment.includes("restauran") ||
-    segment.includes("lanchon") ||
-    segment.includes("bar") ||
-    segment.includes("caf") ||
-    segment.includes("pizza") ||
-    segment.includes("hamburg") ||
-    segment.includes("comida") ||
-    segment.includes("aliment")
-  ) {
-    return {
-      label: "Ver Cardápio Online",
-      icon: UtensilsCrossed,
-      aba: "cardapio",
-    };
+  switch (semantics.nicheId) {
+    case "gastronomy":
+      return {
+        label: "Ver Cardápio Online",
+        icon: UtensilsCrossed,
+        aba: "cardapio",
+      };
+    case "tourism":
+      return {
+        label: "Ver Espaço & Roteiros",
+        icon: Compass,
+        aba: "turismo",
+      };
+    case "services":
+      return {
+        label: "Ver Catálogo de Serviços",
+        icon: Layers,
+        aba: "servicos",
+      };
+    case "real_estate":
+      return {
+        label: "Ver Catálogo de Imóveis",
+        icon: Building2,
+        aba: "imoveis",
+      };
+    case "events":
+      return {
+        label: "Ver Eventos & Ingressos",
+        icon: Compass,
+        aba: "eventos",
+      };
+    case "jobs":
+      return {
+        label: "Ver Mural de Carreiras",
+        icon: ArrowUpRight,
+        aba: "vagas",
+      };
+    default:
+      return {
+        label: "Ver Loja Online",
+        icon: ShoppingBag,
+        aba: "catalogo",
+      };
   }
+}
 
-  if (
-    segment.includes("servi") ||
-    segment.includes("belez") ||
-    segment.includes("estet") ||
-    segment.includes("saud") ||
-    segment.includes("consult") ||
-    segment.includes("advoc") ||
-    segment.includes("agenc")
-  ) {
-    return {
-      label: "Ver Catálogo de Serviços",
-      icon: Sparkles,
-      aba: "servicos",
-    };
+function getStoreHeaderOperationalAction(storeData: any) {
+  const semantics = getNicheSemantics(storeData);
+
+  switch (semantics.nicheId) {
+    case "tourism":
+      return {
+        label: "Grupos & Excursões",
+        path: "/workspace/turismo/grupos",
+        icon: Users,
+      };
+    case "services":
+      return {
+        label: "Grade de Agendamentos",
+        path: "/workspace/agenda",
+        icon: Calendar,
+      };
+    case "legal":
+      return {
+        label: "Processos & Prazos",
+        path: "/workspace/advocacia",
+        icon: Scale,
+      };
+    case "real_estate":
+      return {
+        label: "Catálogo de Imóveis",
+        path: "/workspace/catalogo/produtos",
+        icon: Building2,
+      };
+    case "events":
+      return {
+        label: "Meus Eventos & Lotes",
+        path: "/workspace/eventos",
+        icon: Compass,
+      };
+    case "jobs":
+      return {
+        label: "Vagas & Candidaturas",
+        path: "/workspace/empregos/candidatos",
+        icon: Briefcase,
+      };
+    case "gastronomy":
+    case "retail":
+    case "supermarket":
+    case "wholesale":
+    default:
+      return {
+        label: "Frente de Caixa (PDV)",
+        path: "/workspace/pdv",
+        icon: Store,
+      };
   }
-
-  if (segment.includes("imove") || segment.includes("imobili")) {
-    return {
-      label: "Ver Catálogo de Imóveis",
-      icon: Building2,
-      aba: "imoveis",
-    };
-  }
-
-  if (
-    segment.includes("turis") ||
-    segment.includes("hotel") ||
-    segment.includes("pousad") ||
-    segment.includes("viage")
-  ) {
-    return {
-      label: "Ver Espaço Turístico",
-      icon: Compass,
-      aba: "turismo",
-    };
-  }
-
-  if (
-    segment.includes("moda") ||
-    segment.includes("calc") ||
-    segment.includes("roup") ||
-    segment.includes("varej") ||
-    segment.includes("mercad") ||
-    segment.includes("loja")
-  ) {
-    return {
-      label: "Ver Loja Online",
-      icon: ShoppingBag,
-      aba: "catalogo",
-    };
-  }
-
-  return {
-    label: "Ver Página da Loja",
-    icon: ArrowUpRight,
-    aba: "catalogo",
-  };
 }
 
 export function WorkspaceShell({ children, session }: { children: ReactNode; session?: any }) {
@@ -210,6 +225,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
     isMasterMode: isPlatformAdmin && isMasterAllVerticals,
     userRole: activeStore?.role || session?.role,
   });
+  const currentSemantics = getNicheSemantics(activeStore);
 
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = { overview: true };
@@ -318,7 +334,19 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
       )}
 
       {/* Lista de Grupos de Navegação com Flyout Flutuante / Accordion */}
-      {activeModules.map((group) => {
+      {activeModules.map((group, idx) => {
+        const prevGroup = idx > 0 ? activeModules[idx - 1] : undefined;
+        const isNewSection = prevGroup && group.section && group.section !== prevGroup.section;
+
+        const sectionLabel =
+          group.section === "master"
+            ? "Principal"
+            : group.section === "niche"
+            ? (currentSemantics?.name ? `Operação · ${currentSemantics.name}` : "Operação do Segmento")
+            : group.section === "corporate"
+            ? "Gestão Corporativa"
+            : undefined;
+
         const isGroupActive = group.items.some((item) =>
           item.path === "/workspace"
             ? currentPath === "/workspace"
@@ -327,14 +355,23 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
         const isExpanded = expandedGroups[group.id] ?? isGroupActive;
 
         return (
-          <WorkspaceSidebarFlyout
-            key={group.id}
-            group={group}
-            currentPath={currentPath}
-            isExpanded={isExpanded}
-            onToggleExpand={() => toggleGroup(group.id)}
-            isMobile={isMobile}
-          />
+          <div key={group.id} className="space-y-0.5">
+            {isNewSection && sectionLabel && (
+              <div className="pt-2.5 pb-1 px-2.5 flex items-center gap-2 select-none">
+                <span className="text-[10px] font-mono font-bold tracking-wider text-muted-foreground/60 uppercase truncate">
+                  {sectionLabel}
+                </span>
+                <div className="h-px bg-border/40 flex-1 shrink-0" />
+              </div>
+            )}
+            <WorkspaceSidebarFlyout
+              group={group}
+              currentPath={currentPath}
+              isExpanded={isExpanded}
+              onToggleExpand={() => toggleGroup(group.id)}
+              isMobile={isMobile}
+            />
+          </div>
         );
       })}
     </div>
@@ -343,9 +380,9 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
   return (
     <div className="flex min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground font-sans relative">
       {/* ── 1. BARRA LATERAL CANÔNICA DO WORKSPACE (PADRÃO META STUDIO) ── */}
-      <aside className="hidden lg:flex flex-col w-[250px] shrink-0 h-screen sticky top-0 bg-background border-r border-border/60 py-3.5 px-3 justify-between select-none z-30">
-        <div className="space-y-3">
-          {/* Seletor de Conta / Portfólio Empresarial Multi-Ativos (Meta Studio) */}
+      <aside className="hidden lg:flex flex-col w-[250px] shrink-0 h-screen sticky top-0 bg-background border-r border-border/60 justify-between select-none z-30">
+        {/* Topo da Sidebar com altura exata h-14 (56px) alinhada continuamente à linha do Header */}
+        <div className="h-14 border-b border-border/60 px-3 flex items-center shrink-0">
           <WorkspaceAccountSwitcher
             memberships={memberships}
             activeStoreId={activeStoreId}
@@ -355,19 +392,20 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
             isSwitching={isSwitching}
             onSwitchStore={handleSwitchStore}
           />
-
-          <ScrollArea className="h-[calc(100vh-210px)] pr-2">
-            <NavLinks isMobile={false} />
-          </ScrollArea>
         </div>
 
+        {/* Lista de Navegação com Scroll Suave */}
+        <ScrollArea className="flex-1 px-3 py-3 pr-2">
+          <NavLinks isMobile={false} />
+        </ScrollArea>
+
         {/* ── Ações Canônicas de Rodapé da Sidebar (Padrão Meta Business Suite) ── */}
-        <div className="pt-2 space-y-1 border-t border-border/60">
+        <div className="p-3 space-y-1 border-t border-border/60 shrink-0">
           {/* 1. Botão "Todas as ferramentas" */}
           <button
             type="button"
             onClick={() => setIsAllToolsOpen(true)}
-            className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
           >
             <Sliders className="size-4 text-primary shrink-0" />
             <span className="truncate">Todas as ferramentas</span>
@@ -415,8 +453,8 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
       </aside>
 
       {/* ── 2. ÁREA PRINCIPAL COM HEADER OPERACIONAL DEDICADO ── */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto">
-        <header className="h-14 bg-background/90 backdrop-blur-md border-b border-border/60 px-4 md:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-20 shrink-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto no-scrollbar">
+        <header className="h-14 bg-background/95 backdrop-blur-md border-b border-border/60 px-6 lg:px-8 flex items-center justify-between sticky top-0 z-20 shrink-0">
           <div className="flex items-center gap-3">
             {/* Mobile Sheet Trigger */}
             <div className="lg:hidden">
@@ -437,20 +475,26 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
               </Sheet>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground hidden sm:inline-block">
-                Workspace
+            {/* Breadcrumb Limpo, Alinhado e Funcional */}
+            <div className="flex items-center gap-2 text-xs font-semibold">
+              <span className="text-muted-foreground/70 hidden sm:inline-block">Workspace</span>
+              <span className="text-muted-foreground/40 hidden sm:inline-block">/</span>
+              <span className="text-foreground font-bold truncate max-w-[180px]">
+                {activeStore?.name || memberships[0]?.name || "Loja"}
               </span>
-              {(activeStore?.name || memberships[0]?.name) && (
-                <Badge variant="outline" className="text-xs font-semibold bg-primary/10 text-primary border-primary/20">
-                  ● {activeStore?.name || memberships[0]?.name}
-                </Badge>
+              {currentSemantics?.name && (
+                <>
+                  <span className="text-muted-foreground/40 hidden md:inline-block">/</span>
+                  <span className="text-muted-foreground font-medium hidden md:inline-block text-[11px]">
+                    {currentSemantics.name}
+                  </span>
+                </>
               )}
             </div>
           </div>
 
           {/* Ações do Header do Workspace */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             {/* Botão Contextual da Loja Pública (Cardápio / Loja Online) */}
             {(() => {
               const storeData = activeStore?.store || activeStore;
@@ -493,18 +537,26 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
               </Button>
             )}
 
-            {/* Frente de Caixa Rápido (PDV) */}
-            <Button
-              asChild
-              size="sm"
-              variant="outline"
-              className="h-8 rounded-xl text-xs font-bold gap-1.5 hidden sm:inline-flex border-border bg-card hover:bg-muted"
-            >
-              <Link to="/workspace/pdv">
-                <Store className="size-3.5 text-primary" />
-                <span>Frente de Caixa (PDV)</span>
-              </Link>
-            </Button>
+            {/* Ação Operacional Primária Contextual por Nicho */}
+            {(() => {
+              const storeData = activeStore?.store || activeStore;
+              const opAction = getStoreHeaderOperationalAction(storeData);
+              const OpIcon = opAction.icon;
+
+              return (
+                <Button
+                  asChild
+                  size="sm"
+                  variant="outline"
+                  className="h-8 rounded-xl text-xs font-bold gap-1.5 hidden sm:inline-flex border-border bg-card hover:bg-muted"
+                >
+                  <Link to={opAction.path as never}>
+                    <OpIcon className="size-3.5 text-primary" />
+                    <span>{opAction.label}</span>
+                  </Link>
+                </Button>
+              );
+            })()}
 
             {/* Menu do Operador com Troca de Contexto Protegida */}
             <DropdownMenu>
@@ -602,14 +654,14 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
           </div>
         </header>
 
-        <main className="flex-1 px-4 md:px-6 lg:px-8 py-6 w-full pb-20 md:pb-8">
+        <main className="flex-1 w-full max-w-7xl mx-auto px-6 lg:px-8 py-6 pb-24">
           {children}
         </main>
       </div>
 
       {/* ── 3. MODAL DE CONFIRMAÇÃO DE ALTERNÂNCIA DE CONTEXTO (PROTEÇÃO RIGOROSA) ── */}
       <Dialog open={showPersonalSwitchModal} onOpenChange={setShowPersonalSwitchModal}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden sm:rounded-3xl bg-background border border-border">
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden sm:rounded-2xl bg-background border border-border">
           <DialogHeader className="p-6 pb-4 bg-muted/20 border-b border-border/40">
             <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-2 border border-primary/20">
               <ArrowRightLeft className="size-5" />

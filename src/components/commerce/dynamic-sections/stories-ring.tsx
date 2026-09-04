@@ -27,7 +27,7 @@ export function StoriesRing({ content }: StoriesRingProps) {
   return (
     <>
       {/* Ring / Bubbles */}
-      <div className="w-full flex overflow-x-auto gap-4 py-4 px-4 scrollbar-hide snap-x">
+      <div className="w-full flex overflow-x-auto no-scrollbar gap-4 py-4 px-4 scrollbar-hide snap-x">
         {stories.map((story) => {
           const thumbImg = story.thumb || story.thumbnail_url || "";
           const isVideo =

@@ -124,7 +124,7 @@ export function RequestQuoteModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleResetAndClose()}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto no-scrollbar">
         {isSuccess ? (
           <div className="py-6 flex flex-col items-center text-center space-y-4">
             <div className="size-16 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center">

@@ -1,14 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { z } from "zod";
-import {
-  ShoppingBag,
-  Calendar,
-  Tag,
-  Store,
-  ChevronRight,
-  Sparkles,
-} from "lucide-react";
+import { ShoppingBag, Calendar, Tag, Store, ChevronRight, Layers } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 import {
@@ -55,7 +48,7 @@ export const Route = createFileRoute("/_store/buscar")({
 });
 
 const TYPE_FILTERS: FilterChipOption[] = [
-  { id: "todos", label: "Tudo", icon: Sparkles as any },
+  { id: "todos", label: "Tudo", icon: Layers as any },
   { id: "product", label: "Produtos", icon: ShoppingBag as any },
   { id: "classified", label: "Classificados", icon: Tag as any },
   { id: "store", label: "Lojas & Negócios", icon: Store as any },
@@ -305,7 +298,7 @@ function SearchPage() {
           {/* Termos Populares / Em Alta */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <Sparkles className="size-4 text-primary" />
+              <Layers className="size-4 text-primary" />
               <h2 className="text-xs font-bold font-mono uppercase tracking-wider text-muted-foreground">
                 Buscas Populares na Cidade
               </h2>
@@ -372,7 +365,7 @@ function SearchPage() {
       )}
 
       {input.length >= 2 && result !== null && total === 0 && (
-        <div className="py-12 text-center space-y-4 bg-card rounded-3xl  p-6 ">
+        <div className="py-12 text-center space-y-4 bg-card rounded-2xl  p-6 ">
           <EmptyState
             title={`Nenhum resultado encontrado para "${input}"`}
             description="Tente buscar por termos mais genéricos ou explore as categorias abaixo."
@@ -403,7 +396,7 @@ function SearchPage() {
       {/* Visualização de Radar no Mapa quando viewMode === "feed" */}
       {hasResults && viewMode === "feed" && (
         <div className="space-y-4">
-          <div className="h-[460px] w-full rounded-3xl overflow-hidden border border-border/60 relative">
+          <div className="h-[460px] w-full rounded-2xl overflow-hidden border border-border/60 relative">
             <MapLibreCanvas
               markers={mapMarkers}
               selectedMarkerId={selectedStoreMarker?.id}

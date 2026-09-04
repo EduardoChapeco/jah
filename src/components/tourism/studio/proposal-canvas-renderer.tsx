@@ -15,7 +15,9 @@ import {
   SuitcaseSimple,
   CreditCard,
   QrCode,
+  Sparkle,
 } from "@phosphor-icons/react";
+import { cn } from "@/lib/utils";
 
 interface ProposalCanvasRendererProps {
   proposal: TravelProposalDTO;
@@ -24,91 +26,164 @@ interface ProposalCanvasRendererProps {
 export function ProposalCanvasRenderer({ proposal }: ProposalCanvasRendererProps) {
   const isLandscape = proposal.canvas_format === "a4-landscape" || proposal.canvas_format === "presentation-169";
   const isStory = proposal.canvas_format === "story-916";
+  const template = (proposal as any)?.template || "editorial-flat";
+  const isDark = template === "dark-premium";
+  const isCorporate = template === "executivo";
 
   const totalCents = proposal.pricing?.total_price_cents || 0;
   const installments = proposal.pricing?.installments_options || [];
 
   return (
-    <div className="w-full bg-white text-slate-900 font-sans p-6 sm:p-10 space-y-6 flex flex-col justify-between min-h-full">
+    <div
+      className={cn(
+        "w-full font-sans p-6 sm:p-10 space-y-6 flex flex-col justify-between min-h-full transition-colors duration-200",
+        isDark ? "bg-[#09090b] text-zinc-100" : "bg-white text-slate-900",
+        isCorporate && "border-t-8 border-t-slate-900"
+      )}
+    >
       {/* ── 1. TOPO EDITORIAL / HEADER DA AGÊNCIA ── */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+      <div
+        className={cn(
+          "flex items-center justify-between pb-4 border-b",
+          isDark ? "border-zinc-800" : "border-slate-200"
+        )}
+      >
         <div className="flex items-center gap-3">
           {proposal.agency_logo_url ? (
             <img
               src={proposal.agency_logo_url}
               alt={proposal.agency_name}
-              className="h-10 w-auto object-contain rounded-lg max-w-[140px]"
+              className={cn(
+                "h-10 w-auto object-contain rounded-lg max-w-[140px]",
+                isDark && "brightness-0 invert"
+              )}
             />
           ) : (
-            <div className="size-10 rounded-xl bg-slate-900 text-white font-black text-xs flex items-center justify-center">
+            <div
+              className={cn(
+                "size-10 rounded-xl font-black text-xs flex items-center justify-center shadow-xs",
+                isDark ? "bg-amber-500 text-black font-bold" : "bg-slate-900 text-white"
+              )}
+            >
               {proposal.agency_name.slice(0, 2).toUpperCase()}
             </div>
           )}
           <div>
-            <h4 className="text-xs font-black tracking-tight text-slate-900 uppercase">
+            <h4
+              className={cn(
+                "text-xs font-black tracking-tight uppercase",
+                isDark ? "text-zinc-100" : "text-slate-900"
+              )}
+            >
               {proposal.agency_name}
             </h4>
-            <span className="text-[10px] font-mono text-slate-500 block">
+            <span
+              className={cn(
+                "text-[10px] font-mono block",
+                isDark ? "text-zinc-400" : "text-slate-500"
+              )}
+            >
               Proposta #{proposal.public_token}
             </span>
           </div>
         </div>
 
         <div className="text-right">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">
+          <span
+            className={cn(
+              "text-[10px] font-mono uppercase tracking-wider block",
+              isDark ? "text-zinc-500" : "text-slate-400"
+            )}
+          >
             Elaborado para
           </span>
-          <span className="text-xs font-bold text-slate-900">{proposal.client_name}</span>
+          <span
+            className={cn(
+              "text-xs font-bold",
+              isDark ? "text-zinc-100" : "text-slate-900"
+            )}
+          >
+            {proposal.client_name}
+          </span>
         </div>
       </div>
 
       {/* ── 2. CAPA PANORÂMICA & DESTINO ── */}
-      <div className="relative rounded-2xl overflow-hidden bg-slate-900 text-white aspect-21/9 min-h-[180px] flex flex-col justify-end p-6">
+      <div className="relative rounded-2xl overflow-hidden bg-slate-900 text-white aspect-21/9 min-h-[180px] flex flex-col justify-end p-6 shadow-md">
         {proposal.cover_image_url ? (
           <img
             src={proposal.cover_image_url}
             alt={proposal.destination_city}
-            className="absolute inset-0 size-full object-cover opacity-60"
+            className="absolute inset-0 size-full object-cover opacity-65"
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-slate-900 to-indigo-950 opacity-90" />
         )}
+
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
         <div className="relative z-10 space-y-1">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-bold text-white uppercase tracking-wider">
             <MapPin size={12} weight="bold" />
             <span>{proposal.destination_city}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow-sm">
             {proposal.title}
           </h1>
           {proposal.subtitle && (
-            <p className="text-xs text-white/80 font-medium">{proposal.subtitle}</p>
+            <p className="text-xs text-white/90 font-medium max-w-xl drop-shadow-xs">
+              {proposal.subtitle}
+            </p>
           )}
         </div>
       </div>
 
       {/* ── 3. METADADOS DA VIAGEM: PASSAGEIROS & DATAS ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-0.5">
-          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
-            Passageiros
+        <div
+          className={cn(
+            "p-3 rounded-xl border space-y-0.5 transition-colors",
+            isDark
+              ? "bg-zinc-900/80 border-zinc-800"
+              : "bg-slate-50 border-slate-200/80"
+          )}
+        >
+          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-muted-foreground block">
+            Quartos & Hóspedes
           </span>
-          <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
-            <Users size={14} className="text-slate-600" />
-            <span>
-              {proposal.adults_count} Adultos
-              {proposal.children_count > 0 && ` + ${proposal.children_count} Crianças`}
+          <div
+            className={cn(
+              "flex items-center gap-1.5 text-xs font-black",
+              isDark ? "text-zinc-100" : "text-slate-900"
+            )}
+          >
+            <Users size={14} className="text-primary shrink-0" />
+            <span className="truncate">
+              {proposal.rooms && proposal.rooms.length > 0
+                ? `${proposal.rooms.length} ${proposal.rooms.length === 1 ? "Quarto" : "Quartos"} (${proposal.adults_count} adt${proposal.children_count > 0 ? `, ${proposal.children_count} chd` : ""})`
+                : `${proposal.adults_count} Adultos${proposal.children_count > 0 ? ` + ${proposal.children_count} Crianças` : ""}`}
             </span>
           </div>
         </div>
 
-        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-0.5">
-          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+        <div
+          className={cn(
+            "p-3 rounded-xl border space-y-0.5 transition-colors",
+            isDark
+              ? "bg-zinc-900/80 border-zinc-800"
+              : "bg-slate-50 border-slate-200/80"
+          )}
+        >
+          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-muted-foreground block">
             Período da Viagem
           </span>
-          <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
-            <CalendarDots size={14} className="text-slate-600" />
+          <div
+            className={cn(
+              "flex items-center gap-1.5 text-xs font-black",
+              isDark ? "text-zinc-100" : "text-slate-900"
+            )}
+          >
+            <CalendarDots size={14} className="text-primary shrink-0" />
             <span>
               {proposal.travel_start_date || "Data Flexível"}
               {proposal.travel_end_date ? ` até ${proposal.travel_end_date}` : ""}
@@ -116,21 +191,40 @@ export function ProposalCanvasRenderer({ proposal }: ProposalCanvasRendererProps
           </div>
         </div>
 
-        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-0.5">
-          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+        <div
+          className={cn(
+            "p-3 rounded-xl border space-y-0.5 transition-colors",
+            isDark
+              ? "bg-zinc-900/80 border-zinc-800"
+              : "bg-slate-50 border-slate-200/80"
+          )}
+        >
+          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-muted-foreground block">
             Destino Principal
           </span>
-          <div className="flex items-center gap-1.5 text-xs font-black text-slate-900 truncate">
-            <MapPin size={14} className="text-slate-600 shrink-0" />
+          <div
+            className={cn(
+              "flex items-center gap-1.5 text-xs font-black truncate",
+              isDark ? "text-zinc-100" : "text-slate-900"
+            )}
+          >
+            <MapPin size={14} className="text-primary shrink-0" />
             <span className="truncate">{proposal.destination_city}</span>
           </div>
         </div>
 
-        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-0.5">
-          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+        <div
+          className={cn(
+            "p-3 rounded-xl border space-y-0.5 transition-colors",
+            isDark
+              ? "bg-zinc-900/80 border-zinc-800"
+              : "bg-slate-50 border-slate-200/80"
+          )}
+        >
+          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-muted-foreground block">
             Validade da Cotação
           </span>
-          <div className="flex items-center gap-1.5 text-xs font-black text-emerald-700">
+          <div className="flex items-center gap-1.5 text-xs font-black text-emerald-500">
             <Clock size={14} />
             <span>{proposal.valid_until || "Consulte agência"}</span>
           </div>
@@ -141,8 +235,13 @@ export function ProposalCanvasRenderer({ proposal }: ProposalCanvasRendererProps
       {proposal.flights && proposal.flights.length > 0 && (
         <div className="space-y-2.5">
           <div className="flex items-center gap-2">
-            <AirplaneTilt size={16} weight="bold" className="text-slate-800" />
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+            <AirplaneTilt size={16} weight="bold" className="text-primary" />
+            <h3
+              className={cn(
+                "text-xs font-black uppercase tracking-wider",
+                isDark ? "text-zinc-100" : "text-slate-900"
+              )}
+            >
               Voos & Conexões
             </h3>
           </div>
@@ -151,38 +250,67 @@ export function ProposalCanvasRenderer({ proposal }: ProposalCanvasRendererProps
             {proposal.flights.map((f) => (
               <div
                 key={f.id}
-                className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2"
+                className={cn(
+                  "p-3.5 rounded-xl border space-y-2",
+                  isDark
+                    ? "bg-zinc-900/90 border-zinc-800 text-zinc-100"
+                    : "border-slate-200 bg-slate-50/50 text-slate-900"
+                )}
               >
-                <div className="flex items-center justify-between text-xs font-bold text-slate-900">
+                <div className="flex items-center justify-between text-xs font-bold">
                   <span className="flex items-center gap-1.5">
-                    <span className="px-1.5 py-0.5 rounded bg-slate-200 text-[10px] font-mono">
+                    <span
+                      className={cn(
+                        "px-1.5 py-0.5 rounded text-[10px] font-mono",
+                        isDark ? "bg-zinc-800 text-amber-400" : "bg-slate-200 text-slate-800"
+                      )}
+                    >
                       {f.type === "outbound" ? "IDA" : f.type === "return" ? "VOLTA" : "TRECHO"}
                     </span>
                     <span>{f.airline_name}</span>
                   </span>
-                  <span className="text-[10px] font-mono text-slate-500">
+                  <span className="text-[10px] font-mono text-muted-foreground">
                     {f.flight_number || ""}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-xs font-black text-slate-900">
+                <div className="flex items-center justify-between text-xs font-black">
                   <div>
                     <span className="text-sm font-mono">{f.origin_iata}</span>
-                    <span className="text-[10px] text-slate-500 block font-normal">{f.departure_time}</span>
+                    <span className="text-[10px] text-muted-foreground block font-normal">
+                      {f.departure_time}
+                    </span>
                   </div>
-                  <div className="flex-1 mx-3 border-b-2 border-dashed border-slate-300 relative text-center">
-                    <span className="text-[9px] font-mono text-slate-400 bg-white px-1 relative -top-2">
+                  <div
+                    className={cn(
+                      "flex-1 mx-3 border-b-2 border-dashed relative text-center",
+                      isDark ? "border-zinc-700" : "border-slate-300"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "text-[9px] font-mono px-1 relative -top-2",
+                        isDark ? "text-zinc-400 bg-zinc-900" : "text-slate-400 bg-white"
+                      )}
+                    >
                       {f.stops_count === 0 ? "Voo Direto" : `${f.stops_count} escala(s)`}
                     </span>
                   </div>
                   <div className="text-right">
                     <span className="text-sm font-mono">{f.destination_iata}</span>
-                    <span className="text-[10px] text-slate-500 block font-normal">{f.arrival_time}</span>
+                    <span className="text-[10px] text-muted-foreground block font-normal">
+                      {f.arrival_time}
+                    </span>
                   </div>
                 </div>
 
                 {f.baggage_included && (
-                  <div className="text-[10px] font-medium text-slate-600 flex items-center gap-1 pt-1 border-t border-slate-200/60">
+                  <div
+                    className={cn(
+                      "text-[10px] font-medium flex items-center gap-1 pt-1 border-t",
+                      isDark ? "text-zinc-400 border-zinc-800" : "text-slate-600 border-slate-200/60"
+                    )}
+                  >
                     <SuitcaseSimple size={12} />
                     <span>Bagagem: {f.baggage_included}</span>
                   </div>
@@ -197,8 +325,13 @@ export function ProposalCanvasRenderer({ proposal }: ProposalCanvasRendererProps
       {proposal.hotels && proposal.hotels.length > 0 && (
         <div className="space-y-2.5">
           <div className="flex items-center gap-2">
-            <Buildings size={16} weight="bold" className="text-slate-800" />
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+            <Buildings size={16} weight="bold" className="text-primary" />
+            <h3
+              className={cn(
+                "text-xs font-black uppercase tracking-wider",
+                isDark ? "text-zinc-100" : "text-slate-900"
+              )}
+            >
               Hospedagem & Acomodação
             </h3>
           </div>
@@ -207,15 +340,22 @@ export function ProposalCanvasRenderer({ proposal }: ProposalCanvasRendererProps
             {proposal.hotels.map((h) => (
               <div
                 key={h.id}
-                className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5"
+                className={cn(
+                  "p-3.5 rounded-xl border space-y-1.5",
+                  isDark
+                    ? "bg-zinc-900/90 border-zinc-800 text-zinc-100"
+                    : "border-slate-200 bg-slate-50/50 text-slate-900"
+                )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-slate-900">{h.hotel_name}</span>
-                  <span className="text-amber-500 text-xs">{"★".repeat(h.stars || 4)}</span>
+                  <span className="text-xs font-black">{h.hotel_name}</span>
+                  <span className="text-amber-500 text-xs font-bold">
+                    {"★".repeat(h.stars || 4)}
+                  </span>
                 </div>
-                <div className="text-xs text-slate-600 font-medium">
+                <div className="text-xs text-muted-foreground font-medium">
                   <span>Quarto: {h.room_type}</span> •{" "}
-                  <span className="font-bold text-slate-900">
+                  <span className="font-bold text-foreground">
                     {h.board_basis === "all_inclusive"
                       ? "All Inclusive"
                       : h.board_basis === "breakfast"
@@ -225,11 +365,51 @@ export function ProposalCanvasRenderer({ proposal }: ProposalCanvasRendererProps
                       : "Sem Alimentação"}
                   </span>
                 </div>
-                <div className="text-[10px] text-slate-500 font-mono">
+                <div className="text-[10px] text-muted-foreground font-mono">
                   {h.nights_count} noites ({h.checkin_date} a {h.checkout_date})
                 </div>
               </div>
             ))}
+
+            {/* Sub-bloco de Distribuição de Quartos (Rooming List) */}
+            {proposal.rooms && proposal.rooms.length > 0 && (
+              <div
+                className={cn(
+                  "p-3 rounded-xl border space-y-2 col-span-full",
+                  isDark ? "bg-zinc-900/60 border-zinc-800" : "bg-white border-slate-200"
+                )}
+              >
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground block">
+                  Distribuição de Acomodações ({proposal.rooms.length}{" "}
+                  {proposal.rooms.length === 1 ? "Quarto Selecionado" : "Quartos Selecionados"})
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  {proposal.rooms.map((rm: any, idx: number) => (
+                    <div
+                      key={rm.id || idx}
+                      className={cn(
+                        "flex items-center justify-between p-2 rounded-lg border",
+                        isDark ? "bg-zinc-950 border-zinc-800 text-zinc-200" : "bg-slate-50 border-slate-200/70 text-slate-800"
+                      )}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="size-2 rounded-full bg-emerald-500" />
+                        <span className="font-bold">Quarto {rm.roomNumber || idx + 1}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          ({rm.roomType || "Casal"})
+                        </span>
+                      </div>
+                      <span className="text-[11px] font-medium text-muted-foreground">
+                        {rm.adults} {rm.adults === 1 ? "Adulto" : "Adultos"}
+                        {rm.children > 0
+                          ? ` + ${rm.children} Chd${rm.childrenAges?.length > 0 ? ` (${rm.childrenAges.map((a: number) => `${a}a`).join(", ")})` : ""}`
+                          : ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -238,8 +418,13 @@ export function ProposalCanvasRenderer({ proposal }: ProposalCanvasRendererProps
       {proposal.itinerary && proposal.itinerary.length > 0 && (
         <div className="space-y-2.5">
           <div className="flex items-center gap-2">
-            <CalendarDots size={16} weight="bold" className="text-slate-800" />
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+            <CalendarDots size={16} weight="bold" className="text-primary" />
+            <h3
+              className={cn(
+                "text-xs font-black uppercase tracking-wider",
+                isDark ? "text-zinc-100" : "text-slate-900"
+              )}
+            >
               Programação Sugerida
             </h3>
           </div>
@@ -248,13 +433,18 @@ export function ProposalCanvasRenderer({ proposal }: ProposalCanvasRendererProps
             {proposal.itinerary.map((it) => (
               <div
                 key={it.id}
-                className="p-3 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1"
+                className={cn(
+                  "p-3 rounded-xl border space-y-1",
+                  isDark
+                    ? "bg-zinc-900/80 border-zinc-800 text-zinc-100"
+                    : "border-slate-200 bg-slate-50/50 text-slate-900"
+                )}
               >
-                <span className="text-[10px] font-mono font-bold text-slate-500 uppercase">
+                <span className="text-[10px] font-mono font-bold text-primary uppercase">
                   Dia {it.day_number}
                 </span>
-                <p className="font-bold text-slate-900 text-xs">{it.title}</p>
-                <p className="text-[11px] text-slate-600 leading-relaxed line-clamp-3">
+                <p className="font-bold text-xs">{it.title}</p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-3">
                   {it.description}
                 </p>
               </div>
@@ -266,15 +456,22 @@ export function ProposalCanvasRenderer({ proposal }: ProposalCanvasRendererProps
       {/* ── 7. INCLUSÕES & EXCLUSÕES ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {proposal.includes && proposal.includes.length > 0 && (
-          <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200/80 space-y-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1">
-              <CheckCircle size={14} weight="bold" className="text-emerald-600" />
+          <div
+            className={cn(
+              "p-3.5 rounded-xl border space-y-2",
+              isDark
+                ? "bg-emerald-950/20 border-emerald-800/40 text-emerald-200"
+                : "bg-emerald-50/60 border-emerald-200/80 text-slate-800"
+            )}
+          >
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+              <CheckCircle size={14} weight="bold" className="text-emerald-500" />
               O Que Está Incluso
             </span>
-            <ul className="space-y-1 text-xs font-medium text-slate-800">
+            <ul className="space-y-1 text-xs font-medium">
               {proposal.includes.map((inc, i) => (
                 <li key={i} className="flex items-center gap-1.5">
-                  <span className="size-1 rounded-full bg-emerald-600 shrink-0" />
+                  <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
                   <span>{inc}</span>
                 </li>
               ))}
@@ -283,15 +480,22 @@ export function ProposalCanvasRenderer({ proposal }: ProposalCanvasRendererProps
         )}
 
         {proposal.excludes && proposal.excludes.length > 0 && (
-          <div className="p-3.5 rounded-xl bg-rose-50/60 border border-rose-200/80 space-y-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-rose-800 flex items-center gap-1">
-              <XCircle size={14} weight="bold" className="text-rose-600" />
+          <div
+            className={cn(
+              "p-3.5 rounded-xl border space-y-2",
+              isDark
+                ? "bg-rose-950/20 border-rose-800/40 text-rose-200"
+                : "bg-rose-50/60 border-rose-200/80 text-slate-700"
+            )}
+          >
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-1">
+              <XCircle size={14} weight="bold" className="text-rose-500" />
               Não Incluso / Extras
             </span>
-            <ul className="space-y-1 text-xs font-medium text-slate-700">
+            <ul className="space-y-1 text-xs font-medium">
               {proposal.excludes.map((exc, i) => (
                 <li key={i} className="flex items-center gap-1.5">
-                  <span className="size-1 rounded-full bg-rose-400 shrink-0" />
+                  <span className="size-1.5 rounded-full bg-rose-400 shrink-0" />
                   <span>{exc}</span>
                 </li>
               ))}
@@ -301,13 +505,21 @@ export function ProposalCanvasRenderer({ proposal }: ProposalCanvasRendererProps
       </div>
 
       {/* ── 8. QUADRO DE INVESTIMENTO & PARCELAMENTO ── */}
-      <div className="p-5 rounded-2xl bg-slate-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div
+        className={cn(
+          "p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md",
+          isDark
+            ? "bg-gradient-to-tr from-zinc-950 via-zinc-900 to-amber-950/30 border border-amber-500/40 text-white"
+            : "bg-slate-900 text-white"
+        )}
+      >
         <div className="space-y-1">
           <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
             Investimento Total para o Grupo
           </span>
-          <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-white">
-            {formatMoney(totalCents)}
+          <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-white flex items-center gap-2">
+            <span>{formatMoney(totalCents)}</span>
+            {isDark && <Sparkle size={18} weight="fill" className="text-amber-400" />}
           </div>
           <span className="text-[11px] text-slate-300 block">
             Taxas de embarque inclusas • Sem juros no cartão
@@ -319,7 +531,12 @@ export function ProposalCanvasRenderer({ proposal }: ProposalCanvasRendererProps
             {installments.map((inst, i) => (
               <div
                 key={i}
-                className="px-3 py-2 rounded-xl bg-white/10 border border-white/10 text-center"
+                className={cn(
+                  "px-3 py-2 rounded-xl border text-center",
+                  isDark
+                    ? "bg-black/40 border-amber-500/30 text-amber-200"
+                    : "bg-white/10 border-white/10 text-white"
+                )}
               >
                 <span className="text-[10px] text-slate-300 block uppercase font-mono">
                   {inst.installments_count}x de
@@ -336,15 +553,20 @@ export function ProposalCanvasRenderer({ proposal }: ProposalCanvasRendererProps
       </div>
 
       {/* ── 9. RODAPÉ DE TRANSPARÊNCIA & CONTATO ── */}
-      <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[11px] text-slate-500">
+      <div
+        className={cn(
+          "pt-3 border-t flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[11px]",
+          isDark ? "border-zinc-800 text-zinc-400" : "border-slate-200 text-slate-500"
+        )}
+      >
         <div className="flex items-center gap-1.5">
-          <ShieldCheck size={16} className="text-slate-700 shrink-0" />
+          <ShieldCheck size={16} className="text-primary shrink-0" />
           <span>Valores sujeitos à alteração e confirmação de assentos no ato da reserva.</span>
         </div>
 
         {proposal.agency_whatsapp && (
-          <div className="flex items-center gap-1.5 font-bold text-slate-900">
-            <WhatsappLogo size={16} weight="bold" className="text-emerald-600" />
+          <div className="flex items-center gap-1.5 font-bold text-foreground">
+            <WhatsappLogo size={16} weight="bold" className="text-emerald-500" />
             <span>Dúvidas? Fale com a gente: {proposal.agency_whatsapp}</span>
           </div>
         )}

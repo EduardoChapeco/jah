@@ -31,14 +31,14 @@ export function TaskKanbanBoard({
   onNewTaskClick,
 }: TaskKanbanProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start pb-12 overflow-x-auto">
+    <div className="flex gap-4 items-stretch pb-12 overflow-x-auto no-scrollbar [scrollbar-width:thin] scrollbar-thumb-border/60 scrollbar-track-transparent">
       {COLUMNS.map((col) => {
         const colTasks = tasks.filter((t) => t.status === col.id);
 
         return (
           <div
             key={col.id}
-            className="flex flex-col rounded-2xl border border-border/70 bg-muted/20 p-3.5 space-y-3 w-full min-w-0 sm:min-w-[280px]"
+            className="flex flex-col rounded-2xl border border-border/70 bg-card/60 backdrop-blur-xs p-3.5 space-y-3 w-[320px] min-w-[320px] shrink-0 min-h-[520px] shadow-2xs"
           >
             {/* Header da Coluna */}
             <div className="flex items-center justify-between px-1">
@@ -115,8 +115,20 @@ export function TaskKanbanBoard({
               ))}
 
               {colTasks.length === 0 && (
-                <div className="flex flex-col items-center justify-center p-6 text-center rounded-xl border border-dashed border-border/60 text-muted-foreground/60 text-xs">
-                  Sem tarefas nesta etapa
+                <div className="flex-1 min-h-[220px] flex flex-col items-center justify-center p-6 text-center rounded-xl border border-dashed border-border/60 text-muted-foreground/60 text-xs gap-2">
+                  <span>Sem tarefas nesta etapa</span>
+                  {col.id === "todo" && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={onNewTaskClick}
+                      className="h-7 px-2.5 rounded-lg text-[11px] font-semibold gap-1 mt-1 cursor-pointer"
+                    >
+                      <Plus className="size-3" />
+                      <span>Criar Tarefa</span>
+                    </Button>
+                  )}
                 </div>
               )}
             </div>

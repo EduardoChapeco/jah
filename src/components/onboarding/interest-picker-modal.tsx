@@ -7,19 +7,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Sparkles,
-  ShoppingBag,
-  Utensils,
-  Scissors,
-  Briefcase,
-  Plane,
-  Flame,
-  Shirt,
-  Music,
-  Check,
-  ArrowRight,
-} from "lucide-react";
+import { Layers, ShoppingBag, Utensils, Scissors, Briefcase, Plane, Flame, Shirt, Music, Check, ArrowRight } from 'lucide-react';
 import { saveUserPreferences, getUserPreferences } from "@/services/hotpage.functions";
 import { toast } from "sonner";
 
@@ -27,7 +15,7 @@ const NICHES_LIST = [
   {
     id: "all",
     label: "Tudo na Cidade",
-    icon: Sparkles,
+    icon: Layers,
     color: "from-amber-500/20 to-orange-500/20",
   },
   {
@@ -185,10 +173,10 @@ export function InterestPickerModal() {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-xl p-5 sm:p-8 sm:rounded-3xl bg-background">
+      <DialogContent className="sm:max-w-xl p-5 sm:p-8 sm:rounded-2xl bg-background">
         <DialogHeader className="space-y-2 text-center sm:text-left">
           <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold mx-auto sm:mx-0">
-            <Sparkles className="size-5" />
+            <Layers className="size-5" />
           </div>
           <DialogTitle className="text-xl sm:text-2xl font-black tracking-tight">
             O que você mais gosta de acompanhar?

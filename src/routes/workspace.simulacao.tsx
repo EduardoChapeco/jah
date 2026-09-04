@@ -1,17 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  Sparkles,
-  Users,
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle2,
-  DollarSign,
-  Loader2,
-  HelpCircle,
-  ArrowRight,
-} from "lucide-react";
+import { Layers, Users, TrendingUp, AlertTriangle, CheckCircle2, DollarSign, Loader2, HelpCircle, ArrowRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/commerce/page-header";
 
 export const Route = createFileRoute("/workspace/simulacao")({
-  head: () => ({ meta: [{ title: "SimLab — Enxame de Validação Preditiva | Wider" }] }),
+  head: () => ({ meta: [{ title: "SimLab — Enxame de Validação Preditiva | JAH Master OS" }] }),
   loader: async () => {
     const [personas, status] = await Promise.all([
       getSeedPersonas(),
@@ -117,7 +107,7 @@ function SimulacaoPage() {
               </>
             ) : (
               <>
-                <Sparkles className="size-3.5" />
+                <Layers className="size-3.5" />
                 <span>Executar Simulação</span>
               </>
             )}
@@ -130,7 +120,7 @@ function SimulacaoPage() {
         <div className="squircle-soft border border-primary/20 bg-primary/5 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-xl text-primary shrink-0">
-              <Sparkles className="size-5" />
+              <Layers className="size-5" />
             </div>
             <div>
               <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
@@ -164,7 +154,7 @@ function SimulacaoPage() {
             className="squircle-soft bg-card  p-5 space-y-4 "
           >
             <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <Sparkles className="size-4 text-primary" />
+              <Layers className="size-4 text-primary" />
               Dados da Proposta para Teste
             </h2>
 
@@ -250,7 +240,7 @@ function SimulacaoPage() {
                 </>
               ) : (
                 <>
-                  <Sparkles className="size-4" />
+                  <Layers className="size-4" />
                   Executar Simulação
                 </>
               )}
@@ -295,7 +285,7 @@ function SimulacaoPage() {
           {!result && !isRunning && (
             <div className="squircle-soft bg-card border-0 p-12 text-center flex flex-col items-center justify-center space-y-3 min-h-[400px]">
               <div className="p-4 bg-primary/10 rounded-2xl text-primary">
-                <Sparkles className="size-8" />
+                <Layers className="size-8" />
               </div>
               <h3 className="text-base font-bold text-foreground">Aguardando Execução do Enxame</h3>
               <p className="text-xs text-muted-foreground max-w-sm">
@@ -330,7 +320,7 @@ function SimulacaoPage() {
                     <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                       Atratividade Geral
                     </span>
-                    <Sparkles className="size-4 text-primary" />
+                    <Layers className="size-4 text-primary" />
                   </div>
                   <p className="text-2xl font-bold text-foreground">
                     {result.overallScore}

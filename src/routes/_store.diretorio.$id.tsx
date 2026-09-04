@@ -182,7 +182,7 @@ function CanonicalDirectoryDetailPage() {
         <div className="space-y-4">
           {/* Logo Limpo sem borda pesada */}
           <div className="flex items-end justify-between gap-4 -mt-12 sm:-mt-16 relative z-10">
-            <div className="size-24 sm:size-28 rounded-3xl bg-card   overflow-hidden shrink-0 flex items-center justify-center">
+            <div className="size-24 sm:size-28 rounded-2xl bg-card   overflow-hidden shrink-0 flex items-center justify-center">
               {listing.avatar_url ? (
                 <img
                   src={listing.avatar_url}
@@ -314,7 +314,7 @@ function CanonicalDirectoryDetailPage() {
               </Button>
             </DialogTrigger>
 
-            <DialogContent className="sm:max-w-md sm:rounded-3xl sm:p-6 p-5">
+            <DialogContent className="sm:max-w-md sm:rounded-2xl sm:p-6 p-5">
               <DialogHeader>
                 <DialogTitle className="text-base font-bold">Solicitar Atendimento / Orçamento</DialogTitle>
                 <DialogDescription className="text-xs">

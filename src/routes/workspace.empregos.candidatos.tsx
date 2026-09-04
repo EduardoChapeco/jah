@@ -212,7 +212,7 @@ function WorkspaceCandidatesPage() {
 
       {/* Tabs & Search */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 scrollbar-none">
           {[
             { id: "all", label: "Todos", count: applications.length },
             {
@@ -481,7 +481,7 @@ function WorkspaceCandidatesPage() {
 
       {/* Modal: Agendar Entrevista */}
       <Dialog open={!!interviewModalApp} onOpenChange={(open) => !open && setInterviewModalApp(null)}>
-        <DialogContent className="sm:max-w-md sm:p-6 sm:rounded-3xl bg-card">
+        <DialogContent className="sm:max-w-md sm:p-6 sm:rounded-2xl bg-card">
           <DialogHeader>
             <DialogTitle className="text-lg font-black">
               Agendar Entrevista com {interviewModalApp?.candidate_name}
@@ -530,7 +530,7 @@ function WorkspaceCandidatesPage() {
 
       {/* Modal: Efetivar Contratação */}
       <Dialog open={!!hireModalApp} onOpenChange={(open) => !open && setHireModalApp(null)}>
-        <DialogContent className="sm:max-w-md sm:p-6 sm:rounded-3xl bg-card">
+        <DialogContent className="sm:max-w-md sm:p-6 sm:rounded-2xl bg-card">
           <DialogHeader>
             <DialogTitle className="text-lg font-black">
               Efetivar Contratação: {hireModalApp?.candidate_name}

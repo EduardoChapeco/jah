@@ -1,4 +1,4 @@
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Layers } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 
@@ -35,7 +35,7 @@ export function FeedBannerBlock({
       <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1 max-w-md">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-primary uppercase tracking-wider">
-            <Sparkles className="size-3.5" />
+            <Layers className="size-3.5" />
             <span>{badge}</span>
           </div>
           <h4 className="text-base font-bold text-foreground tracking-tight">{title}</h4>

@@ -1,36 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import {
-  X,
-  Search,
-  Plus,
-  ImageIcon,
-  ShoppingBag,
-  AlignLeft,
-  Star,
-  Zap,
-  Store,
-  LayoutTemplate,
-  SlidersHorizontal,
-  ArrowRight,
-  Sparkles,
-  Grid,
-  Film,
-  CheckCircle2,
-  Plane,
-  Flame,
-  Calendar,
-  UtensilsCrossed,
-  Shirt,
-  Home,
-  Link2,
-  HelpCircle,
-  Clock,
-  Layers,
-  MapPin,
-  Mail,
-  UserCheck,
-} from "lucide-react";
+import { X, Search, Plus, ImageIcon, ShoppingBag, AlignLeft, Star, Zap, Store, LayoutTemplate, SlidersHorizontal, ArrowRight, Sliders, Grid, Film, CheckCircle2, Plane, Flame, Calendar, UtensilsCrossed, Shirt, Home, Link2, HelpCircle, Clock, Layers, MapPin, Mail, UserCheck } from 'lucide-react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";

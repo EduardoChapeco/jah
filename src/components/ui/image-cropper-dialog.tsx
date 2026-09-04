@@ -89,7 +89,7 @@ export function ImageCropperDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl p-0 overflow-hidden bg-card border-border sm:rounded-3xl shadow-2xl select-none">
+      <DialogContent className="sm:max-w-2xl p-0 overflow-hidden bg-card border-border sm:rounded-2xl shadow-2xl select-none">
         <DialogHeader className="p-4 px-5 pb-3 border-b border-border/40 flex flex-row items-center justify-between">
           <DialogTitle className="flex items-center gap-2 text-sm font-bold text-foreground">
             <Crop className="size-4 text-foreground" />

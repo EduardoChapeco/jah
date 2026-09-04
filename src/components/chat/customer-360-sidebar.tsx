@@ -125,7 +125,7 @@ export const Customer360Sidebar: React.FC<Customer360SidebarProps> = ({
             </span>
           </div>
 
-          <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+          <div className="space-y-1.5 max-h-36 overflow-y-auto no-scrollbar pr-1">
             {tickets.map((t: any) => (
               <div key={t.id} className="p-2 rounded-xl bg-muted/40 border border-border/60 text-[11px] space-y-1">
                 <div className="flex items-center justify-between">
@@ -153,7 +153,7 @@ export const Customer360Sidebar: React.FC<Customer360SidebarProps> = ({
         {orders.length === 0 ? (
           <p className="text-[11px] text-muted-foreground italic">Nenhum pedido anterior na loja.</p>
         ) : (
-          <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+          <div className="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar pr-1">
             {orders.map((o: any) => (
               <div key={o.id} className="p-2 rounded-xl bg-card border border-border/80 flex items-center justify-between">
                 <div>

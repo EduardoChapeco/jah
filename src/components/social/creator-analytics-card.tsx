@@ -31,7 +31,7 @@ export function CreatorAnalyticsCard({
       : 0;
 
   return (
-    <div className="rounded-3xl bg-card border border-border/60 p-5 sm:p-6 space-y-5 shadow-xs select-none">
+    <div className="rounded-2xl bg-card border border-border/60 p-5 sm:p-6 space-y-5 shadow-xs select-none">
       {/* Header do Card Privado */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/40 pb-3">
         <div className="flex items-center gap-2.5">

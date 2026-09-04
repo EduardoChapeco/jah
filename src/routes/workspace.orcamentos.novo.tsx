@@ -11,7 +11,7 @@ import {
   MapPin,
   Calendar,
   DollarSign,
-  Sparkles,
+  FileSpreadsheet,
   CheckCircle2,
   ShieldCheck,
   Luggage,
@@ -42,6 +42,15 @@ import {
 import { CurrencyField } from "@/components/ui/currency-field";
 import { PageHeader } from "@/components/commerce/page-header";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   createTravelProposal,
   updateTravelProposal,
@@ -52,11 +61,19 @@ import {
 } from "@/services/travel-proposal.functions";
 import { createQuote, type QuoteItemInput } from "@/services/quotes.functions";
 import { getStoreSettings } from "@/services/store.functions";
+import { listCustomers } from "@/services/crm.functions";
+import { listAdminProducts } from "@/services/admin-catalog.functions";
+import { getNicheSemantics } from "@/lib/niche-semantics";
 import { formatMoney } from "@/lib/money";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  CANONICAL_DESTINATIONS,
+  type CanonicalDestination,
+} from "@/lib/destinations-catalog";
 
 export const Route = createFileRoute("/workspace/orcamentos/novo")({
-  head: () => ({ meta: [{ title: "Novo Orçamento Comercial | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Novo Orçamento Comercial | Workspace JAH Master OS" }] }),
   loader: async () => {
     const store = await getStoreSettings().catch(() => null);
     return { store };
@@ -66,18 +83,64 @@ export const Route = createFileRoute("/workspace/orcamentos/novo")({
 
 function NovoOrcamentoRouterPage() {
   const { store } = Route.useLoaderData();
-  const segment = (store?.segment || store?.type || "").toLowerCase();
+  const semantics = getNicheSemantics(store);
   const isTourism =
-    segment.includes("turis") ||
-    segment.includes("viag") ||
-    segment.includes("hotel") ||
-    segment.includes("pousad");
+    semantics.niche === "tourism" ||
+    (store?.segment || store?.type || "").toLowerCase().includes("turis") ||
+    (store?.segment || store?.type || "").toLowerCase().includes("viag");
 
-  if (isTourism) {
-    return <NovoOrcamentoTravelosPage />;
-  }
+  const [activeMode, setActiveMode] = useState<"commercial" | "travelos">("commercial");
 
-  return <NovoOrcamentoComercialUniversalPage />;
+  return (
+    <div className="space-y-6">
+      {isTourism && (
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between p-3.5 rounded-2xl bg-card border border-border/70 gap-3 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Compass className="size-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-foreground">Modo de Orçamento / Proposta</p>
+              <p className="text-[11px] text-muted-foreground">Escolha o formato comercial ideal para este atendimento</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-muted/60 border border-border/50 text-xs w-full sm:w-auto justify-center">
+            <button
+              type="button"
+              onClick={() => setActiveMode("commercial")}
+              className={cn(
+                "px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer",
+                activeMode === "commercial"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              Orçamento de Produtos / Serviços
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveMode("travelos")}
+              className={cn(
+                "px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5",
+                activeMode === "travelos"
+                  ? "bg-primary text-primary-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Plane className="size-3.5" />
+              <span>Roteiro Completo (TravelOS)</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {activeMode === "travelos" ? (
+        <NovoOrcamentoTravelosPage />
+      ) : (
+        <NovoOrcamentoComercialUniversalPage store={store} />
+      )}
+    </div>
+  );
 }
 
 function NovoOrcamentoTravelosPage() {
@@ -100,16 +163,19 @@ function NovoOrcamentoTravelosPage() {
     coverImageUrl: "",
   });
 
+  // Origem & Destino Canônico
+  const [selectedCanonicalDest, setSelectedCanonicalDest] = useState<CanonicalDestination | null>(null);
+  const [originCity, setOriginCity] = useState("Chapecó");
+  const [originIata, setOriginIata] = useState("XAP");
+  const [destinationIata, setDestinationIata] = useState("");
+
   // 2. Trechos Aéreos (Flight Segments)
-  // 2. Trechos Aéreos (Flight Segments) — inicia vazio, gestor adiciona
   const [flights, setFlights] = useState<FlightSegmentDTO[]>([]);
 
   // 3. Hotéis e Resorts
-  // 3. Hotéis e Resorts — inicia vazio, gestor adiciona
   const [hotels, setHotels] = useState<HotelOptionDTO[]>([]);
 
   // 4. Roteiro Dia a Dia (Itinerário)
-  // 4. Roteiro Dia a Dia — inicia vazio, gestor adiciona
   const [itinerary, setItinerary] = useState<ItineraryDayDTO[]>([]);
 
   // 5. Precificação & Condições Financeiras (Integer Cents)
@@ -136,23 +202,112 @@ function NovoOrcamentoTravelosPage() {
     "• Despesas de caráter pessoal e passeios opcionais não citados\n• Taxas turísticas governamentais locais pagas no destino"
   );
 
+  // Seleção Inteligente de Destino Canônico
+  const handleSelectCanonicalDestination = (dest: CanonicalDestination) => {
+    setSelectedCanonicalDest(dest);
+    setDestinationIata(dest.iata);
+    setProposalData((prev) => ({
+      ...prev,
+      destinationCity: dest.name,
+      coverImageUrl: dest.coverImage,
+      title: prev.title || `Pacote Completo: ${dest.name}`,
+      subtitle: prev.subtitle || `Melhor temporada: ${dest.bestSeason} • Gastronomia e Lazer`,
+    }));
+
+    // Se não houver voos, cria automaticamente ida e volta canônica
+    if (flights.length === 0) {
+      setFlights([
+        {
+          id: crypto.randomUUID(),
+          type: "outbound",
+          airline_name: "Azul Linhas Aéreas",
+          origin_iata: originIata,
+          origin_city: originCity,
+          destination_iata: dest.iata,
+          destination_city: dest.city,
+          departure_time: "08:30",
+          arrival_time: "13:45",
+          baggage_included: "1x 23kg despachada + 1x 10kg mão",
+          cabin_class: "Econômica",
+          stops_count: 1,
+        },
+        {
+          id: crypto.randomUUID(),
+          type: "return",
+          airline_name: "Azul Linhas Aéreas",
+          origin_iata: dest.iata,
+          origin_city: dest.city,
+          destination_iata: originIata,
+          destination_city: originCity,
+          departure_time: "15:20",
+          arrival_time: "20:30",
+          baggage_included: "1x 23kg despachada + 1x 10kg mão",
+          cabin_class: "Econômica",
+          stops_count: 1,
+        },
+      ]);
+    }
+
+    // Se não houver itinerário, gera dias com os destaques reais do destino
+    if (itinerary.length === 0 && dest.highlights.length > 0) {
+      handleGenerateItineraryFromDestination(dest);
+    }
+  };
+
+  // Geração Automática de Roteiro Canônico
+  const handleGenerateItineraryFromDestination = (targetDest?: CanonicalDestination) => {
+    const dest = targetDest || selectedCanonicalDest;
+    if (!dest) {
+      toast.error("Selecione um destino primeiro para gerar o roteiro.");
+      return;
+    }
+
+    const generatedDays: ItineraryDayDTO[] = [
+      {
+        id: crypto.randomUUID(),
+        day_number: 1,
+        title: `Dia 1 — Chegada em ${dest.city} & Recepção`,
+        description: `Desembarque no aeroporto (${dest.iata}), transfer privativo até a hospedagem e check-in. Restante do dia livre para aclimatação e jantar de boas-vindas com especialidade local (${dest.gastronomyTip}).`,
+        included_meals: ["Jantar de Boas-Vindas"],
+      },
+      ...dest.highlights.slice(0, 4).map((hl, i) => ({
+        id: crypto.randomUUID(),
+        day_number: i + 2,
+        title: `Dia ${i + 2} — ${hl}`,
+        description: `Passeio guiado e dia dedicado a explorar ${hl}. Experiência imersiva no destino com guia credenciado e paradas para fotos e culinária típica.`,
+        included_meals: ["Café da Manhã"],
+      })),
+      {
+        id: crypto.randomUUID(),
+        day_number: Math.min(dest.highlights.length + 2, 6),
+        title: `Dia ${Math.min(dest.highlights.length + 2, 6)} — Check-out & Voo de Retorno`,
+        description: `Café da manhã na hospedagem, transfer in/out até o aeroporto (${dest.iata}) e embarque no voo com destino a ${originCity} (${originIata}).`,
+        included_meals: ["Café da Manhã"],
+      },
+    ];
+
+    setItinerary(generatedDays);
+    toast.success(`Roteiro com ${generatedDays.length} dias gerado com base em ${dest.name}!`);
+  };
+
   // Ações de Adição e Remoção
   const handleAddFlight = () => {
+    const isOutbound = flights.length % 2 === 0;
     setFlights((prev) => [
       ...prev,
       {
         id: crypto.randomUUID(),
-        type: "return",
-        airline_name: "LATAM Airlines",
-        origin_iata: "CUN",
-        origin_city: "Cancún",
-        destination_iata: "GRU",
-        destination_city: "São Paulo",
-        departure_time: "16:00",
-        arrival_time: "23:50",
+        type: isOutbound ? "outbound" : "return",
+        airline_name: "Azul Linhas Aéreas",
+        origin_iata: isOutbound ? originIata : (destinationIata || "DEST"),
+        origin_city: isOutbound ? originCity : (proposalData.destinationCity || "Destino"),
+        destination_iata: isOutbound ? (destinationIata || "DEST") : originIata,
+        destination_city: isOutbound ? (proposalData.destinationCity || "Destino") : originCity,
+        departure_time: isOutbound ? "08:30" : "16:00",
+        arrival_time: isOutbound ? "13:45" : "21:15",
         baggage_included: "1x 23kg despachada + 1x 10kg mão",
         cabin_class: "Econômica",
-        stops_count: 0,
+        stops_count: 1,
       },
     ]);
   };
@@ -320,7 +475,7 @@ function NovoOrcamentoTravelosPage() {
             disabled={isSubmitting}
             className="h-10 rounded-xl text-xs font-bold gap-2 bg-primary text-primary-foreground shadow-sm cursor-pointer"
           >
-            <Sparkles className="size-4" />
+            <FileSpreadsheet className="size-4" />
             <span>Salvar & Abrir Lâmina Visual</span>
             <ArrowRight className="size-4" />
           </Button>
@@ -414,13 +569,89 @@ function NovoOrcamentoTravelosPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold">Cidade / Destino Principal</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold">Cidade / Destino Principal *</Label>
+                    {destinationIata && (
+                      <Badge variant="outline" className="text-[10px] font-mono text-primary border-primary/30 font-bold">
+                        ✈️ Gateway: {destinationIata}
+                      </Badge>
+                    )}
+                  </div>
                   <Input
                     value={proposalData.destinationCity}
-                    onChange={(e) => setProposalData({ ...proposalData, destinationCity: e.target.value })}
-                    placeholder="Ex: Cancún, México"
-                    className="h-10 rounded-xl text-xs"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setProposalData({ ...proposalData, destinationCity: val });
+                      const match = CANONICAL_DESTINATIONS.find(
+                        (d) => d.name.toLowerCase() === val.toLowerCase() || d.city.toLowerCase() === val.toLowerCase()
+                      );
+                      if (match) handleSelectCanonicalDestination(match);
+                    }}
+                    placeholder="Ex: Maceió & Maragogi, AL ou Cancún"
+                    className="h-10 rounded-xl text-xs font-bold"
+                    required
                   />
+
+                  {/* Chips Rápidos do Catálogo Canônico */}
+                  <div className="space-y-1 pt-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                      Destinos Populares (1 Toque com Voos & Roteiro):
+                    </span>
+                    <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto no-scrollbar pr-1">
+                      {CANONICAL_DESTINATIONS.slice(0, 12).map((dest) => (
+                        <button
+                          key={dest.id}
+                          type="button"
+                          onClick={() => handleSelectCanonicalDestination(dest)}
+                          className={cn(
+                            "text-[10px] font-medium px-2.5 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5",
+                            destinationIata === dest.iata || proposalData.destinationCity === dest.name
+                              ? "bg-primary text-primary-foreground border-primary font-bold shadow-2xs"
+                              : "bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground border-border/60"
+                          )}
+                        >
+                          <span>{dest.name}</span>
+                          <span
+                            className={cn(
+                              "text-[8px] font-mono font-black px-1 rounded",
+                              destinationIata === dest.iata || proposalData.destinationCity === dest.name
+                                ? "bg-white/20 text-white"
+                                : "bg-muted text-foreground"
+                            )}
+                          >
+                            {dest.iata}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Card Inteligente do Destino */}
+                  {selectedCanonicalDest && (
+                    <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 space-y-1.5 mt-2 animate-in fade-in duration-150">
+                      <div className="flex items-center gap-2.5">
+                        <img
+                          src={selectedCanonicalDest.coverImage}
+                          alt={selectedCanonicalDest.name}
+                          className="size-10 rounded-lg object-cover border border-border/60 shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="text-xs font-bold text-foreground truncate">{selectedCanonicalDest.name}</h4>
+                            <Badge variant="secondary" className="text-[8px] font-mono font-bold bg-primary/10 text-primary">
+                              {selectedCanonicalDest.iata} • {selectedCanonicalDest.state}
+                            </Badge>
+                          </div>
+                          <p className="text-[10px] text-primary font-medium">
+                            ☀️ <strong>Melhor época:</strong> {selectedCanonicalDest.bestSeason}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground line-clamp-1">
+                            🍽️ {selectedCanonicalDest.gastronomyTip}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold">Foto de Capa da Proposta de Viagem</Label>
@@ -752,10 +983,23 @@ function NovoOrcamentoTravelosPage() {
               <h3 className="text-base font-bold text-foreground">Roteiro Visual & Itinerário Dia a Dia</h3>
               <p className="text-xs text-muted-foreground">Monte o cronograma diário com fotos dos pontos turísticos e atividades.</p>
             </div>
-            <Button onClick={handleAddItineraryDay} variant="outline" size="sm" className="rounded-xl text-xs font-bold gap-1.5">
-              <Plus className="size-3.5" />
-              <span>Adicionar Dia</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              {selectedCanonicalDest && (
+                <Button
+                  type="button"
+                  onClick={() => handleGenerateItineraryFromDestination()}
+                  size="sm"
+                  className="rounded-xl text-xs font-bold gap-1.5 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 cursor-pointer"
+                >
+                  <Compass className="size-3.5" />
+                  <span>Gerar Roteiro Sugerido ({selectedCanonicalDest.name})</span>
+                </Button>
+              )}
+              <Button onClick={handleAddItineraryDay} variant="outline" size="sm" className="rounded-xl text-xs font-bold gap-1.5">
+                <Plus className="size-3.5" />
+                <span>Adicionar Dia</span>
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -974,18 +1218,46 @@ interface QuoteLineItem {
   unit_price_cents: number;
   quantity: number;
   discount_cents: number;
+  product_variant_id?: string;
+  image_url?: string;
 }
 
-function NovoOrcamentoComercialUniversalPage() {
+function NovoOrcamentoComercialUniversalPage({ store }: { store?: any }) {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Cliente
+  // Cliente & Vínculo CRM
+  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<any | null>(null);
+  const [clientSearch, setClientSearch] = useState("");
+  const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
   const [customerData, setCustomerData] = useState({
     name: "",
     email: "",
     phone: "",
+    document: "",
   });
+
+  // Busca de clientes no CRM em tempo real
+  const { data: crmCustomers = [], isLoading: isLoadingCustomers } = useQuery({
+    queryKey: ["crm-customers-search", clientSearch],
+    queryFn: () => listCustomers({ data: { query: clientSearch.trim() } }),
+    enabled: clientSearch.trim().length >= 1,
+    staleTime: 30_000,
+  });
+
+  // Catálogo de Produtos da Loja
+  const { data: catalogProducts = [], isLoading: isLoadingCatalog } = useQuery({
+    queryKey: ["admin-products-catalog"],
+    queryFn: () => listAdminProducts(),
+    staleTime: 60_000,
+  });
+
+  // Modal do Catálogo
+  const [isCatalogModalOpen, setIsCatalogModalOpen] = useState(false);
+  const [catalogSearch, setCatalogSearch] = useState("");
+  const [catalogCategory, setCatalogCategory] = useState("all");
+  const [targetLineItemId, setTargetLineItemId] = useState<string | null>(null);
 
   // Condições & Termos
   const [conditions, setConditions] = useState("");
@@ -1005,6 +1277,107 @@ function NovoOrcamentoComercialUniversalPage() {
       discount_cents: 0,
     },
   ]);
+
+  // Categorias do Catálogo
+  const catalogCategories = Array.from(
+    new Set(
+      catalogProducts
+        .map((p: any) => p.product_types?.name || p.category_name)
+        .filter(Boolean),
+    ),
+  );
+
+  const filteredCatalog = catalogProducts.filter((p: any) => {
+    if (p.status === "archived") return false;
+    if (catalogCategory !== "all") {
+      const cat = p.product_types?.name || p.category_name;
+      if (cat !== catalogCategory) return false;
+    }
+    if (!catalogSearch.trim()) return true;
+    const q = catalogSearch.toLowerCase();
+    return (
+      p.title.toLowerCase().includes(q) ||
+      (p.brand && p.brand.toLowerCase().includes(q)) ||
+      (p.product_variants &&
+        p.product_variants.some((v: any) => v.sku && v.sku.toLowerCase().includes(q)))
+    );
+  });
+
+  const handleSelectCustomer = (c: any) => {
+    setCustomerId(c.id);
+    setSelectedCustomer(c);
+    setCustomerData({
+      name: c.full_name || c.legal_name || "",
+      email: c.email || "",
+      phone: c.phone || "",
+      document: c.document || "",
+    });
+    setIsClientDropdownOpen(false);
+    setClientSearch("");
+    toast.success(`Cliente ${c.full_name || c.legal_name} vinculado ao orçamento!`);
+  };
+
+  const handleUnlinkCustomer = () => {
+    setCustomerId(null);
+    setSelectedCustomer(null);
+    toast.info("Cliente desvinculado do CRM. Dados manuais mantidos.");
+  };
+
+  const handleOpenCatalogForNewItem = () => {
+    setTargetLineItemId(null);
+    setIsCatalogModalOpen(true);
+  };
+
+  const handleOpenCatalogForExistingItem = (lineId: string) => {
+    setTargetLineItemId(lineId);
+    setIsCatalogModalOpen(true);
+  };
+
+  const handleSelectProduct = (product: any, variant?: any) => {
+    const chosenVariant = variant || product.product_variants?.[0];
+    const unitPrice =
+      chosenVariant?.price_override_cents ?? product.price_cents ?? 0;
+    const sku = chosenVariant?.sku || "";
+    const imageUrl = product.product_media?.[0]?.url || "";
+
+    if (targetLineItemId) {
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === targetLineItemId
+            ? {
+                ...i,
+                item_type: "product_variant",
+                name: product.title,
+                sku: sku,
+                unit_price_cents: unitPrice,
+                product_variant_id: chosenVariant?.id,
+                image_url: imageUrl,
+              }
+            : i,
+        ),
+      );
+    } else {
+      setItems((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          item_type: "product_variant",
+          name: product.title,
+          description: "",
+          sku: sku,
+          unit_price_cents: unitPrice,
+          quantity: 1,
+          discount_cents: 0,
+          product_variant_id: chosenVariant?.id,
+          image_url: imageUrl,
+        },
+      ]);
+    }
+
+    setIsCatalogModalOpen(false);
+    setTargetLineItemId(null);
+    toast.success(`"${product.title}" adicionado aos itens!`);
+  };
 
   const handleAddItem = () => {
     setItems((prev) => [
@@ -1039,11 +1412,17 @@ function NovoOrcamentoComercialUniversalPage() {
   const totalDiscountCents = items.reduce((acc, i) => acc + i.discount_cents, 0);
   const totalCents = Math.max(0, subtotalCents - totalDiscountCents);
 
+  // Presets de Condições Comerciais
+  const applyConditionPreset = (text: string) => {
+    setConditions((prev) => (prev ? `${prev}\n\n${text}` : text));
+    toast.success("Condição comercial adicionada!");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!customerData.name.trim()) {
-      toast.error("Informe o nome do cliente ou razão social.");
+      toast.error("Informe o nome do cliente ou selecione um cliente cadastrado.");
       return;
     }
 
@@ -1059,6 +1438,7 @@ function NovoOrcamentoComercialUniversalPage() {
       validUntilDate.setDate(validUntilDate.getDate() + validUntilDays);
 
       const payload = {
+        customer_id: customerId || undefined,
         guest_name: customerData.name.trim(),
         guest_email: customerData.email.trim() || undefined,
         guest_phone: customerData.phone.trim() || undefined,
@@ -1067,6 +1447,7 @@ function NovoOrcamentoComercialUniversalPage() {
         internal_notes: internalNotes.trim() || undefined,
         items: validItems.map((i, idx) => ({
           item_type: i.item_type,
+          product_variant_id: i.product_variant_id || undefined,
           name: i.name.trim(),
           description: i.description.trim() || undefined,
           sku: i.sku.trim() || undefined,
@@ -1079,7 +1460,7 @@ function NovoOrcamentoComercialUniversalPage() {
 
       await createQuote({ data: payload });
 
-      toast.success("Orçamento comercial criado com sucesso!");
+      toast.success("Orçamento comercial criado e vinculado com sucesso!");
       navigate({ to: "/workspace/orcamentos" });
     } catch (err: any) {
       toast.error(err?.message || "Erro ao salvar o orçamento.");
@@ -1089,9 +1470,9 @@ function NovoOrcamentoComercialUniversalPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-16">
+    <div className="space-y-6 max-w-6xl mx-auto pb-16 animate-in fade-in duration-200">
       <PageHeader
-        eyebrow="Vendas & Propostas"
+        eyebrow="Vendas & Propostas Comerciais"
         title="Novo Orçamento Comercial"
         actions={
           <div className="flex items-center gap-2">
@@ -1105,7 +1486,7 @@ function NovoOrcamentoComercialUniversalPage() {
               onClick={handleSubmit}
               disabled={isSubmitting}
               size="sm"
-              className="rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5"
+              className="rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5 cursor-pointer shadow-xs"
             >
               {isSubmitting ? (
                 <>
@@ -1126,15 +1507,112 @@ function NovoOrcamentoComercialUniversalPage() {
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Coluna Esquerda: Dados do Cliente + Tabela de Itens (8 Cols) */}
         <div className="lg:col-span-8 space-y-6">
-          {/* Card 1: Identificação do Cliente */}
-          <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
-              <User className="size-4 text-primary" />
-              <span>Destinatário / Cliente</span>
+          {/* Card 1: Identificação do Cliente & CRM */}
+          <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-4 shadow-xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
+                <User className="size-4 text-primary" />
+                <span>Destinatário / Cliente</span>
+              </div>
+              {customerId && (
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-[10px] font-bold">
+                  ✓ Cliente Vinculado ao CRM
+                </Badge>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-1 sm:col-span-1">
+            {/* Caixa de Busca no CRM */}
+            <div className="relative">
+              <div className="relative">
+                <Input
+                  value={clientSearch}
+                  onChange={(e) => {
+                    setClientSearch(e.target.value);
+                    setIsClientDropdownOpen(true);
+                  }}
+                  onFocus={() => {
+                    if (clientSearch.trim().length >= 1) setIsClientDropdownOpen(true);
+                  }}
+                  placeholder="🔍 Buscar cliente no CRM (Nome, CPF/CNPJ, WhatsApp ou E-mail)..."
+                  className="h-10 rounded-xl text-xs bg-muted/30 pl-3 pr-8 border-border/70"
+                />
+                {isLoadingCustomers && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 animate-spin text-muted-foreground" />
+                )}
+              </div>
+
+              {/* Dropdown de Resultados CRM */}
+              {isClientDropdownOpen && clientSearch.trim().length >= 1 && (
+                <div className="absolute left-0 right-0 top-11 z-50 rounded-xl bg-card border border-border/80 shadow-xl overflow-hidden animate-in fade-in-50 zoom-in-95">
+                  <div className="p-2 border-b border-border/60 bg-muted/40 flex items-center justify-between text-[11px] text-muted-foreground font-bold">
+                    <span>Resultados da Carteira de Clientes ({crmCustomers.length})</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsClientDropdownOpen(false)}
+                      className="text-xs hover:text-foreground cursor-pointer px-1"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                  <div className="max-h-56 overflow-y-auto no-scrollbar p-1 divide-y divide-border/40">
+                    {crmCustomers.length === 0 ? (
+                      <div className="p-4 text-center text-xs text-muted-foreground">
+                        Nenhum cliente cadastrado encontrado com "{clientSearch}". Preencha os campos abaixo manualmente para novo cliente.
+                      </div>
+                    ) : (
+                      crmCustomers.map((c: any) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => handleSelectCustomer(c)}
+                          className="w-full text-left p-2.5 rounded-lg hover:bg-muted/60 transition-colors flex items-center justify-between gap-3 cursor-pointer group"
+                        >
+                          <div className="space-y-0.5 min-w-0">
+                            <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors truncate">
+                              {c.full_name || c.legal_name}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground truncate">
+                              {c.document && `Doc: ${c.document} • `}
+                              {c.phone && `Whats: ${c.phone} • `}
+                              {c.email}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="text-[10px] shrink-0">
+                            Selecionar
+                          </Badge>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Banner de Cliente Selecionado */}
+            {selectedCustomer && (
+              <div className="flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/20 text-xs">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="size-4 text-primary shrink-0" />
+                  <span>
+                    Cliente conectado: <strong>{selectedCustomer.full_name || selectedCustomer.legal_name}</strong>
+                    {selectedCustomer.document && ` • Doc: ${selectedCustomer.document}`}
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleUnlinkCustomer}
+                  className="h-7 text-xs text-muted-foreground hover:text-destructive cursor-pointer"
+                >
+                  Desvincular
+                </Button>
+              </div>
+            )}
+
+            {/* Inputs Individuais */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+              <div className="space-y-1 sm:col-span-4">
                 <Label className="text-xs font-medium">Nome / Razão Social *</Label>
                 <Input
                   value={customerData.name}
@@ -1144,7 +1622,16 @@ function NovoOrcamentoComercialUniversalPage() {
                   required
                 />
               </div>
-              <div className="space-y-1 sm:col-span-1">
+              <div className="space-y-1 sm:col-span-3">
+                <Label className="text-xs font-medium">CPF / CNPJ</Label>
+                <Input
+                  value={customerData.document}
+                  onChange={(e) => setCustomerData((p) => ({ ...p, document: e.target.value }))}
+                  placeholder="000.000.000-00"
+                  className="h-10 rounded-xl text-xs font-mono"
+                />
+              </div>
+              <div className="space-y-1 sm:col-span-3">
                 <Label className="text-xs font-medium">E-mail</Label>
                 <Input
                   type="email"
@@ -1154,35 +1641,46 @@ function NovoOrcamentoComercialUniversalPage() {
                   className="h-10 rounded-xl text-xs"
                 />
               </div>
-              <div className="space-y-1 sm:col-span-1">
-                <Label className="text-xs font-medium">WhatsApp / Telefone</Label>
+              <div className="space-y-1 sm:col-span-2">
+                <Label className="text-xs font-medium">WhatsApp</Label>
                 <Input
                   value={customerData.phone}
                   onChange={(e) => setCustomerData((p) => ({ ...p, phone: e.target.value }))}
                   placeholder="(49) 99999-0000"
-                  className="h-10 rounded-xl text-xs"
+                  className="h-10 rounded-xl text-xs font-mono"
                 />
               </div>
             </div>
           </div>
 
-          {/* Card 2: Itens do Orçamento */}
-          <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
-            <div className="flex items-center justify-between">
+          {/* Card 2: Itens, Produtos & Serviços do Catálogo */}
+          <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-4 shadow-xs">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
                 <Package className="size-4 text-primary" />
                 <span>Itens, Produtos & Serviços ({items.length})</span>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleAddItem}
-                className="rounded-xl text-xs font-bold gap-1.5 h-8"
-              >
-                <Plus className="size-3.5" />
-                <span>Adicionar Linha</span>
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleOpenCatalogForNewItem}
+                  className="rounded-xl text-xs font-bold gap-1.5 h-8 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 cursor-pointer"
+                >
+                  <Package className="size-3.5" />
+                  <span>+ Produto do Catálogo</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddItem}
+                  className="rounded-xl text-xs font-bold gap-1.5 h-8 cursor-pointer"
+                >
+                  <Plus className="size-3.5" />
+                  <span>Item Avulso</span>
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -1192,7 +1690,7 @@ function NovoOrcamentoComercialUniversalPage() {
                 return (
                   <div
                     key={item.id}
-                    className="p-4 rounded-2xl bg-muted/20 border border-border/70 space-y-3 relative group"
+                    className="p-4 rounded-2xl bg-muted/20 border border-border/70 space-y-3 relative group transition-all hover:border-border"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
@@ -1207,12 +1705,28 @@ function NovoOrcamentoComercialUniversalPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="product_variant">Produto / Mercadoria</SelectItem>
+                            <SelectItem value="product_variant">Produto do Catálogo</SelectItem>
                             <SelectItem value="service">Serviço / Atendimento</SelectItem>
                             <SelectItem value="rental_equipment">Locação de Equipamento</SelectItem>
-                            <SelectItem value="manual_item">Item Avulso</SelectItem>
+                            <SelectItem value="manual_item">Item Avulso / Personalizado</SelectItem>
                           </SelectContent>
                         </Select>
+
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleOpenCatalogForExistingItem(item.id)}
+                          className="h-7 px-2 text-[11px] font-bold text-primary hover:bg-primary/10 rounded-lg cursor-pointer"
+                        >
+                          🔍 Conectar Catálogo
+                        </Button>
+
+                        {item.sku && (
+                          <Badge variant="outline" className="text-[10px] font-mono">
+                            SKU: {item.sku}
+                          </Badge>
+                        )}
                       </div>
 
                       {items.length > 1 && (
@@ -1221,7 +1735,7 @@ function NovoOrcamentoComercialUniversalPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleRemoveItem(item.id)}
-                          className="size-7 text-muted-foreground hover:text-destructive rounded-lg"
+                          className="size-7 text-muted-foreground hover:text-destructive rounded-lg cursor-pointer"
                         >
                           <Trash2 className="size-3.5" />
                         </Button>
@@ -1233,13 +1747,22 @@ function NovoOrcamentoComercialUniversalPage() {
                         <Label className="text-[11px] font-medium text-muted-foreground">
                           Nome do Item / Descrição *
                         </Label>
-                        <Input
-                          value={item.name}
-                          onChange={(e) => handleUpdateItem(item.id, { name: e.target.value })}
-                          placeholder="Ex: Consultoria Técnica, Vestido de Noiva, Câmera 4K"
-                          className="h-9 text-xs rounded-xl bg-background"
-                          required
-                        />
+                        <div className="flex items-center gap-2">
+                          {item.image_url && (
+                            <img
+                              src={item.image_url}
+                              alt=""
+                              className="size-9 rounded-lg object-cover border border-border shrink-0"
+                            />
+                          )}
+                          <Input
+                            value={item.name}
+                            onChange={(e) => handleUpdateItem(item.id, { name: e.target.value })}
+                            placeholder="Ex: Consultoria Técnica, Vestido de Noiva, Pacote Gramado"
+                            className="h-9 text-xs rounded-xl bg-background flex-1"
+                            required
+                          />
+                        </div>
                       </div>
 
                       <div className="sm:col-span-2 space-y-1">
@@ -1277,11 +1800,34 @@ function NovoOrcamentoComercialUniversalPage() {
             </div>
           </div>
 
-          {/* Card 3: Condições Comerciais & Observações */}
-          <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
+          {/* Card 3: Condições Comerciais & Presets */}
+          <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-4 shadow-xs">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
               <FileCheck2 className="size-4 text-primary" />
-              <span>Condições Comerciais & Termos</span>
+              <span>Condições Comerciais & Termos de Pagamento</span>
+            </div>
+
+            {/* Presets Rápidos de Condição */}
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-bold text-muted-foreground">Modelos de Pagamento Rápidos:</span>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { label: "⚡ Pix à Vista (5% OFF)", text: "Pagamento à vista via Pix com 5% de desconto. Chave PIX informada após aprovação." },
+                  { label: "💳 10x sem Juros", text: "Parcelamento em até 10x sem juros no cartão de crédito." },
+                  { label: "🤝 50% Entrada + 50% Entrega", text: "50% de entrada na aprovação do pedido e saldo de 50% na conclusão / entrega dos serviços." },
+                  { label: "📄 Boleto Faturado 30/60/90 Dias", text: "Faturamento corporativo em 3 parcelas (30/60/90 dias) via boleto bancário mediante aprovação cadastral." },
+                  { label: "✈️ 20% Entrada + Saldo Parcelado", text: "Entrada facilitada de 20% no ato da contratação e o saldo restante em até 10x no cartão." },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => applyConditionPreset(preset.text)}
+                    className="text-[10px] font-medium px-2.5 py-1 rounded-lg bg-muted/70 hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer transition-colors border border-border/50"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -1291,7 +1837,7 @@ function NovoOrcamentoComercialUniversalPage() {
                   value={conditions}
                   onChange={(e) => setConditions(e.target.value)}
                   placeholder="Ex: Pagamento 50% de entrada e 50% na entrega. Prazo de execução: 15 dias úteis."
-                  className="rounded-xl text-xs min-h-[70px]"
+                  className="rounded-xl text-xs min-h-[75px]"
                 />
               </div>
 
@@ -1310,7 +1856,7 @@ function NovoOrcamentoComercialUniversalPage() {
 
         {/* Coluna Direita: Resumo Financeiro & Validade (4 Cols Sticky) */}
         <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-20">
-          <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
+          <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-4 shadow-xs">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <DollarSign className="size-4 text-primary" />
               <span>Balanço da Proposta</span>
@@ -1353,7 +1899,7 @@ function NovoOrcamentoComercialUniversalPage() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-11 rounded-xl font-bold text-xs bg-primary text-primary-foreground gap-2 mt-4"
+              className="w-full h-11 rounded-xl font-bold text-xs bg-primary text-primary-foreground gap-2 mt-4 cursor-pointer shadow-xs"
             >
               {isSubmitting ? (
                 <>
@@ -1370,6 +1916,132 @@ function NovoOrcamentoComercialUniversalPage() {
           </div>
         </div>
       </form>
+
+      {/* Modal de Conexão com Catálogo de Produtos */}
+      <Dialog open={isCatalogModalOpen} onOpenChange={setIsCatalogModalOpen}>
+        <DialogContent className="sm:max-w-2xl rounded-2xl p-0 overflow-hidden bg-card border-border">
+          <DialogHeader className="p-5 border-b border-border/60 bg-muted/20">
+            <DialogTitle className="text-base font-bold flex items-center gap-2">
+              <Package className="size-4 text-primary" />
+              <span>Conectar Produto do Catálogo</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Selecione um produto cadastrado na sua loja para preencher nome, SKU e valor unitário automaticamente.
+            </DialogDescription>
+
+            {/* Busca no Catálogo */}
+            <div className="mt-3 space-y-2">
+              <Input
+                value={catalogSearch}
+                onChange={(e) => setCatalogSearch(e.target.value)}
+                placeholder="Buscar por título, marca ou SKU..."
+                className="h-9 text-xs rounded-xl bg-background"
+                autoFocus
+              />
+
+              {catalogCategories.length > 0 && (
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setCatalogCategory("all")}
+                    className={cn(
+                      "px-2.5 py-1 rounded-lg font-bold text-[11px] whitespace-nowrap transition-colors cursor-pointer",
+                      catalogCategory === "all"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    Todos
+                  </button>
+                  {catalogCategories.map((cat: any) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setCatalogCategory(cat)}
+                      className={cn(
+                        "px-2.5 py-1 rounded-lg font-bold text-[11px] whitespace-nowrap transition-colors cursor-pointer",
+                        catalogCategory === cat
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </DialogHeader>
+
+          <ScrollArea className="max-h-[60vh] p-4">
+            {isLoadingCatalog ? (
+              <div className="py-12 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                <Loader2 className="size-6 animate-spin text-primary" />
+                <span className="text-xs">Carregando catálogo da loja...</span>
+              </div>
+            ) : filteredCatalog.length === 0 ? (
+              <div className="py-12 text-center text-xs text-muted-foreground">
+                Nenhum produto ativo encontrado no catálogo.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {filteredCatalog.map((product: any) => {
+                  const variant = product.product_variants?.[0];
+                  const price = variant?.price_override_cents ?? product.price_cents ?? 0;
+                  const img = product.product_media?.[0]?.url;
+
+                  return (
+                    <div
+                      key={product.id}
+                      onClick={() => handleSelectProduct(product, variant)}
+                      className="p-3 rounded-xl border border-border/70 hover:border-primary/50 bg-card hover:bg-muted/30 transition-all flex items-center gap-3 cursor-pointer group"
+                    >
+                      {img ? (
+                        <img
+                          src={img}
+                          alt=""
+                          className="size-12 rounded-lg object-cover border border-border shrink-0"
+                        />
+                      ) : (
+                        <div className="size-12 rounded-lg bg-muted flex items-center justify-center text-muted-foreground shrink-0">
+                          <Package className="size-5" />
+                        </div>
+                      )}
+
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors truncate">
+                          {product.title}
+                        </p>
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                          {variant?.sku && (
+                            <span className="font-mono bg-muted px-1 rounded">
+                              {variant.sku}
+                            </span>
+                          )}
+                          {product.product_types?.name && (
+                            <span>{product.product_types.name}</span>
+                          )}
+                        </div>
+                        <p className="text-xs font-mono font-bold text-primary">
+                          {formatMoney(price)}
+                        </p>
+                      </div>
+
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="rounded-lg text-[10px] font-bold h-7 px-2.5 shrink-0"
+                      >
+                        Inserir
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

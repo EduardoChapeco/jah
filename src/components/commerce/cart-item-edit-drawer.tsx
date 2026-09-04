@@ -1,15 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  X,
-  Plus,
-  Minus,
-  Check,
-  Sparkles,
-  Loader2,
-  Package,
-  SlidersHorizontal,
-} from "lucide-react";
+import { X, Plus, Minus, Check, Layers, Loader2, Package, SlidersHorizontal } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

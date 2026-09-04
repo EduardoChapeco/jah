@@ -48,7 +48,7 @@ import {
 } from "@/services/tokens.functions";
 
 export const Route = createFileRoute("/admin-master/tokens")({
-  head: () => ({ meta: [{ title: "Economia de Tokens | Wider Master" }] }),
+  head: () => ({ meta: [{ title: "Economia de Tokens | JAH Master" }] }),
   loader: async () => {
     try {
       const [stats, eventsRes] = await Promise.all([
@@ -146,7 +146,7 @@ function AdminTokensPage() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-background">
+    <div className="flex-1 overflow-y-auto no-scrollbar p-6 md:p-8 space-y-6 bg-background">
       {/* Header Silencioso */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
         <div>

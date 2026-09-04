@@ -1,5 +1,6 @@
+import { ProposalShareWhatsappModal } from "@/components/tourism/studio/proposal-share-whatsapp-modal";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -9,9 +10,9 @@ import {
   Check,
   Loader2,
   Copy,
-  ExternalLink,
-  Sparkle,
   FileCheck2,
+  Compass,
+  Maximize2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,13 +24,15 @@ import {
   type ProposalCanvasFormat,
 } from "@/services/travel-proposal.functions";
 import { createContractFromProposal } from "@/services/travel-contract.functions";
+import { convertProposalToTrip } from "@/services/travel-lifecycle.functions";
 import { StudioFrame, CANVAS_DIMENSIONS } from "@/components/tourism/studio/studio-frame";
 import { ProposalCanvasRenderer } from "@/components/tourism/studio/proposal-canvas-renderer";
 import { StudioSidebarEditor } from "@/components/tourism/studio/studio-sidebar-editor";
 import { exportElementAsPdf, exportElementAsImage } from "@/lib/pdf-export";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/turismo/propostas/$id")({
-  head: () => ({ meta: [{ title: "Studio de Propostas & Lâminas | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Studio de Propostas & Lâminas | Workspace JAH Master OS" }] }),
   loader: async ({ params }) => {
     const proposal = await getTravelProposalById({ data: { id: params.id } });
     return { proposal };
@@ -43,7 +46,13 @@ function WorkspaceProposalStudioPage() {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isExportingImage, setIsExportingImage] = useState(false);
   const [isCreatingContract, setIsCreatingContract] = useState(false);
+  const [isConvertingTrip, setIsConvertingTrip] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
+
+  // Zoom controls state
+  const [zoomScale, setZoomScale] = useState<number | null>(null);
+  const [autoFitScale, setAutoFitScale] = useState<number>(0.85);
 
   const saveMutation = useMutation({
     mutationFn: (patch: Partial<TravelProposalDTO>) =>
@@ -90,9 +99,31 @@ function WorkspaceProposalStudioPage() {
     }
   };
 
+  const handleConvertToTrip = async () => {
+    if (!proposal) return;
+    setIsConvertingTrip(true);
+    try {
+      const res = await convertProposalToTrip({
+        data: {
+          proposalId: proposal.id,
+        },
+      });
+      if (res?.success && res.tripId) {
+        toast.success(`Viagem confirmada (${res.tripNumber})! Reserva, vouchers e contratos gerados com sucesso.`);
+        if (typeof window !== "undefined") {
+          window.location.href = `/workspace/turismo/viagens/${res.tripId}`;
+        }
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao converter proposta em viagem.");
+    } finally {
+      setIsConvertingTrip(false);
+    }
+  };
+
   if (!proposal) {
     return (
-      <div className="py-20 text-center space-y-4">
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-background space-y-4">
         <h2 className="text-sm font-bold text-foreground">Proposta não encontrada</h2>
         <Button asChild size="sm" variant="outline" className="rounded-xl">
           <Link to="/workspace/turismo/cotacoes">Voltar para Cotações</Link>
@@ -139,23 +170,29 @@ function WorkspaceProposalStudioPage() {
     `Olá ${proposal.client_name}! Preparamos a sua proposta personalizada de viagem para ${proposal.destination_city}. Você pode visualizá-la online no link:\n\n${publicUrl}`
   );
 
+  const currentTemplate = (proposal as any).template || "editorial-flat";
+  const displayZoom = Math.round((zoomScale !== null ? zoomScale : autoFitScale) * 100);
+
   return (
-    <div className="space-y-4 animate-in fade-in duration-200">
-      {/* ── 1. TOP TOOLBAR ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-card border border-border/80">
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-background select-none font-sans">
+      {/* ── 1. BARRA SUPERIOR CANÔNICA (Studio Toolbar Fixo 56px) ── */}
+      <header className="h-14 px-4 border-b border-border/80 flex items-center justify-between shrink-0 bg-card z-30 shadow-2xs">
+        {/* Esquerda: Voltar + Identificação da Proposta + Status */}
         <div className="flex items-center gap-3">
-          <Button asChild size="sm" variant="ghost" className="size-8 p-0 rounded-xl">
+          <Button asChild size="sm" variant="ghost" className="size-8 p-0 rounded-xl" title="Voltar para Cotações">
             <Link to="/workspace/turismo/cotacoes">
               <ArrowLeft className="size-4" />
             </Link>
           </Button>
 
+          <div className="h-4 w-px bg-border/80" />
+
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
-              <h1 className="text-sm font-bold text-foreground truncate max-w-xs sm:max-w-md">
+              <h1 className="text-xs font-bold text-foreground truncate max-w-xs sm:max-w-sm">
                 {proposal.title}
               </h1>
-              <Badge variant="outline" className="text-[10px] font-mono uppercase font-bold">
+              <Badge variant="outline" className="text-[9px] font-mono uppercase font-bold py-0.5 px-2">
                 {proposal.status}
               </Badge>
               {isSaving ? (
@@ -168,42 +205,103 @@ function WorkspaceProposalStudioPage() {
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-muted-foreground">
-              Cliente: <span className="font-bold text-foreground">{proposal.client_name}</span> • Destino: {proposal.destination_city}
+            <p className="text-[10px] text-muted-foreground truncate max-w-xs">
+              Cliente: <strong className="text-foreground">{proposal.client_name}</strong> · {proposal.destination_city}
             </p>
           </div>
         </div>
 
-        {/* Formatos do Canvas & Ações de Exportação */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Seletor de Formato */}
-          <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/40">
+        {/* Centro: Formato + Template + Controles de Zoom */}
+        <div className="flex items-center gap-2">
+          {/* Seletor de Formato do Canvas */}
+          <div className="flex items-center gap-0.5 bg-muted/40 p-0.5 rounded-xl border border-border/50">
             {(["a4-portrait", "a4-landscape", "story-916"] as ProposalCanvasFormat[]).map((fmt) => (
               <button
                 key={fmt}
                 type="button"
                 onClick={() => handleChange({ canvas_format: fmt })}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                className={cn(
+                  "px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer",
                   proposal.canvas_format === fmt
-                    ? "bg-background text-foreground shadow-xs"
+                    ? "bg-background text-foreground shadow-2xs"
                     : "text-muted-foreground hover:text-foreground"
-                }`}
+                )}
+                title={CANVAS_DIMENSIONS[fmt]?.label}
               >
-                {CANVAS_DIMENSIONS[fmt].iconEmoji} {fmt === "a4-portrait" ? "A4" : fmt === "a4-landscape" ? "Paisagem" : "Story"}
+                {CANVAS_DIMENSIONS[fmt]?.iconEmoji}{" "}
+                <span className="hidden sm:inline">
+                  {fmt === "a4-portrait" ? "A4" : fmt === "a4-landscape" ? "Paisagem" : "Story"}
+                </span>
               </button>
             ))}
           </div>
 
+          {/* Seletor de Template Visual */}
+          <div className="flex items-center gap-0.5 bg-muted/40 p-0.5 rounded-xl border border-border/50">
+            {[
+              { id: "editorial-flat", label: "Clean Apple", icon: "" },
+              { id: "dark-premium", label: "Dark Luxo", icon: "🌙" },
+              { id: "executivo", label: "Executivo", icon: "💼" },
+            ].map((tpl) => (
+              <button
+                key={tpl.id}
+                type="button"
+                onClick={() => handleChange({ template: tpl.id } as any)}
+                className={cn(
+                  "px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer",
+                  currentTemplate === tpl.id
+                    ? "bg-background text-foreground shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                title={`Template ${tpl.label}`}
+              >
+                <span>{tpl.icon}</span> <span className="hidden md:inline ml-1">{tpl.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Controles de Zoom */}
+          <div className="hidden lg:flex items-center gap-1 bg-muted/40 p-0.5 rounded-xl border border-border/50">
+            <button
+              type="button"
+              onClick={() => setZoomScale((prev) => Math.max(0.3, (prev !== null ? prev : autoFitScale) - 0.1))}
+              className="size-7 rounded-lg text-xs font-bold text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer"
+              title="Diminuir Zoom (-)"
+            >
+              -
+            </button>
+            <button
+              type="button"
+              onClick={() => setZoomScale(null)}
+              className="px-2 py-0.5 text-[10px] font-mono font-bold text-muted-foreground hover:text-foreground cursor-pointer"
+              title="Ajustar à Tela (Fit)"
+            >
+              {displayZoom}%
+            </button>
+            <button
+              type="button"
+              onClick={() => setZoomScale((prev) => Math.min(1.4, (prev !== null ? prev : autoFitScale) + 0.1))}
+              className="size-7 rounded-lg text-xs font-bold text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer"
+              title="Aumentar Zoom (+)"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Direita: Ações de Exportação, Contrato, WhatsApp */}
+        <div className="flex items-center gap-1.5">
           <Button
             type="button"
             size="sm"
             variant="outline"
             disabled={isExportingImage}
             onClick={handleExportImage}
-            className="rounded-xl text-xs font-bold gap-1.5 h-9"
+            className="rounded-xl text-xs font-bold gap-1.5 h-8 px-2.5 cursor-pointer"
+            title="Exportar Imagem PNG"
           >
             <ImageIcon className="size-3.5" />
-            <span>{isExportingImage ? "Exportando..." : "Baixar PNG"}</span>
+            <span className="hidden md:inline">{isExportingImage ? "Exportando..." : "PNG"}</span>
           </Button>
 
           <Button
@@ -212,65 +310,79 @@ function WorkspaceProposalStudioPage() {
             variant="outline"
             disabled={isExportingPdf}
             onClick={handleExportPdf}
-            className="rounded-xl text-xs font-bold gap-1.5 h-9"
+            className="rounded-xl text-xs font-bold gap-1.5 h-8 px-2.5 cursor-pointer"
+            title="Exportar Documento PDF"
           >
             <Download className="size-3.5" />
-            <span>{isExportingPdf ? "Gerando..." : "Baixar PDF"}</span>
+            <span className="hidden md:inline">{isExportingPdf ? "Gerando..." : "PDF"}</span>
           </Button>
 
           <Button
             type="button"
             size="sm"
+            disabled={isConvertingTrip}
+            onClick={handleConvertToTrip}
+            className="rounded-xl text-xs font-bold gap-1.5 h-8 px-3 bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer shadow-2xs"
+          >
+            {isConvertingTrip ? <Loader2 className="size-3.5 animate-spin" /> : <Compass className="size-3.5" />}
+            <span className="hidden lg:inline">Converter em Viagem</span>
+          </Button>
+
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
             disabled={isCreatingContract}
             onClick={handleGenerateContract}
-            className="rounded-xl text-xs font-bold gap-1.5 h-9 bg-primary text-primary-foreground hover:bg-primary/90"
+            className="rounded-xl text-xs font-bold gap-1.5 h-8 px-2.5 cursor-pointer"
+            title="Emitir Contrato Oficial"
           >
-            {isCreatingContract ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : (
-              <FileCheck2 className="size-3.5" />
-            )}
-            <span>Emitir Contrato Oficial</span>
+            {isCreatingContract ? <Loader2 className="size-3.5 animate-spin" /> : <FileCheck2 className="size-3.5" />}
+            <span className="hidden xl:inline">Contrato</span>
           </Button>
 
           <Button
             type="button"
             size="sm"
             onClick={handleCopyLink}
-            className="rounded-xl text-xs font-bold gap-1.5 h-9 bg-foreground text-background hover:bg-foreground/90"
+            className="rounded-xl text-xs font-bold gap-1.5 h-8 px-2.5 bg-foreground text-background hover:bg-foreground/90 cursor-pointer"
+            title="Copiar link público da proposta"
           >
             <Copy className="size-3.5" />
-            <span>Copiar Link</span>
           </Button>
 
           {cleanWhatsapp && (
             <Button
-              asChild
+              type="button"
               size="sm"
-              className="rounded-xl text-xs font-bold gap-1.5 h-9 bg-emerald-600 hover:bg-emerald-700 text-white"
+              onClick={() => setWhatsappModalOpen(true)}
+              className="rounded-xl text-xs font-bold gap-1.5 h-8 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+              title="Enviar lâmina e proposta para o WhatsApp"
             >
-              <a
-                href={`https://wa.me/55${cleanWhatsapp}?text=${waMessage}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Send className="size-3.5" />
-                <span>Enviar no WhatsApp</span>
-              </a>
+              <Send className="size-3.5" />
+              <span className="hidden sm:inline">WhatsApp</span>
             </Button>
           )}
         </div>
-      </div>
+      </header>
 
-      {/* ── 2. STUDIO WORKSPACE: SIDEBAR EDITOR + TRUTHFUL CANVAS PREVIEW ── */}
-      <div className="flex flex-col lg:flex-row items-start gap-4">
-        {/* Editor Lateral */}
-        <StudioSidebarEditor proposal={proposal} onChange={handleChange} />
+      {/* ── 2. STUDIO WORKSPACE BODY (Editor 440px + Canvas Centralizado Flex-1) ── */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        {/* Editor Lateral TravelOS com Scroll Interno Limpo */}
+        <aside className="w-[420px] lg:w-[460px] shrink-0 border-r border-border/80 bg-card flex flex-col h-full overflow-hidden shadow-2xs z-20">
+          <StudioSidebarEditor proposal={proposal} onChange={handleChange} />
+        </aside>
 
-        {/* Truthful Preview Canvas */}
-        <StudioFrame format={proposal.canvas_format}>
-          <ProposalCanvasRenderer proposal={proposal} />
-        </StudioFrame>
+        {/* Truthful Preview Canvas Frame com Scroll Fluido */}
+        <main className="flex-1 h-full overflow-hidden flex flex-col bg-muted/30 relative">
+          <StudioFrame
+            format={proposal.canvas_format}
+            zoomScale={zoomScale}
+            onAutoFitScaleCalculated={setAutoFitScale}
+          >
+            <ProposalCanvasRenderer proposal={proposal} />
+          </StudioFrame>
+        </main>
       </div>
     </div>
   );

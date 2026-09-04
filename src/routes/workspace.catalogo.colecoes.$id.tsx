@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { ArrowLeft, Sparkles, Check, Tag } from "lucide-react";
+import { ArrowLeft, Layers, Check, Tag } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { getCollectionById, updateCollection } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/workspace/catalogo/colecoes/$id")({
-  head: ({ loaderData }) => ({ meta: [{ title: `${(loaderData as any)?.name || "Coleção"} | Workspace Wider` }] }),
+  head: ({ loaderData }) => ({ meta: [{ title: `${(loaderData as any)?.name || "Coleção"} | Workspace JAH Master OS` }] }),
   loader: async ({ params }): Promise<any> => {
     try {
       const res = await getCollectionById({ data: { id: params.id } });
@@ -249,7 +249,7 @@ function EditCollectionPage() {
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                      <Sparkles className="size-3.5 text-primary" />
+                      <Layers className="size-3.5 text-primary" />
                       <span>Coleção Inteligente</span>
                     </span>
                     {collectionType === "automated" && <Check className="size-4 text-primary" />}

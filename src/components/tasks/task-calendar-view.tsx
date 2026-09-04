@@ -184,7 +184,7 @@ export function TaskCalendarView({
       </div>
 
       {/* Grade de Células de Dias */}
-      <div className="grid grid-cols-7 flex-1 auto-rows-fr divide-x divide-y divide-border/50 overflow-y-auto min-h-[550px]">
+      <div className="grid grid-cols-7 flex-1 auto-rows-fr divide-x divide-y divide-border/50 overflow-y-auto no-scrollbar min-h-[550px]">
         {calendarDays.map((cell) => {
           const dayTasks = tasksByDate.get(cell.dateStr) || [];
           const dayNumber = cell.date.getDate();

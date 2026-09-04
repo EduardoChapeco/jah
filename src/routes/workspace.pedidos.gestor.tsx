@@ -50,19 +50,23 @@ import {
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { NicheOperationalGuard } from "@/components/workspace/niche-operational-guard";
+import { getStoreSettings } from "@/services/store.functions";
 
 export const Route = createFileRoute("/workspace/pedidos/gestor")({
   head: () => ({ meta: [{ title: "KDS - Gestor de Pedidos em Tempo Real" }] }),
   loader: async () => {
     const { getUserSession } = await import("@/services/auth.functions");
-    const session = await getUserSession().catch(() => null);
+    const [session, res, store] = await Promise.all([
+      getUserSession().catch(() => null),
+      listOrders().catch(() => []),
+      getStoreSettings().catch(() => null),
+    ]);
     const storeId = session?.store_id;
-
-    const res = await listOrders();
     // Filter only orders that make sense for the kitchen/fulfillment display
     const initialOrders = (res || []).filter((o: any) => !["draft", "cancelled", "refunded"].includes(o.status));
     
-    return { initialOrders, storeId };
+    return { initialOrders, storeId, store };
   },
   component: KDSPage,
 });
@@ -88,7 +92,7 @@ function playOrderChime() {
 
 function KDSPage() {
   const router = useRouter();
-  const { initialOrders, storeId } = Route.useLoaderData();
+  const { initialOrders, storeId, store } = Route.useLoaderData() as any;
   const [orders, setOrders] = useState<any[]>(initialOrders);
   const [viewMode, setViewMode] = useState<"kanban" | "live_dashboard">("kanban");
   const [alertModalOpen, setAlertModalOpen] = useState(false);
@@ -378,9 +382,15 @@ function KDSPage() {
   ];
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col h-screen overflow-hidden text-foreground">
-      {/* Estilos de Impressão (Bobina 80mm) */}
-      <style>{`
+    <NicheOperationalGuard
+      targetNiche="gastronomy"
+      toolTitle="KDS Gestor de Pedidos & Cozinha"
+      toolDescription="O painel KDS (Kitchen Display System) em tempo real, com divisão de praças e tempos de cocção, é projetado especificamente para restaurantes e delivery de alimentação."
+      store={store}
+    >
+      <div className="fixed inset-0 z-50 bg-background flex flex-col h-screen overflow-hidden text-foreground">
+        {/* Estilos de Impressão (Bobina 80mm) */}
+        <style>{`
  @media print {
  body * {
  visibility: hidden;
@@ -576,7 +586,7 @@ function KDSPage() {
 
       {/* Live Dashboard Operacional ou Kanban Board */}
       {viewMode === "live_dashboard" ? (
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-muted/20 no-print">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-4 sm:p-6 space-y-6 bg-muted/20 no-print">
           {/* 8 KPIs do Turno Operacional */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
             <div className="p-4 rounded-2xl bg-card border border-border/80 space-y-1">
@@ -783,7 +793,7 @@ function KDSPage() {
         </div>
       ) : (
         /* Kanban Board */
-        <main className="flex-1 overflow-x-auto p-4 flex gap-4 bg-muted/30 no-print">
+        <main className="flex-1 overflow-x-auto no-scrollbar p-4 flex gap-4 bg-muted/30 no-print">
         {columns.map((col) => {
           const isPrepCol = col.id === "processing";
           const colOrders = orders
@@ -1119,7 +1129,7 @@ function KDSPage() {
               </SheetHeader>
 
               {/* Corpo com Scroll das Abas */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-5 text-xs">
+              <div className="flex-1 overflow-y-auto no-scrollbar p-5 space-y-5 text-xs">
                 {/* ── ABA 1: DETALHES DOS ITENS & FINANCEIRO ── */}
                 {sheetTab === "details" && (
                   <div className="space-y-4">
@@ -1513,7 +1523,7 @@ function KDSPage() {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-3 py-3 max-h-[60vh] overflow-y-auto">
+          <div className="space-y-3 py-3 max-h-[60vh] overflow-y-auto no-scrollbar">
             <p className="text-xs text-muted-foreground">
               Estes pedidos ultrapassaram o tempo alvo estabelecido. Acione a equipe de cozinha ou notifique o cliente para garantir a melhor experiência.
             </p>
@@ -1584,5 +1594,6 @@ function KDSPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </NicheOperationalGuard>
   );
 }

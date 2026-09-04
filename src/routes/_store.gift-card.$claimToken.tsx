@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { checkGiftCardBalance, claimGiftCard } from "@/services/giftcard.functions";
 import { getUserSession } from "@/services/auth.functions";
 import { formatMoney } from "@/lib/money";
-import { Gift, Lock, Loader2, Sparkles, ArrowRight, UserCheck } from "lucide-react";
+import { Gift, Lock, Loader2, Layers, ArrowRight, UserCheck } from 'lucide-react';
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/gift-card/$claimToken")({
@@ -124,7 +124,7 @@ function ClaimGiftCardPage() {
             <div className="flex justify-between items-center text-xs text-accent/80 border-t border-white/10 pt-3">
               <span>Exclusivo na Vitrine</span>
               <span className="flex items-center gap-1 font-mono">
-                <Sparkles className="size-3.5 animate-spin" />
+                <Layers className="size-3.5 animate-spin" />
                 ATIVO
               </span>
             </div>

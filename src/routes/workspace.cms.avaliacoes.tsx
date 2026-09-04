@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { Star, CheckCircle, XCircle, Clock } from "lucide-react";
+import { CheckCircle, XCircle, Clock } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -138,13 +138,8 @@ function CmsAvaliacoesPage() {
                         {review.products?.title || "Produto desconhecido"}
                       </TableCell>
                       <TableCell>
-                        <div className="flex text-warning">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`size-4 ${i < review.rating ? "fill-current" : "text-muted-foreground/30"}`}
-                            />
-                          ))}
+                        <div className="inline-flex items-center font-mono font-bold text-xs px-2 py-0.5 rounded-md bg-muted text-foreground">
+                          {review.rating || 5} / 5
                         </div>
                       </TableCell>
                       <TableCell className="max-w-[300px] truncate">

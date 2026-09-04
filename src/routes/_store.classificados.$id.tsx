@@ -73,7 +73,7 @@ export const Route = createFileRoute("/_store/classificados/$id")({
         {
           title: classified?.title
             ? `${classified.title} | Classificados Wider`
-            : "Classificado | Wider",
+            : "Classificado | JAH Master OS",
         },
         {
           name: "description",
@@ -461,7 +461,7 @@ function ClassifiedDetailError({ error }: { error: Error }) {
               <p>Assim que os candidatos aplicarem, seus dados e escolaridades aparecerão aqui.</p>
             </div>
           ) : (
-            <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-96 overflow-y-auto no-scrollbar pr-1">
               {candidatesList.map((app) => (
                 <div key={app.id} className="p-3.5 rounded-xl border border-border/80 bg-card space-y-2">
                   <div className="flex items-center justify-between">
@@ -957,7 +957,7 @@ function ClassifiedDetailPage() {
 
             {/* Carrossel de Miniaturas Alinhado e Consistente */}
             {images.length > 1 && (
-              <div className="flex items-center gap-2.5 p-3.5 overflow-x-auto  bg-muted/20 scrollbar-none">
+              <div className="flex items-center gap-2.5 p-3.5 overflow-x-auto no-scrollbar  bg-muted/20 scrollbar-none">
                 {images.map((img, idx) => (
                   <button
                     key={idx}

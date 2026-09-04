@@ -204,7 +204,7 @@ function TransactionCertificatesPage() {
 
         {/* Table */}
         <div className="rounded-xl border border-border/50 overflow-hidden bg-card">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto no-scrollbar">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/50 bg-muted/30">

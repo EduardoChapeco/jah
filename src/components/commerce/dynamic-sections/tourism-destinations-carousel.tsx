@@ -77,7 +77,7 @@ export function TourismDestinationsCarouselSection({
           {effectiveDestinations.map((dest) => (
             <div
               key={dest.id}
-              className="rounded-3xl border border-border/80 bg-card overflow-hidden shadow-2xs group hover:border-primary/40 transition-all flex flex-col justify-between"
+              className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-2xs group hover:border-primary/40 transition-all flex flex-col justify-between"
             >
               <div className="aspect-4/3 overflow-hidden bg-muted relative">
                 {dest.imageUrl && (

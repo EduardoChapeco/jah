@@ -3,11 +3,11 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Sparkles,
   Type,
   Square,
   Image as ImageIcon,
   Palette,
+  Award,
   Layers,
   Save,
   Download,
@@ -287,7 +287,7 @@ function StudioWorkspacePage() {
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Sparkles className="size-3.5" />
+              <Palette className="size-3.5" />
               <span>Design Gráfico</span>
             </button>
             <button
@@ -357,7 +357,7 @@ function StudioWorkspacePage() {
       {/* ── 2. CORPO PRINCIPAL DE 3 COLUNAS (TOOLBAR -> VIEWPORT -> INSPECTOR) ── */}
       <div className="flex-1 flex min-h-0 w-full overflow-hidden">
         {/* COLUNA 1: Toolbar Lateral de Ferramentas & Ativos */}
-        <div className="w-64 border-r border-border/80 bg-card flex flex-col shrink-0 overflow-y-auto p-4 space-y-4">
+        <div className="w-64 border-r border-border/80 bg-card flex flex-col shrink-0 overflow-y-auto no-scrollbar p-4 space-y-4">
           <div className="flex items-center justify-between border-b border-border/60 pb-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               Ferramentas
@@ -415,7 +415,7 @@ function StudioWorkspacePage() {
                   onClick={() => handleAddShape("badge")}
                   className="h-9 rounded-xl font-semibold text-xs gap-1.5"
                 >
-                  <Sparkles className="size-3.5 text-amber-500" />
+                  <Award className="size-3.5 text-primary" />
                   <span>Selo / Badge</span>
                 </Button>
               </div>
@@ -475,7 +475,7 @@ function StudioWorkspacePage() {
               ))}
             </div>
 
-            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-64 overflow-y-auto no-scrollbar pr-1">
               {filteredTemplates.map((tpl) => (
                 <div
                   key={tpl.id}
@@ -563,7 +563,7 @@ function StudioWorkspacePage() {
                 </div>
 
                 {/* Trilhas Visuais */}
-                <div className="space-y-1.5 overflow-y-auto py-1">
+                <div className="space-y-1.5 overflow-y-auto no-scrollbar py-1">
                   {videoTracks.map((tr) => (
                     <div
                       key={tr.id}
@@ -582,7 +582,7 @@ function StudioWorkspacePage() {
         </div>
 
         {/* COLUNA 3: Painel Inspector de Propriedades (Contextual) */}
-        <div className="w-72 border-l border-border/80 bg-card flex flex-col shrink-0 overflow-y-auto p-4 space-y-4">
+        <div className="w-72 border-l border-border/80 bg-card flex flex-col shrink-0 overflow-y-auto no-scrollbar p-4 space-y-4">
           <div className="flex items-center justify-between border-b border-border/60 pb-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               Propriedades

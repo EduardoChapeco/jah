@@ -1,19 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Sparkles,
-  Plus,
-  Trash2,
-  Edit2,
-  Calendar,
-  Layers,
-  Clock,
-  Ticket,
-  DollarSign,
-  Repeat,
-  CheckCircle2,
-} from "lucide-react";
+import { Sliders, Plus, Trash2, Edit2, Calendar, Layers, Clock, Ticket, DollarSign, Repeat, CheckCircle2 } from 'lucide-react';
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -145,7 +133,7 @@ function WorkspacePackagesPage() {
           {packages.map((pkg: any) => (
             <div
               key={pkg.id}
-              className="p-5 rounded-3xl  bg-card space-y-4 flex flex-col justify-between hover:border-foreground/20 transition-all "
+              className="p-5 rounded-2xl  bg-card space-y-4 flex flex-col justify-between hover:border-foreground/20 transition-all "
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -239,7 +227,7 @@ function WorkspacePackagesPage() {
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent
           side="right"
-          className="sm:max-w-xl md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto bg-card flex flex-col justify-between"
+          className="sm:max-w-xl md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto no-scrollbar bg-card flex flex-col justify-between"
         >
           <div className="p-6 space-y-4">
             <SheetHeader className="pb-3 border-b border-border/60">

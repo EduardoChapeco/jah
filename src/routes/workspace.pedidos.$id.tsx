@@ -22,21 +22,7 @@ import {
   AlertDialogTrigger,
   AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
-import {
-  Printer,
-  Banknote,
-  Landmark,
-  AlertTriangle,
-  Truck,
-  ExternalLink,
-  Package,
-  User,
-  MapPin,
-  Phone,
-  Mail,
-  MessageSquare,
-  Sparkles,
-} from "lucide-react";
+import { Printer, Banknote, Landmark, AlertTriangle, Truck, ExternalLink, Package, User, MapPin, Phone, Mail, MessageSquare, Layers } from 'lucide-react';
 import {
   getOrderById,
   updateOrderStatus,
@@ -52,7 +38,7 @@ import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/pedidos/$id")({
   head: ({ loaderData }) => ({
-    meta: [{ title: `Pedido #${loaderData?.order?.public_token?.slice(0, 8) || "Detalhes"} | Workspace Wider` }],
+    meta: [{ title: `Pedido #${loaderData?.order?.public_token?.slice(0, 8) || "Detalhes"} | Workspace JAH Master OS` }],
   }),
   loader: async ({ params }: { params: { id: string } }) => {
     try {
@@ -255,7 +241,7 @@ function AdminOrderDetailPage() {
         {/* Left Column: Items, Customer Info, Custom Fields, Notes */}
         <div className="md:col-span-2 space-y-6">
           {/* Itens do Pedido */}
-          <div className="p-6 bg-card text-card-foreground rounded-3xl border border-border/80">
+          <div className="p-6 bg-card text-card-foreground rounded-2xl border border-border/80">
             <h3 className="font-bold text-base mb-4 text-foreground">Itens do Pedido</h3>
             <div className="space-y-4">
               {(order.order_items ?? []).map((item: any) => {
@@ -305,7 +291,7 @@ function AdminOrderDetailPage() {
           </div>
 
           {/* Dados do Cliente & Contato */}
-          <div className="p-6 bg-card text-card-foreground rounded-3xl border border-border/80 space-y-4">
+          <div className="p-6 bg-card text-card-foreground rounded-2xl border border-border/80 space-y-4">
             <h3 className="font-bold text-base text-foreground flex items-center gap-2">
               <User className="size-4 text-primary" />
               <span>Dados do Cliente</span>
@@ -338,9 +324,9 @@ function AdminOrderDetailPage() {
 
           {/* Informações Complementares / Campos de Nicho */}
           {hasCustomFields && (
-            <div className="p-6 bg-card text-card-foreground rounded-3xl border border-border/80 space-y-4">
+            <div className="p-6 bg-card text-card-foreground rounded-2xl border border-border/80 space-y-4">
               <h3 className="font-bold text-base text-foreground flex items-center gap-2">
-                <Sparkles className="size-4 text-primary" />
+                <Layers className="size-4 text-primary" />
                 <span>Informações do Pedido / Nicho</span>
               </h3>
 
@@ -357,7 +343,7 @@ function AdminOrderDetailPage() {
 
           {/* Observações do Pedido */}
           {order.notes && (
-            <div className="p-6 bg-card text-card-foreground rounded-3xl border border-border/80 space-y-2">
+            <div className="p-6 bg-card text-card-foreground rounded-2xl border border-border/80 space-y-2">
               <h3 className="font-bold text-base text-foreground flex items-center gap-2">
                 <MessageSquare className="size-4 text-primary" />
                 <span>Observações do Pedido</span>

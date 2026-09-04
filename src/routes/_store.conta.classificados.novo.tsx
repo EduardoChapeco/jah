@@ -2,37 +2,7 @@ import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-r
 import { useState, useMemo, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  Tag,
-  Car,
-  Home as HomeIcon,
-  Briefcase,
-  Wrench,
-  Sparkles,
-  ArrowLeft,
-  ChevronRight,
-  Eye,
-  Edit3,
-  ImagePlus,
-  MapPin,
-  MessageCircle,
-  ShieldCheck,
-  Check,
-  Loader2,
-  Phone,
-  FileText,
-  DollarSign,
-  Layers,
-  ChevronLeft,
-  Building,
-  Key,
-  Truck,
-  Package,
-  CreditCard,
-  QrCode,
-  RefreshCw,
-  Banknote,
-} from "lucide-react";
+import { Tag, Car, Home as HomeIcon, Briefcase, Wrench, Sliders, ArrowLeft, ChevronRight, Eye, Edit3, ImagePlus, MapPin, MessageCircle, ShieldCheck, Check, Loader2, Phone, FileText, DollarSign, Layers, ChevronLeft, Building, Key, Truck, Package, CreditCard, QrCode, RefreshCw, Banknote } from 'lucide-react';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -2077,7 +2047,7 @@ function SpecializedClassifiedEditor({
                 </div>
 
                 {images.length > 1 && (
-                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                  <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 scrollbar-none">
                     {images.map((img, idx) => (
                       <button
                         key={idx}

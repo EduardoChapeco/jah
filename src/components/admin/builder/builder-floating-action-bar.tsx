@@ -1,15 +1,5 @@
 import * as React from "react";
-import {
-  Edit3,
-  LayoutGrid,
-  Copy,
-  Trash2,
-  Sliders,
-  Sparkles,
-  ArrowUp,
-  ArrowDown,
-  Settings2,
-} from "lucide-react";
+import { Edit3, LayoutGrid, Copy, Trash2, Sliders, Layers, ArrowUp, ArrowDown, Settings2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";

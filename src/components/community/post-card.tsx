@@ -1,29 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Heart,
-  MessageSquare,
-  Share2,
-  Bookmark,
-  MapPin,
-  MoreHorizontal,
-  Calendar,
-  ShoppingBag,
-  ExternalLink,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-  Utensils,
-  Navigation,
-  Tag,
-  Newspaper,
-  ArrowRight,
-  Phone,
-  Volume2,
-  Compass,
-  Radio,
-  Eye,
-  ShieldCheck,
-} from "lucide-react";
+import { Heart, MessageSquare, Share2, Bookmark, MapPin, MoreHorizontal, Calendar, ShoppingBag, ExternalLink, ChevronLeft, ChevronRight, Layers, Utensils, Navigation, Tag, Newspaper, ArrowRight, Phone, Volume2, Compass, Radio, Eye, ShieldCheck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -133,7 +109,7 @@ export function PostCard(props: PostCardProps) {
   };
 
   return (
-    <article className="flex flex-col rounded-3xl bg-card p-4 sm:p-5 transition-all hover:border-border/80 border border-border/70 relative">
+    <article className="flex flex-col rounded-2xl bg-card p-4 sm:p-5 transition-all hover:border-border/80 border border-border/70 relative">
       {/* ── 1. Header do Post ────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -276,7 +252,7 @@ export function PostCard(props: PostCardProps) {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs text-white">
                   <span className="font-bold flex items-center gap-1 bg-black/60 backdrop-blur-xs px-2.5 py-1 rounded-lg">
-                    <Sparkles className="size-3 text-warning" />
+                    <Layers className="size-3 text-warning" />
                     <span>{item.metadata?.category || "Inovação & Cidades"}</span>
                   </span>
                   <span className="text-[11px] text-white/70 flex items-center gap-1">
@@ -301,7 +277,7 @@ export function PostCard(props: PostCardProps) {
           </div>
         ) : (item.post_type === "duo_badge" || item.post_type === "id_badges") ? (
           /* TEMPLATE: ID BADGES & CRACHÁS CONECTADOS (Imagem 3) */
-          <div className="mb-3 space-y-4 rounded-3xl bg-gradient-to-b from-blue-50/80 via-indigo-50/40 to-background dark:from-slate-900 dark:via-slate-950 dark:to-card p-5 sm:p-6 border border-info/50 dark:border-info/30 select-none">
+          <div className="mb-3 space-y-4 rounded-2xl bg-gradient-to-b from-blue-50/80 via-indigo-50/40 to-background dark:from-slate-900 dark:via-slate-950 dark:to-card p-5 sm:p-6 border border-info/50 dark:border-info/30 select-none">
             {/* Header de Impacto */}
             <div className="text-center space-y-1">
               <h3 className="font-editorial text-2xl sm:text-3xl font-black text-foreground tracking-tight">
@@ -383,7 +359,7 @@ export function PostCard(props: PostCardProps) {
           </div>
         ) : (item.post_type === "travel" || (item.post_type === "destination" && item.metadata?.is_triptych)) ? (
           /* TEMPLATE 2: VIAGENS & TURISMO TRÍPTICO (Imagem 2) */
-          <div className="mb-3 space-y-4 rounded-3xl bg-gradient-to-b from-sky-100/70 via-teal-50/40 to-background dark:from-sky-950/30 dark:via-slate-900 dark:to-card p-4 sm:p-6 border border-sky-200/50 dark:border-sky-800/30 select-none">
+          <div className="mb-3 space-y-4 rounded-2xl bg-gradient-to-b from-sky-100/70 via-teal-50/40 to-background dark:from-sky-950/30 dark:via-slate-900 dark:to-card p-4 sm:p-6 border border-sky-200/50 dark:border-sky-800/30 select-none">
             {/* Impact Title */}
             <div className="text-center space-y-1">
               <h3 className="font-editorial text-2xl sm:text-3xl font-black text-foreground tracking-tight">
@@ -472,7 +448,7 @@ export function PostCard(props: PostCardProps) {
           <div className="mb-3 relative select-none">
             <div className="flex items-center justify-between text-xs font-bold text-muted-foreground mb-2 px-1">
               <span className="flex items-center gap-1.5 text-foreground">
-                <Sparkles className="size-3.5 text-primary" />
+                <Layers className="size-3.5 text-primary" />
                 <span>Álbum de {item.media_urls.length} fotos</span>
               </span>
               <span className="text-[11px] text-muted-foreground">Toque na foto para curtir/comentar</span>

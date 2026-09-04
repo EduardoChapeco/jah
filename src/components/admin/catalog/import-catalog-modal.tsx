@@ -14,17 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-  Sparkles,
-  Link as LinkIcon,
-  FileText,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-  PackageCheck,
-  Utensils,
-  ChevronRight,
-} from "lucide-react";
+import { Layers, Link as LinkIcon, FileText, Loader2, CheckCircle2, AlertCircle, PackageCheck, Utensils, ChevronRight } from 'lucide-react';
 import {
   importFullCatalogMenu,
   type ImportedCatalogDTO,
@@ -119,7 +109,7 @@ export function ImportCatalogModal({
         <DialogHeader className="p-5 border-b border-border/80 bg-muted/20">
           <div className="flex items-center gap-2.5">
             <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <Sparkles className="size-4" />
+              <Layers className="size-4" />
             </div>
             <div>
               <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
@@ -135,7 +125,7 @@ export function ImportCatalogModal({
           </div>
         </DialogHeader>
 
-        <div className="p-5 space-y-4 flex-1 overflow-y-auto">
+        <div className="p-5 space-y-4 flex-1 overflow-y-auto no-scrollbar">
           {!previewData ? (
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
               <TabsList className="grid grid-cols-2 h-9 p-1 bg-muted/50 rounded-xl mb-4">
@@ -277,7 +267,7 @@ export function ImportCatalogModal({
               {parseMutation.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                <Sparkles className="size-4" />
+                <Layers className="size-4" />
               )}
               <span>Analisar Cardápio com IA</span>
             </Button>

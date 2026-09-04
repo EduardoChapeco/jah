@@ -184,7 +184,7 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
         </Button>
       </div>
 
-      <div className="border overflow-x-auto bg-card mb-4">
+      <div className="border overflow-x-auto no-scrollbar bg-card mb-4">
         <table className="w-full text-sm text-left">
           <thead className="bg-muted/40 text-muted-foreground text-xs uppercase font-semibold">
             <tr>

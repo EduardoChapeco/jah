@@ -1,21 +1,7 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Sparkles,
-  Calendar,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Plus,
-  ArrowRight,
-  User,
-  History,
-  RotateCcw,
-  Ticket,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { Layers, Calendar, Clock, CheckCircle2, AlertCircle, Plus, ArrowRight, User, History, RotateCcw, Ticket, ChevronDown, ChevronUp } from 'lucide-react';
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -39,7 +25,7 @@ import { EmptyState } from "@/components/state/states";
 import { PageSkeleton } from "@/components/state/loading";
 
 export const Route = createFileRoute("/_store/conta/pacotes")({
-  head: () => ({ meta: [{ title: "Meus Pacotes & Aulas | Wider" }] }),
+  head: () => ({ meta: [{ title: "Meus Pacotes & Aulas | JAH Master OS" }] }),
   component: CustomerPassesPage,
   pendingComponent: PageSkeleton,
 });
@@ -158,7 +144,7 @@ function CustomerPassesPage() {
             return (
               <div
                 key={pass.id}
-                className="p-5 rounded-3xl  bg-card space-y-4 flex flex-col justify-between hover:border-foreground/20 transition-all "
+                className="p-5 rounded-2xl  bg-card space-y-4 flex flex-col justify-between hover:border-foreground/20 transition-all "
               >
                 <div className="space-y-3">
                   {/* Store & Status Header */}
@@ -269,7 +255,7 @@ function CustomerPassesPage() {
                           Nenhum agendamento realizado ainda.
                         </p>
                       ) : (
-                        <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                        <div className="space-y-1.5 max-h-36 overflow-y-auto no-scrollbar pr-1">
                           {pass.service_pass_ledger?.map((log: any) => (
                             <div
                               key={log.id}
@@ -305,7 +291,7 @@ function CustomerPassesPage() {
 
       {/* ── Modal de Agendamento por Crédito ── */}
       <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-        <DialogContent className="sm:max-w-md sm:rounded-3xl sm:p-6">
+        <DialogContent className="sm:max-w-md sm:rounded-2xl sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <Ticket className="size-5 text-primary" />
@@ -360,7 +346,7 @@ function CustomerPassesPage() {
                     Nenhum horário livre encontrado para esta data. Selecione outro dia.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
+                  <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar pr-1">
                     {availableSlots.map((slot: string) => {
                       const timeStr = format(new Date(slot), "HH:mm");
                       const isSelected = selectedSlot === slot;

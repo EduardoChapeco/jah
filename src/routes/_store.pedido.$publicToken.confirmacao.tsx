@@ -25,7 +25,7 @@ import { useEffect } from "react";
 
 export const Route = createFileRoute("/_store/pedido/$publicToken/confirmacao")({
   head: () => ({
-    meta: [{ title: "Pedido Confirmado | Wider" }],
+    meta: [{ title: "Pedido Confirmado | JAH Master OS" }],
   }),
   loader: ({ params }) => getOrderByToken({ data: { token: params.publicToken } }),
   component: ConfirmationPage,
@@ -143,7 +143,7 @@ function ConfirmationPage() {
         </div>
 
         {/* ── LIVE ORDER TRACKER: Régua Visual de Acompanhamento em Tempo Real ── */}
-        <div className="p-5 sm:p-6 rounded-3xl bg-card border border-border/80 shadow-xs space-y-4">
+        <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border/80 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-border/40">
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground">
               Acompanhamento ao Vivo

@@ -20,7 +20,7 @@ import {
   Clock,
   CheckCircle2,
   Plane,
-  Sparkles,
+  FileSpreadsheet,
   FileText,
   Bus,
   Scale,
@@ -49,7 +49,7 @@ import { getNicheSemantics } from "@/lib/niche-semantics";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/")({
-  head: () => ({ meta: [{ title: "Painel de Controle & Visão Geral | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Painel de Controle & Visão Geral | Workspace JAH Master OS" }] }),
   loader: async () => {
     let session: any = null;
     try {
@@ -144,7 +144,7 @@ export default function WorkspaceDashboardPage() {
           { label: "Grupos & Excursões (ANTT)", path: "/workspace/turismo/grupos", icon: Bus },
           { label: "Frota & Editor 2D", path: "/workspace/turismo/frota", icon: Bus },
           { label: "Central de Cotações", path: "/workspace/turismo/cotacoes", icon: Plane },
-          { label: "Lâminas & Propostas (Studio)", path: "/workspace/turismo/propostas", icon: Sparkles },
+          { label: "Lâminas & Propostas (Studio)", path: "/workspace/turismo/propostas", icon: FileSpreadsheet },
           { label: "Contratos & Assinatura Digital", path: "/workspace/turismo/contratos", icon: FileText },
         ];
       case "gastronomy":
@@ -159,7 +159,7 @@ export default function WorkspaceDashboardPage() {
       case "services":
         return [
           { label: "Grade de Agendamentos", path: "/workspace/agenda", icon: Calendar },
-          { label: "Catálogo de Serviços", path: "/workspace/agenda/servicos", icon: Sparkles },
+          { label: "Catálogo de Serviços", path: "/workspace/agenda/servicos", icon: Layers },
           { label: "Pacotes & Passes", path: "/workspace/pacotes", icon: Ticket },
           { label: "Promoções & Cupons", path: "/workspace/marketing/promocoes", icon: Flame },
         ];
@@ -202,7 +202,7 @@ export default function WorkspaceDashboardPage() {
       case "pet":
         return [
           { label: "Grade de Banho, Tosa e Consultas", path: "/workspace/agenda", icon: Calendar },
-          { label: "Procedimentos & Vacinas", path: "/workspace/agenda/servicos", icon: Sparkles },
+          { label: "Procedimentos & Vacinas", path: "/workspace/agenda/servicos", icon: Layers },
           { label: "Rações & Farmácia", path: "/workspace/catalogo/produtos", icon: Package },
         ];
       case "retail":
@@ -457,7 +457,7 @@ export default function WorkspaceDashboardPage() {
       {/* ── 4. Matriz Bilateral: Atividades Reais & Vitrine / Canais Contextuais ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Atividades Recentes do Banco de Dados */}
-        <Card className="lg:col-span-2 p-5 border-border bg-card rounded-3xl space-y-4">
+        <Card className="lg:col-span-2 p-5 border-border bg-card rounded-2xl space-y-4">
           <div className="flex items-center justify-between pb-3">
             <div className="flex items-center gap-2">
               <Clock className="size-4 text-primary" />
@@ -502,7 +502,7 @@ export default function WorkspaceDashboardPage() {
         </Card>
 
         {/* Vitrine & Ferramentas Contextuais da Empresa */}
-        <Card className="p-5 border-border bg-card rounded-3xl space-y-4">
+        <Card className="p-5 border-border bg-card rounded-2xl space-y-4">
           <div className="flex items-center justify-between pb-3">
             <div className="flex items-center gap-2">
               <Megaphone className="size-4 text-primary" />
@@ -533,7 +533,7 @@ export default function WorkspaceDashboardPage() {
       </div>
 
       {/* ── 5. Departamentos Corporativos Universais (Visão 360° da Empresa) ── */}
-      <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+      <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">

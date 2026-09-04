@@ -8,37 +8,11 @@ import { getProfile, getUserSession, signOut } from "@/services/auth.functions";
 import { getMyStoresList } from "@/services/store.functions";
 import { formatDate } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
-import {
-  Shield,
-  Store,
-  LayoutDashboard,
-  ArrowUpRight,
-  Plus,
-  Eye,
-  Edit3,
-  ArrowRight,
-  ShoppingBag,
-  Calendar,
-  Ticket,
-  Bookmark,
-  Plane,
-  CreditCard,
-  Coins,
-  Gift,
-  HelpCircle,
-  RotateCcw,
-  Sparkles,
-  LogOut,
-  User,
-  ExternalLink,
-  ChevronRight,
-  Building2,
-  Lock,
-} from "lucide-react";
+import { Shield, Store, LayoutDashboard, ArrowUpRight, Plus, Eye, Edit3, ArrowRight, ShoppingBag, Calendar, Ticket, Bookmark, Plane, CreditCard, Coins, Gift, HelpCircle, RotateCcw, Layers, LogOut, User, ExternalLink, ChevronRight, Building2, Lock } from 'lucide-react';
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/")({
-  head: () => ({ meta: [{ title: "Minha Conta | Wider" }] }),
+  head: () => ({ meta: [{ title: "Minha Conta | JAH Master OS" }] }),
   loader: async () => {
     try {
       const session = await getUserSession().catch(() => null);
@@ -71,7 +45,7 @@ const ACCOUNT_SECTIONS = [
   { to: "/conta/pacotes", label: "Meus Pacotes & Sessões", icon: Ticket, badge: null },
   { to: "/conta/viagens", label: "Minhas Viagens & Roteiros", icon: Plane, badge: null },
   { to: "/conta/salvos", label: "Itens Salvos & Favoritos", icon: Bookmark, badge: null },
-  { to: "/conta/classificados", label: "Meus Desapegos & Anúncios", icon: Sparkles, badge: null },
+  { to: "/conta/classificados", label: "Meus Desapegos & Anúncios", icon: Layers, badge: null },
   { to: "/conta/pagamentos", label: "Formas de Pagamento", icon: CreditCard, badge: null },
   { to: "/conta/tokens", label: "Meus Tokens & Cashback", icon: Coins, badge: "Fidelidade" },
   { to: "/conta/gift-cards", label: "Vales-Presente & Cupons", icon: Gift, badge: null },
@@ -132,7 +106,7 @@ function AccountDashboardPage() {
   if (!isAuthenticated) {
     return (
       <div className="w-full max-w-md mx-auto py-16 px-4 text-center space-y-6 animate-in fade-in duration-200">
-        <div className="size-16 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mx-auto">
+        <div className="size-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mx-auto">
           <User className="size-8" />
         </div>
 

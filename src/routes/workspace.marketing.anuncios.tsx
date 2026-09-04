@@ -11,7 +11,7 @@ import {
   Play,
   Pause,
   MapPin,
-  Sparkles,
+  Percent,
 } from "lucide-react";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import { formatMoney } from "@/lib/money";
 import { listAdCampaigns, toggleAdCampaignStatus, type AdCampaign } from "@/services/ads.functions";
 
 export const Route = createFileRoute("/workspace/marketing/anuncios")({
-  head: () => ({ meta: [{ title: "Campanhas de Anúncios | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Campanhas de Anúncios | Workspace JAH Master OS" }] }),
   loader: async () => {
     const campaigns = await listAdCampaigns().catch(() => []);
     return { campaigns };
@@ -102,7 +102,7 @@ function AnunciosWorkspacePage() {
         <div className="squircle-soft bg-card  p-4 space-y-1 ">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-[11px] font-bold uppercase tracking-wider">CTR Médio</span>
-            <Sparkles className="size-4 text-primary" />
+            <Percent className="size-4 text-primary" />
           </div>
           <p className="text-xl sm:text-2xl font-bold text-foreground">{avgCtr}%</p>
         </div>

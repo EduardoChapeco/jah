@@ -65,7 +65,7 @@ const GASTRONOMIA_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/gastronomia")({
   head: () => ({
     meta: [
-      { title: "Gastronomia & Delivery de Restaurantes | Wider" },
+      { title: "Gastronomia & Delivery de Restaurantes | JAH Master OS" },
       {
         name: "description",
         content:

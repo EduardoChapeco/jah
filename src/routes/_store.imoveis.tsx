@@ -55,7 +55,7 @@ const IMOVEIS_CATEGORIES: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/imoveis")({
   head: () => ({
     meta: [
-      { title: "Imóveis, Casas, Apartamentos & Aluguel | Wider" },
+      { title: "Imóveis, Casas, Apartamentos & Aluguel | JAH Master OS" },
       {
         name: "description",
         content:
@@ -186,7 +186,7 @@ function ImoveisVerticalPage() {
 
       {/* ── 5. Grade de Oportunidades Imobiliárias ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="p-6 rounded-3xl  bg-card space-y-4">
+        <div className="p-6 rounded-2xl  bg-card space-y-4">
           <div className="flex items-center justify-between">
             <span className="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold uppercase bg-foreground text-background">
               Locação Residencial
@@ -211,7 +211,7 @@ function ImoveisVerticalPage() {
           </div>
         </div>
 
-        <div className="p-6 rounded-3xl  bg-card space-y-4">
+        <div className="p-6 rounded-2xl  bg-card space-y-4">
           <div className="flex items-center justify-between">
             <span className="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold uppercase bg-foreground text-background">
               Venda & Lançamentos

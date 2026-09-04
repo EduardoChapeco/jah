@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, ShieldCheck } from "lucide-react";
+import { Layers, ShieldCheck } from 'lucide-react';
 
 interface IngredientItem {
   title: string;
@@ -24,7 +24,7 @@ export function IngredientSpotlight({
       {(title || subtitle) && (
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-3">
-            <Sparkles className="w-3.5 h-3.5" />
+            <Layers className="w-3.5 h-3.5" />
             Qualidade Garantida
           </div>
           {title && (

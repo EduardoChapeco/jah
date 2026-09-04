@@ -55,7 +55,7 @@ const LIMPEZA_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/limpeza")({
   head: () => ({
     meta: [
-      { title: "Produtos de Limpeza, Higiene & Descartáveis | Wider" },
+      { title: "Produtos de Limpeza, Higiene & Descartáveis | JAH Master OS" },
       {
         name: "description",
         content:

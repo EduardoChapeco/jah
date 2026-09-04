@@ -303,7 +303,7 @@ function DedicatedHotpageView() {
     accentColor: "text-primary",
     badgeBg: "bg-white/20 text-white",
     icon: Tag,
-    defaultBadge: "✨ Coleção Especial",
+    defaultBadge: " Coleção Especial",
     heroPills: ["⭐ Seleção Wider", "🚚 Entrega Rápida", "💳 Pagamento Online"],
     tagLine: "Produtos e lojas selecionadas na curadoria Wider",
     featuredRailTitle: "Destaques da Curadoria",
@@ -475,7 +475,7 @@ function DedicatedHotpageView() {
       <div className="relative z-20 -mt-8 rounded-t-[32px] bg-background px-4 sm:px-6 lg:px-8 pt-6 pb-12 space-y-6 max-w-7xl mx-auto">
         
         {/* ── 2.1. Sub-abas de Navegação por Nicho (Dinâmicas por Módulo) ── */}
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scrollbar-none pb-1">
           {activeChips.map((chip) => {
             const Icon = chip.icon;
             const isSelected = selectedSubCategory === chip.id;
@@ -513,7 +513,7 @@ function DedicatedHotpageView() {
             />
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scrollbar-none">
             <button
               type="button"
               onClick={() => setSelectedFastFilter(selectedFastFilter === "desconto" ? null : "desconto")}
@@ -600,7 +600,7 @@ function DedicatedHotpageView() {
           </div>
 
           {filteredProducts.length === 0 ? (
-            <div className="py-16 text-center space-y-3 bg-muted/10 rounded-3xl border-0 p-8">
+            <div className="py-16 text-center space-y-3 bg-muted/10 rounded-2xl border-0 p-8">
               <p className="font-bold text-sm text-foreground">Nenhum produto encontrado.</p>
               <p className="text-xs text-muted-foreground">Tente limpar a busca ou selecionar outro filtro.</p>
             </div>

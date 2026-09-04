@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Sparkles, Plus, TrendingUp, Flame } from "lucide-react";
+import { Layers, Plus, TrendingUp, Flame } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -98,7 +98,7 @@ export function CuratedHitsRailSection({
             return (
               <div
                 key={item.id}
-                className="rounded-3xl border border-border/80 bg-card overflow-hidden shadow-2xs group hover:border-primary/40 transition-all flex flex-col justify-between"
+                className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-2xs group hover:border-primary/40 transition-all flex flex-col justify-between"
               >
                 {/* Imagem do Produto com Badge de Ranking */}
                 <div className="aspect-4/3 overflow-hidden bg-muted relative">

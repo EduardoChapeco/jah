@@ -1,22 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
-import {
-  Plus,
-  Trash2,
-  Pencil,
-  ArrowUp,
-  ArrowDown,
-  Layout,
-  Sliders,
-  Sparkles,
-  Store,
-  Tag,
-  Shuffle,
-  Eye,
-  CheckCircle2,
-  Grid,
-} from "lucide-react";
+import { Plus, Trash2, Pencil, ArrowUp, ArrowDown, Layout, Sliders, Layers, Store, Tag, Shuffle, Eye, CheckCircle2, Grid } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -277,7 +262,7 @@ function AdminMasterVitrinesPage() {
       </div>
 
       {/* Seletor Horizontal de Superfícies / Mercados */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-border/30">
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 scrollbar-none border-b border-border/30">
         {surfaces.map((s) => {
           const isSelected = selectedSurfaceSlug === s.slug;
           return (
@@ -427,7 +412,7 @@ function AdminMasterVitrinesPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-2 max-h-[70vh] overflow-y-auto pr-1">
+          <div className="space-y-4 py-2 max-h-[70vh] overflow-y-auto no-scrollbar pr-1">
             {/* Live Truthful Preview */}
             <div className="p-3 bg-muted/30 rounded-xl border border-border/70 space-y-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
@@ -451,9 +436,9 @@ function AdminMasterVitrinesPage() {
                   </div>
                 </div>
               ) : type === "custom_buttons_rail" ? (
-                <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
                   <div className="px-3 py-1.5 rounded-xl bg-card border border-border/80 text-[11px] font-bold flex items-center gap-1.5 shadow-xs">
-                    <Sparkles className="size-3 text-primary" />
+                    <Layers className="size-3 text-primary" />
                     <span>{title || "Atalho Rápido"}</span>
                   </div>
                   <div className="px-3 py-1.5 rounded-xl bg-card border border-border/80 text-[11px] font-bold flex items-center gap-1.5 shadow-xs opacity-60">
@@ -461,7 +446,7 @@ function AdminMasterVitrinesPage() {
                   </div>
                 </div>
               ) : type === "store_rail" ? (
-                <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
                   <div className="w-28 p-2 rounded-xl bg-card border border-border/80 space-y-1">
                     <div className="size-6 rounded-full bg-muted" />
                     <div className="h-2 w-16 bg-foreground/20 rounded" />
@@ -473,7 +458,7 @@ function AdminMasterVitrinesPage() {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
                   <div className="w-24 p-2 rounded-xl bg-card border border-border/80 space-y-1.5 shadow-xs">
                     <div className="aspect-square w-full rounded-lg bg-muted" />
                     <div className="h-2 w-16 bg-foreground/20 rounded" />

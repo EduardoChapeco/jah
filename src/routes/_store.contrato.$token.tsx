@@ -146,7 +146,7 @@ function PublicTravelContractSignaturePage() {
       {/* ── 2. CORPO DO CONTRATO EDITORIAL ── */}
       <div
         id="contract-document-view"
-        className="p-6 sm:p-10 rounded-3xl bg-white text-slate-900 border border-slate-200 shadow-sm space-y-8"
+        className="p-6 sm:p-10 rounded-2xl bg-white text-slate-900 border border-slate-200 shadow-sm space-y-8"
       >
         {/* Cabeçalho do Instrumento Particular */}
         <div className="text-center space-y-2 pb-6 border-b border-slate-200">
@@ -258,7 +258,7 @@ function PublicTravelContractSignaturePage() {
 
       {/* ── 3. FORMULÁRIO DE ASSINATURA ELETRÔNICA MOBILE ── */}
       {!isAlreadySigned && (
-        <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-5 shadow-sm">
+        <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-5 shadow-sm">
           <div className="space-y-1">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Lock className="size-4 text-primary" />

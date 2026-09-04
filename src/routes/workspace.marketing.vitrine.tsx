@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import {
-  Sparkles,
   ExternalLink,
   Smartphone,
   Laptop,
@@ -25,7 +24,6 @@ import {
   Zap,
   Percent,
   Compass,
-  Star,
   Store,
   Share2,
 } from "lucide-react";
@@ -69,7 +67,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/marketing/vitrine")({
-  head: () => ({ meta: [{ title: "Sites, Vitrines & Hotpages | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Sites, Vitrines & Hotpages | Workspace JAH Master OS" }] }),
   loader: async () => {
     const [docs, storefrontRes, biolinkRes] = await Promise.all([
       listExperienceDocuments().catch(() => []),
@@ -410,7 +408,7 @@ function WorkspaceSitesHubPage() {
             onClick={() => setActiveTab("templates")}
             className="rounded-xl text-xs font-semibold h-8 cursor-pointer gap-1.5"
           >
-            <Sparkles className="size-3 text-amber-500" />
+            <Grid className="size-3 text-primary" />
             <span>Biblioteca de Modelos</span>
           </Button>
         </div>
@@ -588,7 +586,7 @@ function WorkspaceSitesHubPage() {
                           </DropdownMenuItem>
                           {!isPrimary && (
                             <DropdownMenuItem onClick={() => handleSetActive(doc.id)} className="gap-2 cursor-pointer">
-                              <Star className="size-3.5 text-amber-500" />
+                              <CheckCircle2 className="size-3.5 text-primary" />
                               <span>Definir como Principal</span>
                             </DropdownMenuItem>
                           )}
@@ -681,7 +679,7 @@ function WorkspaceSitesHubPage() {
                           </DropdownMenuItem>
                           {!isPrimary && (
                             <DropdownMenuItem onClick={() => handleSetActive(doc.id)} className="gap-2 cursor-pointer">
-                              <Star className="size-3.5 text-amber-500" />
+                              <CheckCircle2 className="size-3.5 text-primary" />
                               <span>Definir como Principal</span>
                             </DropdownMenuItem>
                           )}

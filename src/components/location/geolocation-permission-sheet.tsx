@@ -132,12 +132,12 @@ export function GeolocationPermissionSheet() {
     <Sheet open={open} onOpenChange={(val) => !val && handleDismiss()}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-md p-6 flex flex-col justify-between overflow-y-auto bg-card text-foreground border-border/60 sm:rounded-l-3xl rounded-none"
+        className="w-full sm:max-w-md p-6 flex flex-col justify-between overflow-y-auto no-scrollbar bg-card text-foreground border-border/60 sm:rounded-l-3xl rounded-none"
       >
         <div className="space-y-6">
           {/* Header com Ícone de Pin */}
           <SheetHeader className="text-left space-y-3 p-0">
-            <div className="size-14 rounded-3xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+            <div className="size-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold">
               <MapPin className="size-7 animate-pulse" />
             </div>
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   QrCode,
   Copy,
@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { getNicheSemantics } from "@/lib/niche-semantics";
 
 interface StoreShareQrModalProps {
   open: boolean;
@@ -31,6 +32,9 @@ interface StoreShareQrModalProps {
     name: string;
     slug?: string | null;
     logo_url?: string | null;
+    segment?: string | null;
+    type?: string | null;
+    category?: string | null;
     settings?: any;
   } | null;
 }
@@ -42,7 +46,9 @@ export function StoreShareQrModal({
 }: StoreShareQrModalProps) {
   const [copied, setCopied] = useState(false);
 
-  if (!store) return null;
+  const semantics = useMemo(() => (store ? getNicheSemantics(store) : null), [store]);
+
+  if (!store || !semantics) return null;
 
   const origin = typeof window !== "undefined" ? window.location.origin : "https://jah.com.br";
   const storeUrl = store.slug
@@ -51,12 +57,16 @@ export function StoreShareQrModal({
 
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=15&data=${encodeURIComponent(storeUrl)}`;
 
+  const defaultShareText = semantics.shareMessageTemplate
+    ? semantics.shareMessageTemplate(store.name, storeUrl)
+    : `Olá! Conheça ${store.name}:\n${storeUrl}`;
+
   const handleCopyLink = async () => {
     try {
       if (typeof navigator !== "undefined" && navigator.clipboard) {
         await navigator.clipboard.writeText(storeUrl);
         setCopied(true);
-        toast.success("Link do cardápio copiado com sucesso!");
+        toast.success("Link copiado com sucesso!");
         setTimeout(() => setCopied(false), 2000);
       }
     } catch {
@@ -69,7 +79,7 @@ export function StoreShareQrModal({
       try {
         await navigator.share({
           title: store.name,
-          text: `Acesse o cardápio oficial de ${store.name} e faça seu pedido direto:`,
+          text: defaultShareText,
           url: storeUrl,
         });
         toast.success("Compartilhamento concluído!");
@@ -84,16 +94,14 @@ export function StoreShareQrModal({
   };
 
   const handleShareWhatsApp = () => {
-    const text = encodeURIComponent(
-      `Olá! Acesse nosso cardápio oficial e faça seu pedido direto:\n${storeUrl}`
-    );
+    const text = encodeURIComponent(defaultShareText);
     window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
   };
 
   const handleDownloadQr = () => {
     const link = document.createElement("a");
     link.href = qrImageUrl;
-    link.download = `qrcode-${store.slug || "cardapio"}.png`;
+    link.download = `qrcode-${store.slug || semantics.qrDownloadFilename || "loja"}.png`;
     link.target = "_blank";
     link.click();
     toast.success("Download do QR Code em alta resolução iniciado!");
@@ -105,19 +113,19 @@ export function StoreShareQrModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-3xl border-border/70">
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-2xl border-border/70">
         <DialogHeader className="p-6 pb-2 text-left space-y-1">
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-[10px] font-mono border-primary/30 text-primary uppercase">
-              Divulgação & Vendas
+              Divulgação & Vendas • {semantics.name}
             </Badge>
           </div>
           <DialogTitle className="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
             <QrCode className="size-5 text-primary" />
-            <span>Cardápio Digital & QR Code</span>
+            <span>{semantics.shareTitle}</span>
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Compartilhe seu link oficial em redes sociais ou imprima o QR Code para mesas e balcão.
+            {semantics.shareSubtitle}
           </DialogDescription>
         </DialogHeader>
 
@@ -133,7 +141,7 @@ export function StoreShareQrModal({
             </div>
             <div>
               <h4 className="text-sm font-bold text-foreground">{store.name}</h4>
-              <p className="text-[11px] text-muted-foreground">Escaneie para ver o cardápio e pedir</p>
+              <p className="text-[11px] text-muted-foreground">{semantics.qrCardCallout}</p>
             </div>
 
             {/* Imagem do QR Code em Alta Resolução */}
@@ -148,7 +156,7 @@ export function StoreShareQrModal({
 
           {/* Link Copiável */}
           <div className="space-y-1.5">
-            <span className="text-xs font-semibold text-foreground">Link Direto do Cardápio</span>
+            <span className="text-xs font-semibold text-foreground">{semantics.directLinkLabel}</span>
             <div className="flex items-center gap-2">
               <Input
                 readOnly

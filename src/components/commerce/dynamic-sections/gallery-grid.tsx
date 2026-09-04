@@ -31,7 +31,7 @@ export function GalleryGrid({ content, layout_rules }: GalleryGridProps) {
   if (images.length === 0) {
     return (
       <section className="w-full max-w-6xl mx-auto px-4 py-8">
-        <div className="p-8 rounded-3xl text-center text-xs text-muted-foreground border border-dashed border-border/80 bg-muted/20">
+        <div className="p-8 rounded-2xl text-center text-xs text-muted-foreground border border-dashed border-border/80 bg-muted/20">
           Nenhuma imagem cadastrada na galeria.
         </div>
       </section>
@@ -109,7 +109,7 @@ export function GalleryGrid({ content, layout_rules }: GalleryGridProps) {
             {content.title}
           </h2>
         )}
-        <div className="flex gap-4 overflow-x-auto scrollbar-none pb-2 snap-x snap-mandatory">
+        <div className="flex gap-4 overflow-x-auto no-scrollbar scrollbar-none pb-2 snap-x snap-mandatory">
           {images.map((img, idx) => (
             <div
               key={idx}

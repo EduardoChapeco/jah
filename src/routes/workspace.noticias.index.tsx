@@ -11,7 +11,7 @@ import {
   Clock,
   CheckCircle2,
   FileText,
-  Sparkles,
+  Radio,
   Inbox,
   User,
   Phone,
@@ -149,7 +149,7 @@ function WorkspaceNoticiasIndexPage() {
             Matérias ({articles.length})
           </TabsTrigger>
           <TabsTrigger value="mineradas" className="text-xs font-semibold gap-1.5">
-            <Sparkles className="size-3.5" />
+            <Radio className="size-3.5" />
             Mineradas ({minedArticles.length})
           </TabsTrigger>
           <TabsTrigger value="pautas" className="text-xs font-semibold gap-1.5">

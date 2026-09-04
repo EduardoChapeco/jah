@@ -1,35 +1,6 @@
 import { createFileRoute, Outlet, redirect, Link, isRedirect } from "@tanstack/react-router";
 import { getProfile, getUserSession } from "@/services/auth.functions";
-import {
-  Shield,
-  ShieldAlert,
-  LayoutDashboard,
-  DollarSign,
-  Store,
-  AlertTriangle,
-  Users,
-  UserCheck,
-  Scale,
-  Image as ImageIcon,
-  Palette,
-  Plug,
-  Sparkles,
-  ArrowUpRight,
-  ExternalLink,
-  Menu,
-  X,
-  Truck,
-  Server,
-  Eye,
-  Coins,
-  Sliders,
-  Globe,
-  Cpu,
-  FlaskConical,
-  Layout,
-  Fingerprint,
-  Radio,
-} from "lucide-react";
+import { Shield, ShieldAlert, LayoutDashboard, DollarSign, Store, AlertTriangle, Users, UserCheck, Scale, Image as ImageIcon, Palette, Plug, Layers, ArrowUpRight, ExternalLink, Menu, X, Truck, Server, Eye, Coins, Sliders, Globe, Cpu, FlaskConical, Layout, Fingerprint, Radio } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -64,7 +35,7 @@ const NAV_SECTIONS = [
     items: [
       { to: "/admin-master/vitrines", label: "Vitrines & Seções (CMS)", icon: Layout },
       { to: "/admin-master/banners", label: "Banners & Vitrines", icon: ImageIcon },
-      { to: "/admin-master/botoes", label: "Hotpages & Capas 16:9", icon: Sparkles },
+      { to: "/admin-master/botoes", label: "Hotpages & Capas 16:9", icon: Layers },
       { to: "/admin-master/marca", label: "Identidade & Marca", icon: Palette },
       { to: "/admin-master/tokens", label: "Economia de Tokens", icon: Coins },
     ],
@@ -119,7 +90,7 @@ function AdminMasterLayout() {
         </div>
 
         {/* Navigation with Independent Internal Scroll */}
-        <nav className="flex-1 p-3 space-y-4 overflow-y-auto min-h-0">
+        <nav className="flex-1 p-3 space-y-4 overflow-y-auto no-scrollbar min-h-0">
           {NAV_SECTIONS.map((section) => (
             <div key={section.title} className="space-y-1">
               <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/70 block">
@@ -200,7 +171,7 @@ function AdminMasterLayout() {
                 <X className="size-4" />
               </Button>
             </div>
-            <nav className="flex-1 p-3 space-y-4 overflow-y-auto min-h-0">
+            <nav className="flex-1 p-3 space-y-4 overflow-y-auto no-scrollbar min-h-0">
               {NAV_SECTIONS.map((section) => (
                 <div key={section.title} className="space-y-1">
                   <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/70 block">
@@ -277,7 +248,7 @@ function AdminMasterLayout() {
         </header>
 
         {/* Content Container with Independent Internal Scroll */}
-        <main className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 md:p-8 bg-background">
+        <main className="flex-1 overflow-y-auto no-scrollbar min-h-0 p-4 sm:p-6 md:p-8 bg-background">
           <div className="max-w-7xl mx-auto w-full">
             <Outlet />
           </div>

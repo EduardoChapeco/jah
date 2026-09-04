@@ -125,7 +125,7 @@ function AdminMasterDashboard() {
             <span className="text-xs font-bold text-foreground">Lojas Recentes</span>
             <span className="text-xs text-muted-foreground font-mono">{stores.length} lojas</span>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto no-scrollbar">
             <table className="w-full text-xs text-left">
               <thead className="bg-muted/30 text-muted-foreground border-b border-border/40 font-semibold uppercase text-[10px]">
                 <tr>
@@ -176,7 +176,7 @@ function AdminMasterDashboard() {
             <span className="text-xs font-bold text-foreground">Últimas Faturas</span>
             <span className="text-xs text-muted-foreground font-mono">{invoices.length} faturas</span>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto no-scrollbar">
             <table className="w-full text-xs text-left">
               <thead className="bg-muted/30 text-muted-foreground border-b border-border/40 font-semibold uppercase text-[10px]">
                 <tr>

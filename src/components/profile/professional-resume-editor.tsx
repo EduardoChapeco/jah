@@ -1,29 +1,5 @@
 import React, { useState, useMemo } from "react";
-import {
-  Briefcase,
-  GraduationCap,
-  Award,
-  Sparkles,
-  HeartHandshake,
-  Languages as LanguagesIcon,
-  Plus,
-  Trash2,
-  Edit3,
-  ExternalLink,
-  Building2,
-  CheckCircle2,
-  Upload,
-  Calendar,
-  DollarSign,
-  MapPin,
-  FileCheck,
-  Globe,
-  Tag,
-  X,
-  Target,
-  ShieldCheck,
-  UserCheck,
-} from "lucide-react";
+import { Briefcase, GraduationCap, Award, Layers, HeartHandshake, Languages as LanguagesIcon, Plus, Trash2, Edit3, ExternalLink, Building2, CheckCircle2, Upload, Calendar, DollarSign, MapPin, FileCheck, Globe, Tag, X, Target, ShieldCheck, UserCheck } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -294,11 +270,11 @@ export function ProfessionalResumeEditor({
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
       {/* ── 1. Barra de Força do Currículo (Gupy / InfoJobs / LinkedIn Standard) ── */}
-      <div className="p-5 rounded-3xl bg-gradient-to-br from-primary/5 via-card to-primary/10 border border-border/60 space-y-3">
+      <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/5 via-card to-primary/10 border border-border/60 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
-              <Sparkles className="size-4 text-primary fill-primary/20" />
+              <Layers className="size-4 text-primary fill-primary/20" />
               <h3 className="text-sm font-bold text-foreground">Força do Currículo & Visibilidade para Vagas</h3>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -343,7 +319,7 @@ export function ProfessionalResumeEditor({
       </div>
 
       {/* ── 2. Metas de Vagas, Pretensão & Status de Carreira (Matching Algorítmico) ── */}
-      <div className="p-5 rounded-3xl bg-card border border-border/60 space-y-4 shadow-none">
+      <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4 shadow-none">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/40">
           <div>
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -428,7 +404,7 @@ export function ProfessionalResumeEditor({
       </div>
 
       {/* ── 3. Headline & Resumo (Sobre Mim) ── */}
-      <div className="p-5 rounded-3xl bg-card border border-border/60 space-y-4 shadow-none">
+      <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4 shadow-none">
         <div className="flex items-center justify-between pb-3 border-b border-border/40">
           <h3 className="text-sm font-bold text-foreground">Título & Resumo de Apresentação</h3>
         </div>
@@ -464,7 +440,7 @@ export function ProfessionalResumeEditor({
       </div>
 
       {/* ── 4. Competências & Habilidades (Tags Interativas) ── */}
-      <div className="p-5 rounded-3xl bg-card border border-border/60 space-y-3 shadow-none">
+      <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-3 shadow-none">
         <div className="flex items-center justify-between pb-2 border-b border-border/40">
           <div>
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -522,7 +498,7 @@ export function ProfessionalResumeEditor({
       </div>
 
       {/* ── 5. Experiências Profissionais ── */}
-      <div className="p-5 rounded-3xl bg-card border border-border/60 space-y-4 shadow-none">
+      <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4 shadow-none">
         <div className="flex items-center justify-between pb-3 border-b border-border/40">
           <div>
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -605,7 +581,7 @@ export function ProfessionalResumeEditor({
       </div>
 
       {/* ── 6. Formação Acadêmica ── */}
-      <div className="p-5 rounded-3xl bg-card border border-border/60 space-y-4 shadow-none">
+      <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4 shadow-none">
         <div className="flex items-center justify-between pb-3 border-b border-border/40">
           <div>
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -679,7 +655,7 @@ export function ProfessionalResumeEditor({
       </div>
 
       {/* ── 7. Licenças & Certificados ── */}
-      <div className="p-5 rounded-3xl bg-card border border-border/60 space-y-4 shadow-none">
+      <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4 shadow-none">
         <div className="flex items-center justify-between pb-3 border-b border-border/40">
           <div>
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -763,11 +739,11 @@ export function ProfessionalResumeEditor({
       </div>
 
       {/* ── 8. Projetos & Portfólio (com Mídia & Recorte) ── */}
-      <div className="p-5 rounded-3xl bg-card border border-border/60 space-y-4 shadow-none">
+      <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4 shadow-none">
         <div className="flex items-center justify-between pb-3 border-b border-border/40">
           <div>
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <Sparkles className="size-4 text-violet-500" />
+              <Layers className="size-4 text-violet-500" />
               <span>Projetos em Destaque & Portfólio ({projects.length})</span>
             </h3>
             <p className="text-xs text-muted-foreground">
@@ -833,7 +809,7 @@ export function ProfessionalResumeEditor({
 
                   {/* Mídias / Fotos do Projeto */}
                   {proj.media_urls && proj.media_urls.length > 0 && (
-                    <div className="flex gap-2 pt-1 overflow-x-auto">
+                    <div className="flex gap-2 pt-1 overflow-x-auto no-scrollbar">
                       {proj.media_urls.map((mUrl, mIdx) => (
                         <div
                           key={mIdx}
@@ -866,7 +842,7 @@ export function ProfessionalResumeEditor({
       {/* ── 9. Voluntariado & Causas Sociais ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Voluntariado */}
-        <div className="p-5 rounded-3xl bg-card border border-border/60 space-y-3 shadow-none">
+        <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-3 shadow-none">
           <div className="flex items-center justify-between pb-2 border-b border-border/40">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <HeartHandshake className="size-4 text-rose-500" />
@@ -925,10 +901,10 @@ export function ProfessionalResumeEditor({
         </div>
 
         {/* Causas Sociais */}
-        <div className="p-5 rounded-3xl bg-card border border-border/60 space-y-3 shadow-none">
+        <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-3 shadow-none">
           <div className="flex items-center justify-between pb-2 border-b border-border/40">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <Sparkles className="size-4 text-emerald-500" />
+              <Layers className="size-4 text-emerald-500" />
               <span>Causas que Apoio ({causes.length})</span>
             </h3>
             <Button
@@ -964,7 +940,7 @@ export function ProfessionalResumeEditor({
       </div>
 
       {/* ── 10. Idiomas & Proficiência ── */}
-      <div className="p-5 rounded-3xl bg-card border border-border/60 space-y-4 shadow-none">
+      <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4 shadow-none">
         <div className="flex items-center justify-between pb-3 border-b border-border/40">
           <div>
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -1248,7 +1224,7 @@ function AvailabilityEditSheet({
         </div>
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+          <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4 text-xs">
             {/* Status de Busca */}
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Status Atual de Carreira</Label>
@@ -1479,7 +1455,7 @@ function ExperienceEditSheet({
         </div>
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+          <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4 text-xs">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Cargo *</Label>
               <Input
@@ -1679,7 +1655,7 @@ function EducationEditSheet({
         </div>
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+          <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4 text-xs">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Instituição de Ensino *</Label>
               <Input
@@ -1836,7 +1812,7 @@ function CertificationEditSheet({
         </div>
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+          <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4 text-xs">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Nome do Certificado *</Label>
               <Input
@@ -2000,7 +1976,7 @@ function ProjectEditSheet({
           </div>
 
           <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between overflow-hidden">
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+            <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4 text-xs">
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold">Título do Projeto *</Label>
                 <Input
@@ -2166,7 +2142,7 @@ function VolunteeringEditSheet({
         </div>
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+          <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4 text-xs">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Organização / Instituição *</Label>
               <Input
@@ -2264,7 +2240,7 @@ function CausesEditSheet({
           </SheetDescription>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-2.5">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-2.5">
           {CAUSES_PRESETS.map((cause) => {
             const isChecked = selected.includes(cause);
             return (
@@ -2352,7 +2328,7 @@ function LanguageEditSheet({
         </div>
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+          <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4 text-xs">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Idioma *</Label>
               <Input

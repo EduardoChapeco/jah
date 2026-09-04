@@ -49,7 +49,7 @@ const DialogContent = React.forwardRef<
         ref={ref}
         className={cn(
           // Mobile: Full-Screen 100% da viewport, sem margens espremidas, scroll natural e zero layout shifts
-          "fixed inset-0 z-50 flex flex-col w-full h-full max-w-none rounded-none border-none bg-background p-5 overflow-y-auto duration-200",
+          "fixed inset-0 z-50 flex flex-col w-full h-full max-w-none rounded-none border-none bg-background p-5 overflow-y-auto no-scrollbar duration-200",
           // Desktop (sm+): Dialog centralizado elegante com bordas contidas
           "sm:fixed sm:inset-auto sm:left-[50%] sm:top-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:w-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl sm:border sm:border-border sm: sm:p-6",
           sizeClasses,

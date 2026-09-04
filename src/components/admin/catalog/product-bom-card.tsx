@@ -1,18 +1,5 @@
 import { useState, useMemo } from "react";
-import {
-  Boxes,
-  Plus,
-  Trash2,
-  Package,
-  Sparkles,
-  DollarSign,
-  TrendingUp,
-  Percent,
-  CheckCircle2,
-  Layers,
-  Utensils,
-  Box,
-} from "lucide-react";
+import { Boxes, Plus, Trash2, Package, Sliders, DollarSign, TrendingUp, Percent, CheckCircle2, Layers, Utensils, Box } from 'lucide-react';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -145,7 +132,7 @@ export function ProductBomCard({
   };
 
   return (
-    <Card className="rounded-3xl border border-border/80 shadow-xs overflow-hidden">
+    <Card className="rounded-2xl border border-border/80 shadow-xs overflow-hidden">
       <CardHeader className="p-6 bg-muted/20 border-b border-border/60">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">

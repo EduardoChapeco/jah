@@ -5,6 +5,36 @@ import { Button } from "@/components/ui/button";
 import { Store, AlertTriangle, ArrowLeft, RefreshCw, LogIn } from "lucide-react";
 
 export const Route = createFileRoute("/workspace")({
+  beforeLoad: async () => {
+    let session: any = null;
+    try {
+      session = await getUserSession();
+    } catch (e) {
+      console.warn("[workspace layout] Erro ao carregar sessão:", e);
+      session = null;
+    }
+
+    if (!session?.user) {
+      throw redirect({ to: "/entrar", search: { returnUrl: "/workspace" } });
+    }
+
+    const isPlatformAdmin =
+      session?.role === "platform_admin" ||
+      session?.role === "master" ||
+      session?.role === "superadmin" ||
+      session?.user?.role === "platform_admin";
+
+    const hasStore = (session?.memberships && session.memberships.length > 0) || isPlatformAdmin;
+
+    // 🚨 REGRA INVIOLÁVEL: O Workspace exige um negócio cadastrado.
+    // Quem não possui loja/empresa não pode ver o workspace nem ferramentas operacionais.
+    // É redirecionado imediatamente para o cadastro do seu negócio.
+    if (!hasStore) {
+      throw redirect({ to: "/criar-negocio" });
+    }
+
+    return { session };
+  },
   loader: async () => {
     let session: any = null;
     try {
@@ -16,6 +46,18 @@ export const Route = createFileRoute("/workspace")({
 
     if (!session?.user) {
       throw redirect({ to: "/entrar", search: { returnUrl: "/workspace" } });
+    }
+
+    const isPlatformAdmin =
+      session?.role === "platform_admin" ||
+      session?.role === "master" ||
+      session?.role === "superadmin" ||
+      session?.user?.role === "platform_admin";
+
+    const hasStore = (session?.memberships && session.memberships.length > 0) || isPlatformAdmin;
+
+    if (!hasStore) {
+      throw redirect({ to: "/criar-negocio" });
     }
 
     return { session };
@@ -31,7 +73,7 @@ function WorkspaceErrorComponent({ error, reset }: { error: Error; reset: () => 
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 text-center">
-      <div className="max-w-md w-full bg-card p-6 sm:p-8 rounded-3xl border border-border/80 space-y-4 shadow-sm">
+      <div className="max-w-md w-full bg-card p-6 sm:p-8 rounded-2xl border border-border/80 space-y-4 shadow-sm">
         <div className="size-14 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
           <AlertTriangle className="size-7" />
         </div>
@@ -74,38 +116,35 @@ function WorkspaceErrorComponent({ error, reset }: { error: Error; reset: () => 
 
 function WorkspaceLayout() {
   const loaderData = Route.useLoaderData() as any;
-  const routerState = useRouterState();
   const session = loaderData?.session;
-  const isBuilder = routerState.location.pathname.startsWith("/workspace/builder/");
-  const isStudio = routerState.location.pathname.startsWith("/workspace/estudio");
+  const routerState = useRouterState();
+  const pathname = routerState.location.pathname;
+  const isBuilder = pathname.startsWith("/workspace/builder/");
+  const isStudio = pathname.startsWith("/workspace/estudio");
+  const isProposalStudio =
+    pathname.startsWith("/workspace/turismo/propostas/") &&
+    pathname !== "/workspace/turismo/propostas";
 
-  // Fullscreen Immersion Mode para o Construtor Visual (Wix/Framer) e Estúdio (Canva/Figma)
-  if (isBuilder || isStudio) {
+  // Fullscreen Immersion Mode para o Construtor Visual (Wix/Framer), Estúdio e Studio de Propostas (Canva/Figma)
+  if (isBuilder || isStudio || isProposalStudio) {
     return <Outlet />;
   }
 
-  const hasStore = session?.memberships && session.memberships.length > 0;
+  const isPlatformAdmin =
+    session?.role === "platform_admin" ||
+    session?.role === "master" ||
+    session?.role === "superadmin" ||
+    session?.user?.role === "platform_admin";
+
+  const hasStore = (session?.memberships && session.memberships.length > 0) || isPlatformAdmin;
+
+  if (!hasStore) {
+    return null;
+  }
 
   return (
     <WorkspaceShell session={session}>
-      {hasStore ? (
-        <Outlet />
-      ) : (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center max-w-sm mx-auto">
-          <div className="size-12 rounded-2xl bg-muted/60 text-foreground flex items-center justify-center mb-3 border border-border/60">
-            <Store size={22} className="text-primary" />
-          </div>
-          <h2 className="text-base font-bold text-foreground mb-1">
-            Nenhum negócio ativo
-          </h2>
-          <p className="text-xs text-muted-foreground mb-5 leading-relaxed">
-            Cadastre seu ponto de venda ou loja para gerenciar cardápios, pedidos e estoque.
-          </p>
-          <Button asChild className="rounded-xl font-bold text-xs h-10 px-6">
-            <Link to="/criar-negocio">Cadastrar Ponto Comercial</Link>
-          </Button>
-        </div>
-      )}
+      <Outlet />
     </WorkspaceShell>
   );
 }

@@ -74,7 +74,7 @@ export function ProductGrid({
             </Button>
           </div>
 
-          <div className="flex gap-4 overflow-x-auto scrollbar-none pb-4 snap-x snap-mandatory">
+          <div className="flex gap-4 overflow-x-auto no-scrollbar scrollbar-none pb-4 snap-x snap-mandatory">
             {products.map((product: any) => (
               <div key={product.id} className="shrink-0 w-64 sm:w-72 snap-start">
                 <ProductCard product={product} />
@@ -121,7 +121,7 @@ export function ProductGrid({
         </div>
 
         {products.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center gap-3 text-muted-foreground border border-dashed border-border/80 rounded-3xl p-8 bg-muted/20">
+          <div className="flex flex-col items-center justify-center py-16 text-center gap-3 text-muted-foreground border border-dashed border-border/80 rounded-2xl p-8 bg-muted/20">
             <ShoppingBag className="size-10 text-muted-foreground/40" />
             <div className="space-y-1">
               <p className="font-bold text-foreground text-sm">Nenhum produto cadastrado nesta coleção</p>

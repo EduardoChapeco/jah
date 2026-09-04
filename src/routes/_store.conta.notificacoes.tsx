@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/conta/notificacoes")({
   head: () => ({
-    meta: [{ title: "Central de Notificações | Wider" }],
+    meta: [{ title: "Central de Notificações | JAH Master OS" }],
   }),
   loader: async () => {
     const session = await getUserSession().catch(() => null);
@@ -188,7 +188,7 @@ function NotificationsPage() {
               key={item.id}
               onClick={() => handleNotificationClick(item)}
               className={cn(
-                "p-4 rounded-3xl  bg-card  flex items-start gap-4 transition-all duration-200 cursor-pointer hover:border-foreground/30 hover:",
+                "p-4 rounded-2xl  bg-card  flex items-start gap-4 transition-all duration-200 cursor-pointer hover:border-foreground/30 hover:",
                 !item.isRead && "bg-muted/20 border-primary/30"
               )}
             >
@@ -232,7 +232,7 @@ function NotificationsPage() {
             </div>
           ))
         ) : (
-          <div className="py-20 text-center space-y-3 bg-muted/10 rounded-3xl border-0 p-8">
+          <div className="py-20 text-center space-y-3 bg-muted/10 rounded-2xl border-0 p-8">
             <Bell className="size-10 text-muted-foreground/40 mx-auto" />
             <h3 className="text-sm font-bold text-foreground">Nenhuma notificação encontrada</h3>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">

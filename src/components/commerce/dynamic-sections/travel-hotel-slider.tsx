@@ -1,5 +1,5 @@
 import React from "react";
-import { Hotel, Star, MapPin, ChevronRight, Utensils, Sparkles } from "lucide-react";
+import { Hotel, Star, MapPin, ChevronRight, Utensils, Layers } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -48,7 +48,7 @@ export function TravelHotelSlider({
           <div
             key={hotel.id}
             onClick={() => onHotelClick?.(hotel)}
-            className="w-[280px] sm:w-[320px] shrink-0 bg-card rounded-3xl overflow-hidden border border-border/70 hover:border-primary/50 transition-all cursor-pointer group flex flex-col shadow-2xs"
+            className="w-[280px] sm:w-[320px] shrink-0 bg-card rounded-2xl overflow-hidden border border-border/70 hover:border-primary/50 transition-all cursor-pointer group flex flex-col shadow-2xs"
           >
             {/* Imagem de Capa */}
             <div className="relative aspect-[16/10] w-full bg-muted/40 overflow-hidden">

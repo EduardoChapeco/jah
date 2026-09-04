@@ -10,7 +10,6 @@ import {
   CheckCircle,
   Clock,
   CurrencyCircleDollar,
-  Sparkle,
   SuitcaseSimple,
   ShieldCheck,
   Tag,
@@ -52,8 +51,11 @@ import {
   deleteAgencyTravelQuote,
   type TravelQuoteRequestDTO,
 } from "@/services/tourism.functions";
-import { listDestinations } from "@/services/travel-catalog.functions";
 import { createTravelProposal } from "@/services/travel-proposal.functions";
+import { listDestinations } from "@/services/travel-catalog.functions";
+import { getStoreSettings } from "@/services/store.functions";
+import { NicheOperationalGuard } from "@/components/workspace/niche-operational-guard";
+import { QuotationBuilderSheet } from "@/components/tourism/quotation-builder-sheet";
 import { formatDate } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 
@@ -61,12 +63,22 @@ export const Route = createFileRoute("/workspace/turismo/cotacoes")({
   head: () => ({
     meta: [{ title: "Central de Cotações & Leads de Viagens | Workspace" }],
   }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    leadName: (search.leadName as string) || undefined,
+    leadPhone: (search.leadPhone as string) || undefined,
+    leadEmail: (search.leadEmail as string) || undefined,
+  }),
   loader: async () => {
-    const [quotes, destinations] = await Promise.all([
-      listAgencyTravelQuotes({ data: { status: "all" } }).catch(() => []),
-      listDestinations().catch(() => []),
-    ]);
-    return { quotes, destinations };
+    try {
+      const [quotes, destinations, store] = await Promise.all([
+        listAgencyTravelQuotes({ data: { status: "all" } }).catch(() => []),
+        listDestinations().catch(() => []),
+        getStoreSettings().catch(() => null),
+      ]);
+      return { quotes, destinations, store };
+    } catch {
+      return { quotes: [], destinations: [], store: null };
+    }
   },
   component: AgencyQuotesPage,
 });
@@ -89,7 +101,8 @@ const TRIP_TYPE_OPTIONS = [
 ];
 
 export default function AgencyQuotesPage() {
-  const { quotes: initialQuotes, destinations: initialDestinations } = Route.useLoaderData();
+  const { quotes: initialQuotes, destinations: initialDestinations, store } = Route.useLoaderData();
+  const searchParams = Route.useSearch();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -98,24 +111,8 @@ export default function AgencyQuotesPage() {
   const [tripTypeFilter, setTripTypeFilter] = useState("all");
 
   // Modais
-  const [isNewSheetOpen, setIsNewSheetOpen] = useState(false);
+  const [isNewSheetOpen, setIsNewSheetOpen] = useState(Boolean(searchParams?.leadName));
   const [managingQuote, setManagingQuote] = useState<TravelQuoteRequestDTO | null>(null);
-
-  // Form State: Nova Cotação
-  const [newName, setNewName] = useState("");
-  const [newWhatsapp, setNewWhatsapp] = useState("");
-  const [newEmail, setNewEmail] = useState("");
-  const [newOriginCity, setNewOriginCity] = useState("Chapecó");
-  const [newDestinationCity, setNewDestinationCity] = useState("");
-  const [newDepartureDate, setNewDepartureDate] = useState("");
-  const [newReturnDate, setNewReturnDate] = useState("");
-  const [newAdults, setNewAdults] = useState(2);
-  const [newChildren, setNewChildren] = useState(0);
-  const [newTripType, setNewTripType] = useState<"air_package" | "hotel_only" | "cruise" | "bus" | "visa_assistance">("air_package");
-  const [newBudgetTier, setNewBudgetTier] = useState<"economy" | "standard" | "premium" | "luxury">("standard");
-  const [newQuoteAmount, setNewQuoteAmount] = useState("");
-  const [newSpecialNotes, setNewSpecialNotes] = useState("");
-  const [newAgencyNotes, setNewAgencyNotes] = useState("");
 
   // Edit State: Gestão de Lead Existente
   const [editStatus, setEditStatus] = useState<"new" | "analyzing" | "quoted" | "won" | "lost">("new");
@@ -167,38 +164,6 @@ export default function AgencyQuotesPage() {
   }, [quotes, selectedStatus, tripTypeFilter, search]);
 
   // Mutações
-  const createQuoteMutation = useMutation({
-    mutationFn: () => {
-      const amountCents = newQuoteAmount ? Math.round(parseFloat(newQuoteAmount.replace(/\D/g, ""))) : undefined;
-      return createAgencyTravelQuote({
-        data: {
-          contact_name: newName,
-          contact_whatsapp: newWhatsapp,
-          contact_email: newEmail || null,
-          origin_city: newOriginCity,
-          destination_city: newDestinationCity,
-          departure_date: newDepartureDate || null,
-          return_date: newReturnDate || null,
-          adults_count: newAdults,
-          children_count: newChildren,
-          trip_type: newTripType,
-          budget_tier: newBudgetTier,
-          special_notes: newSpecialNotes || null,
-          agency_notes: newAgencyNotes || null,
-          quote_amount_cents: amountCents,
-          status: "new",
-        },
-      });
-    },
-    onSuccess: () => {
-      toast.success("Cotação cadastrada com sucesso no CRM!");
-      queryClient.invalidateQueries({ queryKey: ["agency-travel-quotes"] });
-      setIsNewSheetOpen(false);
-      resetNewForm();
-    },
-    onError: (err: any) => toast.error(err?.message || "Erro ao cadastrar cotação."),
-  });
-
   const updateQuoteMutation = useMutation({
     mutationFn: () => {
       if (!managingQuote) throw new Error("Cotação não selecionada.");
@@ -252,20 +217,7 @@ export default function AgencyQuotesPage() {
     onError: (err: any) => toast.error(err?.message || "Erro ao criar proposta."),
   });
 
-  const resetNewForm = () => {
-    setNewName("");
-    setNewWhatsapp("");
-    setNewEmail("");
-    setNewOriginCity("Chapecó");
-    setNewDestinationCity("");
-    setNewDepartureDate("");
-    setNewReturnDate("");
-    setNewAdults(2);
-    setNewChildren(0);
-    setNewQuoteAmount("");
-    setNewSpecialNotes("");
-    setNewAgencyNotes("");
-  };
+
 
   const openManageModal = (q: TravelQuoteRequestDTO) => {
     setManagingQuote(q);
@@ -275,7 +227,13 @@ export default function AgencyQuotesPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <NicheOperationalGuard
+      targetNiche="tourism"
+      toolTitle="Central de Cotações & CRM de Viagens"
+      toolDescription="O pipeline de cotações, orçamentos e captação de passageiros para pacotes aéreos, cruzeiros e hotéis foi projetado especificamente para agências de viagens e turismo."
+      store={store}
+    >
+      <div className="space-y-6 animate-in fade-in duration-200">
       {/* ── 1. Top Header & Primary Actions ── */}
       <PageHeader
         eyebrow="CRM de Vendas"
@@ -290,6 +248,12 @@ export default function AgencyQuotesPage() {
             >
               <Plus size={16} weight="bold" />
               <span>Nova Cotação (Balcão / WhatsApp)</span>
+            </Button>
+            <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-bold gap-1.5 h-9">
+              <Link to="/workspace/turismo/viagens">
+                <AirplaneTilt size={16} weight="bold" />
+                <span>Viagens & Reservas</span>
+              </Link>
             </Button>
             <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-bold gap-1.5 h-9">
               <Link to="/workspace/turismo/propostas">
@@ -546,7 +510,7 @@ export default function AgencyQuotesPage() {
                       onClick={() => createProposalMutation.mutate(q)}
                       className="rounded-xl font-bold text-xs h-8 px-2.5 border-border gap-1 cursor-pointer text-primary"
                     >
-                      <Sparkle size={13} weight="bold" />
+                      <FileText size={13} weight="bold" />
                       <span>Criar Lâmina</span>
                     </Button>
 
@@ -572,225 +536,25 @@ export default function AgencyQuotesPage() {
         </div>
       )}
 
-      {/* ── 5. Sheet Lateral: Nova Cotação Balcão / WhatsApp ── */}
-      <Sheet open={isNewSheetOpen} onOpenChange={setIsNewSheetOpen}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto p-6 space-y-6">
-          <SheetHeader>
-            <SheetTitle className="text-base font-bold">Nova Cotação / Lead Balcão</SheetTitle>
-            <SheetDescription className="text-xs text-muted-foreground">
-              Cadastre o lead atendido no balcão ou WhatsApp para acompanhamento no CRM.
-            </SheetDescription>
-          </SheetHeader>
-
-          <div className="space-y-4 text-xs">
-            {/* Dados do Cliente */}
-            <div className="space-y-2">
-              <Label className="text-xs font-bold">Nome do Passageiro Principal *</Label>
-              <Input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="Ex: Carlos Eduardo de Souza"
-                className="h-9 rounded-xl text-xs"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs font-bold">WhatsApp / Celular *</Label>
-                <Input
-                  value={newWhatsapp}
-                  onChange={(e) => setNewWhatsapp(e.target.value)}
-                  placeholder="(49) 99999-9999"
-                  className="h-9 rounded-xl text-xs"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-bold">E-mail (opcional)</Label>
-                <Input
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  placeholder="cliente@email.com"
-                  className="h-9 rounded-xl text-xs"
-                />
-              </div>
-            </div>
-
-            {/* Rota & Destino */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs font-bold">Cidade Origem</Label>
-                <Input
-                  value={newOriginCity}
-                  onChange={(e) => setNewOriginCity(e.target.value)}
-                  placeholder="Chapecó"
-                  className="h-9 rounded-xl text-xs"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-bold">Destino Almejado *</Label>
-                <Input
-                  value={newDestinationCity}
-                  onChange={(e) => setNewDestinationCity(e.target.value)}
-                  placeholder="Ex: Porto de Galinhas, PE"
-                  className="h-9 rounded-xl text-xs"
-                />
-              </div>
-            </div>
-
-            {/* Atalho de Destinos Cadastrados */}
-            {destinations && destinations.length > 0 && (
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold text-muted-foreground block">Destinos Cadastrados no Banco:</span>
-                <div className="flex flex-wrap gap-1">
-                  {destinations.slice(0, 6).map((d: any) => (
-                    <button
-                      key={d.id}
-                      type="button"
-                      onClick={() => setNewDestinationCity(`${d.name}, ${d.state}`)}
-                      className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
-                    >
-                      {d.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Datas */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs font-bold">Data Ida Prevista</Label>
-                <Input
-                  type="date"
-                  value={newDepartureDate}
-                  onChange={(e) => setNewDepartureDate(e.target.value)}
-                  className="h-9 rounded-xl text-xs"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-bold">Data Volta Prevista</Label>
-                <Input
-                  type="date"
-                  value={newReturnDate}
-                  onChange={(e) => setNewReturnDate(e.target.value)}
-                  className="h-9 rounded-xl text-xs"
-                />
-              </div>
-            </div>
-
-            {/* Passageiros e Tipo */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs font-bold">Adultos</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={newAdults}
-                  onChange={(e) => setNewAdults(parseInt(e.target.value) || 1)}
-                  className="h-9 rounded-xl text-xs"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-bold">Crianças</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={newChildren}
-                  onChange={(e) => setNewChildren(parseInt(e.target.value) || 0)}
-                  className="h-9 rounded-xl text-xs"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs font-bold">Tipo de Viagem</Label>
-                <Select value={newTripType} onValueChange={(v: any) => setNewTripType(v)}>
-                  <SelectTrigger className="h-9 text-xs rounded-xl">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    {TRIP_TYPE_OPTIONS.map((o) => (
-                      <SelectItem key={o.id} value={o.id}>{o.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-bold">Padrão Orçamentário</Label>
-                <Select value={newBudgetTier} onValueChange={(v: any) => setNewBudgetTier(v)}>
-                  <SelectTrigger className="h-9 text-xs rounded-xl">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="economy">Econômico</SelectItem>
-                    <SelectItem value="standard">Padrão / Conforto</SelectItem>
-                    <SelectItem value="premium">Premium</SelectItem>
-                    <SelectItem value="luxury">Luxo / 5 Estrelas</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <Label className="text-xs font-bold">Valor Orçado Inicial (R$)</Label>
-              <Input
-                value={newQuoteAmount}
-                onChange={(e) => setNewQuoteAmount(e.target.value)}
-                placeholder="Ex: 4850,00"
-                className="h-9 rounded-xl text-xs"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label className="text-xs font-bold">Solicitação / Preferências do Cliente</Label>
-              <Textarea
-                value={newSpecialNotes}
-                onChange={(e) => setNewSpecialNotes(e.target.value)}
-                placeholder="Ex: Quer hotel pé na areia com piscina aquecida para crianças."
-                className="rounded-xl text-xs resize-none"
-                rows={2}
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label className="text-xs font-bold">Notas Internas do Consultor (Privado)</Label>
-              <Textarea
-                value={newAgencyNotes}
-                onChange={(e) => setNewAgencyNotes(e.target.value)}
-                placeholder="Ex: Cliente tem flexibilidade de datas. Oferecer pacote com voo LATAM."
-                className="rounded-xl text-xs resize-none"
-                rows={2}
-              />
-            </div>
-
-            <div className="pt-3 flex items-center justify-end gap-2 border-t border-border/60">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsNewSheetOpen(false)}
-                className="rounded-xl text-xs font-bold h-9"
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="button"
-                disabled={!newName || !newWhatsapp || !newDestinationCity || createQuoteMutation.isPending}
-                onClick={() => createQuoteMutation.mutate()}
-                className="rounded-xl text-xs font-bold h-9 bg-primary text-primary-foreground gap-1.5"
-              >
-                {createQuoteMutation.isPending ? "Gravando..." : "Salvar no CRM"}
-              </Button>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
+      {/* ── 5. Quotation Builder Studio Avançado (Inspirado em TurisAgências / TravelAgências) ── */}
+      <QuotationBuilderSheet
+        open={isNewSheetOpen}
+        onOpenChange={setIsNewSheetOpen}
+        destinations={destinations}
+        store={store}
+        initialLeadName={searchParams?.leadName}
+        initialLeadPhone={searchParams?.leadPhone}
+        initialLeadEmail={searchParams?.leadEmail}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["agency-travel-quotes"] });
+        }}
+      />
 
       {/* ── 6. Sheet: Gestão de Lead Existente ── */}
       <Sheet open={!!managingQuote} onOpenChange={(o) => !o && setManagingQuote(null)}>
         <SheetContent
           side="right"
-          className="sm:max-w-md w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto bg-card flex flex-col justify-between"
+          className="sm:max-w-md w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto no-scrollbar bg-card flex flex-col justify-between"
         >
           <div className="p-6 space-y-4">
             <SheetHeader>
@@ -892,6 +656,7 @@ export default function AgencyQuotesPage() {
         </SheetContent>
       </Sheet>
     </div>
+  </NicheOperationalGuard>
   );
 }
 

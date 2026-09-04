@@ -12,7 +12,6 @@ import {
   Image as ImageIcon,
   ImagePlus,
   X,
-  Sparkles,
   Loader2,
   Utensils,
   Coffee,
@@ -92,89 +91,10 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const PRESETS = [
-  {
-    name: "Adicionais Pagos",
-    icon: PlusCircle,
-    desc: "Extras opcionais para o item",
-    data: {
-      display_name: "Turbine seu Pedido (Adicionais)",
-      internal_name: "adicionais-extras",
-      description: "Escolha seus adicionais favoritos para turbinar o item",
-      selection_type: "multiple" as const,
-      is_required: false,
-      min_selections: 0,
-      max_selections: 5,
-      values: [
-        { label: "Bacon Crocante Extra", description: "Fatias generosas de bacon defumado", price_modifier_cents: 450, is_default: false, is_active: true },
-        { label: "Queijo Cheddar Cremoso", description: "Dose extra de cheddar inglês", price_modifier_cents: 350, is_default: false, is_active: true },
-        { label: "Ovo Frito na Chapa", description: "Ovo caipira com gema mole ou no ponto", price_modifier_cents: 250, is_default: false, is_active: true },
-        { label: "Molho Especial da Casa", description: "Receita secreta artesanal", price_modifier_cents: 300, is_default: false, is_active: true },
-      ],
-    },
-  },
-  {
-    name: "Ponto da Carne",
-    icon: Utensils,
-    desc: "1 opção obrigatória",
-    data: {
-      display_name: "Ponto da Carne",
-      internal_name: "ponto-carne",
-      description: "Selecione o ponto de preparo da carne",
-      selection_type: "single" as const,
-      is_required: true,
-      min_selections: 1,
-      max_selections: 1,
-      values: [
-        { label: "Mal Passado", description: "Centro vermelho bem úmido e selado por fora", price_modifier_cents: 0, is_default: false, is_active: true },
-        { label: "Ao Ponto", description: "Centro rosado suculento e macio", price_modifier_cents: 0, is_default: true, is_active: true },
-        { label: "Bem Passado", description: "Totalmente cozido e dourado por completo", price_modifier_cents: 0, is_default: false, is_active: true },
-      ],
-    },
-  },
-  {
-    name: "Bebida Gelada",
-    icon: Coffee,
-    desc: "1 bebida opcional",
-    data: {
-      display_name: "Deseja Bebida Gelada?",
-      internal_name: "bebida-combo",
-      description: "Adicione uma bebida refrescante ao seu pedido",
-      selection_type: "single" as const,
-      is_required: false,
-      min_selections: 0,
-      max_selections: 1,
-      values: [
-        { label: "Não, obrigado", description: "Prosseguir sem bebida", price_modifier_cents: 0, is_default: true, is_active: true },
-        { label: "Coca-Cola Original 350ml", description: "Lata 350ml trincando de gelada", price_modifier_cents: 600, is_default: false, is_active: true },
-        { label: "Coca-Cola Zero 350ml", description: "Lata 350ml sem açúcar", price_modifier_cents: 600, is_default: false, is_active: true },
-        { label: "Suco Natural de Laranja 400ml", description: "100% fruta espremida na hora", price_modifier_cents: 850, is_default: false, is_active: true },
-      ],
-    },
-  },
-  {
-    name: "Tamanho / Porção",
-    icon: Layers,
-    desc: "Escolha de tamanho",
-    data: {
-      display_name: "Escolha o Tamanho",
-      internal_name: "tamanho-porcao",
-      description: "Selecione o tamanho ideal para você",
-      selection_type: "single" as const,
-      is_required: true,
-      min_selections: 1,
-      max_selections: 1,
-      values: [
-        { label: "Pequeno (Individual)", description: "Porção individual perfeita para 1 pessoa", price_modifier_cents: 0, is_default: false, is_active: true },
-        { label: "Médio (2 Pessoas)", description: "Porção média ideal para compartilhar em 2", price_modifier_cents: 600, is_default: true, is_active: true },
-        { label: "Grande (Família)", description: "Porção farta para 3 a 4 pessoas", price_modifier_cents: 1200, is_default: false, is_active: true },
-      ],
-    },
-  },
-];
+import { getNicheOptionGroupPresets, type OptionGroupPreset } from "@/lib/niche-presets";
 
 export const Route = createFileRoute("/workspace/catalogo/atributos")({
-  head: () => ({ meta: [{ title: "Adicionais & Grades | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Adicionais & Grades | Workspace JAH Master OS" }] }),
   loader: async () => {
     try {
       const [groupsRes, storeRes] = await Promise.all([
@@ -193,8 +113,14 @@ export const Route = createFileRoute("/workspace/catalogo/atributos")({
 });
 
 function OptionGroupsPage() {
-  const { groups, store } = Route.useLoaderData();
+  const { groups, store } = Route.useLoaderData() as any;
   const semantics = getNicheSemantics(store);
+  const isTourism = semantics.nicheId === "tourism";
+  const isServices = semantics.nicheId === "services";
+  const isRetail = semantics.nicheId === "retail" || semantics.nicheId === "supermarket" || semantics.nicheId === "wholesale";
+  const isGastro = semantics.nicheId === "gastronomy";
+
+  const activePresets = useMemo(() => getNicheOptionGroupPresets(semantics.nicheId), [semantics.nicheId]);
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -274,7 +200,7 @@ function OptionGroupsPage() {
     }
   };
 
-  const applyPreset = (preset: (typeof PRESETS)[number]) => {
+  const applyPreset = (preset: OptionGroupPreset) => {
     form.reset({
       id: undefined,
       internal_name: preset.data.internal_name,
@@ -375,7 +301,13 @@ function OptionGroupsPage() {
             <div className="space-y-1">
               <h3 className="text-base font-bold text-foreground">Nenhum grupo de opções criado</h3>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                Crie grupos como Adicionais de Hambúrguer, Bebidas, Bordas ou Molhos com fotos e preços.
+                {isTourism
+                  ? "Crie grupos como Regime de Alimentação, Seguro Viagem, Transfers ou Passeios Opcionais."
+                  : isServices
+                  ? "Crie grupos como Procedimentos Adicionais, Tratamentos Extras ou Produtos Homecare."
+                  : isRetail
+                  ? "Crie grupos como Grade de Tamanhos, Variação de Cores ou Embalagens de Presente."
+                  : "Crie grupos como Adicionais de Prato, Ponto da Carne, Bebidas ou Molhos com fotos e preços."}
               </p>
             </div>
             <Button
@@ -470,11 +402,11 @@ function OptionGroupsPage() {
           {!form.watch("id") && (
             <div className="space-y-2 pb-2 border-b border-border/40">
               <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                  <Sparkles className="size-3.5 text-primary" />
+                  <Layers className="size-3.5 text-primary" />
                   <span>Modelos Prontos (Presets de 1 Clique)</span>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {PRESETS.map((preset) => {
+                  {activePresets.map((preset) => {
                     const Icon = preset.icon;
                     return (
                       <button
@@ -501,7 +433,15 @@ function OptionGroupsPage() {
                   <Label className="text-xs font-bold text-foreground">Nome Interno</Label>
                   <Input
                     {...form.register("internal_name")}
-                    placeholder="ex: ADICIONAIS_BURGER"
+                    placeholder={
+                      isTourism
+                        ? "ex: REGIME_ALIMENTACAO"
+                        : isServices
+                        ? "ex: EXTRAS_PROCEDIMENTO"
+                        : isRetail
+                        ? "ex: GRADE_TAMANHO"
+                        : "ex: ADICIONAIS_PRATO"
+                    }
                     className="rounded-xl text-xs h-9"
                   />
                   {form.formState.errors.internal_name && (
@@ -514,7 +454,15 @@ function OptionGroupsPage() {
                   <Label className="text-xs font-bold text-foreground">Nome para o Cliente (Vitrine)</Label>
                   <Input
                     {...form.register("display_name")}
-                    placeholder="ex: Turbine seu Hambúrguer"
+                    placeholder={
+                      isTourism
+                        ? "ex: Regime de Alimentação Incluso"
+                        : isServices
+                        ? "ex: Adicionais do Atendimento"
+                        : isRetail
+                        ? "ex: Selecione o Tamanho da Peça"
+                        : "ex: Turbine seu Prato ou Lanche"
+                    }
                     className="rounded-xl text-xs h-9"
                   />
                   {form.formState.errors.display_name && (
@@ -529,7 +477,15 @@ function OptionGroupsPage() {
                 <Label className="text-xs font-bold text-foreground">Instrução / Descrição (Opcional)</Label>
                 <Input
                   {...form.register("description")}
-                  placeholder="ex: Escolha até 3 opções para turbinar seu lanche"
+                  placeholder={
+                    isTourism
+                      ? "ex: Escolha o plano de refeições desejado para a hospedagem"
+                      : isServices
+                      ? "ex: Selecione procedimentos extras para seu atendimento"
+                      : isRetail
+                      ? "ex: Escolha a cor e tamanho desejados"
+                      : "ex: Escolha seus adicionais favoritos para turbinar o item"
+                  }
                   className="rounded-xl text-xs h-9"
                 />
               </div>

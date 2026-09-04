@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Plus, LayoutTemplate, Layers, Monitor, Smartphone, Sparkles } from "lucide-react";
+import { Plus, LayoutTemplate, Layers, Monitor, Smartphone, Sliders } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
@@ -21,6 +21,7 @@ export interface BuilderCanvasProps {
   onMoveNode?: (nodeId: string, dir: -1 | 1) => void;
   pageSlug?: string;
   transientData?: any;
+  themeConfig?: any;
 }
 
 export function BuilderCanvas({
@@ -37,6 +38,7 @@ export function BuilderCanvas({
   onMoveNode,
   pageSlug = "vitrine",
   transientData,
+  themeConfig,
 }: BuilderCanvasProps) {
   // Encontra o nó selecionado para alimentar a Floating Action Bar
   const findNodeById = (id: string, list: any[]): any | null => {
@@ -96,7 +98,14 @@ export function BuilderCanvas({
           </div>
 
           {/* Viewport Retangular Reto 1:1 com a Web Real */}
-          <div className="@container flex-1 overflow-y-auto overflow-x-hidden w-full h-full flex flex-col bg-background scrollbar-none no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div
+            className="@container flex-1 overflow-y-auto overflow-x-hidden w-full h-full flex flex-col bg-background scrollbar-none no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden transition-colors"
+            style={{
+              backgroundColor: themeConfig?.backgroundColor || undefined,
+              color: themeConfig?.textColor || undefined,
+              fontFamily: themeConfig?.bodyFont || undefined,
+            }}
+          >
             {nodesCount === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center min-h-[460px] text-muted-foreground gap-3 p-8 text-center animate-in fade-in duration-200">
                 <div className="size-12 rounded-xl bg-muted/50 flex items-center justify-center border border-border/50 text-muted-foreground/70">
@@ -161,7 +170,14 @@ export function BuilderCanvas({
           </div>
 
           {/* Viewport Interno Mobile */}
-          <div className="@container flex-1 overflow-y-auto overflow-x-hidden w-full flex flex-col bg-background scrollbar-none no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div
+            className="@container flex-1 overflow-y-auto overflow-x-hidden w-full flex flex-col bg-background scrollbar-none no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden transition-colors"
+            style={{
+              backgroundColor: themeConfig?.backgroundColor || undefined,
+              color: themeConfig?.textColor || undefined,
+              fontFamily: themeConfig?.bodyFont || undefined,
+            }}
+          >
             {nodesCount === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center min-h-[400px] text-muted-foreground gap-3 p-6 text-center animate-in fade-in duration-200">
                 <LayoutTemplate className="size-7 text-muted-foreground/60" />

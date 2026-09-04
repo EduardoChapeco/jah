@@ -229,7 +229,7 @@ function ClassifiedsMasterPage() {
 
         {/* Subfiltros de Imóveis */}
         {selectedCategory === "real_estate" && (
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pt-1 pb-1">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scrollbar-none pt-1 pb-1">
             <span className="text-xs font-bold text-muted-foreground font-mono uppercase mr-1">
               Finalidade:
             </span>
@@ -254,7 +254,7 @@ function ClassifiedsMasterPage() {
         )}
 
         {/* Filtros Rápidos (Cidades) */}
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1  pt-2">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scrollbar-none py-1  pt-2">
           <button
             type="button"
             onClick={() => setSelectedCity("todos")}

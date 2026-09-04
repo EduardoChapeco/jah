@@ -1,18 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  Plug,
-  Save,
-  CheckCircle,
-  Trash2,
-  Key,
-  BarChart,
-  Facebook,
-  Calendar,
-  MessageCircle,
-  MapPin,
-  Sparkles,
-} from "lucide-react";
+import { Plug, Save, CheckCircle, Trash2, Key, BarChart, Facebook, Calendar, MessageCircle, MapPin, Layers } from 'lucide-react';
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -289,7 +277,7 @@ function IntegrationsPage() {
           provider="gemini"
           title="Google Gemini AI"
           description="Modelos de IA generativa do Google (Pro, Flash). Usado para geração de descrições e curadoria de conteúdo."
-          icon={Sparkles}
+          icon={Layers}
           existingSecret={secrets.find((s: any) => s.provider === "gemini" && s.is_active)}
           onSave={handleSaveSecret}
         />
@@ -298,7 +286,7 @@ function IntegrationsPage() {
           provider="openai"
           title="OpenAI (ChatGPT)"
           description="Modelos GPT-4o e GPT-4o-mini. Alternativa de IA generativa (Traga sua Própria Chave)."
-          icon={Sparkles}
+          icon={Layers}
           existingSecret={secrets.find((s: any) => s.provider === "openai" && s.is_active)}
           onSave={handleSaveSecret}
         />

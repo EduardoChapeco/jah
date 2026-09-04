@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
-import { Check, Sparkles, Calendar, ArrowRight } from "lucide-react";
+import { Check, Layers, Calendar, ArrowRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -73,7 +73,7 @@ export const ServicePricingTable: React.FC<ServicePricingTableProps> = ({
             <div
               key={idx}
               className={cn(
-                "rounded-3xl p-6 sm:p-8 flex flex-col justify-between transition-all bg-card border",
+                "rounded-2xl p-6 sm:p-8 flex flex-col justify-between transition-all bg-card border",
                 pkg.popular
                   ? "border-primary shadow-xl ring-2 ring-primary/20 relative scale-102 z-10"
                   : "border-border/70 shadow-xs hover:border-border"
@@ -81,7 +81,7 @@ export const ServicePricingTable: React.FC<ServicePricingTableProps> = ({
             >
               {pkg.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1 shadow-sm">
-                  <Sparkles className="size-3" />
+                  <Layers className="size-3" />
                   <span>Mais Recomendado</span>
                 </div>
               )}

@@ -79,7 +79,7 @@ function CustomerSupportPage() {
           <div className="p-4 border-b font-medium flex items-center justify-between">
             Meus Chamados
           </div>
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto no-scrollbar">
             {tickets.length === 0 ? (
               <div className="text-sm text-muted-foreground text-center mt-10 p-4">
                 Você ainda não possui nenhum atendimento aberto.
@@ -152,7 +152,7 @@ function CustomerSupportPage() {
               </div>
 
               {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-4">
                 {thread?.messages
                   .filter((m: any) => !m.isInternal)
                   .map((m: any) => (

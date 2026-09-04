@@ -1,4 +1,4 @@
-import { UserPlus, Sparkles, Check, Loader2 } from "lucide-react";
+import { UserPlus, Layers, Check, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -54,7 +54,7 @@ export function SuggestedFriendsBlock({ friends = [] }: SuggestedFriendsBlockPro
     <div className="w-full my-4 squircle-soft  bg-card p-4">
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
-          <Sparkles className="size-4 text-primary" />
+          <Layers className="size-4 text-primary" />
           <h3 className="text-sm font-semibold text-foreground">Pessoas para Conectar</h3>
         </div>
         <span className="text-xs text-muted-foreground">Membros reais na comunidade</span>

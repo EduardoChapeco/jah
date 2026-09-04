@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/conta/agendamentos")({
   head: () => ({
-    meta: [{ title: "Minha Agenda | Wider" }],
+    meta: [{ title: "Minha Agenda | JAH Master OS" }],
   }),
   loader: async () => {
     const session = await getUserSession().catch(() => null);
@@ -177,7 +177,7 @@ function CustomerAgendaPage() {
 
       {/* ── 3. Appointments List (Grouped iOS Surface) ── */}
       {apptList.length === 0 ? (
-        <div className="rounded-3xl border border-border/60 bg-card p-10 text-center space-y-3">
+        <div className="rounded-2xl border border-border/60 bg-card p-10 text-center space-y-3">
           <p className="text-sm font-semibold text-foreground">
             {activeTab === "upcoming"
               ? "Nenhum agendamento futuro encontrado"
@@ -293,7 +293,7 @@ function CustomerAgendaPage() {
         open={!!cancellingAppt}
         onOpenChange={(open) => !open && setCancellingAppt(null)}
       >
-        <DialogContent className="sm:max-w-md sm:rounded-3xl sm:p-6">
+        <DialogContent className="sm:max-w-md sm:rounded-2xl sm:p-6">
           <DialogHeader className="space-y-1.5">
             <DialogTitle className="text-base font-bold text-foreground">
               Cancelar Agendamento?

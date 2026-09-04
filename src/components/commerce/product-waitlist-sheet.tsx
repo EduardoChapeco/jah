@@ -107,7 +107,7 @@ export function ProductWaitlistSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-5">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-5">
           {/* Card Resumo do Produto Selecionado */}
           <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60 flex items-center gap-3">
             <div className="size-14 rounded-xl overflow-hidden bg-background border border-border/60 shrink-0 flex items-center justify-center">
@@ -135,7 +135,7 @@ export function ProductWaitlistSheet({
           </div>
 
           {isSubmitted ? (
-            <div className="p-8 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-3">
+            <div className="p-8 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-3">
               <CheckCircle2 className="size-10 text-emerald-600 mx-auto" />
               <h3 className="text-sm font-bold text-foreground">Inscrição Confirmada!</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">

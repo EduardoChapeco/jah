@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import {
   Megaphone,
   ArrowLeft,
-  Sparkles,
   MapPin,
   DollarSign,
   TrendingUp,
@@ -36,7 +35,7 @@ import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/marketing/anuncios/novo")({
-  head: () => ({ meta: [{ title: "Criar Campanha de Anúncio | Wider" }] }),
+  head: () => ({ meta: [{ title: "Criar Campanha de Anúncio | JAH Master OS" }] }),
   loader: async () => {
     try {
       return await getStoreAdTargets();

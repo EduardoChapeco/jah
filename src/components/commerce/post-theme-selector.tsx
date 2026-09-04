@@ -4,7 +4,7 @@
 
 import { PRESENTATION_THEMES, type PresentationTheme } from "@/lib/presentation-presets";
 import { cn } from "@/lib/utils";
-import { Sparkles, Check } from "lucide-react";
+import { Layers, Check } from 'lucide-react';
 
 interface PostThemeSelectorProps {
   selectedThemeId: string;
@@ -16,7 +16,7 @@ export function PostThemeSelector({ selectedThemeId, onSelectTheme }: PostThemeS
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-          <Sparkles className="size-3.5 text-primary" />
+          <Layers className="size-3.5 text-primary" />
           Estilo Visual / Tema do Post
         </label>
         <span className="text-[11px] text-muted-foreground">

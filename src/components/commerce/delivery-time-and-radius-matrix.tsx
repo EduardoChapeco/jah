@@ -1,17 +1,5 @@
 import React, { useState } from "react";
-import {
-  Clock,
-  Plus,
-  Minus,
-  Trash2,
-  MapPin,
-  Sparkles,
-  Bike,
-  Store,
-  ChevronRight,
-  ShieldCheck,
-  Zap,
-} from "lucide-react";
+import { Clock, Plus, Minus, Trash2, MapPin, Layers, Bike, Store, ChevronRight, ShieldCheck, Zap } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -198,7 +186,7 @@ export function DeliveryTimeAndRadiusMatrix({
             </div>
 
             {/* Truthful Preview Card — Estilo iFood */}
-            <div className="rounded-3xl border border-border/70 bg-card overflow-hidden shadow-xs hover:border-primary/40 transition-all">
+            <div className="rounded-2xl border border-border/70 bg-card overflow-hidden shadow-xs hover:border-primary/40 transition-all">
               {/* Banner */}
               <div className="relative h-28 sm:h-32 w-full bg-muted overflow-hidden">
                 {storeBannerUrl ? (
@@ -368,7 +356,7 @@ export function DeliveryTimeAndRadiusMatrix({
             </div>
 
             {/* Bloco de Ajuste Rápido (+ / -) */}
-            <div className="p-5 rounded-3xl border border-border/70 bg-card space-y-4">
+            <div className="p-5 rounded-2xl border border-border/70 bg-card space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label className="text-xs font-bold text-foreground">Tempo de preparo ativo</Label>

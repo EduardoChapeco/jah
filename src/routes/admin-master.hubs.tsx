@@ -286,7 +286,7 @@ function AdminMasterHubsPage() {
 
       {/* ── 2. Filtro por Módulo & Busca ── */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 scrollbar-none">
           {MODULES.map((m) => (
             <button
               key={m.id}
@@ -419,7 +419,7 @@ function AdminMasterHubsPage() {
 
       {/* ── Modal de Criação / Edição de Categoria Global ── */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto sm:rounded-2xl">
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto no-scrollbar sm:rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
               {editingHub?.id ? "Editar Categoria Global" : "Nova Categoria Global"}

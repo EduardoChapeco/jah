@@ -199,7 +199,7 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
 
             <DropdownMenuContent
               align="end"
-              className="w-72 rounded-3xl p-2 bg-card space-y-1"
+              className="w-72 rounded-2xl p-2 bg-card space-y-1"
             >
               {/* Header — Identidade Pessoal do Usuário */}
               <DropdownMenuLabel className="font-normal p-2.5 pb-2">
@@ -273,19 +273,31 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
                   </DropdownMenuItem>
                 )}
 
-                <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-bold bg-foreground text-background hover:bg-foreground/90 px-3 py-2 flex items-center justify-between">
-                  <Link to="/workspace">
-                    <div className="flex items-center gap-2">
-                      <LayoutDashboard className="size-3.5" />
-                      <span>Entrar no Workspace</span>
-                    </div>
-                    <ArrowUpRight className="size-3.5" />
-                  </Link>
-                </DropdownMenuItem>
+                {memberships.length > 0 || isPlatformAdmin ? (
+                  <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-bold bg-foreground text-background hover:bg-foreground/90 px-3 py-2 flex items-center justify-between">
+                    <Link to="/workspace">
+                      <div className="flex items-center gap-2">
+                        <LayoutDashboard className="size-3.5" />
+                        <span>Entrar no Workspace</span>
+                      </div>
+                      <ArrowUpRight className="size-3.5" />
+                    </Link>
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-2 flex items-center justify-between shadow-xs">
+                    <Link to="/criar-negocio">
+                      <div className="flex items-center gap-2">
+                        <Plus className="size-3.5" />
+                        <span>Cadastrar Meu Negócio</span>
+                      </div>
+                      <ArrowUpRight className="size-3.5" />
+                    </Link>
+                  </DropdownMenuItem>
+                )}
               </div>
 
               {/* ── Gestão de Negócios & Espaços (Multiloja Transparente) ── */}
-              {memberships.length > 0 ? (
+              {memberships.length > 0 && (
                 <div className="py-1">
                   <div className="px-3 py-1.5 flex items-center justify-between">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
@@ -346,15 +358,6 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
                       </Link>
                     </DropdownMenuItem>
                   </div>
-                </div>
-              ) : (
-                <div className="p-1">
-                  <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-bold bg-primary/10 text-primary hover:bg-primary/15 px-3 py-2">
-                    <Link to="/criar-negocio">
-                      <Plus className="size-3.5 mr-1.5" />
-                      <span>Cadastrar Meu Negócio</span>
-                    </Link>
-                  </DropdownMenuItem>
                 </div>
               )}
 

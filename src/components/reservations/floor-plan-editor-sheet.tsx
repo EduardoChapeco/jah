@@ -140,7 +140,7 @@ export function FloorPlanEditorSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4">
           {/* Barra de Ações Rápidas & Total de Lugares */}
           <div className="p-4 rounded-2xl bg-muted/30 border border-border/70 flex items-center justify-between">
             <div>

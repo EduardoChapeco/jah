@@ -3,25 +3,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import {
-  SlidersHorizontal,
-  Plus,
-  Trash2,
-  Sparkles,
-  Check,
-  AlertCircle,
-  Layers,
-  Utensils,
-  Coffee,
-  PlusCircle,
-  Image as ImageIcon,
-  ImagePlus,
-  X,
-  Scissors,
-  Gift,
-  ShieldCheck,
-  Loader2,
-} from "lucide-react";
+import { SlidersHorizontal, Plus, Trash2, Sliders, Check, AlertCircle, Layers, Utensils, Coffee, PlusCircle, Image as ImageIcon, ImagePlus, X, Scissors, Gift, ShieldCheck, Loader2 } from 'lucide-react';
 
 import {
   Sheet,
@@ -67,118 +49,31 @@ const formSchema = z.object({
 
 export type OptionGroupFormData = z.infer<typeof formSchema>;
 
+import { getNicheSemantics } from "@/lib/niche-semantics";
+import { getNicheOptionGroupPresets, type OptionGroupPreset } from "@/lib/niche-presets";
+
 export interface QuickOptionGroupDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   groupToEdit?: any | null;
   onSaved: (savedGroup: any) => void;
+  store?: any;
 }
-
-const PRESETS = [
-  {
-    name: "Adicionais Pagos",
-    icon: PlusCircle,
-    desc: "Vários extras opcionais",
-    data: {
-      display_name: "Turbine seu Pedido (Adicionais)",
-      internal_name: "adicionais-extras",
-      description: "Escolha seus adicionais favoritos para turbinar o item",
-      selection_type: "multiple" as const,
-      is_required: false,
-      min_selections: 0,
-      max_selections: 5,
-      values: [
-        { label: "Bacon Crocante Extra", description: "Fatias generosas de bacon defumado crocante", price_modifier_cents: 450, is_default: false, is_active: true },
-        { label: "Queijo Cheddar Cremoso", description: "Dose extra de cheddar inglês fundido", price_modifier_cents: 350, is_default: false, is_active: true },
-        { label: "Ovo Frito na Chapa", description: "Ovo caipira com gema mole ou no ponto", price_modifier_cents: 250, is_default: false, is_active: true },
-        { label: "Molho Especial da Casa (50ml)", description: "Receita secreta artesanal à base de ervas", price_modifier_cents: 300, is_default: false, is_active: true },
-      ],
-    },
-  },
-  {
-    name: "Ponto da Carne",
-    icon: Utensils,
-    desc: "1 opção obrigatória",
-    data: {
-      display_name: "Ponto da Carne",
-      internal_name: "ponto-carne",
-      description: "Selecione o ponto de preparo da sua carne",
-      selection_type: "single" as const,
-      is_required: true,
-      min_selections: 1,
-      max_selections: 1,
-      values: [
-        { label: "Mal Passado", description: "Centro vermelho bem úmido e selado por fora", price_modifier_cents: 0, is_default: false, is_active: true },
-        { label: "Ao Ponto", description: "Centro rosado suculento e macio", price_modifier_cents: 0, is_default: true, is_active: true },
-        { label: "Bem Passado", description: "Totalmente cozido e dourado por completo", price_modifier_cents: 0, is_default: false, is_active: true },
-      ],
-    },
-  },
-  {
-    name: "Bebida Acompanhamento",
-    icon: Coffee,
-    desc: "1 bebida opcional",
-    data: {
-      display_name: "Deseja Bebida Gelada?",
-      internal_name: "bebida-combo",
-      description: "Adicione uma bebida refrescante ao seu pedido",
-      selection_type: "single" as const,
-      is_required: false,
-      min_selections: 0,
-      max_selections: 1,
-      values: [
-        { label: "Não, obrigado", description: "Prosseguir sem bebida", price_modifier_cents: 0, is_default: true, is_active: true },
-        { label: "Coca-Cola Original 350ml", description: "Lata 350ml trincando de gelada", price_modifier_cents: 600, is_default: false, is_active: true },
-        { label: "Coca-Cola Zero 350ml", description: "Lata 350ml sem açúcar", price_modifier_cents: 600, is_default: false, is_active: true },
-        { label: "Suco Natural de Laranja 400ml", description: "100% fruta espremida na hora", price_modifier_cents: 850, is_default: false, is_active: true },
-      ],
-    },
-  },
-  {
-    name: "Tamanho / Porção",
-    icon: Layers,
-    desc: "Escolha de tamanho",
-    data: {
-      display_name: "Escolha o Tamanho",
-      internal_name: "tamanho-porcao",
-      description: "Selecione o tamanho ideal para você",
-      selection_type: "single" as const,
-      is_required: true,
-      min_selections: 1,
-      max_selections: 1,
-      values: [
-        { label: "Pequeno (Individual)", description: "Porção individual perfeita para 1 pessoa", price_modifier_cents: 0, is_default: false, is_active: true },
-        { label: "Médio (2 Pessoas)", description: "Porção média ideal para compartilhar em 2", price_modifier_cents: 600, is_default: true, is_active: true },
-        { label: "Grande (Família)", description: "Porção farta para 3 a 4 pessoas", price_modifier_cents: 1200, is_default: false, is_active: true },
-      ],
-    },
-  },
-  {
-    name: "Embalagem para Presente",
-    icon: Gift,
-    desc: "Opção para varejo e moda",
-    data: {
-      display_name: "Embalagem Especial",
-      internal_name: "embalagem-presente",
-      description: "Deseja que enviemos embalado para presente com cartão?",
-      selection_type: "single" as const,
-      is_required: false,
-      min_selections: 0,
-      max_selections: 1,
-      values: [
-        { label: "Embalagem Padrão de Envio", description: "Caixa reforçada da loja com papel de seda", price_modifier_cents: 0, is_default: true, is_active: true },
-        { label: "Embalagem de Presente Luxo com Laço", description: "Caixa rígida com laço de cetim e cartão personalizado", price_modifier_cents: 1200, is_default: false, is_active: true },
-      ],
-    },
-  },
-];
 
 export function QuickOptionGroupDialog({
   open,
   onOpenChange,
   groupToEdit,
   onSaved,
+  store,
 }: QuickOptionGroupDialogProps) {
+  const semantics = useMemo(() => getNicheSemantics(store), [store]);
+  const isTourism = semantics.nicheId === "tourism";
+  const isServices = semantics.nicheId === "services";
+  const isRetail = semantics.nicheId === "retail" || semantics.nicheId === "supermarket" || semantics.nicheId === "wholesale";
+
+  const activePresets = useMemo(() => getNicheOptionGroupPresets(semantics.nicheId), [semantics.nicheId]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
   const [currentImageToCrop, setCurrentImageToCrop] = useState<string | null>(null);
@@ -255,9 +150,8 @@ export function QuickOptionGroupDialog({
     }
   }, [open, groupToEdit, form]);
 
-  const applyPreset = (preset: (typeof PRESETS)[number]) => {
+  const applyPreset = (preset: OptionGroupPreset) => {
     form.reset({
-      id: groupToEdit?.id,
       internal_name: preset.data.internal_name,
       display_name: preset.data.display_name,
       description: preset.data.description,
@@ -265,7 +159,15 @@ export function QuickOptionGroupDialog({
       min_selections: preset.data.min_selections,
       max_selections: preset.data.max_selections,
       is_required: preset.data.is_required,
-      values: preset.data.values.map((v) => ({ ...v })),
+      values: preset.data.values.map((v) => ({
+        label: v.label,
+        description: v.description,
+        price_modifier_cents: v.price_modifier_cents,
+        max_quantity_per_item: 1,
+        is_default: v.is_default,
+        is_active: v.is_active,
+        image_url: "",
+      })),
     });
     toast.info(`Preset "${preset.name}" aplicado.`);
   };
@@ -408,16 +310,16 @@ export function QuickOptionGroupDialog({
             </div>
           </SheetHeader>
 
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-y-auto p-6 space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6">
             {/* PRESETS RÁPIDOS (Se for criação) */}
             {!groupToEdit && (
               <div className="space-y-2">
                 <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                  <Sparkles className="size-3.5 text-primary" />
+                  <Sliders className="size-3.5 text-primary" />
                   <span>Modelos Prontos (Presets de 1 Clique)</span>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {PRESETS.map((preset) => {
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {activePresets.map((preset) => {
                     const Icon = preset.icon;
                     return (
                       <button
@@ -446,7 +348,15 @@ export function QuickOptionGroupDialog({
                     Nome para o Cliente <span className="text-destructive">*</span>
                   </Label>
                   <Input
-                    placeholder="Ex: Escolha o Ponto da Carne"
+                    placeholder={
+                      isTourism
+                        ? "Ex: Escolha o Regime de Alimentação"
+                        : isServices
+                        ? "Ex: Procedimento Adicional"
+                        : isRetail
+                        ? "Ex: Selecione o Tamanho da Peça"
+                        : "Ex: Escolha o Ponto da Carne"
+                    }
                     className="h-10 text-xs rounded-xl"
                     {...form.register("display_name", {
                       onChange: (e) => {
@@ -476,7 +386,15 @@ export function QuickOptionGroupDialog({
                     Identificador Interno
                   </Label>
                   <Input
-                    placeholder="Ex: ponto-carne"
+                    placeholder={
+                      isTourism
+                        ? "Ex: regime-alimentacao"
+                        : isServices
+                        ? "Ex: extras-atendimento"
+                        : isRetail
+                        ? "Ex: tamanho-peca"
+                        : "Ex: ponto-carne"
+                    }
                     className="h-10 text-xs font-mono rounded-xl"
                     {...form.register("internal_name")}
                   />
@@ -488,7 +406,15 @@ export function QuickOptionGroupDialog({
                   Instrução ou Descrição do Grupo (Opcional)
                 </Label>
                 <Input
-                  placeholder="Ex: Escolha até 3 opções para turbinar seu lanche"
+                  placeholder={
+                    isTourism
+                      ? "Ex: Selecione os opcionais desejados para sua viagem"
+                      : isServices
+                      ? "Ex: Escolha adicionais para enriquecer seu atendimento"
+                      : isRetail
+                      ? "Ex: Selecione o tamanho e cor ideais"
+                      : "Ex: Escolha até 3 opções para turbinar seu prato"
+                  }
                   className="h-9 text-xs rounded-xl"
                   {...form.register("description")}
                 />

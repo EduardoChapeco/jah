@@ -39,7 +39,7 @@ import { TaskDetailSheet } from "@/components/tasks/task-detail-sheet";
 import { TaskCalendarView } from "@/components/tasks/task-calendar-view";
 
 export const Route = createFileRoute("/workspace/tarefas")({
-  head: () => ({ meta: [{ title: "Tarefas & Produtividade | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Tarefas & Produtividade | Workspace JAH Master OS" }] }),
   loader: async () => {
     const store = await getStoreSettings().catch(() => null);
     const storeId = store?.id || "";
@@ -245,7 +245,7 @@ function WorkspaceTasksPage() {
         <Tabs
           value={activeTab}
           onValueChange={(val) => setActiveTab(val as any)}
-          className="w-auto overflow-x-auto"
+          className="w-auto overflow-x-auto no-scrollbar"
         >
           <TabsList className="h-11 p-1 rounded-xl bg-muted/30 border border-border/70 flex-nowrap overflow-x-auto no-scrollbar scrollbar-none">
             <TabsTrigger

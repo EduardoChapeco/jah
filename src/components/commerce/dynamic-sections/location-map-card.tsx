@@ -27,7 +27,7 @@ export function LocationMapCardSection({
   return (
     <section className="py-12 bg-background w-full">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center rounded-3xl border border-border/80 bg-card p-6 sm:p-10 shadow-2xs">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center rounded-2xl border border-border/80 bg-card p-6 sm:p-10 shadow-2xs">
           <div className="lg:col-span-6 space-y-5">
             <div className="space-y-1.5">
               <Badge variant="outline" className="text-[11px] font-mono text-muted-foreground border-border/80">

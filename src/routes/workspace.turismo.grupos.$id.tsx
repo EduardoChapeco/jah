@@ -1,3 +1,4 @@
+import { BusFleetSelectorModal } from "@/components/tourism/groups/bus-fleet-selector-modal";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
@@ -54,6 +55,7 @@ function WorkspaceGroupTourDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isExportingManifest, setIsExportingManifest] = useState(false);
   const [magicLinkModalOpen, setMagicLinkModalOpen] = useState(false);
+  const [fleetModalOpen, setFleetModalOpen] = useState(false);
 
   // Operacional do Ônibus
   const [busCompany, setBusCompany] = useState(tour?.bus_company_name || "");
@@ -92,6 +94,31 @@ function WorkspaceGroupTourDetailPage() {
     [tour, saveMutation]
   );
 
+  
+  const handleSelectFleetVehicle = (data: {
+    busCompanyName: string;
+    busPlate: string;
+    driverName: string;
+    driverPhone: string;
+    newSeats: BusSeatDTO[];
+  }) => {
+    setBusCompany(data.busCompanyName);
+    setBusPlate(data.busPlate);
+    setDriverName(data.driverName);
+    setDriverPhone(data.driverPhone);
+    if (tour) {
+      setTour({ ...tour, seats: data.newSeats });
+    }
+    saveMutation.mutate({
+      busCompanyName: data.busCompanyName,
+      busPlate: data.busPlate,
+      driverName: data.driverName,
+      driverPhone: data.driverPhone,
+      seats: data.newSeats,
+    });
+    toast.success('Ônibus vinculado da Frota 2D e mapa de poltronas atualizado!');
+  };
+  
   const handleSaveOperational = () => {
     saveMutation.mutate({
       busCompanyName: busCompany || null,

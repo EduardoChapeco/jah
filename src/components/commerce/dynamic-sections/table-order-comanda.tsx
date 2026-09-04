@@ -38,7 +38,7 @@ export function TableOrderComandaSection({
     <section className="py-10 bg-background w-full">
       <div className="max-w-md mx-auto px-4">
         {/* Cartão Físico / Digital de Comanda */}
-        <div className="p-6 rounded-3xl border border-border/80 bg-card shadow-lg text-center space-y-5 relative overflow-hidden">
+        <div className="p-6 rounded-2xl border border-border/80 bg-card shadow-lg text-center space-y-5 relative overflow-hidden">
           <div className="space-y-1">
             <Badge variant="outline" className="text-[10px] font-mono border-border/80 text-muted-foreground uppercase">
               Autoatendimento no Salão

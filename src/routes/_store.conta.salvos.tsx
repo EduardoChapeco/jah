@@ -1,19 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Bookmark,
-  Tag,
-  ShoppingBag,
-  Calendar,
-  MessageSquare,
-  Trash2,
-  ExternalLink,
-  Loader2,
-  MapPin,
-  Clock,
-  Sparkles,
-} from "lucide-react";
+import { Bookmark, Tag, ShoppingBag, Calendar, MessageSquare, Trash2, ExternalLink, Loader2, MapPin, Clock, Layers } from 'lucide-react';
 import { toast } from "sonner";
 
 import { listUserFavorites, toggleFavorite } from "@/services/favorites.functions";
@@ -28,7 +16,7 @@ export const Route = createFileRoute("/_store/conta/salvos")({
 });
 
 const TYPE_TABS = [
-  { id: "all", label: "Todos os Salvos", icon: Sparkles },
+  { id: "all", label: "Todos os Salvos", icon: Layers },
   { id: "classified", label: "Classificados", icon: Tag },
   { id: "product", label: "Produtos", icon: ShoppingBag },
   { id: "event", label: "Eventos", icon: Calendar },

@@ -239,7 +239,7 @@ function WorkspaceEventosPage() {
 
       {/* Drawer de Cadastro de Evento */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent side="right" className="sm:max-w-xl p-0 overflow-y-auto">
+        <SheetContent side="right" className="sm:max-w-xl p-0 overflow-y-auto no-scrollbar">
           <SheetHeader className="px-6 py-4 bg-muted/30">
             <SheetTitle className="text-xl font-bold">Novo Evento / Atração</SheetTitle>
             <SheetDescription>

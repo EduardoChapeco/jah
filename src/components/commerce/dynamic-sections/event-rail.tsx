@@ -44,7 +44,7 @@ export function EventRail({ content, resolvedEvents, isEditing }: any) {
           "grid gap-6",
           layout === "grid"
             ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-            : "grid-cols-1 md:grid-cols-3 flex-nowrap overflow-x-auto pb-4 snap-x",
+            : "grid-cols-1 md:grid-cols-3 flex-nowrap overflow-x-auto no-scrollbar pb-4 snap-x",
         )}
       >
         {events.map((evt: any) => (

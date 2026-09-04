@@ -261,7 +261,7 @@ export function AdvancedStoryViewer({
 
       {/* ── Frame Central do Story (Proporção 9:16 Responsiva) ── */}
       <div
-        className="relative w-full max-w-[420px] h-full sm:h-[92vh] sm:max-h-[840px] sm:rounded-3xl overflow-hidden bg-zinc-950 border border-white/10 shadow-2xl flex flex-col justify-between"
+        className="relative w-full max-w-[420px] h-full sm:h-[92vh] sm:max-h-[840px] sm:rounded-2xl overflow-hidden bg-zinc-950 border border-white/10 shadow-2xl flex flex-col justify-between"
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
       >

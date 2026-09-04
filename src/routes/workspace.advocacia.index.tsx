@@ -5,33 +5,7 @@
 
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState, useTransition, useMemo } from "react";
-import {
-  Scale,
-  Search,
-  Plus,
-  Radio,
-  SlidersHorizontal,
-  Building2,
-  Calendar,
-  DollarSign,
-  Users,
-  ShieldCheck,
-  ShieldAlert,
-  Clock,
-  Sparkles,
-  Paperclip,
-  CheckCircle2,
-  FileText,
-  Trash2,
-  Share2,
-  Star,
-  RefreshCw,
-  Eye,
-  Send,
-  Filter,
-  AlertTriangle,
-  FileCheck,
-} from "lucide-react";
+import { Scale, Search, Plus, Radio, SlidersHorizontal, Building2, Calendar, DollarSign, Users, ShieldCheck, ShieldAlert, Clock, Layers, Paperclip, CheckCircle2, FileText, Trash2, Share2, Star, RefreshCw, Eye, Send, Filter, AlertTriangle, FileCheck } from 'lucide-react';
 import {
   listMarketplaceDemands,
   sendJusProposal,
@@ -70,7 +44,7 @@ import { formatDate } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/advocacia/")({
-  head: () => ({ meta: [{ title: "Painel Jurídico & Processos 360° | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Painel Jurídico & Processos 360° | Workspace JAH Master OS" }] }),
   loader: async () => {
     try {
       const [demandsRes, lawsuitsRes, monitorsRes, analyticsRes, deadlinesRes, digestRes] =
@@ -753,7 +727,7 @@ function WorkspaceAdvocaciaPage() {
 
           {/* Tabela do Acervo */}
           {filteredLawsuits.length === 0 ? (
-            <div className="p-12 text-center rounded-3xl bg-card border border-border space-y-3">
+            <div className="p-12 text-center rounded-2xl bg-card border border-border space-y-3">
               <Scale className="size-10 mx-auto text-muted-foreground/40" />
               <h3 className="text-base font-bold text-foreground">Nenhum processo no acervo ativo</h3>
               <p className="text-xs text-muted-foreground max-w-md mx-auto">
@@ -885,7 +859,7 @@ function WorkspaceAdvocaciaPage() {
           </div>
 
           {monitors.length === 0 ? (
-            <div className="p-12 text-center rounded-3xl bg-card border border-border space-y-3">
+            <div className="p-12 text-center rounded-2xl bg-card border border-border space-y-3">
               <Radio className="size-10 mx-auto text-muted-foreground/40" />
               <h3 className="text-base font-bold text-foreground">Nenhum monitoramento em lote criado</h3>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto">

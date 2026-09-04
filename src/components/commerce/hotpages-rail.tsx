@@ -51,7 +51,7 @@ export function HotpagesRail({
 
   return (
     <section className={`w-full overflow-hidden ${className}`} aria-label="Categorias Panorâmicas">
-      <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide">
+      <div className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar pb-4 scrollbar-hide">
         {hotpages.map((hp) => {
           const showTitle = hp.show_title !== false;
           const showBadge = hp.show_badge !== false && (!!hp.badge_label || !!hp.hero_stat_badge || !!hp.hero_secondary_badge);
@@ -127,7 +127,7 @@ export function HotpagesRail({
             </>
           );
 
-          const baseClass = `group relative flex flex-col justify-end aspect-16/9 w-[260px] sm:w-[320px] shrink-0 rounded-2xl sm:rounded-3xl border border-border/40 bg-card overflow-hidden transition-all duration-300 cursor-pointer ${
+          const baseClass = `group relative flex flex-col justify-end aspect-16/9 w-[260px] sm:w-[320px] shrink-0 rounded-2xl sm:rounded-2xl border border-border/40 bg-card overflow-hidden transition-all duration-300 cursor-pointer ${
             isActive
               ? "border-foreground ring-2 ring-foreground/20 font-bold"
               : "border-border/40 hover:border-foreground/30"

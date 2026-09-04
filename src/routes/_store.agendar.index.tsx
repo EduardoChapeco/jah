@@ -37,7 +37,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_store/agendar/")({
   head: () => ({
     meta: [
-      { title: "Agendamentos & Serviços | Wider" },
+      { title: "Agendamentos & Serviços | JAH Master OS" },
       {
         name: "description",
         content:
@@ -198,7 +198,7 @@ function BookingIndexPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scrollbar-none pb-1">
           {BOOKING_CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat.id;
             const Icon = cat.icon;
@@ -228,7 +228,7 @@ function BookingIndexPage() {
           <CircleNotch size={32} className="animate-spin text-muted-foreground" />
         </div>
       ) : services.length === 0 ? (
-        <div className="py-24 text-center space-y-3 bg-card rounded-3xl border-0 p-8">
+        <div className="py-24 text-center space-y-3 bg-card rounded-2xl border-0 p-8">
           <Scissors size={40} className="text-muted-foreground/40 mx-auto" />
           <h2 className="text-base font-bold text-foreground">
             Nenhum serviço disponível no momento
@@ -242,7 +242,7 @@ function BookingIndexPage() {
           {services.map((service: any) => (
             <div
               key={service.id}
-              className="rounded-3xl bg-card border border-border/60 overflow-hidden hover:border-primary/40 transition-all flex flex-col justify-between"
+              className="rounded-2xl bg-card border border-border/60 overflow-hidden hover:border-primary/40 transition-all flex flex-col justify-between"
             >
               {service.image_url && (
                 <div className="w-full aspect-[16/9] bg-muted/40 overflow-hidden border-b border-border/40">
@@ -297,7 +297,7 @@ function BookingIndexPage() {
       )}
 
       <Dialog open={!!selectedService} onOpenChange={(open) => !open && setSelectedService(null)}>
-        <DialogContent className="sm:max-w-md sm:rounded-3xl sm:p-6 border-border bg-card">
+        <DialogContent className="sm:max-w-md sm:rounded-2xl sm:p-6 border-border bg-card">
           <DialogHeader className="pb-3 ">
             <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
               <CalendarDots size={18} className="text-primary" />

@@ -11,47 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import {
-  Package,
-  Settings,
-  User,
-  MessageSquare,
-  Tag,
-  MapPin,
-  Briefcase,
-  Globe,
-  Instagram,
-  Store,
-  Check,
-  Plus,
-  Edit3,
-  Share2,
-  Sparkles,
-  ExternalLink,
-  MessageCircle,
-  GraduationCap,
-  Grid,
-  List,
-  ArrowLeft,
-  Building2,
-  Clock,
-  ShieldCheck,
-  Award,
-  Calendar,
-  Send,
-  ShoppingBag,
-  Trash2,
-  FileText,
-  Upload,
-  HeartHandshake,
-  Languages,
-  X,
-  UserPlus,
-  Eye,
-  ChevronRight,
-  Heart,
-  Activity,
-} from "lucide-react";
+import { Package, Settings, User, MessageSquare, Tag, MapPin, Briefcase, Globe, Instagram, Store, Check, Plus, Edit3, Share2, Layers, ExternalLink, MessageCircle, GraduationCap, Grid, List, ArrowLeft, Building2, Clock, ShieldCheck, Award, Calendar, Send, ShoppingBag, Trash2, FileText, Upload, HeartHandshake, Languages, X, UserPlus, Eye, ChevronRight, Heart, Activity } from 'lucide-react';
 import { MediaLightboxModal } from "@/components/community/media-lightbox-modal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -102,11 +62,11 @@ export const Route = createFileRoute("/_store/membro/$id")({
     const modo = search?.modo;
     const fullName = loaderData?.data?.profile?.full_name || "Membro";
     const username = loaderData?.data?.profile?.username ? "@" + loaderData.data.profile.username : "";
-    let title = fullName + (username ? " (" + username + ")" : "") + " | Wider";
+    let title = fullName + (username ? " (" + username + ")" : "") + " | JAH Master OS";
     if (modo === "profissional") {
-      title = fullName + " — Perfil Profissional | Wider";
+      title = fullName + " — Perfil Profissional | JAH Master OS";
     } else if (modo === "comercial") {
-      title = fullName + " — Catálogo & Desapegos | Wider";
+      title = fullName + " — Catálogo & Desapegos | JAH Master OS";
     }
     return {
       meta: [
@@ -501,7 +461,7 @@ export function MemberPublicProfileView({
           </div>
 
           {/* Container da Capa Panorâmica (min-w-[1090px]) com Scroll Horizontal Fluido */}
-          <div className="flex-1 h-28 sm:h-36 rounded-2xl bg-muted/30 overflow-x-auto overflow-y-hidden scrollbar-none flex items-center gap-3 pr-3 border border-border/40">
+          <div className="flex-1 h-28 sm:h-36 rounded-2xl bg-muted/30 overflow-x-auto no-scrollbar overflow-y-hidden scrollbar-none flex items-center gap-3 pr-3 border border-border/40">
             {(profile.cover_url || profile.coverUrl || profile.banner_url) ? (
               <img
                 src={profile.cover_url || profile.coverUrl || profile.banner_url}
@@ -510,7 +470,7 @@ export function MemberPublicProfileView({
               />
             ) : (
               <div className="h-full min-w-[1090px] bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex items-center justify-center rounded-2xl">
-                <Sparkles className="size-8 text-primary/30" />
+                <Layers className="size-8 text-primary/30" />
               </div>
             )}
 
@@ -1627,7 +1587,7 @@ export function MemberPublicProfileView({
           {/* Conteúdo da Aba: Curtidos (Apenas Proprietário) */}
           {isOwner && socialTab === "liked" && (
             <div className="py-16 text-center text-muted-foreground space-y-3 rounded-2xl bg-card border border-border/40">
-              <Sparkles className="size-10 mx-auto text-muted-foreground/30" />
+              <Layers className="size-10 mx-auto text-muted-foreground/30" />
               <p className="text-sm font-medium">Publicações que você curtiu na comunidade Wider.</p>
             </div>
           )}
@@ -2005,7 +1965,7 @@ function AvailabilityEditModal({
             <div className="p-4 rounded-2xl bg-muted/30 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <Sparkles className="size-4 text-violet-500" />
+                  <Layers className="size-4 text-violet-500" />
                   <div>
                     <h4 className="text-sm font-bold text-foreground">Prestar serviços autônomos</h4>
                     <p className="text-xs text-muted-foreground">Destaque sua prestação de serviços para novos clientes</p>
@@ -2267,7 +2227,7 @@ function ExperienceEditModal({
                 required
               />
               {companySuggestions.length > 0 && (
-                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-card rounded-2xl border border-border/80 p-2 space-y-1 max-h-48 overflow-y-auto">
+                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-card rounded-2xl border border-border/80 p-2 space-y-1 max-h-48 overflow-y-auto no-scrollbar">
                   <p className="text-[10px] font-bold text-muted-foreground px-2 py-0.5">
                     Lojas do Ecossistema Wider:
                   </p>
@@ -2916,7 +2876,7 @@ function VolunteeringEditModal({
                 <SelectTrigger className="h-10 rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="rounded-2xl max-h-48 overflow-y-auto">
+                <SelectContent className="rounded-2xl max-h-48 overflow-y-auto no-scrollbar">
                   {SOCIAL_CAUSES_LIST.map((c) => (
                     <SelectItem key={c} value={c}>
                       {c}

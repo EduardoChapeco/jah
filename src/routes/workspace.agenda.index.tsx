@@ -38,7 +38,7 @@ import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/agenda/")({
-  head: () => ({ meta: [{ title: "Agenda & Atendimentos | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Agenda & Atendimentos | Workspace JAH Master OS" }] }),
   component: AdminAppointmentsPage,
 });
 
@@ -85,7 +85,7 @@ function ClinicalRecordDrawer({
           <SheetTitle className="text-base font-bold text-foreground">Prontuário & Evolução</SheetTitle>
           <SheetDescription className="text-xs text-muted-foreground">Histórico de atendimento de {guestName}</SheetDescription>
         </SheetHeader>
-        <div className="flex-1 overflow-y-auto py-4 space-y-3">
+        <div className="flex-1 overflow-y-auto no-scrollbar py-4 space-y-3">
           {isLoading ? (
             <p className="text-xs text-muted-foreground">Carregando histórico...</p>
           ) : records.length === 0 ? (
@@ -257,7 +257,7 @@ function AdminAppointmentsPage() {
           <ChevronLeft className="size-4" />
         </Button>
 
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none flex-1 justify-center py-0.5">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scrollbar-none flex-1 justify-center py-0.5">
           {weekDays.map((d, idx) => {
             const isSelected = isSameDay(d, selectedDate);
             const isToday = isSameDay(d, new Date());
@@ -343,7 +343,7 @@ function AdminAppointmentsPage() {
           </p>
         </div>
       ) : (
-        <div className="flex-1 overflow-x-auto pb-4">
+        <div className="flex-1 overflow-x-auto no-scrollbar pb-4">
           <div className="flex gap-4 min-w-max items-start">
             {Object.keys(groupedAppointments).map((resourceName) => (
               <div

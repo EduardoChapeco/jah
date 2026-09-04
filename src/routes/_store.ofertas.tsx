@@ -45,7 +45,7 @@ const NICHE_CHIPS = [
 export const Route = createFileRoute("/_store/ofertas")({
   head: () => ({
     meta: [
-      { title: "Ofertas & Promoções — As Melhores Ofertas da Região | Wider" },
+      { title: "Ofertas & Promoções — As Melhores Ofertas da Região | JAH Master OS" },
       {
         name: "description",
         content:
@@ -106,7 +106,7 @@ function OfertasPage() {
       ) : (
         <section
           aria-label="Hub de Ofertas"
-          className="relative w-full rounded-3xl overflow-hidden bg-linear-to-r from-red-600 via-rose-600 to-amber-600 p-6 sm:p-8"
+          className="relative w-full rounded-2xl overflow-hidden bg-linear-to-r from-red-600 via-rose-600 to-amber-600 p-6 sm:p-8"
         >
           <div
             className="absolute inset-0 opacity-10"
@@ -160,7 +160,7 @@ function OfertasPage() {
 
       <nav
         aria-label="Filtrar ofertas por categoria"
-        className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 -mx-1 px-1"
+        className="flex items-center gap-2 overflow-x-auto no-scrollbar scrollbar-none pb-1 -mx-1 px-1"
       >
         {NICHE_CHIPS.map((chip) => (
           <button
@@ -182,7 +182,7 @@ function OfertasPage() {
 
       {/* ── 3. Carrosséis de Ofertas por Nicho ── */}
       {sections.length === 0 ? (
-        <div className="py-20 text-center space-y-3 bg-muted/10 rounded-3xl border-0 p-8">
+        <div className="py-20 text-center space-y-3 bg-muted/10 rounded-2xl border-0 p-8">
           <Percent size={40} className="text-muted-foreground/40 mx-auto" />
           <h2 className="text-sm font-bold text-foreground">Nenhuma oferta ativa no momento</h2>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -228,7 +228,7 @@ function OfertasPage() {
               </div>
 
               {/* Rail de Ofertas */}
-              <div className="flex items-start gap-3 overflow-x-auto scrollbar-none pb-2">
+              <div className="flex items-start gap-3 overflow-x-auto no-scrollbar scrollbar-none pb-2">
                 {section.items.map((offer) => (
                   <div key={offer.id} className="min-w-[160px] sm:min-w-[180px] shrink-0">
                     <OfferCard
@@ -252,7 +252,7 @@ function OfertasPage() {
 
               {/* Lojas do nicho (compactas) */}
               {section.stores.length > 0 && (
-                <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 pt-0.5">
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scrollbar-none pb-1 pt-0.5">
                   {section.stores.map((store) => (
                     <Link
                       key={store.id}
@@ -288,7 +288,7 @@ function OfertasPage() {
           ))}
 
           {/* CTA Final */}
-          <section className="rounded-3xl border-0 bg-card/60 p-6 text-center space-y-3">
+          <section className="rounded-2xl border-0 bg-card/60 p-6 text-center space-y-3">
             <div className="size-12 rounded-2xl bg-muted text-muted-foreground flex items-center justify-center mx-auto">
               <ShoppingCart size={24} />
             </div>

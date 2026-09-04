@@ -157,7 +157,7 @@ function PublicTravelProposalPage() {
       </div>
 
       {/* ── 2. RENDERIZAÇÃO DA LÂMINA EDITORIAL ── */}
-      <div id="public-proposal-canvas" className="rounded-3xl border border-border/80 shadow-lg overflow-hidden bg-white">
+      <div id="public-proposal-canvas" className="rounded-2xl border border-border/80 shadow-lg overflow-hidden bg-white">
         <ProposalCanvasRenderer proposal={proposal} />
       </div>
     </div>

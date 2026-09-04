@@ -1,15 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  X,
-  Send,
-  Heart,
-  MessageSquare,
-  CornerDownRight,
-  Smile,
-  Sparkles,
-  Loader2,
-} from "lucide-react";
+import { X, Send, Heart, MessageSquare, CornerDownRight, Smile, Layers, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -126,7 +117,7 @@ export function PostCommentsDrawer({
         )}
 
         {/* Lista de Comentários */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-4">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-40 text-muted-foreground gap-2">
               <Loader2 className="size-6 animate-spin text-primary" />
@@ -135,7 +126,7 @@ export function PostCommentsDrawer({
           ) : comments.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-center text-muted-foreground space-y-2">
               <div className="size-12 rounded-2xl bg-muted/40 flex items-center justify-center">
-                <Sparkles className="size-6 text-muted-foreground/60" />
+                <Layers className="size-6 text-muted-foreground/60" />
               </div>
               <p className="text-sm font-bold text-foreground">Seja o primeiro a comentar!</p>
               <p className="text-xs max-w-xs text-muted-foreground">

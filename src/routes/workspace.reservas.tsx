@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -38,6 +38,7 @@ import {
   LayoutGrid,
   List,
   MapPin,
+  Receipt,
 } from "lucide-react";
 import {
   listStoreReservations,
@@ -46,12 +47,24 @@ import {
   getStoreFloorPlan,
   saveStoreFloorPlan,
 } from "@/services/reservations.functions";
+import { openTableComanda } from "@/services/order.functions";
+import { listCustomers } from "@/services/crm.functions";
 import { FloorPlanEditorSheet } from "@/components/reservations/floor-plan-editor-sheet";
+import { NicheOperationalGuard } from "@/components/workspace/niche-operational-guard";
+import { getStoreSettings } from "@/services/store.functions";
 import { formatDate } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/reservas")({
-  head: () => ({ meta: [{ title: "Reservas de Mesas & Salão | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Reservas de Mesas & Salão | Workspace JAH Master OS" }] }),
+  loader: async () => {
+    try {
+      const store = await getStoreSettings().catch(() => null);
+      return { store };
+    } catch {
+      return { store: null };
+    }
+  },
   component: TableReservationsPage,
 });
 
@@ -122,6 +135,8 @@ const TABLE_STATUS_STYLE: Record<TableStatus, {
 };
 
 export default function TableReservationsPage() {
+  const { store } = Route.useLoaderData() as any;
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeView, setActiveView] = useState<"map" | "list">("map");
   const [listFilter, setListFilter] = useState<"upcoming" | "past" | "all">("upcoming");
@@ -207,6 +222,27 @@ export default function TableReservationsPage() {
     onError: (err: any) => toast.error(err.message || "Erro ao atualizar status."),
   });
 
+  // Conexão Sistêmica: Abertura Direta de Comanda no PDV via Reserva
+  const { mutate: handleOpenComanda, isPending: isOpeningComanda } = useMutation({
+    mutationFn: async ({ tableNumber, guestName, reservationId }: { tableNumber: string; guestName?: string; reservationId?: string }) => {
+      const res = await openTableComanda({ data: { tableNumber, guestName } });
+      if (reservationId) {
+        await updateReservationStatus({ data: { reservation_id: reservationId, status: "seated" } }).catch(() => null);
+      }
+      return res;
+    },
+    onSuccess: (_, vars) => {
+      toast.success(`Comanda aberta para ${vars.tableNumber}! Redirecionando ao PDV...`);
+      queryClient.invalidateQueries({ queryKey: ["table-reservations"] });
+      queryClient.invalidateQueries({ queryKey: ["salon-tables-overview"] });
+      setSheetOpen(false);
+      navigate({ to: "/workspace/pdv/comandas" });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Erro ao abrir comanda no salão.");
+    },
+  });
+
   const resetForm = () => {
     setCustomerName("");
     setCustomerPhone("");
@@ -237,8 +273,14 @@ export default function TableReservationsPage() {
   }, [tableStatuses]);
 
   return (
-    <div className="flex-1 space-y-6 p-4 sm:p-6 max-w-7xl mx-auto w-full pb-20">
-      <PageHeader
+    <NicheOperationalGuard
+      targetNiche="gastronomy"
+      toolTitle="Reservas de Mesas & Mapa do Salão"
+      toolDescription="O mapa de salão, disposição de mesas físicas e gestão de comandas presenciais foi projetado especificamente para restaurantes, bares e estabelecimentos gastronômicos."
+      store={store}
+    >
+      <div className="flex-1 space-y-6 p-4 sm:p-6 max-w-7xl mx-auto w-full pb-20">
+        <PageHeader
         title="Reservas & Salão"
         actions={
           <div className="flex items-center gap-2">
@@ -294,7 +336,7 @@ export default function TableReservationsPage() {
                   Nova Reserva
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="sm:max-w-md w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-6 overflow-y-auto bg-card">
+              <SheetContent side="right" className="sm:max-w-md w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-6 overflow-y-auto no-scrollbar bg-card">
                 <SheetHeader className="pb-4 border-b border-border/70 mb-4">
                   <SheetTitle className="font-bold flex items-center gap-2">
                     <Utensils className="size-5 text-primary" />
@@ -537,6 +579,24 @@ export default function TableReservationsPage() {
                                   <Armchair className="size-3.5" /> Acomodar
                                 </Button>
                               )}
+                              {(r.status === "seated" || isConfirmed) && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleOpenComanda({
+                                      tableNumber: r.assigned_table || "01",
+                                      guestName: r.customer_name,
+                                      reservationId: r.id,
+                                    })
+                                  }
+                                  disabled={isOpeningComanda}
+                                  className="text-xs font-bold gap-1 text-primary border-primary/30 hover:bg-primary/5 cursor-pointer"
+                                  title="Abrir comanda no PDV e lançar pedidos"
+                                >
+                                  <Receipt className="size-3.5" /> Comanda PDV
+                                </Button>
+                              )}
                               {(isPendingR || isConfirmed) && (
                                 <Button
                                   variant="ghost"
@@ -583,7 +643,7 @@ export default function TableReservationsPage() {
                   </SheetTitle>
                 </SheetHeader>
 
-                <div className="flex-1 overflow-y-auto py-4 space-y-4">
+                <div className="flex-1 overflow-y-auto no-scrollbar py-4 space-y-4">
                   {/* Badge de status */}
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-muted-foreground">Status agora</span>
@@ -620,7 +680,7 @@ export default function TableReservationsPage() {
                         )}
                       </div>
 
-                      {/* Ações da reserva */}
+                      {/* Ações da reserva com conexão direta ao PDV de Comandas */}
                       <div className="flex flex-col gap-2 pt-2">
                         {reservation.status === "pending" && (
                           <Button
@@ -641,6 +701,23 @@ export default function TableReservationsPage() {
                             <Armchair className="size-3.5" /> Acomodar Cliente
                           </Button>
                         )}
+                        {["pending", "confirmed", "seated"].includes(reservation.status) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full font-bold text-xs gap-1.5 border-primary/40 text-primary hover:bg-primary/5 cursor-pointer"
+                            onClick={() =>
+                              handleOpenComanda({
+                                tableNumber: selectedTable.label,
+                                guestName: reservation.customer_name,
+                                reservationId: reservation.id,
+                              })
+                            }
+                            disabled={isOpeningComanda}
+                          >
+                            <Receipt className="size-3.5" /> Abrir Comanda no PDV & Lançar Pedidos
+                          </Button>
+                        )}
                         {["pending", "confirmed"].includes(reservation.status) && (
                           <Button
                             size="sm"
@@ -658,18 +735,32 @@ export default function TableReservationsPage() {
                       <Armchair className="size-8 mx-auto text-muted-foreground/40" />
                       <p className="text-sm font-bold text-muted-foreground">Mesa disponível</p>
                       <p className="text-xs text-muted-foreground">Sem reserva ativa para hoje.</p>
-                      <Button
-                        size="sm"
-                        className="font-bold text-xs gap-1.5 mt-2"
-                        onClick={() => {
-                          setAssignedTable(selectedTable.label);
-                          setSheetOpen(false);
-                          setDialogOpen(true);
-                        }}
-                      >
-                        <Plus className="size-3.5" />
-                        Reservar esta Mesa
-                      </Button>
+                      <div className="flex gap-2 justify-center pt-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="font-bold text-xs gap-1.5 cursor-pointer"
+                          onClick={() =>
+                            handleOpenComanda({
+                              tableNumber: selectedTable.label,
+                            })
+                          }
+                          disabled={isOpeningComanda}
+                        >
+                          <Receipt className="size-3.5" /> Abrir Comanda
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="font-bold text-xs gap-1.5 cursor-pointer"
+                          onClick={() => {
+                            setAssignedTable(selectedTable.label);
+                            setSheetOpen(false);
+                            setDialogOpen(true);
+                          }}
+                        >
+                          <Plus className="size-3.5" /> Reservar
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -679,14 +770,15 @@ export default function TableReservationsPage() {
         </SheetContent>
       </Sheet>
 
-      {/* Editor da Planta do Salão */}
-      <FloorPlanEditorSheet
-        open={isFloorPlanEditorOpen}
-        onOpenChange={setIsFloorPlanEditorOpen}
-        currentTables={salonTables}
-        onSaveSuccess={() => refetchFloorPlan()}
-      />
-    </div>
+        {/* Editor da Planta do Salão */}
+        <FloorPlanEditorSheet
+          open={isFloorPlanEditorOpen}
+          onOpenChange={setIsFloorPlanEditorOpen}
+          currentTables={salonTables}
+          onSaveSuccess={() => refetchFloorPlan()}
+        />
+      </div>
+    </NicheOperationalGuard>
   );
 }
 
@@ -718,6 +810,27 @@ function ReservationForm({
   specialRequests, setSpecialRequests,
   onSubmit, isSubmitting,
 }: any) {
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isCrmLinked, setIsCrmLinked] = useState(false);
+
+  const { data: searchResults = [], isLoading } = useQuery({
+    queryKey: ["crm-customers-reservations", customerSearch],
+    queryFn: () => listCustomers({ data: { query: customerSearch.trim() } }),
+    enabled: customerSearch.trim().length >= 1,
+    staleTime: 30_000,
+  });
+
+  const handleSelectCustomer = (c: any) => {
+    const name = c.fullName || c.name || "";
+    setCustomerName(name);
+    setCustomerPhone(c.phone || "");
+    setIsCrmLinked(true);
+    setIsDropdownOpen(false);
+    setCustomerSearch("");
+    toast.success(`Cliente ${name} selecionado!`);
+  };
+
   return (
     <div className="space-y-4 py-2">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -749,25 +862,80 @@ function ReservationForm({
         </div>
       </div>
 
-      <div>
-        <Label className="text-xs font-bold text-muted-foreground">Nome do Cliente *</Label>
-        <Input placeholder="Ex: Carlos Eduardo" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="mt-1" />
+      {/* Autocomplete de Cliente integrado ao CRM */}
+      <div className="space-y-1 relative">
+        <div className="flex items-center justify-between">
+          <Label className="text-xs font-bold text-muted-foreground">Nome do Cliente *</Label>
+          {isCrmLinked && (
+            <Badge variant="secondary" className="text-[10px] font-bold bg-primary/10 text-primary border-primary/20">
+              ✓ Vinculado ao CRM
+            </Badge>
+          )}
+        </div>
+        <Input
+          placeholder="Digite para buscar no CRM ou novo cliente..."
+          value={customerName}
+          onChange={(e) => {
+            const val = e.target.value;
+            setCustomerName(val);
+            setCustomerSearch(val);
+            setIsDropdownOpen(val.trim().length >= 1);
+            if (isCrmLinked) setIsCrmLinked(false);
+          }}
+          onFocus={() => {
+            if (customerName.trim().length >= 1) setIsDropdownOpen(true);
+          }}
+          className="mt-1"
+        />
+
+        {/* Dropdown de Clientes Encontrados */}
+        {isDropdownOpen && searchResults.length > 0 && (
+          <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-card border border-border/80 rounded-xl shadow-lg max-h-48 overflow-y-auto no-scrollbar divide-y divide-border/40">
+            {searchResults.map((c: any) => (
+              <div
+                key={c.id}
+                onClick={() => handleSelectCustomer(c)}
+                className="p-2.5 hover:bg-muted/40 transition-colors cursor-pointer text-xs flex items-center justify-between"
+              >
+                <div>
+                  <p className="font-bold text-foreground">{c.fullName || c.name}</p>
+                  <p className="text-[11px] text-muted-foreground font-mono">
+                    {c.phone ? `Whats: ${c.phone}` : "Sem telefone"} {c.document && `• CPF: ${c.document}`}
+                  </p>
+                </div>
+                <Badge variant="outline" className="text-[9px] font-mono">
+                  Usar
+                </Badge>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div>
-        <Label className="text-xs font-bold text-muted-foreground">WhatsApp *</Label>
-        <Input placeholder="(49) 99999-9999" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className="mt-1" />
+        <Label className="text-xs font-bold text-muted-foreground">WhatsApp / Telefone *</Label>
+        <Input
+          placeholder="(49) 99999-9999"
+          value={customerPhone}
+          onChange={(e) => setCustomerPhone(e.target.value)}
+          className="mt-1 font-mono"
+        />
       </div>
 
       <div>
-        <Label className="text-xs font-bold text-muted-foreground">Observações</Label>
-        <Input placeholder="Ex: Aniversário, cadeira de bebê..." value={specialRequests} onChange={(e) => setSpecialRequests(e.target.value)} className="mt-1" />
+        <Label className="text-xs font-bold text-muted-foreground">Observações Especiais</Label>
+        <Input
+          placeholder="Ex: Aniversário, cadeira de bebê, mesa com vista..."
+          value={specialRequests}
+          onChange={(e) => setSpecialRequests(e.target.value)}
+          className="mt-1"
+        />
       </div>
 
       <Button
         onClick={onSubmit}
         disabled={!customerName || !customerPhone || isSubmitting}
-        className="w-full font-bold mt-2"
+        className="w-full font-bold mt-2 h-10"
       >
         {isSubmitting ? "Salvando..." : "Salvar Reserva"}
       </Button>

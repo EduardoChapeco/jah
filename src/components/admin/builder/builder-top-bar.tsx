@@ -1,20 +1,6 @@
 import * as React from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import {
-  ArrowLeft,
-  Laptop,
-  Tablet,
-  Smartphone,
-  Undo2,
-  Redo2,
-  LayoutTemplate,
-  ExternalLink,
-  Save,
-  CheckCircle2,
-  Sparkles,
-  Eye,
-  Loader2,
-} from "lucide-react";
+import { ArrowLeft, Laptop, Tablet, Smartphone, Undo2, Redo2, LayoutTemplate, ExternalLink, Save, CheckCircle2, Layers, Eye, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -172,7 +158,7 @@ export function BuilderTopBar({
           onClick={() => setIsTemplateModalOpen(true)}
           className="h-9 px-3 rounded-xl text-xs font-semibold gap-1.5 hidden lg:inline-flex cursor-pointer"
         >
-          <Sparkles className="size-3.5 text-primary" />
+          <Layers className="size-3.5 text-primary" />
           <span>Modelos</span>
         </Button>
 

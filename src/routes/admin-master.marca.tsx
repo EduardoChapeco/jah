@@ -1,33 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import {
-  Image as ImageIcon,
-  Upload,
-  Eye,
-  Type,
-  Palette,
-  Globe,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-  Trash2,
-  Sparkles,
-  Smartphone,
-  Tablet,
-  Monitor,
-  Phone,
-  Mail,
-  Clock,
-  Instagram,
-  Facebook,
-  Linkedin,
-  Search,
-  MapPin,
-  ShoppingBag,
-  Bell,
-  ArrowRight,
-  ShieldAlert,
-  ChevronLeft,
-} from "lucide-react";
+import { Image as ImageIcon, Upload, Eye, Type, Palette, Globe, Loader2, CheckCircle2, AlertCircle, Trash2, Layers, Smartphone, Tablet, Monitor, Phone, Mail, Clock, Instagram, Facebook, Linkedin, Search, MapPin, ShoppingBag, Bell, ArrowRight, ShieldAlert, ChevronLeft } from 'lucide-react';
 import { useState, useRef, useMemo } from "react";
 import { toast } from "sonner";
 
@@ -41,7 +13,7 @@ import { getPlatformBrandSettings, updatePlatformBrandSettings } from "@/service
 import { uploadBrandAsset } from "@/services/storage.functions";
 
 export const Route = createFileRoute("/admin-master/marca")({
-  head: () => ({ meta: [{ title: "Identidade da Marca & CMS | Wider Master" }] }),
+  head: () => ({ meta: [{ title: "Identidade da Marca & CMS | JAH Master" }] }),
   loader: async () => {
     try {
       const brand = await getPlatformBrandSettings();
@@ -823,7 +795,7 @@ function AdminMasterMarcaPage() {
                     </div>
 
                     {/* Trilho de Chips */}
-                    <div className="px-3 py-1.5 bg-muted/15 flex items-center gap-1.5 overflow-x-auto text-[10px]">
+                    <div className="px-3 py-1.5 bg-muted/15 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-[10px]">
                       <span className="px-2 py-0.5 rounded-md bg-background border border-border/40 text-foreground font-medium shrink-0">
                         Início
                       </span>

@@ -110,7 +110,7 @@ export function BusSeatMap({ seats, onSeatsChange, readOnly = false }: BusSeatMa
       </div>
 
       {/* Carcaça Visual do Ônibus */}
-      <div className="p-5 rounded-3xl bg-slate-100 border-2 border-slate-300 max-w-sm mx-auto space-y-3 shadow-inner">
+      <div className="p-5 rounded-2xl bg-slate-100 border-2 border-slate-300 max-w-sm mx-auto space-y-3 shadow-inner">
         {/* Cabine do Motorista & Entrada */}
         <div className="flex items-center justify-between pb-3 border-b-2 border-dashed border-slate-300 text-[10px] font-mono font-bold text-slate-500 uppercase">
           <div className="flex items-center gap-1">
@@ -170,7 +170,7 @@ export function BusSeatMap({ seats, onSeatsChange, readOnly = false }: BusSeatMa
 
       {/* Modal de Alocação de Passageiro */}
       <Dialog open={Boolean(selectedSeat)} onOpenChange={(open) => !open && setSelectedSeat(null)}>
-        <DialogContent className="sm:max-w-md sm:rounded-3xl p-6 bg-card border-border">
+        <DialogContent className="sm:max-w-md sm:rounded-2xl p-6 bg-card border-border">
           <DialogHeader className="space-y-1">
             <DialogTitle className="text-base font-bold text-foreground">
               Poltrona #{selectedSeat?.seat_number} ({selectedSeat?.column})

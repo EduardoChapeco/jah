@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_store/evento/$id")({
       {
         title: loaderData?.event?.title
           ? `${loaderData.event.title} - Ingressos | Wider`
-          : "Evento | Wider",
+          : "Evento | JAH Master OS",
       },
       {
         name: "description",

@@ -26,6 +26,8 @@ import {
   openTableComanda,
   requestTableBill,
 } from "@/services/order.functions";
+import { getStoreSettings } from "@/services/store.functions";
+import { NicheOperationalGuard } from "@/components/workspace/niche-operational-guard";
 import { QuickWaiterOrderModal } from "@/components/pos/quick-waiter-order-modal";
 import { formatMoney } from "@/lib/money";
 import { formatDateTime } from "@/lib/datetime";
@@ -45,7 +47,15 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/workspace/pdv/comandas")({
   head: () => ({ meta: [{ title: "Salão & Comandas | PDV" }] }),
   loader: async () => {
-    return await getSalonTablesOverview();
+    try {
+      const [tables, store] = await Promise.all([
+        getSalonTablesOverview().catch(() => null),
+        getStoreSettings().catch(() => null),
+      ]);
+      return { tables: tables || null, store };
+    } catch {
+      return { tables: null, store: null };
+    }
   },
   component: PdvComandasPage,
 });
@@ -94,7 +104,7 @@ const STATUS_CONFIG: Record<
 };
 
 function PdvComandasPage() {
-  const initialData = Route.useLoaderData();
+  const { tables: initialData, store } = Route.useLoaderData() as any;
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -197,8 +207,14 @@ function PdvComandasPage() {
   const publicMenuTableUrl = `https://${currentHost}/m/${store_info?.slug || "loja"}?mesa=${encodeURIComponent(qrTableNumber)}`;
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-4rem)] bg-background text-foreground pb-20">
-      {/* ── Top Bar ── */}
+    <NicheOperationalGuard
+      targetNiche="gastronomy"
+      toolTitle="Salão & Comandas por Mesa"
+      toolDescription="O controle de mesas físicas, consumo aberto e chamadas de garçom foi projetado especificamente para operações de bares, restaurantes e estabelecimentos gastronômicos."
+      store={store}
+    >
+      <div className="flex flex-col min-h-[calc(100vh-4rem)] bg-background text-foreground pb-20">
+        {/* ── Top Bar ── */}
       <div className="border-b border-border/80 bg-card/60 backdrop-blur-md px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Button variant="outline" size="icon" asChild className="size-9 rounded-xl">
@@ -407,7 +423,7 @@ function PdvComandasPage() {
                   </div>
 
                   <div className="p-4 space-y-3 flex-1">
-                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar pr-1">
                       {comanda.order_items?.map((item: any) => (
                         <div key={item.id} className="flex justify-between text-xs">
                           <span className="text-muted-foreground truncate mr-2">
@@ -466,7 +482,7 @@ function PdvComandasPage() {
           </SheetHeader>
 
           {selectedTable?.order ? (
-            <div className="flex-1 overflow-y-auto py-4 space-y-4">
+            <div className="flex-1 overflow-y-auto no-scrollbar py-4 space-y-4">
               <div className="p-3 rounded-xl bg-muted/30 border border-border/60 flex items-center justify-between text-xs">
                 <div className="space-y-0.5">
                   <span className="text-[10px] text-muted-foreground font-bold uppercase">Tempo no Salão</span>
@@ -613,7 +629,7 @@ function PdvComandasPage() {
           </SheetHeader>
 
           {comandaToCheckout && (
-            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+            <div className="flex-1 overflow-y-auto no-scrollbar p-4 sm:p-5 space-y-4">
               <div className="p-4 rounded-xl bg-muted/30 border border-border/70 text-center space-y-1">
                 <span className="text-xs text-muted-foreground uppercase font-bold">Valor Total</span>
                 <p className="text-3xl font-black text-foreground font-mono">
@@ -722,7 +738,7 @@ function PdvComandasPage() {
             </SheetTitle>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="flex-1 overflow-y-auto no-scrollbar p-4 sm:p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="space-y-1.5">
@@ -886,14 +902,16 @@ function PdvComandasPage() {
         </Button>
       </div>
 
-      {/* ── MODAL DE LANÇAMENTO RÁPIDO PARA GARÇOM ── */}
-      <QuickWaiterOrderModal
-        open={quickWaiterModalOpen}
-        onOpenChange={setQuickWaiterModalOpen}
-        tableNumber={selectedTable?.table_number || ""}
-        orderId={selectedTable?.order?.id}
-        onSuccess={() => refetch()}
-      />
-    </div>
+        {/* ── MODAL DE LANÇAMENTO RÁPIDO PARA GARÇOM ── */}
+        <QuickWaiterOrderModal
+          open={quickWaiterModalOpen}
+          onOpenChange={setQuickWaiterModalOpen}
+          tableNumber={selectedTable?.table_number || ""}
+          orderId={selectedTable?.order?.id}
+          store={store}
+          onSuccess={() => refetch()}
+        />
+      </div>
+    </NicheOperationalGuard>
   );
 }

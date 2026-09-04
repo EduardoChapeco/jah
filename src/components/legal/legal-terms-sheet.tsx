@@ -1,15 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Link } from "@tanstack/react-router";
-import {
-  ShieldCheck,
-  FileText,
-  Lock,
-  Sparkles,
-  AlertTriangle,
-  ExternalLink,
-  CheckCircle2,
-  Calendar,
-} from "lucide-react";
+import { ShieldCheck, FileText, Lock, Layers, AlertTriangle, ExternalLink, CheckCircle2, Calendar } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -167,7 +158,7 @@ export function LegalTermsSheet({
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto p-6 space-y-4 text-xs text-foreground/90 leading-relaxed select-text"
+          className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4 text-xs text-foreground/90 leading-relaxed select-text"
         >
           {isLoading ? (
             <div className="py-16 text-center space-y-3">

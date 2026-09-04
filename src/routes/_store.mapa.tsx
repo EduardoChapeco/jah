@@ -239,7 +239,7 @@ function FullscreenMapaPage() {
           "bottom-0 left-0 right-0 rounded-t-3xl border-t border-x sm: bg-card/95 backdrop-blur-xl  flex flex-col",
           isExpandedMobile ? "h-[85vh]" : "h-[36vh]",
           /* Desktop: Sidebar flutuante à esquerda */
-          "sm:bottom-4 sm:top-16 sm:left-4 sm:right-auto sm:w-[400px] sm:h-auto sm:max-h-none sm:rounded-3xl"
+          "sm:bottom-4 sm:top-16 sm:left-4 sm:right-auto sm:w-[400px] sm:h-auto sm:max-h-none sm:rounded-2xl"
         )}
       >
         {/* Drag Handle Mobile */}
@@ -328,7 +328,7 @@ function FullscreenMapaPage() {
         ) : null}
 
         {/* ── LISTA VERTICAL DE MOMENTOS (ROLAGEM SUAVE INDEPENDENTE) ── */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2.5 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-3 space-y-2.5 scrollbar-thin">
           {filteredMoments.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground text-xs space-y-2">
               <Camera className="size-6 mx-auto opacity-30 text-primary" />

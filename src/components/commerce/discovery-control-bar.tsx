@@ -193,7 +193,7 @@ export function DiscoveryControlBar({
       {categories.length > 0 && onSelectCategory && (
         <div
           ref={tabsContainerRef}
-          className="flex items-center gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 w-full px-0.5 focus:outline-none"
+          className="flex items-center gap-3 overflow-x-auto no-scrollbar scrollbar-none pb-2 pt-1 w-full px-0.5 focus:outline-none"
         >
           {categories.map((chip) => {
             const isActive = activeCategory === chip.id || (!activeCategory && chip.id === "todos");
@@ -229,7 +229,7 @@ export function DiscoveryControlBar({
 
       {/* ── 3. FILTROS RÁPIDOS ADICIONAIS (Frete Grátis, Ofertas Relâmpago, etc.) ── */}
       {fastFilters.length > 0 && (
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pt-0.5">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scrollbar-none pt-0.5">
           {fastFilters.map((filter) => {
             const Icon = filter.icon;
             return (

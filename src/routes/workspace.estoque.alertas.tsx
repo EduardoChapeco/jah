@@ -20,7 +20,7 @@ import { getStockLevels, adjustStock } from "@/services/stock.functions";
 import { getWaitlistDemandCounts } from "@/services/waitlist.functions";
 
 export const Route = createFileRoute("/workspace/estoque/alertas")({
-  head: () => ({ meta: [{ title: "Alertas de Estoque | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Alertas de Estoque | Workspace JAH Master OS" }] }),
   loader: async () => {
     const res = await getStockLevels({ data: {} });
     // Filter for low stock (on_hand <= 5) or out of stock

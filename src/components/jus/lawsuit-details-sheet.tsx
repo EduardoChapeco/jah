@@ -1,22 +1,5 @@
 import { useState, useTransition } from "react";
-import {
-  Scale,
-  Calendar,
-  Clock,
-  Building2,
-  Users,
-  DollarSign,
-  FileText,
-  Share2,
-  RotateCw,
-  Sparkles,
-  CheckCircle2,
-  AlertTriangle,
-  Radio,
-  ExternalLink,
-  ChevronRight,
-  ShieldCheck,
-} from "lucide-react";
+import { Scale, Calendar, Clock, Building2, Users, DollarSign, FileText, Share2, RotateCw, Layers, CheckCircle2, AlertTriangle, Radio, ExternalLink, ChevronRight, ShieldCheck } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -247,7 +230,7 @@ export function LawsuitDetailsSheet({
         </div>
 
         {/* ── 2. CORPO COM ABAS DETALHADAS ── */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="grid w-full grid-cols-3 h-11 bg-muted/40 p-1 rounded-xl">
               <TabsTrigger value="movimentacoes" className="text-xs font-bold rounded-lg gap-2">
@@ -259,7 +242,7 @@ export function LawsuitDetailsSheet({
                 <span>Informações & Partes</span>
               </TabsTrigger>
               <TabsTrigger value="jus_ia" className="text-xs font-bold rounded-lg gap-2">
-                <Sparkles className="size-3.5 text-primary" />
+                <Layers className="size-3.5 text-primary" />
                 <span>JUS IA • Análise</span>
               </TabsTrigger>
             </TabsList>
@@ -373,7 +356,7 @@ export function LawsuitDetailsSheet({
             <TabsContent value="jus_ia" className="space-y-4">
               <div className="p-5 rounded-2xl bg-primary/5 border border-primary/20 space-y-3">
                 <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase font-mono">
-                  <Sparkles className="size-4" />
+                  <Layers className="size-4" />
                   <span>Síntese Processual Automatizada</span>
                 </div>
                 <p className="text-xs sm:text-sm text-foreground leading-relaxed">

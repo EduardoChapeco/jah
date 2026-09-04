@@ -48,7 +48,7 @@ import { formatMoney } from "@/lib/money";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/workspace/pedidos/frota")({
-  head: () => ({ meta: [{ title: "Frota & Despacho de Entregas | Wider" }] }),
+  head: () => ({ meta: [{ title: "Frota & Despacho de Entregas | JAH Master OS" }] }),
   loader: async () => {
     const [dispatches, priceTables, pendingOrders, couriers] = await Promise.all([
       listDispatches().catch(() => []),
@@ -342,7 +342,7 @@ function FrotaEntregasPage() {
                   </SheetDescription>
                 </SheetHeader>
 
-                <form onSubmit={handleCreateDispatch} className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+                <form onSubmit={handleCreateDispatch} className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4 text-xs">
                   {/* Seletor de Pedido Pendente */}
                   <div className="space-y-1.5">
                     <Label className="text-xs font-bold text-foreground">Vincular a Pedido da Loja</Label>
@@ -573,7 +573,7 @@ function FrotaEntregasPage() {
                   </SheetDescription>
                 </SheetHeader>
 
-                <form onSubmit={handleSavePriceTable} className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+                <form onSubmit={handleSavePriceTable} className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4 text-xs">
                   <div>
                     <Label className="text-xs font-bold text-foreground">Nome da Tabela *</Label>
                     <Input

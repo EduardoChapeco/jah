@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link2, Copy, Check, Share2, Sparkles, QrCode } from "lucide-react";
+import { Link2, Copy, Check, Share2, QrCode } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -129,7 +129,7 @@ export function GenerateMagicLinkModal({
                 disabled={loading}
                 className="w-full h-10 rounded-xl text-xs font-bold gap-2 cursor-pointer"
               >
-                <Sparkles className="size-3.5" />
+                <Link2 className="size-3.5" />
                 {loading ? "Gerando link..." : "Gerar Link de Preenchimento"}
               </Button>
             </DialogFooter>

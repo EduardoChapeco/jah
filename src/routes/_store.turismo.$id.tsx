@@ -261,7 +261,7 @@ function TourismDetailPage() {
         </div>
 
         {images.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-1">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
             {images.map((img: string, idx: number) => (
               <button
                 key={idx}
@@ -517,7 +517,7 @@ function TourismDetailPage() {
                         <span>Dados dos Participantes</span>
                       </span>
 
-                      <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                      <div className="space-y-2 max-h-44 overflow-y-auto no-scrollbar pr-1">
                         {passengers.map((p, idx) => (
                           <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 rounded-2xl bg-muted/40 ">
                             <Input

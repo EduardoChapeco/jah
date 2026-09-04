@@ -21,7 +21,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/verificacao")({
-  head: () => ({ meta: [{ title: "Verificação de Identidade & KYC | Wider" }] }),
+  head: () => ({ meta: [{ title: "Verificação de Identidade & KYC | JAH Master OS" }] }),
   loader: async () => {
     try {
       const kyc = await getMyKycStatus();

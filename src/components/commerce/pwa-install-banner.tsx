@@ -150,7 +150,7 @@ export function PWAInstallBanner({
       {/* ── Modal Guia de Instalação no iOS Safari ── */}
       {showIOSGuide && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-card border border-border/80 p-5 space-y-4 shadow-2xl animate-in slide-in-from-bottom-6">
+          <div className="w-full max-w-sm rounded-2xl bg-card border border-border/80 p-5 space-y-4 shadow-2xl animate-in slide-in-from-bottom-6">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-foreground">Como instalar no iPhone</h3>
               <button

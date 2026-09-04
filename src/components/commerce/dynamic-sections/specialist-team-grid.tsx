@@ -54,7 +54,7 @@ export function SpecialistTeamGridSection({
           {displayMembers.map((member: SpecialistMember) => (
             <div
               key={member.id}
-              className="rounded-3xl border border-border/80 bg-card overflow-hidden shadow-2xs flex flex-col justify-between group hover:border-primary/40 transition-all p-5 space-y-4"
+              className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-2xs flex flex-col justify-between group hover:border-primary/40 transition-all p-5 space-y-4"
             >
               <div className="space-y-3">
                 <div className="aspect-square rounded-2xl overflow-hidden bg-muted border border-border/60 relative">

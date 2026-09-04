@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Sheet,
@@ -11,9 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Utensils, Check, Plus, Loader2, AlertCircle } from "lucide-react";
+import { Utensils, Check, Plus, Loader2, AlertCircle, Compass, Layers, ShoppingBag } from 'lucide-react';
 import { formatMoney } from "@/lib/money";
 import { getModifiersByProduct } from "@/services/modifiers.functions";
+import { getNicheSemantics } from "@/lib/niche-semantics";
 
 export interface SelectedModifier {
   groupId: string;
@@ -28,6 +29,7 @@ export interface ProductModifiersModalProps {
   onOpenChange: (open: boolean) => void;
   product: any;
   variant: any;
+  store?: any;
   onConfirm: (
     product: any,
     variant: any,
@@ -41,10 +43,24 @@ export function ProductModifiersModal({
   onOpenChange,
   product,
   variant,
+  store,
   onConfirm,
 }: ProductModifiersModalProps) {
   const [selectedModifiers, setSelectedModifiers] = useState<SelectedModifier[]>([]);
   const [notes, setNotes] = useState("");
+
+  const semantics = useMemo(
+    () => getNicheSemantics(store || product?.store),
+    [store, product],
+  );
+
+  const IconComponent = useMemo(() => {
+    if (semantics.nicheId === "tourism") return Compass;
+    if (semantics.nicheId === "services") return Layers;
+    if (semantics.nicheId === "retail") return ShoppingBag;
+    if (semantics.nicheId === "gastronomy") return Utensils;
+    return Layers;
+  }, [semantics.nicheId]);
 
   const productId = product?.id;
 
@@ -129,14 +145,14 @@ export function ProductModifiersModal({
         <SheetHeader className="p-4 sm:p-5 border-b border-border/80 bg-muted/20 text-left space-y-1">
           <div className="flex items-center gap-2">
             <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <Utensils className="size-4" />
+              <IconComponent className="size-4" />
             </div>
             <div>
               <SheetTitle className="text-base font-bold text-foreground">
                 {product.title || product.name}
               </SheetTitle>
               <SheetDescription className="text-xs text-muted-foreground">
-                Personalize adicionais e observações da cozinha
+                {semantics.modifierModalSubtitle}
               </SheetDescription>
             </div>
           </div>
@@ -148,7 +164,7 @@ export function ProductModifiersModal({
             <p className="text-xs">Carregando complementos...</p>
           </div>
         ) : (
-          <div className="overflow-y-auto space-y-5 py-3 pr-1 my-2 flex-1">
+          <div className="overflow-y-auto no-scrollbar space-y-5 py-3 pr-1 my-2 flex-1">
             {modifierGroups && modifierGroups.length > 0 ? (
               modifierGroups.map((group: any) => {
                 const countInGroup = selectedModifiers.filter((m) => m.groupId === group.id).length;
@@ -221,17 +237,17 @@ export function ProductModifiersModal({
               })
             ) : (
               <p className="text-xs text-muted-foreground text-center py-4">
-                Este item não possui adicionais cadastrados.
+                {semantics.modifierEmptyText}
               </p>
             )}
 
-            {/* Observações da Cozinha / Salão */}
+            {/* Observações Contextualizadas */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">Observações (opcional)</Label>
+              <Label className="text-xs font-semibold">{semantics.modifierNotesLabel}</Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Ex: Ponto da carne, sem cebola, talheres adicionais..."
+                placeholder={semantics.modifierNotesPlaceholder}
                 rows={2}
                 className="rounded-xl text-xs bg-background resize-none"
               />

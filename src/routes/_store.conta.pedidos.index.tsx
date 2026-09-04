@@ -65,7 +65,7 @@ function Page() {
       </div>
 
       {orders.length === 0 ? (
-        <div className="rounded-3xl border border-border/60 bg-card p-10 text-center space-y-3">
+        <div className="rounded-2xl border border-border/60 bg-card p-10 text-center space-y-3">
           <p className="text-sm font-semibold text-foreground">Nenhum pedido encontrado</p>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
             Você ainda não realizou compras. Explore as lojas e produtos do catálogo.

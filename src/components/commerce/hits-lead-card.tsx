@@ -23,7 +23,7 @@ export function HitsLeadCard({
     <Link
       to={actionTo as any}
       aria-label={ariaLabel}
-      className="group relative overflow-hidden rounded-3xl  bg-card w-[150px] sm:w-[170px] h-[145px] sm:h-[155px] transition-transform duration-200 active:scale-[0.98] select-none block shrink-0 snap-start"
+      className="group relative overflow-hidden rounded-2xl  bg-card w-[150px] sm:w-[170px] h-[145px] sm:h-[155px] transition-transform duration-200 active:scale-[0.98] select-none block shrink-0 snap-start"
     >
       {coverImage ? (
         <img

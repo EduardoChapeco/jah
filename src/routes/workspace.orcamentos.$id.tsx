@@ -14,7 +14,7 @@ import {
   Hash,
   Loader2,
   AlertCircle,
-  Sparkles,
+  FileSpreadsheet,
   Plane,
   Building2,
   FileCheck2,
@@ -185,7 +185,7 @@ function QuoteDetailPage() {
             className="h-10 rounded-xl text-xs font-bold gap-1.5 cursor-pointer shadow-xs"
           >
             <Link to="/workspace/turismo/propostas/$id" params={{ id: quote.id }}>
-              <Sparkles className="size-3.5 text-primary" />
+              <FileSpreadsheet className="size-3.5 text-primary" />
               <span>Studio Visual de Propostas</span>
             </Link>
           </Button>
@@ -214,7 +214,7 @@ function QuoteDetailPage() {
         {/* Coluna Principal (8 Cols) */}
         <div className="lg:col-span-8 space-y-6">
           {/* Cabeçalho de Dados do Cliente e Viagem */}
-          <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+          <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs font-semibold text-muted-foreground uppercase">Cliente Contratante</p>
@@ -252,7 +252,7 @@ function QuoteDetailPage() {
 
           {/* Seção de Trechos Aéreos (se houver) */}
           {Array.isArray(travelMeta?.flights) && travelMeta.flights.length > 0 && (
-            <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+            <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Plane className="size-4 text-primary" />
                 <span>Malha Aérea Selecionada ({travelMeta.flights.length} trecho(s))</span>
@@ -280,7 +280,7 @@ function QuoteDetailPage() {
 
           {/* Seção de Hotéis (se houver) */}
           {Array.isArray(travelMeta?.hotels) && travelMeta.hotels.length > 0 && (
-            <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+            <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Building2 className="size-4 text-primary" />
                 <span>Acomodação & Hospedagem</span>
@@ -307,7 +307,7 @@ function QuoteDetailPage() {
           )}
 
           {/* Mensagens e Histórico de Negociação */}
-          <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+          <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <MessageSquare className="size-4 text-primary" />
               <span>Histórico & Mensagens da Negociação</span>
@@ -355,7 +355,7 @@ function QuoteDetailPage() {
 
         {/* Coluna Lateral Financeira & Ações (4 Cols) */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+          <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
             <h3 className="text-sm font-bold text-foreground">Resumo Financeiro</h3>
 
             <div className="space-y-3 text-xs">
@@ -412,12 +412,12 @@ function QuoteDetailPage() {
             </div>
           </div>
 
-          <div className="p-5 rounded-3xl bg-muted/40 border border-border/60 space-y-3 text-xs">
+          <div className="p-5 rounded-2xl bg-muted/40 border border-border/60 space-y-3 text-xs">
             <h4 className="font-bold text-foreground">Ações de Conversão Rápida</h4>
             <div className="space-y-2">
               <Button asChild variant="outline" className="w-full h-9 rounded-xl text-xs font-semibold justify-start gap-2">
                 <Link to="/workspace/turismo/propostas/$id" params={{ id: quote.id }}>
-                  <Sparkles className="size-3.5 text-primary" />
+                  <Download className="size-3.5 text-primary" />
                   <span>Exportar Lâmina (PDF/PNG)</span>
                 </Link>
               </Button>

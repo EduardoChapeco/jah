@@ -1,19 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  Sparkles,
-  Bot,
-  Key,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  Trash2,
-  RefreshCw,
-  Plus,
-  ShieldCheck,
-  Zap,
-} from "lucide-react";
+import { Layers, Bot, Key, CheckCircle2, AlertCircle, Clock, Trash2, RefreshCw, Plus, ShieldCheck, Zap } from 'lucide-react';
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
@@ -162,7 +150,7 @@ function WorkspaceAiSettingsPage() {
               Provedores de Inteligência Artificial
             </h1>
             <Badge variant="outline" className="text-[10px] font-mono gap-1 text-primary">
-              <Sparkles className="size-3" /> BYOK (Bring Your Own Key)
+              <Layers className="size-3" /> BYOK (Bring Your Own Key)
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground">
@@ -182,7 +170,7 @@ function WorkspaceAiSettingsPage() {
           return (
             <div
               key={prov}
-              className={`p-5 rounded-3xl border transition-all space-y-4 flex flex-col justify-between ${
+              className={`p-5 rounded-2xl border transition-all space-y-4 flex flex-col justify-between ${
                 isConfigured
                   ? "bg-card border-border/80 shadow-xs"
                   : "bg-muted/10 border-dashed border-border/70 opacity-80"

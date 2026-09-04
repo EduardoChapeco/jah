@@ -199,7 +199,7 @@ function SecurityTelemetryPage() {
             </div>
 
             {/* Event feed */}
-            <div ref={listRef} className="space-y-1.5 max-h-[60vh] overflow-y-auto pr-1">
+            <div ref={listRef} className="space-y-1.5 max-h-[60vh] overflow-y-auto no-scrollbar pr-1">
               {filtered.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                   <ShieldCheck className="size-10 mb-3 opacity-20" />

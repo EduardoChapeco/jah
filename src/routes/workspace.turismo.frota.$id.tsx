@@ -6,7 +6,7 @@ import {
   Save,
   Undo,
   Redo,
-  Sparkles,
+  ListOrdered,
   Layers,
   Users,
   Bus,
@@ -417,7 +417,7 @@ function VehicleLayoutEditorPage() {
             onClick={handleAutoRenumber}
             className="h-9 px-3 rounded-xl text-xs gap-1.5 cursor-pointer"
           >
-            <Sparkles className="size-3.5 text-primary" /> Renumerar
+            <ListOrdered className="size-3.5 text-primary" /> Renumerar
           </Button>
 
           {/* Salvar */}
@@ -535,7 +535,7 @@ function VehicleLayoutEditorPage() {
       </div>
 
       {/* ── 3. Chassi Virtual do Veículo 2D (Apple Grade) ── */}
-      <div className="flex flex-col items-center justify-center p-6 sm:p-10 rounded-3xl bg-muted/20 border border-border/70 overflow-x-auto">
+      <div className="flex flex-col items-center justify-center p-6 sm:p-10 rounded-2xl bg-muted/20 border border-border/70 overflow-x-auto no-scrollbar">
         <div className="text-xs font-mono text-muted-foreground mb-4 flex items-center gap-2">
           <Info className="size-3.5" />
           <span>

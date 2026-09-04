@@ -54,27 +54,35 @@ import {
 import { EmptyState } from "@/components/state/states";
 import { listCustomers, archiveCustomer } from "@/services/crm.functions";
 import { listTeamMembers } from "@/services/admin-team.functions";
+import { getStoreSettings } from "@/services/store.functions";
 import { formatMoney } from "@/lib/money";
 import { NewClientWizard } from "@/components/crm/NewClientWizard";
 
 export const Route = createFileRoute("/workspace/clientes/")({
-  head: () => ({ meta: [{ title: "Carteira de Clientes | Workspace" }] }),
+  head: () => ({ meta: [{ title: "Carteira de Clientes & Passageiros | Workspace JAH Master OS" }] }),
   loader: async () => {
-    const [customers, teamRes] = await Promise.all([
+    const [customers, teamRes, store] = await Promise.all([
       listCustomers().catch(() => []),
       listTeamMembers().catch(() => []),
+      getStoreSettings().catch(() => null),
     ]);
     return {
       customers: customers || [],
       team: teamRes || [],
+      store: store || null,
     };
   },
   component: CarteiraClientesPage,
 });
 
 function CarteiraClientesPage() {
-  const { customers, team } = Route.useLoaderData();
+  const { customers, team, store } = Route.useLoaderData();
   const router = useRouter();
+
+  const isTourism =
+    store?.settings?.niche === "tourism" ||
+    store?.segment === "tourism" ||
+    store?.category === "tourism";
 
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -128,108 +136,92 @@ function CarteiraClientesPage() {
   ).length;
 
   const handleArchive = async (customerId: string, name: string) => {
-    if (!confirm(`Deseja arquivar o cliente "${name}"? Ele poderá ser restaurado futuramente.`)) {
+    if (!confirm(`Deseja arquivar "${name}"? Ele poderá ser restaurado futuramente.`)) {
       return;
     }
     try {
       await archiveCustomer({ data: { customerId } });
-      toast.success("Cliente arquivado com sucesso.");
+      toast.success("Registro arquivado com sucesso.");
       router.invalidate();
     } catch (err: any) {
-      toast.error(err.message || "Erro ao arquivar cliente.");
+      toast.error(err.message || "Erro ao arquivar.");
     }
   };
 
   const openWhatsApp = (phone?: string | null, name?: string) => {
     if (!phone) {
-      toast.error("Cliente não possui telefone/WhatsApp cadastrado.");
+      toast.error("Contato não possui telefone/WhatsApp cadastrado.");
       return;
     }
     const cleanPhone = phone.replace(/\D/g, "");
     const formatted = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-    const message = encodeURIComponent(`Olá ${name || ""}! Entramos em contato da equipe de atendimento.`);
+    const message = encodeURIComponent(`Olá ${name || ""}! Entramos em contato da equipe.`);
     window.open(`https://wa.me/${formatted}?text=${message}`, "_blank");
   };
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl mx-auto w-full">
-      {/* ── 1. Banner de Separação: Funil Comercial vs. Carteira de Clientes ── */}
-      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="size-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0 shadow-sm">
-            <TrendingUp className="size-5" />
-          </div>
-          <div>
-            <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <span>Funil de Vendas & CRM Comercial</span>
-              <Badge variant="secondary" className="text-[10px] uppercase font-mono">
-                Pipeline de Negócios
-              </Badge>
-            </h4>
-            <p className="text-xs text-muted-foreground">
-              Acompanhe oportunidades abertas, propostas enviadas e etapas de fechamento no Kanban comercial.
-            </p>
-          </div>
-        </div>
-
-        <Link
-          to="/workspace/comercial"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all shrink-0 hover:no-underline"
-        >
-          <span>Acessar Funil Comercial</span>
-          <ArrowRight className="size-3.5" />
-        </Link>
-      </div>
-
-      {/* ── 2. Header da Carteira de Clientes ── */}
+    <div className="w-full space-y-6 animate-in fade-in duration-200">
+      {/* ── 1. Header da Carteira (Sem AI-Smell) ── */}
       <PageHeader
-        title="Carteira de Clientes"
-        subtitle="Base cadastral master de clientes, empresas parceiras (B2B), documentos, histórico 360° e preferências."
-        action={
-          <Button
-            size="sm"
-            onClick={() => setIsWizardOpen(true)}
-            className="h-9 px-4 rounded-xl font-bold text-xs bg-primary text-primary-foreground shadow-sm gap-1.5 cursor-pointer"
-          >
-            <Plus className="size-4" />
-            <span>Novo Cliente</span>
-          </Button>
+        eyebrow={isTourism ? "Turismo & Passageiros" : "CRM & Contatos"}
+        title={isTourism ? "Carteira de Passageiros" : "Carteira de Clientes"}
+        subtitle={
+          isTourism
+            ? "Base cadastral master de viajantes, passageiros frequentes, contas corporativas, documentos de viagem e preferências."
+            : "Base cadastral master de clientes, empresas parceiras (B2B), documentos, histórico 360° e preferências."
+        }
+        actions={
+          <div className="flex items-center gap-2">
+            <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-9">
+              <Link to="/workspace/comercial">Funil Comercial</Link>
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setIsWizardOpen(true)}
+              className="h-9 px-4 rounded-xl font-bold text-xs bg-primary text-primary-foreground shadow-xs gap-1.5 cursor-pointer"
+            >
+              <Plus className="size-4" />
+              <span>{isTourism ? "Novo Passageiro" : "Novo Cliente"}</span>
+            </Button>
+          </div>
         }
       />
 
-      {/* ── 3. Cards de Métricas da Carteira ── */}
+      {/* ── 2. Cards de Métricas da Carteira ── */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="bg-card p-4 rounded-2xl border border-border/80 shadow-xs space-y-1">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
-            Total na Carteira
+            {isTourism ? "Total Passageiros" : "Total na Carteira"}
           </span>
-          <div className="text-2xl font-black text-foreground">{totalCount}</div>
-          <span className="text-[10px] text-muted-foreground">Clientes cadastrados</span>
+          <div className="text-2xl font-black text-foreground font-mono">{totalCount}</div>
+          <span className="text-[10px] text-muted-foreground">
+            {isTourism ? "Viajantes cadastrados" : "Clientes cadastrados"}
+          </span>
         </div>
 
         <div className="bg-card p-4 rounded-2xl border border-border/80 shadow-xs space-y-1">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
-            Clientes Ativos
+            {isTourism ? "Passageiros Ativos" : "Clientes Ativos"}
           </span>
-          <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+          <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
             {activeCount}
           </div>
-          <span className="text-[10px] text-muted-foreground">Base apta para compras</span>
+          <span className="text-[10px] text-muted-foreground">Base apta para viagens</span>
         </div>
 
         <div className="bg-card p-4 rounded-2xl border border-border/80 shadow-xs space-y-1">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
-            Pessoa Física (B2C)
+            {isTourism ? "Viajantes PF (B2C)" : "Pessoa Física (B2C)"}
           </span>
-          <div className="text-2xl font-black text-foreground">{b2cCount}</div>
-          <span className="text-[10px] text-muted-foreground">Passageiros e avulsos</span>
+          <div className="text-2xl font-black text-foreground font-mono">{b2cCount}</div>
+          <span className="text-[10px] text-muted-foreground">Passageiros individuais</span>
         </div>
 
         <div className="bg-card p-4 rounded-2xl border border-border/80 shadow-xs space-y-1">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
-            Empresas (B2B)
+            {isTourism ? "Empresas & Grupos (B2B)" : "Empresas (B2B)"}
           </span>
-          <div className="text-2xl font-black text-primary">{b2bCount}</div>
+          <div className="text-2xl font-black text-primary font-mono">{b2bCount}</div>
           <span className="text-[10px] text-muted-foreground">Contas corporativas</span>
         </div>
 
@@ -238,7 +230,7 @@ function CarteiraClientesPage() {
             <AlertTriangle className="size-3 text-amber-500" />
             Doc. com Alerta
           </span>
-          <div className={`text-2xl font-black ${docsExpiringCount > 0 ? "text-amber-600 dark:text-amber-400" : "text-foreground"}`}>
+          <div className={`text-2xl font-black font-mono ${docsExpiringCount > 0 ? "text-amber-600 dark:text-amber-400" : "text-foreground"}`}>
             {docsExpiringCount}
           </div>
           <span className="text-[10px] text-muted-foreground">Passaportes ou CNHs</span>
@@ -350,9 +342,13 @@ function CarteiraClientesPage() {
           <Table>
             <TableHeader className="bg-muted/40">
               <TableRow>
-                <TableHead className="w-[300px] text-xs font-bold text-foreground">Cliente / Razão Social</TableHead>
+                <TableHead className="w-[300px] text-xs font-bold text-foreground">
+                  {isTourism ? "Passageiro / Titular" : "Cliente / Razão Social"}
+                </TableHead>
                 <TableHead className="text-xs font-bold text-foreground">Tipo</TableHead>
-                <TableHead className="text-xs font-bold text-foreground">Documento</TableHead>
+                <TableHead className="text-xs font-bold text-foreground">
+                  {isTourism ? "CPF / Passaporte" : "Documento"}
+                </TableHead>
                 <TableHead className="text-xs font-bold text-foreground">Contato / WhatsApp</TableHead>
                 <TableHead className="text-xs font-bold text-foreground">Localização</TableHead>
                 <TableHead className="text-xs font-bold text-foreground">Documentos</TableHead>

@@ -1,30 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  Plug,
-  MapPin,
-  CreditCard,
-  Mail,
-  Truck,
-  Sparkles,
-  Eye,
-  EyeOff,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  ShieldCheck,
-  RefreshCw,
-  Save,
-  Radio,
-  Layers,
-  Plus,
-  Trash2,
-  Sliders,
-  Terminal,
-  Activity,
-  Zap,
-} from "lucide-react";
+import { Plug, MapPin, CreditCard, Mail, Truck, Sliders, Eye, EyeOff, CheckCircle2, AlertCircle, Clock, ShieldCheck, RefreshCw, Save, Radio, Layers, Plus, Trash2, Terminal, Activity, Zap } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,7 +41,7 @@ import {
 } from "@/services/api-orchestrator.functions";
 
 export const Route = createFileRoute("/admin-master/integracoes")({
-  head: () => ({ meta: [{ title: "APIs, Pools & Orquestrador Global | Wider Master" }] }),
+  head: () => ({ meta: [{ title: "APIs, Pools & Orquestrador Global | JAH Master" }] }),
   loader: async () => {
     try {
       const [integrations, pools, prompts] = await Promise.all([
@@ -329,7 +306,7 @@ function AdminMasterIntegracoesPage() {
       </div>
 
       {/* Navegação por Abas */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 scrollbar-none">
         <button
           type="button"
           onClick={() => setActiveTab("pools")}
@@ -799,7 +776,7 @@ function AdminMasterIntegracoesPage() {
 
       {/* Modal: Editar Prompt Master */}
       <Dialog open={isPromptModalOpen} onOpenChange={setIsPromptModalOpen}>
-        <DialogContent className="sm:max-w-2xl sm:rounded-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl sm:rounded-2xl max-h-[85vh] overflow-y-auto no-scrollbar">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
               {editingPrompt ? "Editar Prompt Master" : "Novo Prompt Master de IA"}

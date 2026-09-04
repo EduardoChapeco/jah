@@ -56,7 +56,7 @@ export function MomentDetailDrawer({ moment, onClose }: MomentDetailDrawerProps)
   };
 
   return (
-    <div className="flex flex-col h-full bg-card rounded-3xl  overflow-hidden  animate-in fade-in-50 duration-200">
+    <div className="flex flex-col h-full bg-card rounded-2xl  overflow-hidden  animate-in fade-in-50 duration-200">
       {/* ── 1. FOTO EM ALTA RESOLUÇÃO COM BADGES FLUTUANTES ── */}
       <div className="relative aspect-4/3 w-full bg-muted overflow-hidden shrink-0">
         {moment.image_url ? (
@@ -125,7 +125,7 @@ export function MomentDetailDrawer({ moment, onClose }: MomentDetailDrawerProps)
       </div>
 
       {/* ── 2. CONTEÚDO DO MOMENTO (O QUE ESTÁ ROLANDO) ── */}
-      <div className="p-4 flex-1 flex flex-col justify-between overflow-y-auto space-y-3">
+      <div className="p-4 flex-1 flex flex-col justify-between overflow-y-auto no-scrollbar space-y-3">
         <div className="space-y-3">
           {/* Legenda do Momento */}
           <p className="text-xs sm:text-sm text-foreground leading-relaxed font-medium">

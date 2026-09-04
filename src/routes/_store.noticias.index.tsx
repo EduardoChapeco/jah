@@ -31,7 +31,7 @@ import { resolveNicheDepartments } from "@/lib/niche-helpers";
 export const Route = createFileRoute("/_store/noticias/")({
   head: () => ({
     meta: [
-      { title: "Notícias & Jornalismo Local | Wider" },
+      { title: "Notícias & Jornalismo Local | JAH Master OS" },
       {
         name: "description",
         content: "Acompanhe as últimas notícias, urgências, reportagens e coberturas locais no Wider.",
@@ -140,7 +140,7 @@ export function NoticiasFeedPage() {
       </div>
 
       <section aria-label="Editorias de Notícias" className="space-y-2">
-        <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 w-full px-0.5 focus:outline-none">
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar scrollbar-none pb-2 pt-1 w-full px-0.5 focus:outline-none">
           {CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat.id;
             const Icon = cat.icon || Sparkle;
@@ -218,7 +218,7 @@ export function NoticiasFeedPage() {
 
       {/* ── 5. Manchete Principal em Destaque ── */}
       {featuredArticle && !searchQuery && (
-        <section className="relative rounded-3xl overflow-hidden  bg-card  group hover-elevate transition-all">
+        <section className="relative rounded-2xl overflow-hidden  bg-card  group hover-elevate transition-all">
           <Link
             to="/noticias/$slug"
             params={{ slug: featuredArticle.slug }}
@@ -319,7 +319,7 @@ export function NoticiasFeedPage() {
 
       {/* ── 8. Lista de Notícias Mais Recentes ── */}
       {articles.length === 0 ? (
-        <div className="py-16 text-center rounded-3xl border-0 bg-card/50 space-y-3">
+        <div className="py-16 text-center rounded-2xl border-0 bg-card/50 space-y-3">
           <NewspaperClipping className="size-10 text-muted-foreground/40 mx-auto" />
           <h3 className="text-base font-bold text-foreground">Nenhuma notícia encontrada</h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">

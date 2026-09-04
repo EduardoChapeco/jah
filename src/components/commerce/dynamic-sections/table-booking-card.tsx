@@ -57,7 +57,7 @@ export function TableBookingSection({
   return (
     <section className="py-12 bg-muted/20 w-full">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
-        <div className="rounded-3xl border border-border/80 bg-card p-6 sm:p-10 shadow-2xs space-y-6">
+        <div className="rounded-2xl border border-border/80 bg-card p-6 sm:p-10 shadow-2xs space-y-6">
           <div className="text-center max-w-xl mx-auto space-y-1.5">
             <Badge variant="outline" className="text-[11px] font-mono text-muted-foreground border-border/80">
               Atendimento VIP

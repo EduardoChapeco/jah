@@ -1,17 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import {
-  MessageSquare,
-  MessageCircle,
-  Store,
-  ChevronRight,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Package,
-  ArrowRight,
-  Sparkles,
-} from "lucide-react";
+import { MessageSquare, MessageCircle, Store, ChevronRight, Clock, CheckCircle2, AlertCircle, Package, ArrowRight, Layers } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { listCustomerChatThreads } from "@/services/chat.functions";
@@ -93,7 +82,7 @@ function CustomerConversationsIndexPage() {
 
       {/* ── 2. Lista de Conversas ou Empty State ── */}
       {!threads || threads.length === 0 ? (
-        <div className="rounded-3xl border border-border/60 bg-card p-10 text-center space-y-4 max-w-lg mx-auto">
+        <div className="rounded-2xl border border-border/60 bg-card p-10 text-center space-y-4 max-w-lg mx-auto">
           <div className="size-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
             <MessageCircle className="size-7" />
           </div>

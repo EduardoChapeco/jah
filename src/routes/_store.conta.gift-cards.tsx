@@ -3,7 +3,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Gift, Sparkles, Copy, Calendar, Loader2 } from "lucide-react";
+import { Gift, Layers, Copy, Calendar, Loader2 } from 'lucide-react';
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/gift-cards")({
-  head: () => ({ meta: [{ title: "Meus Vales-Presente | Wider" }] }),
+  head: () => ({ meta: [{ title: "Meus Vales-Presente | JAH Master OS" }] }),
   loader: async () => {
     try {
       const res = await listCustomerGiftCards();
@@ -90,7 +90,7 @@ function CustomerGiftCardsPage() {
         <div className="md:col-span-1">
           <div className=" bg-card rounded-2xl p-5  space-y-4">
             <div className="flex items-center gap-2">
-              <Sparkles className="size-5 text-primary" />
+              <Layers className="size-5 text-primary" />
               <h2 className="text-base font-bold text-foreground">Resgatar Vale</h2>
             </div>
             <p className="text-xs text-muted-foreground">

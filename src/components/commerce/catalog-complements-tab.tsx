@@ -1,16 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  Plus,
-  Trash2,
-  Edit2,
-  Check,
-  Layers,
-  Sparkles,
-  DollarSign,
-  AlertCircle,
-} from "lucide-react";
+import { Plus, Trash2, Edit2, Check, Layers, Sliders, DollarSign, AlertCircle } from 'lucide-react';
 import {
   listStoreComplementGroups,
   saveStoreComplementGroup,
@@ -29,6 +20,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { getNicheSemantics } from "@/lib/niche-semantics";
 
 interface OptionItem {
   id?: string;
@@ -37,7 +29,34 @@ interface OptionItem {
   is_active: boolean;
 }
 
-export function CatalogComplementsTab() {
+export function CatalogComplementsTab({ store }: { store?: any } = {}) {
+  const semantics = getNicheSemantics(store);
+  const isTourism = semantics.nicheId === "tourism";
+  const isGastro = semantics.nicheId === "gastronomy";
+  const isRetail = semantics.nicheId === "retail" || semantics.nicheId === "supermarket" || semantics.nicheId === "wholesale";
+  const isServices = semantics.nicheId === "services";
+
+  const tabTitle = semantics.modifiersLabel || "Grupos de Complementos & Adicionais";
+  const tabSubtitle = isTourism
+    ? "Crie opcionais e passeios adicionais (seguro viagem, transfers in/out, passeios guiados, regime de alimentação) vinculáveis aos pacotes e roteiros."
+    : isGastro
+    ? "Crie adicionais reutilizáveis (molhos, queijos extras, acompanhamentos, ponto da carne) vinculáveis a pratos do cardápio."
+    : isRetail
+    ? "Crie variações e personalizações (grades de cores/tamanhos, embalagens especiais) vinculáveis aos produtos."
+    : isServices
+    ? "Crie procedimentos extras e complementos de cuidado vinculáveis aos serviços."
+    : "Crie opções adicionais e complementos reutilizáveis vinculáveis aos itens do catálogo.";
+
+  const emptyText = isTourism
+    ? "Cadastre opcionais para que os passageiros possam personalizar seus pacotes e viagens."
+    : isGastro
+    ? "Cadastre adicionais para que seus clientes possam personalizar pratos e lanches."
+    : isRetail
+    ? "Cadastre opções de grade ou personalizações para os produtos do catálogo."
+    : "Cadastre opções adicionais para que seus clientes possam personalizar os itens.";
+
+  const newGroupLabel = semantics.newModifierAction || "Novo Grupo de Complementos";
+
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<any | null>(null);
@@ -157,21 +176,21 @@ export function CatalogComplementsTab() {
           <div className="flex items-center gap-2">
             <Layers className="size-5 text-primary" />
             <h2 className="text-base font-bold text-foreground">
-              Grupos de Complementos & Adicionais
+              {tabTitle}
             </h2>
           </div>
           <p className="text-xs text-muted-foreground">
-            Crie adicionais reutilizáveis (molhos, queijos extras, bordas recheadas, ponto da carne) vinculáveis a múltiplos itens.
+            {tabSubtitle}
           </p>
         </div>
 
         <Button
           onClick={handleOpenNew}
           size="sm"
-          className="rounded-xl font-bold text-xs h-9 px-4 gap-1.5 bg-primary text-primary-foreground"
+          className="rounded-xl font-bold text-xs h-9 px-4 gap-1.5 bg-primary text-primary-foreground cursor-pointer"
         >
           <Plus className="size-4" />
-          Novo Grupo de Complementos
+          {newGroupLabel}
         </Button>
       </div>
 
@@ -181,17 +200,17 @@ export function CatalogComplementsTab() {
           Carregando complementos...
         </div>
       ) : groups.length === 0 ? (
-        <div className="py-12 text-center rounded-3xl border border-dashed border-border bg-card/40 space-y-3">
+        <div className="py-12 text-center rounded-2xl border border-dashed border-border bg-card/40 space-y-3">
           <div className="size-12 rounded-2xl bg-muted flex items-center justify-center mx-auto text-muted-foreground">
-            <Sparkles className="size-6" />
+            <Sliders className="size-6" />
           </div>
           <div className="space-y-1">
             <h3 className="text-sm font-bold text-foreground">Nenhum grupo cadastrado</h3>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              Cadastre adicionais para que seus clientes possam personalizar pratos, lanches ou produtos.
+              {emptyText}
             </p>
           </div>
-          <Button onClick={handleOpenNew} size="sm" variant="outline" className="rounded-xl text-xs font-bold">
+          <Button onClick={handleOpenNew} size="sm" variant="outline" className="rounded-xl text-xs font-bold cursor-pointer">
             <Plus className="size-3.5 mr-1" />
             Criar Primeiro Grupo
           </Button>
@@ -228,7 +247,7 @@ export function CatalogComplementsTab() {
                   <span className="text-[10px] font-bold text-muted-foreground uppercase">
                     Opções ({grp.options?.length || 0})
                   </span>
-                  <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
+                  <div className="space-y-1 max-h-36 overflow-y-auto no-scrollbar pr-1">
                     {(grp.options || []).map((opt: any, i: number) => (
                       <div
                         key={i}
@@ -275,7 +294,7 @@ export function CatalogComplementsTab() {
 
       {/* Modal / Dialog de Criação/Edição */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto no-scrollbar">
           <DialogHeader>
             <DialogTitle className="text-base font-bold">
               {editingGroup ? "Editar Grupo de Complementos" : "Novo Grupo de Complementos"}
@@ -350,7 +369,7 @@ export function CatalogComplementsTab() {
                 </Button>
               </div>
 
-              <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-52 overflow-y-auto no-scrollbar pr-1">
                 {options.map((opt, idx) => (
                   <div key={idx} className="flex items-center gap-2">
                     <Input

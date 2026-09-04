@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Sparkles, ArrowRight, Play, Pause } from "lucide-react";
+import { ChevronLeft, ChevronRight, Layers, ArrowRight, Play, Pause } from 'lucide-react';
 import type { BannerDTO } from "@/services/banner.functions";
 
 export interface BannerHeroCarouselProps {
@@ -74,7 +74,7 @@ export function BannerHeroCarousel({
 
   return (
     <div
-      className={`relative w-full overflow-hidden rounded-3xl  bg-card group select-none ${className}`}
+      className={`relative w-full overflow-hidden rounded-2xl  bg-card group select-none ${className}`}
       onMouseEnter={() => setIsPlaying(false)}
       onMouseLeave={() => setIsPlaying(true)}
     >
@@ -100,7 +100,7 @@ export function BannerHeroCarousel({
               <div className="max-w-xl space-y-2 sm:space-y-3 z-10 pointer-events-auto">
                 {currentBanner.show_badge === true && currentBanner.badge_text && (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white border border-white/30 ">
-                    <Sparkles className="size-3 text-amber-300" />
+                    <Layers className="size-3 text-amber-300" />
                     <span>{currentBanner.badge_text}</span>
                   </div>
                 )}

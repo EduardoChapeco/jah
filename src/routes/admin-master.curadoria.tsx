@@ -48,7 +48,7 @@ import {
 } from "@/services/curadoria.functions";
 
 export const Route = createFileRoute("/admin-master/curadoria")({
-  head: () => ({ meta: [{ title: "Curadoria & Auditoria | Wider Master" }] }),
+  head: () => ({ meta: [{ title: "Curadoria & Auditoria | JAH Master" }] }),
   loader: async () => {
     try {
       const [stores, audits] = await Promise.all([
@@ -177,7 +177,7 @@ function CuradoriaAdminPage() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-background">
+    <div className="flex-1 overflow-y-auto no-scrollbar p-6 md:p-8 space-y-6 bg-background">
       {/* Header Silencioso */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
         <div>

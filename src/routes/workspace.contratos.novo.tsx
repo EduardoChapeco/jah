@@ -78,7 +78,7 @@ function NovoContratoPage() {
     <div className="max-w-2xl mx-auto space-y-8 py-8">
       <PageHeader title="Criar Novo Contrato" />
 
-      <form onSubmit={handleSubmit} className="space-y-6 bg-card p-6 rounded-3xl border border-border/80">
+      <form onSubmit={handleSubmit} className="space-y-6 bg-card p-6 rounded-2xl border border-border/80">
         <div className="space-y-3">
           <Label htmlFor="title" className="text-xs font-bold">Título do Documento</Label>
           <Input 

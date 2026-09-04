@@ -144,7 +144,7 @@ function PropertyMaintenanceDashboard() {
 
       {/* Tabs & Search */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 scrollbar-none">
           {[
             { id: "all", label: "Todos", count: requests.length },
             {
@@ -238,7 +238,7 @@ function PropertyMaintenanceDashboard() {
 
                 {/* Fotos */}
                 {req.photos && req.photos.length > 0 && (
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
                     {req.photos.map((photo, i) => (
                       <a
                         key={i}
@@ -316,7 +316,7 @@ function PropertyMaintenanceDashboard() {
 
       {/* Modal: Gerenciar Chamado */}
       <Dialog open={!!editModalReq} onOpenChange={(open) => !open && setEditModalReq(null)}>
-        <DialogContent className="sm:max-w-md sm:p-6 sm:rounded-3xl bg-card">
+        <DialogContent className="sm:max-w-md sm:p-6 sm:rounded-2xl bg-card">
           <DialogHeader>
             <DialogTitle className="text-lg font-black">{editModalReq?.title}</DialogTitle>
             <DialogDescription className="text-xs">

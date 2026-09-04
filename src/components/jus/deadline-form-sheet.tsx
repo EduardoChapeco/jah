@@ -131,7 +131,7 @@ export function DeadlineFormSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4">
           {/* Título do Prazo */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-muted-foreground uppercase font-mono">

@@ -11,7 +11,6 @@ import {
   User,
   Radio,
   ExternalLink,
-  Sparkles,
 } from "lucide-react";
 import {
   Popover,
@@ -91,37 +90,37 @@ export function WorkspaceAccountSwitcher({
         <button
           type="button"
           disabled={isSwitching}
-          className="flex w-full items-center justify-between p-2 rounded-2xl border border-border/60 bg-card hover:bg-muted/70 hover:border-foreground/20 transition-all text-left group cursor-pointer shadow-2xs"
+          className="flex w-full items-center justify-between h-10 px-2.5 rounded-xl border border-border/60 bg-card hover:bg-muted/70 hover:border-foreground/20 transition-all text-left group cursor-pointer shadow-2xs"
         >
-          <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
             {activeStore?.logo_url ? (
               <img
                 src={activeStore.logo_url}
                 alt={activeStore.name}
-                className="size-8 rounded-xl object-cover shrink-0 border border-border/60 bg-muted"
+                className="size-7 rounded-lg object-cover shrink-0 border border-border/60 bg-muted"
               />
             ) : (
-              <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
-                <Store className="size-4" />
+              <div className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
+                <Store className="size-3.5" />
               </div>
             )}
             <div className="min-w-0">
-              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-muted-foreground block truncate">
+              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-muted-foreground block truncate leading-none mb-0.5">
                 Portfólio Ativo
               </span>
-              <h2 className="text-xs font-bold text-foreground truncate leading-tight group-hover:text-primary transition-colors">
+              <h2 className="text-xs font-bold text-foreground truncate leading-none group-hover:text-primary transition-colors">
                 {activeStore?.name || "Meu Negócio"}
               </h2>
             </div>
           </div>
-          <ChevronsUpDown className="size-3.5 text-muted-foreground shrink-0 ml-1 group-hover:text-foreground transition-colors" />
+          <ChevronsUpDown className="size-3 text-muted-foreground shrink-0 ml-1 group-hover:text-foreground transition-colors" />
         </button>
       </PopoverTrigger>
 
       <PopoverContent
         align="start"
         sideOffset={8}
-        className="w-[360px] sm:w-[540px] p-0 rounded-3xl border border-border/80 bg-background/98 backdrop-blur-xl shadow-2xl overflow-hidden"
+        className="w-[360px] sm:w-[540px] p-0 rounded-2xl border border-border/80 bg-background/98 backdrop-blur-xl shadow-2xl overflow-hidden"
       >
         {/* ── 1. Topo: Busca Instantânea de Ativos ── */}
         <div className="p-3 border-b border-border/60 bg-muted/20">
@@ -139,7 +138,7 @@ export function WorkspaceAccountSwitcher({
         {/* ── 2. Grid Split de 2 Colunas: Portfólios vs Ativos (Padrão Meta Studio) ── */}
         <div className="grid grid-cols-1 sm:grid-cols-12 min-h-[300px] max-h-[420px]">
           {/* Coluna da Esquerda (Portfólios Empresariais - 5 cols) */}
-          <div className="sm:col-span-5 border-r border-border/60 bg-muted/10 p-2.5 flex flex-col justify-between overflow-y-auto">
+          <div className="sm:col-span-5 border-r border-border/60 bg-muted/10 p-2.5 flex flex-col justify-between overflow-y-auto no-scrollbar">
             <div className="space-y-1">
               <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground px-2 py-1 block">
                 Portfólios Empresariais
@@ -212,7 +211,7 @@ export function WorkspaceAccountSwitcher({
           </div>
 
           {/* Coluna da Direita (Ativos de Negócios / Lojas / Filiais - 7 cols) */}
-          <div className="sm:col-span-7 p-3 flex flex-col justify-between overflow-y-auto bg-card/40">
+          <div className="sm:col-span-7 p-3 flex flex-col justify-between overflow-y-auto no-scrollbar bg-card/40">
             <div className="space-y-2">
               <div className="flex items-center justify-between pb-1 border-b border-border/40">
                 <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">

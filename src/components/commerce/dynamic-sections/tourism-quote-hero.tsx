@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { Plane, Calendar, Users, MapPin, Send, Sparkles, CheckCircle2, ShieldCheck, ArrowRight } from "lucide-react";
+import { Plane, Calendar, Users, MapPin, Send, Layers, CheckCircle2, ShieldCheck, ArrowRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,7 +97,7 @@ export const TourismQuoteHero: React.FC<TourismQuoteHeroProps> = ({
           {/* Coluna Esquerda: Headline & Value Props */}
           <div className="space-y-6 lg:col-span-7">
             <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-sky-500/10 px-3.5 py-1 text-xs font-bold text-sky-300 backdrop-blur-md">
-              <Sparkles className="size-3.5 text-sky-400" />
+              <Layers className="size-3.5 text-sky-400" />
               <span>{badge}</span>
             </div>
 

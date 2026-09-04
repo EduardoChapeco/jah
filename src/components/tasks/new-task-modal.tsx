@@ -137,7 +137,7 @@ export function NewTaskModal({
         </SheetHeader>
 
         {/* Formulário com Scroll Suave */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto no-scrollbar px-6 py-5 space-y-5">
           {/* Título */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-foreground">Título da Tarefa *</label>

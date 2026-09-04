@@ -146,7 +146,7 @@ export function BiolinkPixCardSection({
 
   return (
     <section className="py-4 max-w-md mx-auto px-4 w-full">
-      <div className="p-5 rounded-3xl border border-border/80 bg-card space-y-4 shadow-2xs text-center">
+      <div className="p-5 rounded-2xl border border-border/80 bg-card space-y-4 shadow-2xs text-center">
         <div className="flex items-center justify-center gap-2 text-xs font-semibold text-muted-foreground uppercase">
           <QrCode className="size-4 text-primary" />
           <span>Pagamento Instantâneo Pix</span>

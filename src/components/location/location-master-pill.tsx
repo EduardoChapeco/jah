@@ -485,8 +485,8 @@ export function LocationPickerModal({
       <DialogContent
         className={`p-0 overflow-hidden  bg-background  transition-all duration-300 ${
           isMapFullscreen || activeTab === "map"
-            ? "max-w-4xl w-[95vw] h-[85vh] rounded-3xl flex flex-col"
-            : "max-w-xl rounded-3xl"
+            ? "max-w-4xl w-[95vw] h-[85vh] rounded-2xl flex flex-col"
+            : "max-w-xl rounded-2xl"
         }`}
       >
         <DialogHeader className="p-5 sm:p-6 pb-3  bg-muted/20 shrink-0">
@@ -530,7 +530,7 @@ export function LocationPickerModal({
 
         {/* TAB 1: QUICK CITIES & CEP */}
         {activeTab === "quick" && (
-          <div className="p-6 space-y-6 overflow-y-auto">
+          <div className="p-6 space-y-6 overflow-y-auto no-scrollbar">
             {/* Quick GPS button */}
             <Button
               type="button"

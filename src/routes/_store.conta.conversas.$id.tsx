@@ -13,7 +13,7 @@ import { RmaTicketModal } from "@/components/chat/rma-ticket-modal";
 import { RmaMessageCard } from "@/components/chat/rma-message-card";
 
 export const Route = createFileRoute("/_store/conta/conversas/$id")({
-  head: () => ({ meta: [{ title: "Atendimento & SAC | Wider" }] }),
+  head: () => ({ meta: [{ title: "Atendimento & SAC | JAH Master OS" }] }),
   loader: async ({ params }) => {
     const res = await getCustomerChatThread({ data: { threadId: params.id } });
     return res;
@@ -214,7 +214,7 @@ function CustomerChatPage() {
       {/* Timeline de Mensagens */}
       <div
         ref={chatContainerRef}
-        className="flex-1 space-y-3.5 overflow-y-auto py-4 px-1 scrollbar-thin"
+        className="flex-1 space-y-3.5 overflow-y-auto no-scrollbar py-4 px-1 scrollbar-thin"
       >
         {messages.length === 0 && (
           <div className="text-center py-12 text-muted-foreground space-y-2">
@@ -272,7 +272,7 @@ function CustomerChatPage() {
 
                 {/* Anexos de imagem */}
                 {msg.attachments && msg.attachments.length > 0 && (
-                  <div className="mt-2 flex gap-1.5 overflow-x-auto">
+                  <div className="mt-2 flex gap-1.5 overflow-x-auto no-scrollbar">
                     {msg.attachments.map((url: string, i: number) => (
                       <a key={i} href={url} target="_blank" rel="noreferrer">
                         <img

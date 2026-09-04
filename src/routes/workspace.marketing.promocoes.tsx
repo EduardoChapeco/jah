@@ -4,7 +4,7 @@ import {
   Flame,
   Plus,
   Percent,
-  Sparkles,
+  RefreshCw,
   Tag,
   Loader2,
 } from "lucide-react";
@@ -31,7 +31,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/marketing/promocoes")({
   head: () => ({
-    meta: [{ title: "Promoções & Ofertas | Workspace Wider" }],
+    meta: [{ title: "Promoções & Ofertas | Workspace JAH Master OS" }],
   }),
   loader: async () => {
     const promotions = await listStorePromotions();
@@ -222,7 +222,7 @@ function WorkspacePromotionsPage() {
 
                 <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60 space-y-2">
                   <label className="font-bold text-xs text-foreground flex items-center gap-1.5">
-                    <Sparkles className="size-3.5 text-primary" />
+                    <RefreshCw className="size-3.5 text-primary" />
                     <span>Auto-Renovação de Estoque Promocional</span>
                   </label>
                   <p className="text-[11px] text-muted-foreground">

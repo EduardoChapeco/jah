@@ -6,7 +6,6 @@ import {
   Image as ImageIcon,
   Link as LinkIcon,
   Video,
-  Sparkle,
   ShoppingBag,
   Eye,
   Clock,
@@ -185,7 +184,7 @@ function CmsStoriesPage() {
             <span>Stories Ativos ({stories.length})</span>
           </TabsTrigger>
           <TabsTrigger value="collabs" className="rounded-lg font-bold text-xs gap-2">
-            <Sparkle className="size-4 text-purple-500" />
+            <Share2 className="size-4 text-purple-500" />
             <span>Co-Publicações & Influencers ({collabs.length})</span>
           </TabsTrigger>
         </TabsList>
@@ -282,7 +281,7 @@ function CmsStoriesPage() {
             <Card className="rounded-2xl border-border/70">
               <CardContent className="p-8 text-center space-y-3">
                 <div className="size-14 rounded-2xl bg-purple-500/10 text-purple-600 flex items-center justify-center mx-auto">
-                  <Sparkle className="size-7" />
+                  <Share2 className="size-7" />
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-base font-bold text-foreground">

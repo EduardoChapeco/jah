@@ -1,30 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import {
-  ImageOff,
-  ShoppingBag,
-  ChevronRight,
-  Star,
-  Truck,
-  ShieldCheck,
-  Check,
-  HelpCircle,
-  MapPin,
-  RotateCcw,
-  BadgePercent,
-  Play,
-  MessageCircle,
-  Mail,
-  User,
-  Info,
-  Loader2,
-  Sparkles,
-  ChevronRight as ChevronIcon,
-  ShieldAlert,
-  Users,
-  Scale,
-  Clock,
-  BellRing,
-} from "lucide-react";
+import { ImageOff, ShoppingBag, ChevronRight, Star, Truck, ShieldCheck, Check, HelpCircle, MapPin, RotateCcw, BadgePercent, Play, MessageCircle, Mail, User, Info, Loader2, Layers, ChevronRight as ChevronIcon, ShieldAlert, Users, Scale, Clock, BellRing } from 'lucide-react';
 import { TagFraudDialog } from "@/components/commerce/tag-fraud-dialog";
 import { ProductWaitlistSheet } from "@/components/commerce/product-waitlist-sheet";
 
@@ -771,7 +746,7 @@ function ProductContent({
             <Surface
               variant="default"
               padding="none"
-              className="w-full relative aspect-square overflow-hidden bg-secondary rounded-3xl  "
+              className="w-full relative aspect-square overflow-hidden bg-secondary rounded-2xl  "
             >
               {activeMedia ? (
                 activeMedia.mediaType === "video" ? (
@@ -864,7 +839,7 @@ function ProductContent({
               (product as any).attributes?.preparation_time_minutes) && (
               <div className="p-4 rounded-2xl bg-muted/20 border border-border/50 space-y-3 mt-3">
                 <div className="flex items-center gap-2 text-xs font-bold text-foreground">
-                  <Sparkles className="size-3.5 text-primary" />
+                  <Layers className="size-3.5 text-primary" />
                   <span>Especificações do Cardápio</span>
                 </div>
 
@@ -1181,7 +1156,7 @@ function ProductContent({
           ) : null}
 
           {/* Simulação de Frete e Prazos Reais */}
-          <Surface variant="default" padding="sm" className="space-y-4 rounded-3xl border border-border/40">
+          <Surface variant="default" padding="sm" className="space-y-4 rounded-2xl border border-border/40">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-bold text-foreground">
                 <Truck className="size-4 text-primary" />

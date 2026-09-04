@@ -62,7 +62,7 @@ const FARMACIA_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/farmacia")({
   head: () => ({
     meta: [
-      { title: "Farmácias, Drogarias & Saúde | Wider" },
+      { title: "Farmácias, Drogarias & Saúde | JAH Master OS" },
       {
         name: "description",
         content:
@@ -227,7 +227,7 @@ function FarmaciaVerticalPage() {
       ) : (
         <section aria-label="Produtos de Saúde & Cuidados">
           {filteredProducts.length === 0 ? (
-            <div className="py-12 text-center bg-card rounded-3xl p-6">
+            <div className="py-12 text-center bg-card rounded-2xl p-6">
               <EmptyState
                 title="Nenhum produto farmacêutico encontrado"
                 description="Tente selecionar outro departamento ou busque por itens específicos."

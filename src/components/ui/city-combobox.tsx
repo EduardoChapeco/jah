@@ -201,7 +201,7 @@ export function CityCombobox({
 
           {/* Dropdown com Busca Inteligente */}
           {isOpen && (
-            <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-popover text-popover-foreground  rounded-2xl  p-2 space-y-1.5 max-h-72 overflow-y-auto animate-in fade-in-50 zoom-in-95">
+            <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-popover text-popover-foreground  rounded-2xl  p-2 space-y-1.5 max-h-72 overflow-y-auto no-scrollbar animate-in fade-in-50 zoom-in-95">
               <div className="relative px-1 pt-1 pb-1">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
                 <Input
@@ -214,7 +214,7 @@ export function CityCombobox({
               </div>
 
               {/* Chips de Destaque Regional */}
-              <div className="px-1 py-1 flex items-center gap-1.5 overflow-x-auto scrollbar-none  pb-2">
+              <div className="px-1 py-1 flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none  pb-2">
                 {CANONICAL_CITIES.slice(0, 4).map((topCity) => (
                   <button
                     key={topCity.id}

@@ -17,7 +17,6 @@ import {
   Printer,
   Barcode,
   CheckCircle2,
-  Sparkles,
   Maximize2,
   Minimize2,
   ExternalLink,
@@ -109,7 +108,7 @@ function QuickOpenRegisterInlineCard() {
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center p-4 bg-muted/20 animate-in fade-in duration-200">
-      <div className="w-full max-w-md p-6 bg-card rounded-3xl border border-border/80 shadow-xs space-y-5 text-center">
+      <div className="w-full max-w-md p-6 bg-card rounded-2xl border border-border/80 shadow-xs space-y-5 text-center">
         <div className="size-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
           <Banknote className="size-7" />
         </div>
@@ -180,7 +179,7 @@ export const Route = createFileRoute("/workspace/pdv/")({
     mesa: typeof search.mesa === "string" ? search.mesa : undefined,
     orderId: typeof search.orderId === "string" ? search.orderId : undefined,
   }),
-  head: () => ({ meta: [{ title: "Frente de Caixa (PDV) Pro | Wider" }] }),
+  head: () => ({ meta: [{ title: "Frente de Caixa (PDV) Pro | JAH Master OS" }] }),
   loader: async () => {
     const activeRegister = await getActiveRegister();
     if (!activeRegister) {
@@ -889,7 +888,7 @@ function PdvTerminal() {
           </div>
 
           {/* Grid de Produtos Táteis com Fotos 1:1 */}
-          <div className="flex-1 p-4 overflow-y-auto">
+          <div className="flex-1 p-4 overflow-y-auto no-scrollbar">
             {filteredProducts.length === 0 ? (
               <div className="py-24 text-center space-y-3 text-muted-foreground">
                 <Search className="size-10 opacity-30 mx-auto" />
@@ -1457,6 +1456,7 @@ function PdvTerminal() {
           onOpenChange={setModifiersModalOpen}
           product={selectedItemForModifiers.product}
           variant={selectedItemForModifiers.variant}
+          store={store}
           onConfirm={(selectedModifiers, notes) => {
             handleConfirmModifiers(
               selectedItemForModifiers.product,

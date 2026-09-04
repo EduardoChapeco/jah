@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
-  Sparkles,
   Plus,
   Trash2,
   Loader2,
@@ -230,7 +229,7 @@ function WorkspaceStoreHotpagesPage() {
           {hotpages.map((h) => (
             <div
               key={h.id}
-              className="p-4 rounded-3xl bg-card border border-border/70 space-y-3 shadow-2xs flex flex-col justify-between"
+              className="p-4 rounded-2xl bg-card border border-border/70 space-y-3 shadow-2xs flex flex-col justify-between"
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between">

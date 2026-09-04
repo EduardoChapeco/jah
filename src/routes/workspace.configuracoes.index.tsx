@@ -346,7 +346,7 @@ export default function WorkspaceConfiguracoesPage() {
 
         {/* ABA 1: Marca & Vitrine */}
         <TabsContent value="geral" className="space-y-6">
-          <Card className="p-6 rounded-3xl border-border bg-card space-y-6 ">
+          <Card className="p-6 rounded-2xl border-border bg-card space-y-6 ">
             <div className=" pb-4">
               <h2 className="text-base font-bold text-foreground">Identidade Visual da Loja</h2>
               <p className="text-xs text-muted-foreground">
@@ -488,7 +488,7 @@ export default function WorkspaceConfiguracoesPage() {
           </Card>
 
           {/* Tema do Workspace */}
-          <Card className="p-6 rounded-3xl border-border bg-card space-y-4">
+          <Card className="p-6 rounded-2xl border-border bg-card space-y-4">
             <div>
               <h2 className="text-base font-bold text-foreground">Aparência do Painel & Tema</h2>
               <p className="text-xs text-muted-foreground">
@@ -501,7 +501,7 @@ export default function WorkspaceConfiguracoesPage() {
 
         {/* ABA: Nicho & Recursos da Loja */}
         <TabsContent value="nicho" className="space-y-6">
-          <Card className="p-6 rounded-3xl border-border bg-card space-y-5">
+          <Card className="p-6 rounded-2xl border-border bg-card space-y-5">
             <div className="pb-2">
               <h2 className="text-base font-bold text-foreground">Nicho & Modelo de Operação</h2>
               <p className="text-xs text-muted-foreground">
@@ -633,7 +633,7 @@ export default function WorkspaceConfiguracoesPage() {
           </Card>
 
           {/* ── Gerenciador de Módulos Habilitados ── */}
-          <Card className="p-6 rounded-3xl border-border bg-card space-y-5">
+          <Card className="p-6 rounded-2xl border-border bg-card space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2">
               <div>
                 <h2 className="text-base font-bold text-foreground flex items-center gap-2">
@@ -827,7 +827,7 @@ export default function WorkspaceConfiguracoesPage() {
 
         {/* ABA 2: Contato & Endereço */}
         <TabsContent value="contato" className="space-y-6">
-          <Card className="p-6 rounded-3xl border-border bg-card space-y-5 ">
+          <Card className="p-6 rounded-2xl border-border bg-card space-y-5 ">
             <div className=" pb-4">
               <h2 className="text-base font-bold text-foreground">Canais de Contato & Localização</h2>
               <p className="text-xs text-muted-foreground">
@@ -897,7 +897,7 @@ export default function WorkspaceConfiguracoesPage() {
 
         {/* ABA: Entrega, Tempo de Preparo & Bairros */}
         <TabsContent value="entrega" className="space-y-6">
-          <Card className="p-6 rounded-3xl border-border bg-card space-y-6">
+          <Card className="p-6 rounded-2xl border-border bg-card space-y-6">
             <DeliveryTimeAndRadiusMatrix
               value={deliveryConfig}
               onChange={setDeliveryConfig}
@@ -908,7 +908,7 @@ export default function WorkspaceConfiguracoesPage() {
             />
           </Card>
 
-          <Card className="p-6 rounded-3xl border-border bg-card space-y-5">
+          <Card className="p-6 rounded-2xl border-border bg-card space-y-5">
             <div className="pb-2">
               <h3 className="text-sm font-bold text-foreground">Taxas Personalizadas por Bairro</h3>
               <p className="text-xs text-muted-foreground">
@@ -925,7 +925,7 @@ export default function WorkspaceConfiguracoesPage() {
 
         {/* ABA 3: Horários de Atendimento */}
         <TabsContent value="horarios" className="space-y-6">
-          <Card className="p-6 rounded-3xl border-border bg-card space-y-5">
+          <Card className="p-6 rounded-2xl border-border bg-card space-y-5">
             <div className="pb-2">
               <h2 className="text-base font-bold text-foreground">Grade de Horários de Funcionamento</h2>
               <p className="text-xs text-muted-foreground">
@@ -950,7 +950,7 @@ export default function WorkspaceConfiguracoesPage() {
 
         {/* ABA 4: Políticas da Loja */}
         <TabsContent value="politicas" className="space-y-6">
-          <Card className="p-6 rounded-3xl border-border bg-card space-y-5 ">
+          <Card className="p-6 rounded-2xl border-border bg-card space-y-5 ">
             <div className=" pb-4">
               <h2 className="text-base font-bold text-foreground">Políticas & Termos Comerciais</h2>
               <p className="text-xs text-muted-foreground">
@@ -997,7 +997,7 @@ export default function WorkspaceConfiguracoesPage() {
 
         {/* ABA 5: Perguntas de Checkout Personalizadas */}
         <TabsContent value="checkout" className="space-y-6">
-          <Card className="p-6 rounded-3xl border-border bg-card space-y-6">
+          <Card className="p-6 rounded-2xl border-border bg-card space-y-6">
             <div className="flex items-center justify-between gap-3 pb-3 border-b border-border/40">
               <div>
                 <h2 className="text-sm font-bold text-foreground flex items-center gap-2">

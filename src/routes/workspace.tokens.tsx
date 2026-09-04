@@ -1,17 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  Coins,
-  Copy,
-  Loader2,
-  TrendingDown,
-  Sparkles,
-  CreditCard,
-  Sliders,
-  CheckCircle2,
-  Shield,
-  Layers,
-} from "lucide-react";
+import { Coins, Copy, Loader2, TrendingDown, Sliders, CreditCard, CheckCircle2, Shield, Layers } from 'lucide-react';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -188,7 +177,7 @@ export default function WorkspaceTokensPage() {
   const purchasedTokens = Math.max(0, (wallet.balance || 0) - promoTokens);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-background">
+    <div className="flex-1 overflow-y-auto no-scrollbar p-6 md:p-8 space-y-6 bg-background">
       {/* Header Silencioso */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
         <div>

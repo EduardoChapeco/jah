@@ -1,21 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Cpu,
-  Key,
-  ShieldCheck,
-  Plus,
-  Lock,
-  Loader2,
-  CheckCircle2,
-  AlertTriangle,
-  Sparkles,
-  Bot,
-  Globe,
-  Eye,
-  Sliders,
-} from "lucide-react";
+import { Cpu, Key, ShieldCheck, Plus, Lock, Loader2, CheckCircle2, AlertTriangle, Layers, Bot, Globe, Eye, Sliders } from 'lucide-react';
 import { toast } from "sonner";
 
 import {

@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_store/termos")({
       {
         title: loaderData?.title
           ? `${loaderData.title} | Wider`
-          : "Termos Gerais de Uso e Condições | Wider",
+          : "Termos Gerais de Uso e Condições | JAH Master OS",
       },
     ],
   }),

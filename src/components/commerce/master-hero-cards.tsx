@@ -235,7 +235,7 @@ export function MasterHeroCards({
     <div className="w-full space-y-6">
       {/* ── 1. Carrossel Horizontal de Cards Grandes de Supercategorias (3x Tamanho - Impacto Cinematográfico) ── */}
       <div
-        className="flex gap-4 sm:gap-6 overflow-x-auto pb-3 scrollbar-none snap-x snap-mandatory focus:outline-none"
+        className="flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar pb-3 scrollbar-none snap-x snap-mandatory focus:outline-none"
         tabIndex={0}
         aria-label="Supercategorias Principais"
       >
@@ -248,7 +248,7 @@ export function MasterHeroCards({
             <Link
               key={card.id || card.slug}
               to={card.to as any}
-              className="group relative flex flex-col justify-end overflow-hidden rounded-3xl bg-card shrink-0 snap-start w-[320px] sm:w-[420px] md:w-[500px] lg:w-[540px] h-[190px] sm:h-[240px] md:h-[280px] lg:h-[300px] transition-all duration-300 active:scale-[0.99] select-none block border border-border/60 hover:border-primary/60 shadow-md hover:shadow-xl"
+              className="group relative flex flex-col justify-end overflow-hidden rounded-2xl bg-card shrink-0 snap-start w-[320px] sm:w-[420px] md:w-[500px] lg:w-[540px] h-[190px] sm:h-[240px] md:h-[280px] lg:h-[300px] transition-all duration-300 active:scale-[0.99] select-none block border border-border/60 hover:border-primary/60 shadow-md hover:shadow-xl"
             >
               {card.isVideo && card.videoUrl ? (
                 <video
@@ -305,7 +305,7 @@ export function MasterHeroCards({
 
       {/* ── 2. Botões / Chips de Supercategorias (Continuação - Ícones PNG Transparentes / Emojis / Rotas) ── */}
       <div
-        className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 pt-1 scrollbar-none w-full px-0.5 focus:outline-none"
+        className="flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2 pt-1 scrollbar-none w-full px-0.5 focus:outline-none"
         tabIndex={0}
         aria-label="Supercategorias Rápidas"
       >

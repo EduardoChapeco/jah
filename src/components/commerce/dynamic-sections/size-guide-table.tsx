@@ -44,8 +44,8 @@ export function SizeGuideTableSection({
           {subtitle && <p className="text-xs sm:text-sm text-muted-foreground">{subtitle}</p>}
         </div>
 
-        <div className="rounded-3xl border border-border/80 bg-card overflow-hidden shadow-2xs">
-          <div className="overflow-x-auto scrollbar-none">
+        <div className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-2xs">
+          <div className="overflow-x-auto no-scrollbar scrollbar-none">
             <table className="w-full text-left text-xs">
               <thead className="bg-muted/50 border-b border-border/70 text-muted-foreground uppercase font-mono text-[10px]">
                 <tr>

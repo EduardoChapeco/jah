@@ -1,27 +1,6 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  TrendingUp,
-  Users,
-  Heart,
-  MessageCircle,
-  Eye,
-  ArrowUpRight,
-  Sparkles,
-  ArrowLeft,
-  Calendar,
-  Image as ImageIcon,
-  Film,
-  Layers,
-  FileText,
-  Plus,
-  Share2,
-  ShieldCheck,
-  ChevronRight,
-  Activity,
-  ShoppingBag,
-  ExternalLink,
-} from "lucide-react";
+import { TrendingUp, Users, Heart, MessageCircle, Eye, ArrowUpRight, Sliders, ArrowLeft, Calendar, Image as ImageIcon, Film, Layers, FileText, Plus, Share2, ShieldCheck, ChevronRight, Activity, ShoppingBag, ExternalLink } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,7 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/conta/metricas")({
-  head: () => ({ meta: [{ title: "Painel Profissional & Insights | Wider" }] }),
+  head: () => ({ meta: [{ title: "Painel Profissional & Insights | JAH Master OS" }] }),
   loader: async (): Promise<{ analytics: MemberAnalyticsDTO | null }> => {
     try {
       const analytics = await getMemberAnalyticsInsights({ data: {} });
@@ -137,7 +116,7 @@ function MemberMetricsPage() {
       {/* ── 1. Visão Geral dos Principais KPIs (Estilo Instagram Professional Dashboard) ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Contas Alcançadas */}
-        <div className="p-4 rounded-3xl bg-card border border-border/70 space-y-1.5 shadow-2xs">
+        <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1.5 shadow-2xs">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-bold">Alcance Total</span>
             <div className="size-7 rounded-xl bg-info/10 text-info flex items-center justify-center">
@@ -154,7 +133,7 @@ function MemberMetricsPage() {
         </div>
 
         {/* Taxa de Engajamento */}
-        <div className="p-4 rounded-3xl bg-card border border-border/70 space-y-1.5 shadow-2xs">
+        <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1.5 shadow-2xs">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-bold">Taxa de Engajamento</span>
             <div className="size-7 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
@@ -170,7 +149,7 @@ function MemberMetricsPage() {
         </div>
 
         {/* Reações e Curtidas Reais */}
-        <div className="p-4 rounded-3xl bg-card border border-border/70 space-y-1.5 shadow-2xs">
+        <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1.5 shadow-2xs">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-bold">Curtidas Reais</span>
             <div className="size-7 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center">
@@ -186,7 +165,7 @@ function MemberMetricsPage() {
         </div>
 
         {/* Comunidade / Seguidores */}
-        <div className="p-4 rounded-3xl bg-card border border-border/70 space-y-1.5 shadow-2xs">
+        <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1.5 shadow-2xs">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-bold">Seguidores</span>
             <div className="size-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
@@ -205,7 +184,7 @@ function MemberMetricsPage() {
       {/* ── 2. Crescimento e Comunidade ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Card de Crescimento de Seguidores */}
-        <div className="p-5 rounded-3xl bg-card border border-border/70 space-y-4 shadow-2xs">
+        <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-4 shadow-2xs">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Users className="size-4 text-primary" />
@@ -283,7 +262,7 @@ function MemberMetricsPage() {
         </div>
 
         {/* Card de Distribuição de Formatos de Conteúdo */}
-        <div className="p-5 rounded-3xl bg-card border border-border/70 space-y-4 shadow-2xs">
+        <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-4 shadow-2xs">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Layers className="size-4 text-primary" />
@@ -353,7 +332,7 @@ function MemberMetricsPage() {
             <div className="space-y-1">
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <Sparkles className="size-3.5 text-amber-500" /> Zines & Notícias
+                  <Sliders className="size-3.5 text-amber-500" /> Zines & Notícias
                 </span>
                 <span className="font-bold">{formatDistribution.zine}</span>
               </div>
@@ -388,10 +367,10 @@ function MemberMetricsPage() {
         </div>
 
         {/* Card de Dicas de Otimização & Crescimento */}
-        <div className="p-5 rounded-3xl bg-card border border-border/70 space-y-4 shadow-2xs flex flex-col justify-between">
+        <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-4 shadow-2xs flex flex-col justify-between">
           <div className="space-y-3">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <Sparkles className="size-4 text-primary" />
+              <Sliders className="size-4 text-primary" />
               <span>Dicas de Engajamento</span>
             </h3>
             <div className="space-y-2.5 text-xs text-muted-foreground">
@@ -419,7 +398,7 @@ function MemberMetricsPage() {
       </div>
 
       {/* ── 3. Principais Conteúdos por Engajamento (Top Posts) ── */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-card border border-border/70 space-y-4 shadow-2xs">
+      <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border/70 space-y-4 shadow-2xs">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-base font-bold text-foreground flex items-center gap-2">

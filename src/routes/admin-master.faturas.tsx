@@ -216,7 +216,7 @@ function MasterFaturasPage() {
 
       {/* Invoices Table Card */}
       <div className="bg-card rounded-2xl border border-border/60 overflow-hidden shadow-2xs">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto no-scrollbar">
           <table className="w-full text-xs text-left">
             <thead className="bg-muted/30 text-muted-foreground border-b border-border/40 font-semibold uppercase text-[10px] tracking-wider">
               <tr>

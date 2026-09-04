@@ -91,7 +91,7 @@ export function RoomingListManager({ rooms, onRoomsChange }: RoomingListManagerP
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="sm:max-w-md sm:rounded-3xl p-6 bg-card border-border">
+          <DialogContent className="sm:max-w-md sm:rounded-2xl p-6 bg-card border-border">
             <DialogHeader className="space-y-1">
               <DialogTitle className="text-base font-bold text-foreground">
                 Novo Quarto no Hotel

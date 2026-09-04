@@ -43,7 +43,7 @@ const DOACOES_CATEGORIES: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/doacoes")({
   head: () => ({
     meta: [
-      { title: "Doações, Solidariedade & Voluntariado | Wider" },
+      { title: "Doações, Solidariedade & Voluntariado | JAH Master OS" },
       {
         name: "description",
         content:
@@ -88,7 +88,7 @@ function DoacoesPage() {
   return (
     <div className="w-full space-y-6 pb-20">
       {/* ── 1. Ação Rápida de Doação ── */}
-      <div className="flex items-center justify-between gap-4 p-4 sm:p-5 rounded-3xl bg-card  ">
+      <div className="flex items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-card  ">
         <div className="flex items-center gap-3">
           <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <Heart size={20} weight="fill" />

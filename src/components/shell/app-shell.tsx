@@ -79,7 +79,7 @@ export function AppShell({ children, session, brandSettings }: AppShellProps) {
         {/* Viewport Central com Container Canônico Único (DESIGN.md Seção 4) */}
         <main
           ref={mainRef}
-          className="flex-1 flex flex-col min-w-0 h-full w-full max-w-full overflow-y-auto overflow-x-hidden px-4 sm:px-6 py-4 sm:py-6 pb-24 md:pb-8"
+          className="flex-1 flex flex-col min-w-0 h-full w-full max-w-full overflow-y-auto no-scrollbar overflow-x-hidden px-4 sm:px-6 py-4 sm:py-6 pb-24 md:pb-8"
         >
           <div className="w-full max-w-6xl mx-auto flex flex-col items-stretch min-w-0 flex-1">
             {children}

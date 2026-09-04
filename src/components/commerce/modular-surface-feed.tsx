@@ -133,7 +133,7 @@ export function ModularSurfaceFeed({ sections, className = "", onAddToCart }: Mo
                 )}
               </div>
 
-              <div className="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-none">
+              <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-1 scrollbar-none">
                 {section.items.map((btn: any) => (
                   <Link
                     key={btn.id}

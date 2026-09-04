@@ -59,7 +59,7 @@ const BELEZA_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/beleza")({
   head: () => ({
     meta: [
-      { title: "Beleza, Cosméticos, Perfumaria & Saúde | Wider" },
+      { title: "Beleza, Cosméticos, Perfumaria & Saúde | JAH Master OS" },
       {
         name: "description",
         content:
@@ -243,7 +243,7 @@ function BelezaVerticalPage() {
       ) : (
         <section aria-label="Vitrine de Produtos">
           {filteredProducts.length === 0 ? (
-            <div className="py-12 text-center bg-card rounded-3xl p-6">
+            <div className="py-12 text-center bg-card rounded-2xl p-6">
               <EmptyState
                 title="Nenhum cosmético ou perfume encontrado"
                 description="Tente selecionar outro departamento ou busque por marcas específicas."

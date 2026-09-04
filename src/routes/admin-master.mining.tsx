@@ -574,7 +574,7 @@ function AdminMiningHubPage() {
               <span className="text-xs text-muted-foreground">{stats.queue.pending} pendentes · {stats.queue.processing} processando</span>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto no-scrollbar">
               <table className="w-full text-left text-xs">
                 <thead className="border-b border-border text-muted-foreground uppercase">
                   <tr>
@@ -711,7 +711,7 @@ function AdminMiningHubPage() {
               <span className="text-xs text-muted-foreground">{scrapers.filter((s) => !s.is_blocked).length} ativos · {scrapers.filter((s) => s.is_blocked).length} bloqueados</span>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto no-scrollbar">
               <table className="w-full text-left text-xs">
                 <thead className="border-b border-border text-muted-foreground uppercase">
                   <tr>

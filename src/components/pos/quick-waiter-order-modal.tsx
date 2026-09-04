@@ -21,6 +21,7 @@ import {
 import { listAdminProducts } from "@/services/admin-catalog.functions";
 import { addItemsToTableComanda } from "@/services/order.functions";
 import { formatMoney } from "@/lib/money";
+import { getNicheSemantics } from "@/lib/niche-semantics";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +30,7 @@ interface QuickWaiterOrderModalProps {
   onOpenChange: (open: boolean) => void;
   tableNumber: string;
   orderId?: string;
+  store?: any;
   onSuccess?: () => void;
 }
 
@@ -44,9 +46,11 @@ export function QuickWaiterOrderModal({
   onOpenChange,
   tableNumber,
   orderId,
+  store,
   onSuccess,
 }: QuickWaiterOrderModalProps) {
   const queryClient = useQueryClient();
+  const semantics = getNicheSemantics(store);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [draftItems, setDraftItems] = useState<Record<string, DraftItem>>({});
@@ -184,13 +188,19 @@ export function QuickWaiterOrderModal({
               </div>
               <div>
                 <SheetTitle className="text-base font-bold text-foreground flex items-center gap-2">
-                  <span>Comanda Rápida — Mesa {tableNumber}</span>
+                  <span>
+                    {semantics.isFoodBusiness
+                      ? `Comanda Rápida — Mesa ${tableNumber}`
+                      : `Atendimento Rápido — Ponto ${tableNumber}`}
+                  </span>
                   <Badge variant="outline" className="text-[10px] font-mono">
-                    Salão & Cozinha
+                    {semantics.isFoodBusiness ? "Salão & Cozinha" : "Balcão & Pedidos"}
                   </Badge>
                 </SheetTitle>
                 <p className="text-xs text-muted-foreground">
-                  Lançamento tátil de pedidos com disparo instantâneo para produção
+                  {semantics.isFoodBusiness
+                    ? "Lançamento tátil de pedidos com disparo instantâneo para produção"
+                    : "Lançamento rápido de itens diretamente para o pedido"}
                 </p>
               </div>
             </div>
@@ -359,7 +369,11 @@ export function QuickWaiterOrderModal({
               ) : (
                 <Send className="size-4" />
               )}
-              <span>Disparar para a Cozinha</span>
+              <span>
+                {semantics.isFoodBusiness
+                  ? "Disparar para a Cozinha"
+                  : "Lançar Itens no Pedido"}
+              </span>
             </Button>
           </div>
         </div>

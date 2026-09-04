@@ -1,19 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  Sliders,
-  Sparkles,
-  Save,
-  Loader2,
-  MapPin,
-  Clock,
-  Heart,
-  TrendingUp,
-  Award,
-  Coins,
-  RotateCcw,
-  ShieldCheck,
-} from "lucide-react";
+import { Sliders, Layers, Save, Loader2, MapPin, Clock, Heart, TrendingUp, Award, Coins, RotateCcw, ShieldCheck } from 'lucide-react';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

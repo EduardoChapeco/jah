@@ -75,7 +75,7 @@ function SystemLogsPage() {
                       <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                         <Terminal className="size-3" /> Payload
                       </span>
-                      <pre className="bg-muted p-2 rounded-lg text-[11px] overflow-x-auto border border-border/50 text-foreground/80 font-mono">
+                      <pre className="bg-muted p-2 rounded-lg text-[11px] overflow-x-auto no-scrollbar border border-border/50 text-foreground/80 font-mono">
                         {JSON.stringify(log.payload, null, 2)}
                       </pre>
                     </div>
@@ -86,7 +86,7 @@ function SystemLogsPage() {
                       <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                         Stack Trace
                       </span>
-                      <pre className="bg-muted p-2 rounded-lg text-[10px] overflow-x-auto border border-border/50 text-foreground/60 font-mono">
+                      <pre className="bg-muted p-2 rounded-lg text-[10px] overflow-x-auto no-scrollbar border border-border/50 text-foreground/60 font-mono">
                         {log.stack_trace}
                       </pre>
                     </div>

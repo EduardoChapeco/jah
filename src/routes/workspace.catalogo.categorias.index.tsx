@@ -38,7 +38,7 @@ import { getStoreSettings } from "@/services/store.functions";
 import { getNicheSemantics } from "@/lib/niche-semantics";
 
 export const Route = createFileRoute("/workspace/catalogo/categorias/")({
-  head: () => ({ meta: [{ title: "Categorias & Sessões | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Categorias & Sessões | Workspace JAH Master OS" }] }),
   loader: async () => {
     try {
       const [catsRes, storeRes] = await Promise.all([
@@ -138,7 +138,7 @@ function AdminCategoriesPage() {
       </div>
 
       {filteredCategories.length === 0 ? (
-        <div className="py-12 text-center rounded-3xl border-0 bg-card/60 space-y-4">
+        <div className="py-12 text-center rounded-2xl border-0 bg-card/60 space-y-4">
           <div className="size-12 rounded-2xl bg-muted flex items-center justify-center mx-auto text-muted-foreground">
             <Plus className="size-6" />
           </div>
@@ -163,7 +163,7 @@ function AdminCategoriesPage() {
         </div>
       ) : (
         <div className=" rounded-2xl overflow-hidden bg-card ">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto no-scrollbar">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40">

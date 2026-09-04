@@ -13,7 +13,7 @@ import {
   Loader2,
   Eye,
   Sliders,
-  Sparkles,
+  Globe,
   Link as LinkIcon,
   X,
 } from "lucide-react";
@@ -190,8 +190,8 @@ function WorkspaceNovaMateriaPage() {
               onClick={() => setShowAiImport(!showAiImport)}
               className="rounded-xl font-bold text-xs border-primary/40 text-primary hover:bg-primary/10"
             >
-              <Sparkles className="size-3.5 mr-1.5" />
-              Importar de Link (IA)
+              <Globe className="size-3.5 mr-1.5" />
+              Importar de Link
             </Button>
             <Button
               type="button"
@@ -227,11 +227,11 @@ function WorkspaceNovaMateriaPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Sparkles className="size-4" />
+                <Globe className="size-4" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-foreground">Importar Notícia de Link Externo com IA</h3>
-                <p className="text-[11px] text-muted-foreground">Cole a URL de qualquer portal de notícias e a IA estruturará os blocos editoriais automaticamente.</p>
+                <h3 className="text-sm font-bold text-foreground">Importar Notícia de Link Externo</h3>
+                <p className="text-[11px] text-muted-foreground">Cole a URL de qualquer portal de notícias para estruturar os blocos editoriais automaticamente.</p>
               </div>
             </div>
             <button onClick={() => setShowAiImport(false)} className="text-muted-foreground hover:text-foreground">
@@ -273,7 +273,7 @@ function WorkspaceNovaMateriaPage() {
                   </>
                 ) : (
                   <>
-                    <Sparkles className="size-3.5" />
+                    <Globe className="size-3.5" />
                     Estruturar Matéria
                   </>
                 )}

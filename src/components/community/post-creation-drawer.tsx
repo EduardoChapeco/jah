@@ -356,7 +356,7 @@ export function PostCreationDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="h-[100dvh] max-h-[100dvh] rounded-none sm:rounded-3xl sm:h-auto sm:max-h-[90vh] border-none sm: bg-background p-0 flex flex-col overflow-hidden max-w-2xl mx-auto ">
+      <DrawerContent className="h-[100dvh] max-h-[100dvh] rounded-none sm:rounded-2xl sm:h-auto sm:max-h-[90vh] border-none sm: bg-background p-0 flex flex-col overflow-hidden max-w-2xl mx-auto ">
         {/* ── Top Header Fixo (Silêncio Operacional) ── */}
         <DrawerHeader className="p-4  flex items-center justify-between shrink-0 bg-background/95 backdrop-blur-md">
           <div className="flex items-center gap-3">
@@ -415,7 +415,7 @@ export function PostCreationDrawer({
         </div>
 
         {/* ── Corpo de Edição Rolável ── */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-4 sm:p-6 space-y-4">
           {/* Identificação do Autor Pessoal */}
           <div className="flex items-center gap-3">
             <Avatar className="size-10 rounded-full ">

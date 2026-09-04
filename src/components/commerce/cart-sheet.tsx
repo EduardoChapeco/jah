@@ -1,15 +1,6 @@
 import { useState } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
-import {
-  X,
-  Minus,
-  Plus,
-  ShoppingBag,
-  ArrowRight,
-  SlidersHorizontal,
-  Package,
-  Sparkles,
-} from "lucide-react";
+import { X, Minus, Plus, ShoppingBag, ArrowRight, SlidersHorizontal, Package, Layers } from 'lucide-react';
 import { formatMoney } from "@/lib/money";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -78,7 +69,7 @@ export function CartSheet() {
           <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-background scrollbar-none">
             {globalCarts.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-12 space-y-4">
-                <div className="size-24 rounded-3xl border-0 bg-muted/20 flex items-center justify-center text-muted-foreground/60 mb-2">
+                <div className="size-24 rounded-2xl border-0 bg-muted/20 flex items-center justify-center text-muted-foreground/60 mb-2">
                   <ShoppingBag className="size-10" />
                 </div>
                 <h3 className="font-bold text-xl text-foreground">Sua sacola está vazia</h3>

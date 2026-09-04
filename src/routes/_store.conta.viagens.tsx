@@ -130,7 +130,7 @@ function CustomerTripsPage() {
 
       {/* ── Lista de Viagens & Vouchers ── */}
       {trips.length === 0 ? (
-        <div className="text-center py-16 px-4 rounded-3xl  bg-card  space-y-4">
+        <div className="text-center py-16 px-4 rounded-2xl  bg-card  space-y-4">
           <div className="size-16 rounded-2xl bg-muted text-muted-foreground flex items-center justify-center mx-auto">
             <Compass size={32} weight="bold" className="text-primary" />
           </div>
@@ -165,7 +165,7 @@ function CustomerTripsPage() {
             return (
               <div
                 key={booking.id}
-                className="p-5 sm:p-6 rounded-3xl  bg-card  flex flex-col md:flex-row gap-5 items-start md:items-center justify-between hover:border-foreground/20 transition-all"
+                className="p-5 sm:p-6 rounded-2xl  bg-card  flex flex-col md:flex-row gap-5 items-start md:items-center justify-between hover:border-foreground/20 transition-all"
               >
                 <div className="flex gap-4 items-start">
                   {exp?.image_url ? (
@@ -265,7 +265,7 @@ function CustomerTripsPage() {
 
       {/* ── Modal Canônico de Voucher Digital (Padrão TravelAgencias / Wider) ── */}
       <Dialog open={isVoucherOpen} onOpenChange={setIsVoucherOpen}>
-        <DialogContent className="sm:max-w-lg sm:rounded-3xl p-5 sm:p-8 bg-card border-border">
+        <DialogContent className="sm:max-w-lg sm:rounded-2xl p-5 sm:p-8 bg-card border-border">
           {selectedBooking && (
             <div className="space-y-6">
               {/* Header do Voucher */}

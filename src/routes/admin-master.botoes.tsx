@@ -1,22 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { z } from "zod";
-import {
-  Plus,
-  Trash2,
-  Pencil,
-  Sparkles,
-  Image as ImageIcon,
-  Eye,
-  SlidersHorizontal,
-  Tag,
-  CheckCircle2,
-  LayoutGrid,
-  Layers,
-  Sparkle,
-  ArrowUpRight,
-  ExternalLink,
-} from "lucide-react";
+import { Plus, Trash2, Pencil, Sliders, Image as ImageIcon, Eye, SlidersHorizontal, Tag, CheckCircle2, LayoutGrid, Layers, Sparkle, ArrowUpRight, ExternalLink } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -358,7 +343,7 @@ function AdminMasterHotpagesPage() {
             variant="outline"
             className="rounded-xl font-semibold text-xs gap-1.5 shrink-0 border-border/80 bg-card hover:bg-muted"
           >
-            <Sparkles className="size-3.5 text-primary" />
+            <Sliders className="size-3.5 text-primary" />
             <span>Restaurar Padrões</span>
           </Button>
 
@@ -449,7 +434,7 @@ function AdminMasterHotpagesPage() {
 
       {/* ── Sub-Filtro por Módulo (Visível principalmente na aba de Hotpages Editoriais) ── */}
       {activeMainTab === "editorial_card" && (
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-hide border-b border-border/40">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2 scrollbar-hide border-b border-border/40">
           {MODULE_TABS.map((tab) => {
             const isSelected = selectedModuleTab === tab.id;
             const count =
@@ -502,7 +487,7 @@ function AdminMasterHotpagesPage() {
               variant="outline"
               className="rounded-xl text-xs font-bold gap-1.5"
             >
-              <Sparkles className="size-3.5 text-primary" />
+              <Sliders className="size-3.5 text-primary" />
               <span>Sincronizar Padrões</span>
             </Button>
             <Button
@@ -521,7 +506,7 @@ function AdminMasterHotpagesPage() {
           {filteredItems.map((item) => (
             <div
               key={item.id}
-              className="group relative flex flex-col justify-end aspect-16/9 rounded-2xl sm:rounded-3xl border border-border/80 bg-card overflow-hidden transition-all duration-300 shadow-xs hover:border-foreground/30 hover:shadow-md"
+              className="group relative flex flex-col justify-end aspect-16/9 rounded-2xl sm:rounded-2xl border border-border/80 bg-card overflow-hidden transition-all duration-300 shadow-xs hover:border-foreground/30 hover:shadow-md"
             >
               {item.cover_image_url ? (
                 <img
@@ -638,7 +623,7 @@ function AdminMasterHotpagesPage() {
             return (
               <div
                 key={item.id}
-                className="group relative flex flex-col justify-end aspect-16/9 rounded-2xl sm:rounded-3xl border border-border/80 bg-card overflow-hidden transition-all duration-300 shadow-xs hover:border-foreground/30 hover:shadow-md"
+                className="group relative flex flex-col justify-end aspect-16/9 rounded-2xl sm:rounded-2xl border border-border/80 bg-card overflow-hidden transition-all duration-300 shadow-xs hover:border-foreground/30 hover:shadow-md"
               >
                 {item.cover_image_url ? (
                   <img
@@ -731,7 +716,7 @@ function AdminMasterHotpagesPage() {
         }
         description="Configure mídias, ícones transparentes, rotas de destino e visibilidade na vitrine."
       >
-        <form onSubmit={handleSubmit} className="space-y-4 p-1 max-h-[85vh] overflow-y-auto pr-1">
+        <form onSubmit={handleSubmit} className="space-y-4 p-1 max-h-[85vh] overflow-y-auto no-scrollbar pr-1">
           {/* Pré-visualização ao Vivo */}
           <div className="p-3.5 rounded-2xl bg-muted/30 border border-border/80 space-y-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">

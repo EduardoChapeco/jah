@@ -220,7 +220,7 @@ function AdminSecurityOverviewPage() {
           </div>
         ) : (
           <div className="rounded-2xl border border-border/70 bg-card overflow-hidden">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto no-scrollbar">
               <table className="w-full text-left text-xs">
                 <thead className="bg-muted/40 border-b border-border/60 text-muted-foreground uppercase text-[10px] tracking-wider font-bold">
                   <tr>

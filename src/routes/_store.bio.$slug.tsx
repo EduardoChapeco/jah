@@ -1,32 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  User2,
-  ExternalLink,
-  MessageCircle,
-  QrCode,
-  Copy,
-  Check,
-  Link as LinkIcon,
-  Instagram,
-  Youtube,
-  Linkedin,
-  Twitter,
-  Mail,
-  Send,
-  Plane,
-  Compass,
-  FileCheck,
-  ShieldCheck,
-  Ship,
-  GraduationCap,
-  Briefcase,
-  Heart,
-  Sparkles,
-  Clock,
-  MapPin,
-  ChevronRight,
-} from "lucide-react";
+import { User2, ExternalLink, MessageCircle, QrCode, Copy, Check, Link as LinkIcon, Instagram, Youtube, Linkedin, Twitter, Mail, Send, Plane, Compass, FileCheck, ShieldCheck, Ship, GraduationCap, Briefcase, Heart, Layers, Clock, MapPin, ChevronRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -105,7 +79,7 @@ const SERVICE_ICON_MAP: Record<string, any> = {
   school: GraduationCap,
   corporate: Briefcase,
   honeymoon: Heart,
-  premium: Sparkles,
+  premium: Layers,
 };
 
 function BiolinkPage() {
@@ -272,7 +246,7 @@ function BiolinkPage() {
 
                   {leadSubmitted ? (
                     <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-semibold text-center space-y-1">
-                      <p>✨ Dados recebidos com sucesso!</p>
+                      <p> Dados recebidos com sucesso!</p>
                       <p className="text-[11px] font-normal opacity-80">Nossa equipe entrará em contato em instantes.</p>
                     </div>
                   ) : (

@@ -17,7 +17,7 @@ import {
   Filter,
   Layers,
   Palette,
-  Sparkles,
+  Globe,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -63,7 +63,7 @@ import { cn } from "@/lib/utils";
 import type { AdminProductRow } from "@/types/catalog";
 
 export const Route = createFileRoute("/workspace/catalogo/produtos/")({
-  head: () => ({ meta: [{ title: "Catálogo & Itens | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Catálogo & Itens | Workspace JAH Master OS" }] }),
   loader: async () => {
     const [products, store] = await Promise.all([
       listAdminProducts().catch(() => []),
@@ -208,9 +208,7 @@ function EditableStockCell({
 function AdminProductsPage() {
   const { products: initialProducts, store } = Route.useLoaderData();
   const semantics = getNicheSemantics(store);
-  const nicheCtx = getNicheCatalogContext(
-    (store as any)?.segment || (store as any)?.type || store?.settings?.segment
-  );
+  const nicheCtx = getNicheCatalogContext(store);
 
   const [products, setProducts] = useState<AdminProductRow[]>(initialProducts);
   const [mainTab, setMainTab] = useState<"products" | "complements">("products");
@@ -228,7 +226,11 @@ function AdminProductsPage() {
     );
     try {
       await toggleProductStatus({ data: { productId: product.id, status: newStatus } });
-      toast.success(active ? "Item ativado!" : "Item pausado no cardápio!");
+      toast.success(
+        active
+          ? `${nicheCtx.entityName} ativado com sucesso!`
+          : `${nicheCtx.entityName} pausado!`,
+      );
     } catch {
       toast.error("Erro ao alterar status do item.");
       setProducts((prev) =>
@@ -439,8 +441,10 @@ function AdminProductsPage() {
               onClick={() => setIsImportModalOpen(true)}
               className="rounded-xl font-bold text-xs gap-1.5 cursor-pointer"
             >
-              <Sparkles className="size-3.5 text-primary" aria-hidden />
-              <span>Importar Cardápio (IA)</span>
+              <Globe className="size-3.5 text-primary" aria-hidden />
+              <span>
+                {semantics.nicheId === "gastronomy" ? "Importar Cardápio" : "Importar por Link"}
+              </span>
             </Button>
             <Button variant="outline" size="sm" onClick={handleExportJSON} className="rounded-xl font-bold text-xs gap-1.5 ">
               <Download className="size-3.5" aria-hidden />
@@ -480,12 +484,12 @@ function AdminProductsPage() {
               : "text-muted-foreground hover:text-foreground hover:bg-muted/40",
           )}
         >
-          Complementos & Adicionais
+          {semantics.modifiersLabel || "Complementos & Adicionais"}
         </button>
       </div>
 
       {mainTab === "complements" ? (
-        <CatalogComplementsTab />
+        <CatalogComplementsTab store={store} />
       ) : (
         <>
           {/* Toolbar & Filtros */}
@@ -579,7 +583,7 @@ function AdminProductsPage() {
 
       {/* Tabela de Produtos */}
       {filteredProducts.length === 0 ? (
-        <div className="py-12 text-center rounded-3xl border-0 bg-card/60 space-y-4">
+        <div className="py-12 text-center rounded-2xl border-0 bg-card/60 space-y-4">
           <div className="size-12 rounded-2xl bg-muted flex items-center justify-center mx-auto text-muted-foreground">
             <Package className="size-6" />
           </div>
@@ -698,7 +702,7 @@ function AdminProductsPage() {
           </div>
 
           {/* VISÃO DESKTOP: DataGrid / Tabela */}
-          <div className="hidden md:block overflow-x-auto bg-surface-paper">
+          <div className="hidden md:block overflow-x-auto no-scrollbar bg-surface-paper">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30">

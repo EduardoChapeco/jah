@@ -1,29 +1,6 @@
 import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import {
-  Clock,
-  Mail,
-  Phone,
-  MapPin,
-  Star,
-  ShieldCheck,
-  Navigation,
-  Share2,
-  ArrowLeft,
-  Store,
-  ShoppingBag,
-  Sparkles,
-  UtensilsCrossed,
-  Briefcase,
-  Building2,
-  Calendar,
-  MessageSquare,
-  ChevronRight,
-  Search,
-  ExternalLink,
-  Plus,
-  Compass,
-} from "lucide-react";
+import { Clock, Mail, Phone, MapPin, Star, ShieldCheck, Navigation, Share2, ArrowLeft, Store, ShoppingBag, Layers, UtensilsCrossed, Briefcase, Building2, Calendar, MessageSquare, ChevronRight, Search, ExternalLink, Plus, Compass } from 'lucide-react';
 import { WhatsappLogo } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -82,7 +59,7 @@ export const Route = createFileRoute("/_store/perfil-da-loja")({
     return {
       title: profile?.name
         ? `${profile.name} — Loja & Cardápio Oficial | Wider`
-        : "Página Oficial da Loja | Wider",
+        : "Página Oficial da Loja | JAH Master OS",
       meta: [
         {
           name: "description",
@@ -274,7 +251,7 @@ function StorePerfil() {
   const isServices = segment.includes("servi") || segment.includes("belez") || segment.includes("estet") || segment.includes("saud") || segment.includes("consult");
   
   const catalogTabTitle = isGastronomy ? "Cardápio" : isServices ? "Serviços" : "Produtos & Catálogo";
-  const catalogTabIcon = isGastronomy ? UtensilsCrossed : isServices ? Sparkles : ShoppingBag;
+  const catalogTabIcon = isGastronomy ? UtensilsCrossed : isServices ? Layers : ShoppingBag;
   const CatalogIcon = catalogTabIcon;
 
   const handleShare = () => {
@@ -292,7 +269,7 @@ function StorePerfil() {
   });
 
   return (
-    <div className="w-full -mx-3 sm:-mx-6 -mt-4 sm:-mt-6 pb-12 animate-in fade-in duration-200">
+    <div className="w-full max-w-full overflow-x-hidden -mx-3 sm:-mx-6 -mt-4 sm:-mt-6 pb-20 md:pb-12 animate-in fade-in duration-200">
       {/* ── 1. CAPA 100% LARGURA COM CONTROLES FLUTUANTES ── */}
       <div className="relative h-52 sm:h-72 md:h-80 w-full overflow-hidden bg-muted/40">
         {coverUrl ? (
@@ -386,7 +363,7 @@ function StorePerfil() {
         {/* Identidade Visual & Cabeçalho */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 sm:-mt-16 relative z-10">
-            <div className="size-24 sm:size-32 rounded-3xl bg-card overflow-hidden shrink-0 flex items-center justify-center ring-4 ring-card">
+            <div className="size-24 sm:size-32 rounded-2xl bg-card overflow-hidden shrink-0 flex items-center justify-center ring-4 ring-card">
               {logoUrl ? (
                 <img src={logoUrl} alt={store.name} className="size-full object-cover" />
               ) : (
@@ -501,7 +478,7 @@ function StorePerfil() {
                   </button>
                 </DialogTrigger>
 
-                <DialogContent className="sm:max-w-md sm:rounded-3xl sm:p-6 p-5">
+                <DialogContent className="sm:max-w-md sm:rounded-2xl sm:p-6 p-5">
                   <DialogHeader className="pb-2">
                     <DialogTitle className="text-base font-bold flex items-center gap-2">
                       <Clock className="size-4 text-primary" />
@@ -558,7 +535,7 @@ function StorePerfil() {
 
         {/* ── 3. ABAS CONTEXTUAIS INTELIGENTES (Apple HIG / Wider Platform) ── */}
         <div className="space-y-6 pt-4">
-          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-muted/40 text-xs font-semibold overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-muted/40 text-xs font-semibold overflow-x-auto no-scrollbar scrollbar-none">
             <button
               type="button"
               onClick={() => setActiveTab("catalogo")}
@@ -615,7 +592,7 @@ function StorePerfil() {
             <div className="space-y-6">
               {/* Trilho de Destaques & Hotpages da Loja */}
               {hotpages.length > 0 && (
-                <div className="flex gap-2.5 overflow-x-auto scrollbar-none pb-1 pt-1">
+                <div className="flex gap-2.5 overflow-x-auto no-scrollbar scrollbar-none pb-1 pt-1">
                   {hotpages.map((h: any) => (
                     <div key={h.id} className="shrink-0">
                       <DynamicMediaChip
@@ -645,7 +622,7 @@ function StorePerfil() {
                 </div>
 
                 {categories.length > 0 && (
-                  <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1">
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none pb-1">
                     <button
                       type="button"
                       onClick={() => setSelectedCategory("todas")}
@@ -679,7 +656,7 @@ function StorePerfil() {
 
               {/* Grid de Itens */}
               {filteredProducts.length === 0 ? (
-                <div className="p-12 rounded-3xl bg-card text-center space-y-3">
+                <div className="p-12 rounded-2xl bg-card text-center space-y-3">
                   <ShoppingBag className="size-10 mx-auto text-muted-foreground/40" />
                   <h3 className="text-base font-bold text-foreground">Nenhum item encontrado</h3>
                   <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -692,7 +669,7 @@ function StorePerfil() {
                     <div
                       key={p.id}
                       className={cn(
-                        "rounded-3xl bg-card p-4 transition-all group hover:bg-muted/20 border border-border/40 sm:border-transparent",
+                        "rounded-2xl bg-card p-4 transition-all group hover:bg-muted/20 border border-border/40 sm:border-transparent",
                         isGastronomy
                           ? "flex flex-row items-center justify-between gap-3 sm:flex-col sm:items-stretch sm:justify-between"
                           : "flex flex-col justify-between space-y-3"
@@ -797,7 +774,7 @@ function StorePerfil() {
           {activeTab === "sobre" && (
             <div className="space-y-6">
               {/* História da Loja */}
-              <div className="p-6 sm:p-8 rounded-3xl bg-card space-y-3">
+              <div className="p-6 sm:p-8 rounded-2xl bg-card space-y-3">
                 <h3 className="text-base font-bold text-foreground">Sobre a Empresa</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
                   {store.description || "Empresa credenciada e verificada da rede comunitária Wider."}
@@ -806,7 +783,7 @@ function StorePerfil() {
 
               {/* Informações de Localização & Contato */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-6 rounded-3xl bg-card space-y-4">
+                <div className="p-6 rounded-2xl bg-card space-y-4">
                   <h3 className="text-sm font-bold text-foreground">Localização & Atendimento</h3>
                   <div className="space-y-2 text-xs text-muted-foreground">
                     {settings.is_address_public === false || settings.business_model === "home_office" || settings.business_model === "digital_only" ? (
@@ -839,7 +816,7 @@ function StorePerfil() {
                   )}
                 </div>
 
-                <div className="p-6 rounded-3xl bg-card space-y-4">
+                <div className="p-6 rounded-2xl bg-card space-y-4">
                   <h3 className="text-sm font-bold text-foreground">Canais Oficiais de Atendimento</h3>
                   <div className="space-y-3 text-xs">
                     {store.phone && (
@@ -877,7 +854,7 @@ function StorePerfil() {
               </div>
 
               {jobs.length === 0 ? (
-                <div className="p-12 rounded-3xl bg-card text-center space-y-3">
+                <div className="p-12 rounded-2xl bg-card text-center space-y-3">
                   <Briefcase className="size-10 mx-auto text-muted-foreground/40" />
                   <h4 className="text-base font-bold text-foreground">Nenhuma vaga aberta no momento</h4>
                   <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -889,7 +866,7 @@ function StorePerfil() {
                   {jobs.map((job: any) => (
                     <div
                       key={job.id}
-                      className="p-5 rounded-3xl bg-card space-y-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                      className="p-5 rounded-2xl bg-card space-y-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                     >
                       <div className="space-y-1">
                         <h4 className="text-base font-bold text-foreground">{job.title}</h4>
@@ -992,13 +969,14 @@ function StorePerfil() {
         storeId={store.id}
       />
 
-      {/* Modal de Modificadores & Adicionais Gastronômicos */}
+      {/* Modal de Modificadores, Adicionais e Variações */}
       {selectedProductForModifiers && (
         <ProductModifiersModal
           open={Boolean(selectedProductForModifiers)}
           onOpenChange={(open) => !open && setSelectedProductForModifiers(null)}
           product={selectedProductForModifiers}
           variant={null}
+          store={store}
           onConfirm={handleConfirmModifiers}
         />
       )}

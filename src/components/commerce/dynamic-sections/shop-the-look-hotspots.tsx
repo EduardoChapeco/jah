@@ -59,7 +59,7 @@ export function ShopTheLookSection({
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Foto Principal com Pontos Interativos */}
-          <div className="lg:col-span-8 relative rounded-3xl overflow-hidden aspect-4/3 sm:aspect-16/10 bg-muted border border-border/80 shadow-2xs group">
+          <div className="lg:col-span-8 relative rounded-2xl overflow-hidden aspect-4/3 sm:aspect-16/10 bg-muted border border-border/80 shadow-2xs group">
             <img
               src={lookImageUrl}
               alt={title}
@@ -91,7 +91,7 @@ export function ShopTheLookSection({
           {/* Card Lateral do Produto em Foco */}
           <div className="lg:col-span-4">
             {activeHotspot ? (
-              <div className="p-6 rounded-3xl border border-border/80 bg-card space-y-4 shadow-2xs">
+              <div className="p-6 rounded-2xl border border-border/80 bg-card space-y-4 shadow-2xs">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
                   Peça Selecionada
                 </span>
@@ -124,7 +124,7 @@ export function ShopTheLookSection({
                 </Button>
               </div>
             ) : (
-              <div className="p-6 rounded-3xl border border-dashed border-border/80 text-center text-xs text-muted-foreground">
+              <div className="p-6 rounded-2xl border border-dashed border-border/80 text-center text-xs text-muted-foreground">
                 Selecione um ponto no look para ver a peça.
               </div>
             )}

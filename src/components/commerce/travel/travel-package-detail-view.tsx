@@ -1,38 +1,5 @@
 import React, { useState } from "react";
-import {
-  Plane,
-  Bus,
-  Ship,
-  Anchor,
-  Layers,
-  Hotel,
-  Calendar,
-  Compass,
-  MapPin,
-  Clock,
-  Check,
-  ChevronRight,
-  ExternalLink,
-  MessageCircle,
-  Share2,
-  Sparkles,
-  Sun,
-  CloudSun,
-  CloudRain,
-  ShieldCheck,
-  ShieldAlert,
-  Camera,
-  Star,
-  Coffee,
-  Car,
-  Ticket,
-  Users,
-  Utensils,
-  ArrowRight,
-  Info,
-  Luggage,
-  X,
-} from "lucide-react";
+import { Plane, Bus, Ship, Anchor, Layers, Hotel, Calendar, Compass, MapPin, Clock, Check, ChevronRight, ExternalLink, MessageCircle, Share2, Sliders, Sun, CloudSun, CloudRain, ShieldCheck, ShieldAlert, Camera, Star, Coffee, Car, Ticket, Users, Utensils, ArrowRight, Info, Luggage, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatMoney } from "@/lib/money";

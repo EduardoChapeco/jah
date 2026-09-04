@@ -8,6 +8,8 @@ import {
   assignChatThread,
   updateTicketStatus,
 } from "@/services/chat.functions";
+import { getStoreSettings } from "@/services/store.functions";
+import { getNicheSemantics } from "@/lib/niche-semantics";
 import { getBrowserClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,25 +30,7 @@ import {
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  MessageSquare,
-  ArrowLeft,
-  Search,
-  Filter,
-  Send,
-  UserCheck,
-  Building2,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
-  Package,
-  DollarSign,
-  Info,
-  Loader2,
-  RefreshCw,
-  Sparkles,
-  ShieldCheck,
-} from "lucide-react";
+import { MessageSquare, ArrowLeft, Search, Filter, Send, UserCheck, Building2, Clock, CheckCircle2, AlertTriangle, Package, DollarSign, Info, Loader2, RefreshCw, Layers, ShieldCheck } from 'lucide-react';
 import { toast } from "sonner";
 import { formatDate } from "@/lib/datetime";
 import { OrderMessageCard } from "@/components/chat/order-message-card";
@@ -54,14 +38,20 @@ import { RmaMessageCard } from "@/components/chat/rma-message-card";
 import { Customer360Sidebar } from "@/components/chat/customer-360-sidebar";
 
 export const Route = createFileRoute("/workspace/atendimento/")({
-  head: () => ({ meta: [{ title: "Central de Atendimento Omnichannel | Wider" }] }),
+  head: () => ({ meta: [{ title: "Central de Atendimento Omnichannel | JAH Master OS" }] }),
   loader: async () => {
     try {
-      const res = await listChatThreads().catch(() => null);
-      return res || { threads: [], metrics: { total: 0, open: 0, closed: 0, avg_rating: 5, sla_first_response_min: 0 } };
+      const [res, store] = await Promise.all([
+        listChatThreads().catch(() => null),
+        getStoreSettings().catch(() => null),
+      ]);
+      return {
+        ...(res || { threads: [], metrics: { total: 0, open: 0, closed: 0, avg_rating: 5, sla_first_response_min: 0 } }),
+        store,
+      };
     } catch (e) {
       console.warn("[workspace.atendimento] Fallback de segurança no loader:", e);
-      return { threads: [], metrics: { total: 0, open: 0, closed: 0, avg_rating: 5, sla_first_response_min: 0 } };
+      return { threads: [], metrics: { total: 0, open: 0, closed: 0, avg_rating: 5, sla_first_response_min: 0 }, store: null };
     }
   },
   component: WorkspaceAtendimentoPage,
@@ -104,7 +94,10 @@ function playNotificationChime() {
 }
 
 function WorkspaceAtendimentoPage() {
-  const { threads: initialThreads, metrics, isSupervisor } = Route.useLoaderData();
+  const { threads: initialThreads, metrics, isSupervisor, store } = Route.useLoaderData() as any;
+  const semantics = useMemo(() => getNicheSemantics(store), [store]);
+  const departmentLabels = semantics.departmentLabels || DEPARTMENT_LABELS;
+
   const [threads, setThreads] = useState<any[]>(initialThreads);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(
     initialThreads.length > 0 ? initialThreads[0].id : null,
@@ -366,11 +359,11 @@ function WorkspaceAtendimentoPage() {
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
                   <SelectItem value="all">Todos Setores</SelectItem>
-                  <SelectItem value="vendas">Vendas</SelectItem>
-                  <SelectItem value="suporte">Suporte / SAC</SelectItem>
-                  <SelectItem value="financeiro">Financeiro</SelectItem>
-                  <SelectItem value="logistica">Logística</SelectItem>
-                  <SelectItem value="geral">Geral</SelectItem>
+                  {Object.entries(departmentLabels).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>
+                      {label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
@@ -388,7 +381,7 @@ function WorkspaceAtendimentoPage() {
           </div>
 
           {/* Lista de Threads */}
-          <div className="flex-1 overflow-y-auto divide-y divide-border/40 scrollbar-thin">
+          <div className="flex-1 overflow-y-auto no-scrollbar divide-y divide-border/40 scrollbar-thin">
             {filteredThreads.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground text-xs">
                 Nenhuma conversa encontrada.
@@ -425,7 +418,7 @@ function WorkspaceAtendimentoPage() {
 
                       <div className="flex items-center gap-1.5 pt-0.5">
                         <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 uppercase">
-                          {DEPARTMENT_LABELS[t.department] || t.department}
+                          {departmentLabels[t.department] || t.department}
                         </Badge>
                         {t.order_id && (
                           <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
@@ -505,7 +498,7 @@ function WorkspaceAtendimentoPage() {
             {/* Timeline */}
             <div
               ref={chatContainerRef}
-              className="flex-1 space-y-3.5 overflow-y-auto p-4 scrollbar-thin"
+              className="flex-1 space-y-3.5 overflow-y-auto no-scrollbar p-4 scrollbar-thin"
             >
               {loadingMessages ? (
                 <div className="flex items-center justify-center h-full">
@@ -611,7 +604,7 @@ function WorkspaceAtendimentoPage() {
 
         {/* COLUNA 3: Perfil 360º Lateral do Cliente */}
         {showCustomer360 && activeThread && (
-          <div className="w-80 border-l border-border/80 bg-background overflow-y-auto hidden lg:block shrink-0">
+          <div className="w-80 border-l border-border/80 bg-background overflow-y-auto no-scrollbar hidden lg:block shrink-0">
             <div className="p-3 border-b border-border/80 flex items-center justify-between">
               <span className="text-xs font-bold text-foreground">Customer 360º</span>
               <Badge variant="outline" className="text-[10px]">
@@ -629,7 +622,7 @@ function WorkspaceAtendimentoPage() {
       {/* Sheet de Gestão de Ticket SAC / RMA */}
       {selectedTicket && (
         <Sheet open={ticketModalOpen} onOpenChange={setTicketModalOpen}>
-          <SheetContent side="right" className="sm:max-w-md w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-6 overflow-y-auto bg-card flex flex-col justify-between">
+          <SheetContent side="right" className="sm:max-w-md w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-6 overflow-y-auto no-scrollbar bg-card flex flex-col justify-between">
             <div className="space-y-6">
               <SheetHeader>
                 <SheetTitle className="text-base font-bold">

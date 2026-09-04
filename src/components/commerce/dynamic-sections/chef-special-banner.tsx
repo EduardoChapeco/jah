@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Sparkles, Clock, Utensils, Check } from "lucide-react";
+import { Layers, Clock, Utensils, Check } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -54,7 +54,7 @@ export function ChefSpecialBannerSection({
   return (
     <section className="py-12 bg-muted/30 w-full">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center rounded-3xl border border-border/80 bg-card p-6 sm:p-10 shadow-2xs overflow-hidden relative">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center rounded-2xl border border-border/80 bg-card p-6 sm:p-10 shadow-2xs overflow-hidden relative">
           {/* Coluna de Mídia */}
           <div className="lg:col-span-6 relative rounded-2xl overflow-hidden aspect-4/3 bg-muted border border-border/60 flex items-center justify-center">
             {activeImageUrl ? (

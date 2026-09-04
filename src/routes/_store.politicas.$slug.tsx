@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_store/politicas/$slug")({
       {
         title: (loaderData as any)?.title
           ? `${(loaderData as any).title} | Wider`
-          : "Políticas & Diretrizes | Wider",
+          : "Políticas & Diretrizes | JAH Master OS",
       },
     ],
   }),

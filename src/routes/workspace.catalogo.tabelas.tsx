@@ -424,7 +424,7 @@ function WorkspacePriceTablesPage() {
 
       {/* Drawer Lateral no Desktop / Fullscreen no Mobile: Criar Tabela */}
       <Sheet open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md flex flex-col justify-between overflow-y-auto">
+        <SheetContent side="right" className="w-full sm:max-w-md flex flex-col justify-between overflow-y-auto no-scrollbar">
           <div>
             <SheetHeader className="pb-4">
               <SheetTitle>Nova Tabela de Preços</SheetTitle>

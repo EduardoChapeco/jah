@@ -235,7 +235,7 @@ function CertificateDetailPage() {
 
         {/* Payload Snapshot */}
         <Section title="Snapshot do Payload (Imutável)" icon={Eye}>
-          <pre className="text-[11px] font-mono bg-muted/50 rounded-lg p-4 overflow-x-auto whitespace-pre-wrap text-muted-foreground max-h-72">
+          <pre className="text-[11px] font-mono bg-muted/50 rounded-lg p-4 overflow-x-auto no-scrollbar whitespace-pre-wrap text-muted-foreground max-h-72">
             {JSON.stringify(cert.payload_snapshot, null, 2)}
           </pre>
         </Section>

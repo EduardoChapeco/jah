@@ -273,7 +273,7 @@ export function NewClientWizard({
         </SheetHeader>
 
         {/* Formulário com Rolagem */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6">
           {/* PASSO 0: PERFIL */}
           {step === 0 && (
             <div className="space-y-5 animate-in fade-in duration-200">

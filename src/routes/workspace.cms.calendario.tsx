@@ -5,7 +5,6 @@ import {
   Calendar as CalendarIcon,
   Plus,
   Clock,
-  Sparkles,
   ImageIcon,
   Tag,
   Megaphone,
@@ -37,7 +36,7 @@ import { formatDate } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/cms/calendario")({
-  head: () => ({ meta: [{ title: "Calendário Editorial & Agendamento | Wider" }] }),
+  head: () => ({ meta: [{ title: "Calendário Editorial & Agendamento | JAH Master OS" }] }),
   loader: async () => {
     return await listScheduledPosts();
   },
@@ -178,7 +177,7 @@ function CalendarioEditorialPage() {
           <DialogContent className="sm:max-w-md sm:rounded-2xl">
             <DialogHeader>
               <DialogTitle className="text-lg font-bold flex items-center gap-2">
-                <Sparkles className="size-5 text-primary" />
+                <CalendarIcon className="size-5 text-primary" />
                 Agendar Conteúdo
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">

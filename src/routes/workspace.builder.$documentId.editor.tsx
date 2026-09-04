@@ -6,12 +6,16 @@ import {
   getExperienceDocument,
   saveBuilderNodes,
   publishBuilderVersion,
+  updateExperienceDocumentSettings,
 } from "@/services/builder.functions";
 import { listCategories, listCollections, listAdminProducts } from "@/services/admin-catalog.functions";
 import { BuilderTopBar } from "@/components/admin/builder/builder-top-bar";
 import { BuilderDockedRail, type DockedRailActivePanel } from "@/components/admin/builder/builder-docked-rail";
 import { BuilderAddPanel3Col } from "@/components/admin/builder/builder-add-panel-3col";
 import { BuilderLeftPanel } from "@/components/admin/builder/builder-left-panel";
+import { BuilderPagesPanel, type BuilderPageItem } from "@/components/admin/builder/builder-pages-panel";
+import { BuilderGlobalThemePanel, type GlobalThemeConfig } from "@/components/admin/builder/builder-global-theme-panel";
+import { BuilderCmsPanel } from "@/components/admin/builder/builder-cms-panel";
 import { BuilderCanvas, ViewportMode } from "@/components/admin/builder/builder-canvas";
 import { BuilderInspector, InspectorTab } from "@/components/admin/builder/builder-inspector";
 import { BuilderLayoutSwitcherModal } from "@/components/admin/builder/builder-layout-switcher-modal";
@@ -49,7 +53,50 @@ function BuilderEditorPage() {
 
   const [document] = useState(initialData.document);
   const [version, setVersion] = useState(initialData.version);
-  const [nodes, setNodes] = useState<any[]>(initialData.nodes || []);
+  const [nodes, setNodes] = useState<any[]>(() => {
+    const raw = initialData.nodes || [];
+    return raw.map((n: any, idx: number) => ({
+      ...n,
+      content: n.content && typeof n.content === "object" ? n.content : {},
+      design_tokens: n.design_tokens && typeof n.design_tokens === "object" ? n.design_tokens : {},
+      layout_rules: n.layout_rules && typeof n.layout_rules === "object" ? n.layout_rules : {},
+      responsive_overrides: n.responsive_overrides && typeof n.responsive_overrides === "object" ? n.responsive_overrides : {},
+      data_bindings: n.data_bindings && typeof n.data_bindings === "object" ? n.data_bindings : {},
+      action_bindings: n.action_bindings && typeof n.action_bindings === "object" ? n.action_bindings : {},
+      sort_order: typeof n.sort_order === "number" ? n.sort_order : idx,
+      is_hidden: Boolean(n.is_hidden),
+    }));
+  });
+
+  // Configurações Globais Persistidas (settings JSONB no Supabase)
+  const initialSettings = (initialData.document as any)?.settings || {};
+
+  // Páginas do Site (Multi-Page Architecture)
+  const [pages, setPages] = useState<BuilderPageItem[]>(() => {
+    if (Array.isArray(initialSettings.pages) && initialSettings.pages.length > 0) {
+      return initialSettings.pages;
+    }
+    return [
+      {
+        id: "home",
+        title: "Página Inicial",
+        slug: initialData.document?.slug || "inicio",
+        is_home: true,
+      },
+    ];
+  });
+  const [activePageId, setActivePageId] = useState<string>(() => pages[0]?.id || "home");
+
+  // Tema & Estilo Global (Theme Studio Standard)
+  const [themeConfig, setThemeConfig] = useState<GlobalThemeConfig>(() => ({
+    primaryColor: initialSettings.theme?.primaryColor || "#09090b",
+    backgroundColor: initialSettings.theme?.backgroundColor || "#ffffff",
+    textColor: initialSettings.theme?.textColor || "#09090b",
+    headingFont: initialSettings.theme?.headingFont || "Inter, sans-serif",
+    bodyFont: initialSettings.theme?.bodyFont || "Inter, sans-serif",
+    borderRadius: initialSettings.theme?.borderRadius || "xl",
+    surfaceStyle: initialSettings.theme?.surfaceStyle || "clean",
+  }));
 
   // Dados Dinâmicos em Tempo Real (Live Data Binding + Fallbacks de Alta Qualidade)
   const transientData = React.useMemo(() => {
@@ -353,7 +400,15 @@ function BuilderEditorPage() {
 
     const updatedNodes = [...nodes, ...newSectionNodes];
     pushHistory(updatedNodes);
-    setSelectedNodeId(newSectionNodes[0].id);
+
+    // Seleciona diretamente o nó de conteúdo principal (Hero, Vitrine, etc.) em vez do container estrutural
+    const primaryContentNode =
+      newSectionNodes.find((n) => n.node_type === "composition" || n.node_type === "element") ||
+      newSectionNodes[newSectionNodes.length - 1] ||
+      newSectionNodes[0];
+
+    setSelectedNodeId(primaryContentNode.id);
+    setDockedPanel(null); // Fecha gaveta de adicionar para dar foco imediato ao bloco no editor
     toast.success(`Seção "${template.name}" inserida com sucesso!`);
   };
 
@@ -416,6 +471,203 @@ function BuilderEditorPage() {
     toast.success(`Layout atualizado para ${layoutVariant.toUpperCase()}!`);
   };
 
+  // ── Gestão de Tema Global (Theme Studio) ──
+  const handleChangeTheme = async (patch: Partial<GlobalThemeConfig>) => {
+    const updatedTheme = { ...themeConfig, ...patch };
+    setThemeConfig(updatedTheme);
+    if (!document?.id) return;
+    try {
+      await updateExperienceDocumentSettings({
+        data: {
+          document_id: document.id,
+          settings: {
+            theme: updatedTheme,
+          },
+        },
+      });
+      toast.success("Estilo global atualizado e sincronizado!");
+    } catch (e: any) {
+      console.warn("Erro ao salvar tema:", e);
+    }
+  };
+
+  // ── Gestão de Páginas do Site (Multi-Page Architecture) ──
+  const handleAddPage = async (newPage: { title: string; slug: string; is_home: boolean }) => {
+    const newPageItem: BuilderPageItem = {
+      id: crypto.randomUUID(),
+      title: newPage.title,
+      slug: newPage.slug,
+      is_home: newPage.is_home,
+    };
+    const updatedPages = [...pages, newPageItem];
+    setPages(updatedPages);
+    setActivePageId(newPageItem.id);
+    if (!document?.id) return;
+    try {
+      await updateExperienceDocumentSettings({
+        data: {
+          document_id: document.id,
+          settings: {
+            pages: updatedPages,
+          },
+        },
+      });
+      toast.success(`Página "${newPage.title}" criada.`);
+    } catch (e: any) {
+      console.warn("Erro ao salvar páginas:", e);
+    }
+  };
+
+  const handleDeletePage = async (pageId: string) => {
+    if (pages.length <= 1) {
+      toast.error("O site precisa de pelo menos uma página.");
+      return;
+    }
+    const updatedPages = pages.filter((p) => p.id !== pageId);
+    setPages(updatedPages);
+    if (activePageId === pageId) {
+      setActivePageId(updatedPages[0].id);
+    }
+    if (!document?.id) return;
+    try {
+      await updateExperienceDocumentSettings({
+        data: {
+          document_id: document.id,
+          settings: {
+            pages: updatedPages,
+          },
+        },
+      });
+      toast.success("Página removida.");
+    } catch (e: any) {
+      console.warn("Erro ao atualizar páginas:", e);
+    }
+  };
+
+  const handleDuplicatePage = async (pageId: string) => {
+    const pageToClone = pages.find((p) => p.id === pageId);
+    if (!pageToClone) return;
+    const cloned: BuilderPageItem = {
+      ...pageToClone,
+      id: crypto.randomUUID(),
+      title: `${pageToClone.title} (Cópia)`,
+      slug: `${pageToClone.slug}-copia`,
+      is_home: false,
+    };
+    const updatedPages = [...pages, cloned];
+    setPages(updatedPages);
+    setActivePageId(cloned.id);
+    if (!document?.id) return;
+    try {
+      await updateExperienceDocumentSettings({
+        data: {
+          document_id: document.id,
+          settings: {
+            pages: updatedPages,
+          },
+        },
+      });
+      toast.success(`Página duplicada.`);
+    } catch (e: any) {
+      console.warn("Erro ao duplicar página:", e);
+    }
+  };
+
+  const handleUpdatePageSeo = async (pageId: string, seo: { seo_title?: string; seo_description?: string }) => {
+    const updatedPages = pages.map((p) => (p.id === pageId ? { ...p, ...seo } : p));
+    setPages(updatedPages);
+    if (!document?.id) return;
+    try {
+      await updateExperienceDocumentSettings({
+        data: {
+          document_id: document.id,
+          settings: {
+            pages: updatedPages,
+          },
+        },
+      });
+      toast.success("Metadados SEO atualizados.");
+    } catch (e: any) {
+      console.warn("Erro ao salvar SEO:", e);
+    }
+  };
+
+  // ── Inserção Dinâmica CMS (Dados Vivos de Produtos, Destinos e Coleções) ──
+  const handleInsertDynamicBlock = (blockType: string, bindingSource: string, title?: string) => {
+    const sectionId = crypto.randomUUID();
+    const containerId = crypto.randomUUID();
+    const elementId = crypto.randomUUID();
+
+    const highestSortOrder = nodes
+      .filter((n) => n.parent_id === null)
+      .reduce((max, n) => Math.max(max, n.sort_order || 0), 0);
+
+    const reg = (builderRegistry as any)[blockType];
+
+    const newNodes = [
+      {
+        id: sectionId,
+        node_type: "section",
+        block_type: "section",
+        parent_id: null,
+        sort_order: highestSortOrder + 1,
+        content: {},
+        layout_rules: { maxWidth: "full", paddingY: "lg" },
+        design_tokens: {},
+      },
+      {
+        id: containerId,
+        node_type: "container",
+        block_type: "container",
+        parent_id: sectionId,
+        sort_order: 0,
+        content: {},
+        layout_rules: { maxWidth: "6xl", paddingX: "md", paddingY: "md" },
+        design_tokens: {},
+      },
+      {
+        id: elementId,
+        node_type: "composition",
+        block_type: blockType,
+        parent_id: containerId,
+        sort_order: 0,
+        content: {
+          title: title || reg?.name || "Coleção em Destaque",
+          ...(reg?.defaultProps?.content || {}),
+        },
+        layout_rules: reg?.defaultProps?.layout_rules || {},
+        design_tokens: reg?.defaultProps?.design_tokens || {},
+        data_bindings: {
+          items: { source: bindingSource, key: "all" },
+        },
+      },
+    ];
+
+    pushHistory([...nodes, ...newNodes]);
+    setSelectedNodeId(elementId);
+    setDockedPanel(null);
+    toast.success(`Coleção dinâmica conectada à tela!`);
+  };
+
+  const sanitizeNodesForSave = (rawNodes: any[]) => {
+    return (rawNodes || []).map((n, idx) => ({
+      id: String(n.id || crypto.randomUUID()),
+      version_id: version?.id,
+      parent_id: n.parent_id || null,
+      node_type: n.node_type || "section",
+      block_type: String(n.block_type || "custom_section"),
+      layout_variant: n.layout_variant || null,
+      content: n.content && typeof n.content === "object" ? n.content : {},
+      design_tokens: n.design_tokens && typeof n.design_tokens === "object" ? n.design_tokens : {},
+      layout_rules: n.layout_rules && typeof n.layout_rules === "object" ? n.layout_rules : {},
+      responsive_overrides: n.responsive_overrides && typeof n.responsive_overrides === "object" ? n.responsive_overrides : {},
+      data_bindings: n.data_bindings && typeof n.data_bindings === "object" ? n.data_bindings : {},
+      action_bindings: n.action_bindings && typeof n.action_bindings === "object" ? n.action_bindings : {},
+      sort_order: typeof n.sort_order === "number" ? n.sort_order : idx,
+      is_hidden: Boolean(n.is_hidden),
+    }));
+  };
+
   // Salvamento e Publicação no Supabase
   const handleSave = async () => {
     if (!version?.id) {
@@ -425,15 +677,25 @@ function BuilderEditorPage() {
     const versionId: string = version.id;
     setIsSaving(true);
     try {
-      await saveBuilderNodes({
+      const sanitized = sanitizeNodesForSave(nodes);
+      const res = await saveBuilderNodes({
         data: {
           version_id: versionId,
-          nodes,
+          nodes: sanitized,
         },
       });
+
+      if (res?.version) {
+        setVersion(res.version);
+      }
+      if (res?.nodes && res.nodes.length > 0) {
+        setNodes(res.nodes);
+      }
+
       toast.success("Rascunho salvo com sucesso no banco!");
     } catch (err: any) {
-      toast.error(err.message || "Erro ao salvar rascunho.");
+      const msg = typeof err?.message === "string" ? err.message : "Erro ao salvar rascunho.";
+      toast.error(msg);
     } finally {
       setIsSaving(false);
     }
@@ -444,23 +706,35 @@ function BuilderEditorPage() {
     const versionId: string = version.id;
     setIsPublishing(true);
     try {
+      const sanitized = sanitizeNodesForSave(nodes);
       // 1. Salva estado atual
-      await saveBuilderNodes({
+      const saveRes = await saveBuilderNodes({
         data: {
           version_id: versionId,
-          nodes,
+          nodes: sanitized,
         },
       });
 
+      const activeVersionId = saveRes?.version_id || versionId;
+
       // 2. Publica versão
-      await publishBuilderVersion({
-        data: { version_id: versionId, nodes },
+      const pubRes = await publishBuilderVersion({
+        data: { version_id: activeVersionId, nodes: saveRes?.nodes || sanitized },
       });
 
-      setVersion((prev: any) => ({ ...prev, status: "published" }));
+      if (pubRes?.version) {
+        setVersion(pubRes.version);
+      } else {
+        setVersion((prev: any) => ({ ...prev, id: activeVersionId, status: "published" }));
+      }
+      if (saveRes?.nodes && saveRes.nodes.length > 0) {
+        setNodes(saveRes.nodes);
+      }
+
       toast.success("Vitrine publicada com sucesso! As alterações já estão ativas para os visitantes.");
     } catch (err: any) {
-      toast.error(err.message || "Erro ao publicar versão.");
+      const msg = typeof err?.message === "string" ? err.message : "Erro ao publicar versão.";
+      toast.error(msg);
     } finally {
       setIsPublishing(false);
     }
@@ -551,6 +825,40 @@ function BuilderEditorPage() {
           />
         )}
 
+        {/* Painel de Páginas do Site (Multi-Page Studio) */}
+        {dockedPanel === "pages" && (
+          <BuilderPagesPanel
+            pages={pages}
+            activePageId={activePageId}
+            onSelectPage={(pid) => setActivePageId(pid)}
+            onAddPage={handleAddPage}
+            onDeletePage={handleDeletePage}
+            onDuplicatePage={handleDuplicatePage}
+            onUpdatePageSeo={handleUpdatePageSeo}
+            onClose={() => setDockedPanel(null)}
+          />
+        )}
+
+        {/* Painel de Tema & Estilo Global (Theme Studio) */}
+        {dockedPanel === "design" && (
+          <BuilderGlobalThemePanel
+            theme={themeConfig}
+            onChangeTheme={handleChangeTheme}
+            onClose={() => setDockedPanel(null)}
+          />
+        )}
+
+        {/* Painel de Gerenciamento de Dados & CMS Dinâmico */}
+        {dockedPanel === "cms" && (
+          <BuilderCmsPanel
+            productsCount={(initialData as any).products?.length || 0}
+            destinationsCount={12}
+            collectionsCount={(initialData as any).collections?.length || 0}
+            onInsertDynamicBlock={handleInsertDynamicBlock}
+            onClose={() => setDockedPanel(null)}
+          />
+        )}
+
         {/* Canvas de Edição Central Studio com Live Data Binding */}
         <BuilderCanvas
           viewport={viewport}
@@ -564,8 +872,9 @@ function BuilderEditorPage() {
           onDuplicateNode={duplicateNode}
           onDeleteNode={deleteNode}
           onMoveNode={(id, dir) => moveNode(id, dir)}
-          pageSlug={document?.slug || "vitrine"}
+          pageSlug={pages.find((p) => p.id === activePageId)?.slug || document?.slug || "vitrine"}
           transientData={transientData}
+          themeConfig={themeConfig}
         />
 
         {/* Painel Inspetor à Direita (Editor X Standard - Imagem 4) */}
@@ -581,6 +890,7 @@ function BuilderEditorPage() {
           collections={initialData.collections || []}
           categories={initialData.categories || []}
           treeNodes={treeNodes}
+          pages={pages}
         />
       </div>
 

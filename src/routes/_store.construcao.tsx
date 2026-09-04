@@ -60,7 +60,7 @@ const CONSTRUCAO_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/construcao")({
   head: () => ({
     meta: [
-      { title: "Construção, Ferramentas, Tintas & Casa | Wider" },
+      { title: "Construção, Ferramentas, Tintas & Casa | JAH Master OS" },
       {
         name: "description",
         content:
@@ -222,7 +222,7 @@ function ConstrucaoVerticalPage() {
       ) : (
         <section aria-label="Vitrine de Materiais & Ferramentas">
           {filteredProducts.length === 0 ? (
-            <div className="py-12 text-center bg-card rounded-3xl p-6">
+            <div className="py-12 text-center bg-card rounded-2xl p-6">
               <EmptyState
                 title="Nenhum material encontrado"
                 description="Tente selecionar outro departamento ou busque por ferramentas e marcas."

@@ -107,7 +107,7 @@ export function HorizontalRail({
       {/* ── Horizontal Scroll Container with Snap & Peek ────────── */}
       <div
         ref={scrollContainerRef}
-        className="flex gap-3.5 overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory focus:outline-none"
+        className="flex gap-3.5 overflow-x-auto no-scrollbar pb-2 scrollbar-none snap-x snap-mandatory focus:outline-none"
         tabIndex={0}
         aria-label={`Carrossel de ${title}`}
       >

@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Shield, Image as ImageIcon, Sparkles, Sliders, ExternalLink } from "lucide-react";
+import { Shield, Image as ImageIcon, Layers, Sliders, ExternalLink } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -116,7 +116,7 @@ export function AdminContextualBar({ userRole }: AdminContextualBarProps) {
           className="h-7 px-2 rounded-xl text-[11px] font-bold gap-1 cursor-pointer bg-background/80 hover:bg-muted/70 border-border/60"
         >
           <Link to="/admin-master/botoes" search={{ module: activeNiche.id }}>
-            <Sparkles className="size-3 text-amber-500" />
+            <Layers className="size-3 text-amber-500" />
             <span className="hidden sm:inline">Botões</span>
           </Link>
         </Button>

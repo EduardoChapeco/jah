@@ -62,7 +62,7 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
 
   if (!isAuthenticated) {
     return (
-      <div className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-card border border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+      <div className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-2xl bg-card border border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
         <div className="flex items-center gap-3 text-left">
           <div className="size-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <ChatCircleText className="size-6" weight="bold" />
@@ -216,7 +216,7 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
   };
 
   return (
-    <div className="bg-card rounded-3xl p-4 sm:p-5 flex flex-col gap-3 relative border border-border/70">
+    <div className="bg-card rounded-2xl p-4 sm:p-5 flex flex-col gap-3 relative border border-border/70">
       {/* Cabeçalho de Identidade & Seletor de Template */}
       <div className="flex items-center justify-between pb-2 border-b border-border/40 text-xs">
         <div className="flex items-center gap-2">
@@ -231,7 +231,7 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
         </div>
 
         {/* Seletor Rápido de Template em Cápsula Segmentada */}
-        <div className="flex items-center gap-1 p-1 bg-muted/60 rounded-xl border border-border/40 overflow-x-auto max-w-full">
+        <div className="flex items-center gap-1 p-1 bg-muted/60 rounded-xl border border-border/40 overflow-x-auto no-scrollbar max-w-full">
           <button
             type="button"
             onClick={() => setSelectedTemplate("simple")}
@@ -391,7 +391,7 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
 
       {/* Previews de Mídia */}
       {mediaPreviews.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
           {mediaPreviews.map((preview, index) => (
             <div
               key={index}

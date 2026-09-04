@@ -340,7 +340,7 @@ function GroupTourBoardingPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar pb-1 sm:pb-0">
           <Button
             type="button"
             variant={statusFilter === "all" ? "default" : "outline"}
@@ -512,7 +512,7 @@ function GroupTourBoardingPage() {
               <span className="text-[11px] font-mono text-muted-foreground uppercase font-bold">
                 Paradas Cadastradas
               </span>
-              <div className="space-y-1.5 max-h-40 overflow-y-auto">
+              <div className="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar">
                 {overview.points.map((p: any) => (
                   <div
                     key={p.id}

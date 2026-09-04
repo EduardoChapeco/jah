@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calendar, ChevronRight, Clock, MapPin, Sparkles } from "lucide-react";
+import { Calendar, ChevronRight, Clock, MapPin, Layers } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { TravelItineraryDay } from "@/types/travel-package";

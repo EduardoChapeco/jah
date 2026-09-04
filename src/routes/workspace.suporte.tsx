@@ -22,6 +22,7 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { FileAttachmentUpload } from "@/components/ui/file-attachment-upload";
 import {
   Sheet,
   SheetContent,
@@ -255,7 +256,7 @@ function WorkspaceSupportPage() {
       </div>
 
       {/* ── 3. Lista de Tickets ── */}
-      <div className="p-5 rounded-3xl bg-card border border-border/70 space-y-4">
+      <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-foreground">Meus Chamados</h2>
 
@@ -353,7 +354,7 @@ function WorkspaceSupportPage() {
       <Sheet open={newModalOpen} onOpenChange={setNewModalOpen}>
         <SheetContent
           side="right"
-          className="sm:max-w-xl md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto bg-card flex flex-col h-full"
+          className="sm:max-w-xl md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto no-scrollbar bg-card flex flex-col h-full"
         >
           <SheetHeader className="px-6 py-4 border-b border-border/60 bg-muted/20">
             <SheetTitle className="text-base font-bold text-foreground flex items-center gap-2">
@@ -363,7 +364,7 @@ function WorkspaceSupportPage() {
           </SheetHeader>
 
           <form onSubmit={handleCreateTicket} className="flex-1 flex flex-col justify-between p-0">
-            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+            <div className="flex-1 overflow-y-auto no-scrollbar px-6 py-5 space-y-4">
               {/* Categoria e Prioridade */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
@@ -473,17 +474,14 @@ function WorkspaceSupportPage() {
               </div>
 
               {/* Anexos / Evidência */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-foreground flex items-center gap-1">
-                  <Paperclip className="size-3.5 text-muted-foreground" /> Link de Anexo / Evidência (Opcional)
-                </label>
-                <Input
-                  value={attachmentUrl}
-                  onChange={(e) => setAttachmentUrl(e.target.value)}
-                  placeholder="https://storage... (link para imagem ou documento de log)"
-                  className="h-10 text-xs rounded-xl"
-                />
-              </div>
+              <FileAttachmentUpload
+                value={attachmentUrl}
+                onChange={setAttachmentUrl}
+                onRemove={() => setAttachmentUrl("")}
+                label="Anexo / Evidência do Chamado (Opcional)"
+                helperText="Envie um print de tela, foto, PDF ou log de erro (máx. 20MB)"
+                bucket="cms-media"
+              />
 
               {/* Mensagem Detalhada */}
               <div className="space-y-1">
@@ -580,7 +578,7 @@ function WorkspaceSupportPage() {
           </SheetHeader>
 
           {/* Histórico de Mensagens */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-3">
+          <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-3">
             {threadMessages.map((m) => (
               <div
                 key={m.id}

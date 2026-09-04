@@ -1,33 +1,5 @@
 import React, { useState } from "react";
-import {
-  Plane,
-  Bus,
-  Ship,
-  Anchor,
-  Hotel,
-  Calendar,
-  Check,
-  Plus,
-  Trash2,
-  Sparkles,
-  MapPin,
-  Clock,
-  ShieldCheck,
-  ShieldAlert,
-  Sun,
-  Camera,
-  Layers,
-  Utensils,
-  Coffee,
-  ChevronDown,
-  ChevronUp,
-  Star,
-  X,
-  Compass,
-  ArrowUp,
-  ArrowDown,
-  Loader2,
-} from "lucide-react";
+import { Plane, Bus, Ship, Anchor, Hotel, Calendar, Check, Plus, Trash2, Sliders, MapPin, Clock, ShieldCheck, ShieldAlert, Sun, Camera, Layers, Utensils, Coffee, ChevronDown, ChevronUp, Star, X, Compass, ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -179,13 +151,14 @@ export function TravelPackageForm({ value, onChange, priceCents }: TravelPackage
       destination: {
         ...destination,
         name: dest.name,
-        region: dest.region ? `${dest.region}, ${dest.country}` : dest.country,
+        region: dest.state ? `${dest.state}, ${dest.country}` : (dest.region ? `${dest.region}, ${dest.country}` : dest.country),
         country: dest.country,
         iata_gateway: dest.iata_gateway || destination.iata_gateway,
         gallery_urls: dest.gallery_urls && dest.gallery_urls.length > 0 ? dest.gallery_urls : destination.gallery_urls,
+        description: dest.description || destination.description,
       },
     });
-    toast.success(`Destino "${dest.name}" selecionado!`);
+    toast.success(`Destino "${dest.name}" vinculado ao pacote com sucesso!`);
   };
 
   // Cadastro rápido de destino no banco real
@@ -398,7 +371,7 @@ export function TravelPackageForm({ value, onChange, priceCents }: TravelPackage
         {destinationsList.length > 0 && (
           <div className="p-3 rounded-xl bg-muted/20 border border-border/50 space-y-1.5">
             <Label className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1">
-              <Sparkles className="size-3 text-primary" />
+              <Sliders className="size-3 text-primary" />
               <span>Vincular do Banco de Destinos Cadastrados</span>
             </Label>
             <Select onValueChange={handleSelectDestinationFromBank}>
@@ -711,7 +684,7 @@ export function TravelPackageForm({ value, onChange, priceCents }: TravelPackage
         {hotelsBankList.length > 0 && (
           <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 space-y-1.5">
             <Label className="text-[11px] font-semibold text-primary flex items-center gap-1.5">
-              <Sparkles className="size-3.5 text-primary" />
+              <Sliders className="size-3.5 text-primary" />
               <span>Auto-preencher pelo Banco de Hotéis / Resorts</span>
             </Label>
             <Select onValueChange={handleSelectHotelFromBank}>

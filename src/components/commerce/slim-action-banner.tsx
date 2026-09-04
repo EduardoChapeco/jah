@@ -75,7 +75,7 @@ export function SlimActionBanner({
   return (
     <div
       className={cn(
-        "relative w-full rounded-3xl overflow-hidden min-h-[110px] p-5 sm:p-6 transition-all",
+        "relative w-full rounded-2xl overflow-hidden min-h-[110px] p-5 sm:p-6 transition-all",
         !hasMedia && bgClass,
         className,
       )}

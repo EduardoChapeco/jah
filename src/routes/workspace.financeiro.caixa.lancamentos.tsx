@@ -275,7 +275,7 @@ function CaixaLancamentosPage() {
         <div className="p-4 border-b border-border/40">
           <h3 className="font-semibold text-foreground">Extrato do Turno</h3>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto no-scrollbar">
           <Table>
             <TableHeader>
               <TableRow>

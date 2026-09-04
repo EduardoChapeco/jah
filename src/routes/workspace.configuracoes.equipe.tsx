@@ -1,21 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  Users,
-  UserPlus,
-  ShieldCheck,
-  ShieldAlert,
-  Trash2,
-  Mail,
-  User,
-  CheckCircle2,
-  Lock,
-  ArrowRight,
-  Sparkles,
-  Info,
-  RefreshCw,
-  Building2,
-} from "lucide-react";
+import { Users, UserPlus, ShieldCheck, ShieldAlert, Trash2, Mail, User, CheckCircle2, Lock, ArrowRight, Layers, Info, RefreshCw, Building2 } from 'lucide-react';
 import {
   listTeamMembers,
   inviteTeamMember,
@@ -69,7 +54,7 @@ import {
 export const Route = createFileRoute("/workspace/configuracoes/equipe")({
   head: () => ({
     meta: [
-      { title: "Equipe, Folha & Recrutamento | Workspace Wider" },
+      { title: "Equipe, Folha & Recrutamento | Workspace JAH Master OS" },
       { name: "description", content: "Gerencie os membros, cargos, folha de pagamento e vagas de emprego da sua loja." },
     ],
   }),
@@ -712,7 +697,7 @@ export default function WorkspaceTeamPage() {
 
       {/* ── Modal de Convite de Colaborador ── */}
       <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-        <DialogContent className="sm:max-w-md rounded-3xl p-6">
+        <DialogContent className="sm:max-w-md rounded-2xl p-6">
           <DialogHeader className="space-y-1 text-left">
             <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-2">
               <UserPlus className="size-5" />
@@ -808,7 +793,7 @@ export default function WorkspaceTeamPage() {
         open={Boolean(memberToRemove)}
         onOpenChange={(open) => !open && setMemberToRemove(null)}
       >
-        <AlertDialogContent className="rounded-3xl p-6 sm:max-w-md">
+        <AlertDialogContent className="rounded-2xl p-6 sm:max-w-md">
           <AlertDialogHeader className="space-y-2 text-left">
             <div className="size-12 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mb-1">
               <ShieldAlert className="size-6" />

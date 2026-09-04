@@ -13,15 +13,25 @@ import {
   Flame,
 } from "lucide-react";
 import { getGastronomyReports, type GastronomyReportsDTO } from "@/services/order.functions";
+import { getStoreSettings } from "@/services/store.functions";
+import { NicheOperationalGuard } from "@/components/workspace/niche-operational-guard";
 import { formatMoney } from "@/lib/money";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/relatorios/gastronomia")({
-  head: () => ({ meta: [{ title: "Relatórios Gastronomia | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Relatórios Gastronomia | Workspace JAH Master OS" }] }),
   loader: async () => {
-    return await getGastronomyReports().catch(() => null);
+    try {
+      const [reports, store] = await Promise.all([
+        getGastronomyReports().catch(() => null),
+        getStoreSettings().catch(() => null),
+      ]);
+      return { reports, store };
+    } catch {
+      return { reports: null, store: null };
+    }
   },
   component: GastronomyReportsPage,
 });
@@ -206,7 +216,7 @@ function ChannelBar({
 
 // ─── Página Principal ───────────────────────────────────────────────────
 function GastronomyReportsPage() {
-  const loaderData = Route.useLoaderData() as GastronomyReportsDTO | null;
+  const { reports: loaderData, store } = Route.useLoaderData() as any;
 
   const { data: reports, isLoading } = useQuery({
     queryKey: ["gastronomy-reports"],
@@ -231,8 +241,14 @@ function GastronomyReportsPage() {
   const topCount = reports.topProducts[0]?.count ?? 1;
 
   return (
-    <div className="flex-1 w-full max-w-7xl mx-auto space-y-6 p-4 sm:p-6 lg:p-8 pb-24">
-      <PageHeader title="Relatórios Gastronomia" />
+    <NicheOperationalGuard
+      targetNiche="gastronomy"
+      toolTitle="Relatórios de Gastronomia & Salão"
+      toolDescription="Métricas de tempo de preparo de cozinha, canais de pedidos (mesa, balcão, delivery) e pratos mais vendidos aplicam-se a negócios de alimentação e gastronomia."
+      store={store}
+    >
+      <div className="flex-1 w-full max-w-7xl mx-auto space-y-6 p-4 sm:p-6 lg:p-8 pb-24">
+        <PageHeader title="Relatórios Gastronomia" />
 
       {/* ── KPIs Hoje ── */}
       <section>
@@ -366,7 +382,8 @@ function GastronomyReportsPage() {
             ))}
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </NicheOperationalGuard>
   );
 }

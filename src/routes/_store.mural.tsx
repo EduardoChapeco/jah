@@ -199,7 +199,7 @@ function MuralPage() {
 
         {/* 7. Estado Vazio Honesto */}
         {!isLoading && filteredItems.length === 0 && (
-          <div className="py-16 text-center space-y-3 rounded-3xl border-0 bg-card/60 p-6">
+          <div className="py-16 text-center space-y-3 rounded-2xl border-0 bg-card/60 p-6">
             <p className="text-sm font-semibold text-foreground">
               Nenhuma publicação encontrada
             </p>

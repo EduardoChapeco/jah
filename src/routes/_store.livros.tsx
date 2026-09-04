@@ -56,7 +56,7 @@ const LIVROS_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/livros")({
   head: () => ({
     meta: [
-      { title: "Livros, Papelaria & Presentes Criativos | Wider" },
+      { title: "Livros, Papelaria & Presentes Criativos | JAH Master OS" },
       {
         name: "description",
         content:
@@ -213,7 +213,7 @@ function LivrosVerticalPage() {
       ) : (
         <section aria-label="Vitrine de Produtos">
           {filteredProducts.length === 0 ? (
-            <div className="py-12 text-center bg-card rounded-3xl p-6">
+            <div className="py-12 text-center bg-card rounded-2xl p-6">
               <EmptyState
                 title="Nenhum livro ou item de papelaria encontrado"
                 description="Tente selecionar outro departamento ou busque por títulos específicos."

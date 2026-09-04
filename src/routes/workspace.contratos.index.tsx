@@ -45,7 +45,7 @@ function ContractsDashboard() {
       </p>
 
       {contracts.length === 0 ? (
-        <div className="py-20 text-center space-y-4 bg-muted/10 rounded-3xl p-8 border border-dashed">
+        <div className="py-20 text-center space-y-4 bg-muted/10 rounded-2xl p-8 border border-dashed">
           <FileSignature size={48} className="text-muted-foreground/30 mx-auto" />
           <h2 className="text-sm font-bold text-foreground">Nenhum contrato criado ainda</h2>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">

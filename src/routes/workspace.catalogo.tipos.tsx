@@ -212,7 +212,7 @@ function ProductTypesPage() {
           if (!val) setEditingType(null);
         }}
       >
-        <SheetContent side="right" className="max-w-2xl overflow-y-auto p-6 bg-card">
+        <SheetContent side="right" className="max-w-2xl overflow-y-auto no-scrollbar p-6 bg-card">
             <SheetHeader className="space-y-1.5 pb-4">
               <SheetTitle className="text-lg font-bold text-foreground">
                 {editingType ? "Editar tipo de produto" : "Criar tipo de produto"}
@@ -400,7 +400,7 @@ function ProductTypesPage() {
         <EmptyState title="Nenhum tipo de produto cadastrado" />
       ) : (
         <div className="bg-card rounded-2xl border border-border/60 overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto no-scrollbar">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30 border-b border-border/40">

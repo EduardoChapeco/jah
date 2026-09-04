@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Ticket, Calendar, QrCode, MapPin, Sparkles, Clock, CheckCircle2 } from "lucide-react";
+import { Ticket, Calendar, QrCode, MapPin, Layers, Clock, CheckCircle2 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/lib/money";
@@ -56,7 +56,7 @@ function CustomerTicketsPage() {
 
       {/* ── 2. Lista de Ingressos ou Empty State ── */}
       {ticketOrders.length === 0 ? (
-        <div className="rounded-3xl border border-border/60 bg-card p-10 text-center space-y-4 max-w-lg mx-auto">
+        <div className="rounded-2xl border border-border/60 bg-card p-10 text-center space-y-4 max-w-lg mx-auto">
           <div className="size-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
             <Ticket className="size-7" />
           </div>

@@ -2,32 +2,7 @@ import { DocumentsPanel } from "@/components/crm/DocumentsPanel";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  User,
-  ChevronLeft,
-  Save,
-  MapPin,
-  Trash2,
-  Plus,
-  Check,
-  ShieldCheck,
-  FileText,
-  Mail,
-  Phone,
-  Settings,
-  Sparkles,
-  Search,
-  AlertTriangle,
-  Gift,
-  DollarSign,
-  HeartPulse,
-  Calendar,
-  Clock,
-  Building,
-  CreditCard,
-  History,
-  Tag,
-} from "lucide-react";
+import { User, ChevronLeft, Save, MapPin, Trash2, Plus, Check, ShieldCheck, FileText, Mail, Phone, Settings, Layers, Search, AlertTriangle, Gift, DollarSign, HeartPulse, Calendar, Clock, Building, CreditCard, History, Tag } from 'lucide-react';
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -562,7 +537,7 @@ function CustomerDetailPage() {
 
       {/* Drawer Lateral no Desktop / Fullscreen no Mobile: Conceder Crédito */}
       <Sheet open={isCreditModalOpen} onOpenChange={setIsCreditModalOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md flex flex-col justify-between overflow-y-auto">
+        <SheetContent side="right" className="w-full sm:max-w-md flex flex-col justify-between overflow-y-auto no-scrollbar">
           <div>
             <SheetHeader className="pb-4">
               <SheetTitle>Conceder Crédito em Loja</SheetTitle>
@@ -620,7 +595,7 @@ function CustomerDetailPage() {
 
       {/* Drawer Lateral no Desktop / Fullscreen no Mobile: Novo Atendimento / Anamnese */}
       <Sheet open={isClinicalModalOpen} onOpenChange={setIsClinicalModalOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-lg flex flex-col justify-between overflow-y-auto">
+        <SheetContent side="right" className="w-full sm:max-w-lg flex flex-col justify-between overflow-y-auto no-scrollbar">
           <div>
             <SheetHeader className="pb-4">
               <SheetTitle>Registro de Atendimento & Anamnese</SheetTitle>

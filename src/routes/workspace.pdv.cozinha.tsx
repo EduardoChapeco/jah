@@ -44,6 +44,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { getStoreSettings } from "@/services/store.functions";
+import { NicheOperationalGuard } from "@/components/workspace/niche-operational-guard";
 
 // ─── Estações de Preparo ──────────────────────────────────────────
 type PrepStation = "all" | "chapa" | "forno" | "bebidas" | "sobremesas";
@@ -124,11 +126,20 @@ function playKitchenChime() {
 }
 
 export const Route = createFileRoute("/workspace/pdv/cozinha")({
-  head: () => ({ meta: [{ title: "KDS Cozinha — Estação de Preparo | Wider" }] }),
+  head: () => ({ meta: [{ title: "KDS Cozinha — Estação de Preparo | JAH Master OS" }] }),
+  loader: async () => {
+    try {
+      const store = await getStoreSettings().catch(() => null);
+      return { store };
+    } catch {
+      return { store: null };
+    }
+  },
   component: KDSDashboard,
 });
 
 function KDSDashboard() {
+  const { store } = Route.useLoaderData() as any;
   const queryClient = useQueryClient();
   const [previousPendingCount, setPreviousPendingCount] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -312,8 +323,14 @@ function KDSDashboard() {
   }, [colPending, colProcessing]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] max-w-full overflow-hidden bg-muted/15 text-foreground font-sans">
-      {/* ── Topbar da Cozinha ── */}
+    <NicheOperationalGuard
+      targetNiche="gastronomy"
+      toolTitle="KDS Cozinha & Estação de Preparo"
+      toolDescription="O painel KDS (Kitchen Display System) com tempos de cocção, alertas sonoros e divisão por estações de cozinha é desenhado especificamente para restaurantes e gastronomia."
+      store={store}
+    >
+      <div className="flex flex-col h-[calc(100vh-4rem)] max-w-full overflow-hidden bg-muted/15 text-foreground font-sans">
+        {/* ── Topbar da Cozinha ── */}
       <header className="flex flex-col gap-2 px-4 sm:px-6 pt-3 pb-2 bg-card border-b border-border/80 shrink-0">
         {/* Linha 1: Identidade + Ações */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -346,7 +363,7 @@ function KDSDashboard() {
               variant="outline"
               size="sm"
               onClick={() => setItemsSummaryOpen(true)}
-              className="gap-1.5 text-xs font-bold rounded-xl h-8"
+              className="gap-1.5 text-xs font-bold rounded-xl min-h-[44px] px-3.5"
             >
               <Layers className="size-3.5 text-primary" />
               <span>Lote ({itemsSummary.reduce((acc, i) => acc + i.count, 0)})</span>
@@ -355,7 +372,7 @@ function KDSDashboard() {
             <Button
               variant="outline"
               size="sm"
-              className="gap-1.5 text-xs font-bold rounded-xl h-8"
+              className="gap-1.5 text-xs font-bold rounded-xl min-h-[44px] px-3.5"
               onClick={() => setSoundEnabled(!soundEnabled)}
               title={soundEnabled ? "Desativar som (S)" : "Ativar som (S)"}
             >
@@ -366,7 +383,7 @@ function KDSDashboard() {
             <Button
               variant="outline"
               size="sm"
-              className="gap-1.5 text-xs font-bold rounded-xl h-8"
+              className="gap-1.5 text-xs font-bold rounded-xl min-h-[44px] px-3.5"
               onClick={toggleFullscreen}
               title="Tela cheia (F)"
             >
@@ -444,7 +461,7 @@ function KDSDashboard() {
       </header>
 
       {/* ── Kanban Board de Produção ── */}
-      <main className="flex-1 overflow-x-auto overflow-y-hidden p-4 md:p-6">
+      <main className="flex-1 overflow-x-auto no-scrollbar overflow-y-hidden p-4 md:p-6">
         <div className="flex gap-4 md:gap-6 h-full items-start min-w-[1080px]">
           <KitchenColumn
             title="Recebidos (Fila)"
@@ -506,7 +523,7 @@ function KDSDashboard() {
             </SheetTitle>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto py-4 space-y-3">
+          <div className="flex-1 overflow-y-auto no-scrollbar py-4 space-y-3">
             {/* Resumo por estação */}
             {Object.entries(stationCounts).some(([, v]) => v > 0) && (
               <div className="grid grid-cols-2 gap-2">
@@ -643,6 +660,7 @@ function KDSDashboard() {
         </DialogContent>
       </Dialog>
     </div>
+  </NicheOperationalGuard>
   );
 }
 

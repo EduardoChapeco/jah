@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router";
 import {
   Search,
   X,
-  Sparkles,
   Package,
   Tags,
   Boxes,
@@ -40,6 +39,10 @@ import {
   ChefHat,
   Armchair,
   UtensilsCrossed,
+  CreditCard,
+  Percent,
+  Layers,
+  Award,
 } from "lucide-react";
 import {
   Dialog,
@@ -52,51 +55,178 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
+import { getNicheSemantics } from "@/lib/niche-semantics";
+
 interface WorkspaceAllToolsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   activeStore?: any;
 }
 
-// ── FERRAMENTAS USADAS COM FREQUÊNCIA (Padrão Topo Meta Suite) ──
-const FREQUENT_TOOLS = [
-  {
-    title: "Cardápio & Produtos",
-    path: "/workspace/catalogo/produtos",
-    icon: Package,
-    badge: "Catálogo",
-  },
-  {
-    title: "Gestor de Pedidos (KDS)",
-    path: "/workspace/pedidos/gestor",
-    icon: ClipboardList,
-    badge: "Cozinha / Vendas",
-  },
-  {
-    title: "Frente de Caixa (PDV)",
-    path: "/workspace/pdv",
-    icon: Store,
-    badge: "Balcão",
-  },
-  {
-    title: "Clientes & CRM",
-    path: "/workspace/clientes",
-    icon: Users,
-    badge: "Contatos",
-  },
-  {
-    title: "Financeiro & DRE",
-    path: "/workspace/financeiro",
-    icon: DollarSign,
-    badge: "Caixa",
-  },
-  {
-    title: "Configurações da Loja",
-    path: "/workspace/configuracoes",
-    icon: Settings,
-    badge: "Ajustes",
-  },
-];
+function getFrequentToolsForNiche(semantics: any) {
+  if (semantics.nicheId === "tourism") {
+    return [
+      {
+        title: semantics.catalogTitle || "Pacotes & Roteiros",
+        path: "/workspace/catalogo/produtos",
+        icon: Package,
+        badge: "Roteiros",
+      },
+      {
+        title: "Central de Cotações",
+        path: "/workspace/turismo/cotacoes",
+        icon: Plane,
+        badge: "Leads",
+      },
+      {
+        title: "Lâminas & Propostas",
+        path: "/workspace/turismo/propostas",
+        icon: FileSpreadsheet,
+        badge: "Studio",
+      },
+      {
+        title: "Clientes & Passageiros",
+        path: "/workspace/clientes",
+        icon: Users,
+        badge: "CRM",
+      },
+      {
+        title: "Financeiro & DRE",
+        path: "/workspace/financeiro",
+        icon: DollarSign,
+        badge: "Caixa",
+      },
+      {
+        title: "Configurações da Agência",
+        path: "/workspace/configuracoes",
+        icon: Settings,
+        badge: "Ajustes",
+      },
+    ];
+  }
+
+  if (semantics.nicheId === "services") {
+    return [
+      {
+        title: semantics.catalogTitle || "Catálogo de Serviços",
+        path: "/workspace/agenda/servicos",
+        icon: Layers,
+        badge: "Serviços",
+      },
+      {
+        title: "Grade de Agendamentos",
+        path: "/workspace/agenda",
+        icon: Calendar,
+        badge: "Agenda",
+      },
+      {
+        title: "Orçamentos & Propostas",
+        path: "/workspace/orcamentos",
+        icon: FileSpreadsheet,
+        badge: "Propostas",
+      },
+      {
+        title: "Clientes & CRM",
+        path: "/workspace/clientes",
+        icon: Users,
+        badge: "Contatos",
+      },
+      {
+        title: "Financeiro & DRE",
+        path: "/workspace/financeiro",
+        icon: DollarSign,
+        badge: "Caixa",
+      },
+      {
+        title: "Configurações",
+        path: "/workspace/configuracoes",
+        icon: Settings,
+        badge: "Ajustes",
+      },
+    ];
+  }
+
+  if (semantics.nicheId === "gastronomy") {
+    return [
+      {
+        title: "Cardápio & Itens",
+        path: "/workspace/catalogo/produtos",
+        icon: Package,
+        badge: "Menu",
+      },
+      {
+        title: "Gestor de Pedidos (KDS)",
+        path: "/workspace/pedidos/gestor",
+        icon: ClipboardList,
+        badge: "Cozinha",
+      },
+      {
+        title: "Salão & Comandas",
+        path: "/workspace/pdv/comandas",
+        icon: UtensilsCrossed,
+        badge: "Mesas",
+      },
+      {
+        title: "Frente de Caixa (PDV)",
+        path: "/workspace/pdv",
+        icon: Store,
+        badge: "Balcão",
+      },
+      {
+        title: "Financeiro & DRE",
+        path: "/workspace/financeiro",
+        icon: DollarSign,
+        badge: "Caixa",
+      },
+      {
+        title: "Configurações da Loja",
+        path: "/workspace/configuracoes",
+        icon: Settings,
+        badge: "Ajustes",
+      },
+    ];
+  }
+
+  // Padrão: Varejo / Comércio Geral
+  return [
+    {
+      title: semantics.catalogTitle || "Produtos & Estoque",
+      path: "/workspace/catalogo/produtos",
+      icon: Package,
+      badge: "Catálogo",
+    },
+    {
+      title: "Histórico de Vendas",
+      path: "/workspace/pedidos",
+      icon: ShoppingBag,
+      badge: "Vendas",
+    },
+    {
+      title: "Frente de Caixa (PDV)",
+      path: "/workspace/pdv",
+      icon: Store,
+      badge: "Balcão",
+    },
+    {
+      title: "Clientes & CRM",
+      path: "/workspace/clientes",
+      icon: Users,
+      badge: "Contatos",
+    },
+    {
+      title: "Financeiro & DRE",
+      path: "/workspace/financeiro",
+      icon: DollarSign,
+      badge: "Caixa",
+    },
+    {
+      title: "Configurações da Loja",
+      path: "/workspace/configuracoes",
+      icon: Settings,
+      badge: "Ajustes",
+    },
+  ];
+}
 
 // ── GRADE SETORIAL COMPLETA DE FERRAMENTAS ──
 const SECTOR_TOOL_GROUPS = [
@@ -128,7 +258,7 @@ const SECTOR_TOOL_GROUPS = [
     tools: [
       { title: "Caixa de Entrada / Chat", path: "/workspace/atendimento", icon: MessageSquare, badge: "Novo" },
       { title: "Base de Clientes (CRM)", path: "/workspace/clientes", icon: Users },
-      { title: "Avaliações & Reputação", path: "/workspace/avaliacoes", icon: Sparkles },
+      { title: "Avaliações & Reputação", path: "/workspace/avaliacoes", icon: Award },
       { title: "Agenda de Atendimentos", path: "/workspace/agenda", icon: Calendar },
       { title: "Orçamentos & Propostas", path: "/workspace/orcamentos", icon: FileSpreadsheet },
     ],
@@ -151,7 +281,7 @@ const SECTOR_TOOL_GROUPS = [
     description: "Cotações, estúdio de lâminas, contratos com assinatura digital e excursões",
     tools: [
       { title: "Central de Cotações", path: "/workspace/turismo/cotacoes", icon: Plane },
-      { title: "Lâminas & Propostas (Studio)", path: "/workspace/turismo/propostas", icon: Sparkles },
+      { title: "Lâminas & Propostas (Studio)", path: "/workspace/turismo/propostas", icon: FileSpreadsheet },
       { title: "Contratos & Assinatura Digital", path: "/workspace/turismo/contratos", icon: FileText },
       { title: "Grupos Terrestres & Ônibus (ANTT)", path: "/workspace/turismo/grupos", icon: Bus },
       { title: "Passeios & Ingressos", path: "/workspace/eventos", icon: Calendar },
@@ -190,13 +320,42 @@ export function WorkspaceAllToolsDialog({
   activeStore,
 }: WorkspaceAllToolsDialogProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const semantics = useMemo(() => getNicheSemantics(activeStore), [activeStore]);
+  const frequentTools = useMemo(() => getFrequentToolsForNiche(semantics), [semantics]);
 
-  // Filtro dinâmico por palavra-chave
+  // Filtro dinâmico por palavra-chave e priorização por nicho
   const filteredSectors = useMemo(() => {
-    if (!searchQuery.trim()) return SECTOR_TOOL_GROUPS;
+    let baseSectors = [...SECTOR_TOOL_GROUPS];
+
+    if (semantics.nicheId === "tourism") {
+      const tourismIdx = baseSectors.findIndex((s) => s.id === "tourism");
+      if (tourismIdx > -1) {
+        const [tourismGroup] = baseSectors.splice(tourismIdx, 1);
+        baseSectors = [tourismGroup, ...baseSectors];
+      }
+      // Oculta ferramentas gastronômicas irrelevantes para turismo
+      baseSectors = baseSectors.map((s) => {
+        if (s.id === "commerce") {
+          return {
+            ...s,
+            description: "Gestão de produtos, cotações e orçamentos",
+            tools: s.tools.filter((t) => !["/workspace/pdv/cozinha", "/workspace/reservas"].includes(t.path)),
+          };
+        }
+        if (s.id === "analytics") {
+          return {
+            ...s,
+            tools: s.tools.filter((t) => t.path !== "/workspace/relatorios/gastronomia"),
+          };
+        }
+        return s;
+      });
+    }
+
+    if (!searchQuery.trim()) return baseSectors;
     const q = searchQuery.toLowerCase();
 
-    return SECTOR_TOOL_GROUPS.map((sector) => ({
+    return baseSectors.map((sector) => ({
       ...sector,
       tools: sector.tools.filter(
         (t) =>
@@ -205,11 +364,11 @@ export function WorkspaceAllToolsDialog({
           sector.description.toLowerCase().includes(q)
       ),
     })).filter((sector) => sector.tools.length > 0);
-  }, [searchQuery]);
+  }, [searchQuery, semantics]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0 rounded-3xl border border-border/80 bg-background/98 backdrop-blur-2xl shadow-2xl overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0 rounded-2xl border border-border/80 bg-background/98 backdrop-blur-2xl shadow-2xl overflow-hidden flex flex-col">
         {/* ── 1. Top Header com Busca Ampla (Padrão Meta Studio) ── */}
         <div className="p-4 sm:p-6 pb-4 border-b border-border/60 bg-muted/15 shrink-0 space-y-3">
           <div className="flex items-center justify-between">
@@ -248,7 +407,7 @@ export function WorkspaceAllToolsDialog({
         </div>
 
         {/* ── 2. Conteúdo Scrollável com Gôndola e Grid Setorial ── */}
-        <ScrollArea className="flex-1 p-4 sm:p-6 overflow-y-auto">
+        <ScrollArea className="flex-1 p-4 sm:p-6 overflow-y-auto no-scrollbar">
           <div className="space-y-6 max-w-5xl mx-auto pb-4">
             {/* Seção: Usadas com frequência (Exibida quando não há busca ativa) */}
             {!searchQuery && (
@@ -257,7 +416,7 @@ export function WorkspaceAllToolsDialog({
                   Usadas com frequência
                 </span>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
-                  {FREQUENT_TOOLS.map((tool) => {
+                  {frequentTools.map((tool) => {
                     const Icon = tool.icon;
                     return (
                       <Link

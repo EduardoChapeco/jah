@@ -100,7 +100,7 @@ function ReceivablesDashboard() {
       </p>
 
       {receivables.length === 0 ? (
-        <div className="py-20 text-center space-y-4 bg-muted/10 rounded-3xl p-8 border border-dashed">
+        <div className="py-20 text-center space-y-4 bg-muted/10 rounded-2xl p-8 border border-dashed">
           <Banknote size={48} className="text-muted-foreground/30 mx-auto" />
           <h2 className="text-lg font-bold text-foreground">Nenhuma conta encontrada</h2>
           <p className="text-sm text-muted-foreground">Você ainda não tem acordos financeiros firmados.</p>
@@ -110,7 +110,7 @@ function ReceivablesDashboard() {
           {receivables.map((rec: any) => {
             const isCreditor = rec.creditor?.id !== undefined; // Actually depends on logged in user, but UI groups it globally here for simplicity as listUserReceivables handles OR.
             return (
-              <div key={rec.id} className="bg-card rounded-3xl border shadow-sm overflow-hidden">
+              <div key={rec.id} className="bg-card rounded-2xl border shadow-sm overflow-hidden">
                 {/* Header do Recebível */}
                 <div className="p-6 border-b bg-muted/20 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                   <div>

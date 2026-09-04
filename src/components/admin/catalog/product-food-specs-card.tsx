@@ -1,17 +1,5 @@
 import React from "react";
-import {
-  Sparkles,
-  Leaf,
-  Apple,
-  Wine,
-  Users,
-  Scale,
-  Clock,
-  ShieldCheck,
-  Tag,
-  Flame,
-  Check,
-} from "lucide-react";
+import { Layers, Leaf, Apple, Wine, Users, Scale, Clock, ShieldCheck, Tag, Flame, Check } from 'lucide-react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -39,10 +27,10 @@ const DIETARY_OPTIONS = [
   { id: "vegano", label: "Vegano", icon: Leaf },
   { id: "vegetariano", label: "Vegetariano", icon: Leaf },
   { id: "organico", label: "Orgânico", icon: Apple },
-  { id: "sem_acucar", label: "Sem açúcar", icon: Sparkles },
+  { id: "sem_acucar", label: "Sem açúcar", icon: Layers },
   { id: "sem_lactose", label: "Sem lactose", icon: ShieldCheck },
   { id: "sem_gluten", label: "Sem glúten", icon: ShieldCheck },
-  { id: "artesanal", label: "Produção Artesanal", icon: Sparkles },
+  { id: "artesanal", label: "Produção Artesanal", icon: Layers },
 ];
 
 const BEVERAGE_OPTIONS = [
@@ -82,7 +70,7 @@ export function ProductFoodSpecsCard({
       <div className="flex items-center justify-between gap-3 border-b border-border/40 pb-3">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
-            <Sparkles className="size-4 text-primary" />
+            <Layers className="size-4 text-primary" />
             <h3 className="text-sm font-bold text-foreground">Especificações Gastronômicas & Destaque</h3>
             <Badge variant="outline" className="text-[10px] font-bold bg-primary/10 text-primary border-none">
               Padrão iFood

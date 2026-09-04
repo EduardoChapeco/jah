@@ -288,7 +288,7 @@ function AdminMasterBannersPage() {
 
       {/* Clean Niche Tabs */}
       <div className="space-y-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 scrollbar-none">
           {PLACEMENT_OPTIONS.map((opt) => {
             const count =
               opt.id === "all"

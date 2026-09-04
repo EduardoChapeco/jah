@@ -31,27 +31,11 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import {
-  User,
-  Camera,
-  ExternalLink,
-  Loader2,
-  Image as ImageIcon,
-  Trash2,
-  Check,
-  Briefcase,
-  Link as LinkIcon,
-  Plus,
-  Building2,
-  GraduationCap,
-  Sparkles,
-  Award,
-  Store,
-} from "lucide-react";
+import { User, Camera, ExternalLink, Loader2, Image as ImageIcon, Trash2, Check, Briefcase, Link as LinkIcon, Plus, Building2, GraduationCap, Layers, Award, Store } from 'lucide-react';
 import { ProfessionalResumeEditor, ResumeDataDTO } from "@/components/profile/professional-resume-editor";
 
 export const Route = createFileRoute("/_store/conta/perfil")({
-  head: () => ({ meta: [{ title: "Meu Perfil | Wider" }] }),
+  head: () => ({ meta: [{ title: "Meu Perfil | JAH Master OS" }] }),
   loader: async () => {
     try {
       const res = await getProfile();
@@ -362,7 +346,7 @@ function ProfilePage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Tabs defaultValue="dados" className="space-y-6">
-          <div className="flex items-center overflow-x-auto pb-1 scrollbar-none ">
+          <div className="flex items-center overflow-x-auto no-scrollbar pb-1 scrollbar-none ">
             <TabsList className="bg-transparent p-0 gap-2 h-auto flex flex-nowrap">
               <TabsTrigger
                 value="dados"
@@ -397,7 +381,7 @@ function ProfilePage() {
               {/* Capa Panorâmica 1090px */}
               <div className="space-y-2">
                 <Label className="text-xs font-bold text-muted-foreground">Foto de Capa Panorâmica (1090px)</Label>
-                <div className="w-full h-28 sm:h-36 rounded-3xl bg-muted/30 overflow-x-auto overflow-y-hidden scrollbar-none flex items-center gap-3 pr-3 border border-border/40 relative group">
+                <div className="w-full h-28 sm:h-36 rounded-2xl bg-muted/30 overflow-x-auto no-scrollbar overflow-y-hidden scrollbar-none flex items-center gap-3 pr-3 border border-border/40 relative group">
                   {formData.coverUrl ? (
                     <img src={formData.coverUrl} alt="Capa" className="h-full min-w-[1090px] object-cover flex-shrink-0 select-none rounded-2xl" />
                   ) : (
@@ -434,7 +418,7 @@ function ProfilePage() {
               {/* Avatar Circular */}
               <div className="flex items-center gap-4 pt-2">
                 <div className="relative">
-                  <div className="size-20 sm:size-24 rounded-3xl overflow-hidden bg-muted flex items-center justify-center">
+                  <div className="size-20 sm:size-24 rounded-2xl overflow-hidden bg-muted flex items-center justify-center">
                     {formData.avatarUrl ? (
                       <img src={formData.avatarUrl} alt="Avatar" className="size-full object-cover" />
                     ) : (

@@ -1,33 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import {
-  Plus,
-  ImageIcon,
-  ShoppingBag,
-  AlignLeft,
-  Star,
-  Zap,
-  Store,
-  Grid,
-  Columns2,
-  Megaphone,
-  MessageSquare,
-  Timer,
-  Shield,
-  LayoutTemplate,
-  ListOrdered,
-  Map,
-  Video,
-  Layers,
-  GripVertical,
-  ChevronUp,
-  ChevronDown,
-  Trash2,
-  SlidersHorizontal,
-  Sparkles,
-  MousePointerClick,
-  Sliders,
-} from "lucide-react";
+import { Plus, ImageIcon, ShoppingBag, AlignLeft, Star, Zap, Store, Grid, Columns2, Megaphone, MessageSquare, Timer, Shield, LayoutTemplate, ListOrdered, Map, Video, Layers, GripVertical, ChevronUp, ChevronDown, Trash2, SlidersHorizontal, Sliders, MousePointerClick } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
