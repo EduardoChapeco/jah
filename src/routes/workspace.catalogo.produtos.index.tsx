@@ -450,7 +450,7 @@ function AdminProductsPage() {
               <Download className="size-3.5" aria-hidden />
               Exportar
             </Button>
-            <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground ">
+            <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground h-11 min-h-[44px] px-4">
               <Link to="/workspace/catalogo/produtos/novo">
                 <Plus className="size-3.5" aria-hidden />
                 {semantics.newItemAction}
