@@ -27,6 +27,7 @@ import {
 } from "@/services/squads-runtime.functions";
 
 export const Route = createFileRoute("/workspace/squads/")({
+  head: () => ({ meta: [{ title: "Squads Agênticos Especializados | JAH Master OS" }] }),
   component: SquadsWorkspacePage,
 });
 

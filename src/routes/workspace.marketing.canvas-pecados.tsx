@@ -28,6 +28,7 @@ import {
 import { SevenSinHookDTO } from "@/types/squads-and-onboarding";
 
 export const Route = createFileRoute("/workspace/marketing/canvas-pecados")({
+  head: () => ({ meta: [{ title: "Canvas dos 7 Pecados Capitais | JAH Master OS" }] }),
   component: SevenSinsCanvasPage,
 });
 

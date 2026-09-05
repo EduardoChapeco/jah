@@ -109,6 +109,21 @@ const GROUP_MASTER_TASKS: NavGroup = {
   ],
 };
 
+
+const GROUP_AGENTIC_INTELLIGENCE: NavGroup = {
+  id: "intelligence-squads",
+  label: "Squads & Inteligência",
+  icon: Layers,
+  section: "master",
+  items: [
+    { path: "/workspace/squads", label: "Squads Especializados", icon: Bot },
+    { path: "/workspace/simlab/focus-group", label: "SimLab Focus Group", icon: Users },
+    { path: "/workspace/inteligencia/radar", label: "Radar de Mercado & DNA", icon: Target },
+    { path: "/workspace/marketing/canvas-pecados", label: "Canvas dos 7 Pecados", icon: Flame },
+    { path: "/workspace/onboarding/revisao", label: "Onboarding & Catálogo Mestre", icon: Layers },
+  ],
+};
+
 const GROUP_MASTER_INBOX: NavGroup = {
   id: "master-inbox",
   label: "Atendimento & Suporte",
@@ -569,6 +584,7 @@ export function resolveWorkspaceNavigation(
       GROUP_OVERVIEW,
       GROUP_MASTER_TASKS,
       GROUP_MASTER_INBOX,
+      GROUP_AGENTIC_INTELLIGENCE,
       GROUP_TURISMO_COMMERCIAL,
       GROUP_TURISMO_OPERATIONS,
       GROUP_TURISMO_CATALOG,
@@ -593,7 +609,8 @@ export function resolveWorkspaceNavigation(
       GROUP_NEWS,
       GROUP_EDUCATION,
       GROUP_WHOLESALE,
-      GROUP_MARKETING_VITRINE,
+      GROUP_AGENTIC_INTELLIGENCE,
+    GROUP_MARKETING_VITRINE,
       GROUP_FINANCE_CLEAN,
       GROUP_TEAM_RH,
       GROUP_SETTINGS,

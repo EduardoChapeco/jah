@@ -35,6 +35,7 @@ import {
 } from "@/types/squads-and-onboarding";
 
 export const Route = createFileRoute("/workspace/inteligencia/radar")({
+  head: () => ({ meta: [{ title: "Radar de Mercado & Brand DNA | JAH Master OS" }] }),
   component: MarketRadarPage,
 });
 
