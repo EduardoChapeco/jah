@@ -513,3 +513,26 @@
    - Build de produção completo (`vite build`) executou com **código 0**, gerando bundles Client, SSR e Cloudflare Nitro Pages com sucesso.
    - Vitest: 38 test files, 197 testes passando 100%.
    - Runtime E2E no navegador real: Simulação em tela mobile (390x844) comprovou renderização de score cards (63/100, 80%, 64/100), objeções e verbatims de 5 personas sintéticas.
+
+## Ciclo 86 — Refatoração Silenciosa Apple HIG & Anti-Pill em Rotas do Workspace e Admin Master
+
+- **Data/Hora:** 2026-09-05T09:15:00-03:00
+- **Módulo:** Anúncios de Marketing, Calendário Editorial, Botões Master e Hubs Globais
+- **Commit Base:** `546562b`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. `workspace.marketing.anuncios.tsx` possuía containers `squircle-soft` herdados e badges em pílula inflada (`rounded-full`), além de botão de CTA com altura sub-dimensionada (`h-9`).
+2. `workspace.cms.calendario.tsx` utilizava `squircle-soft` no estado vazio e nos cards de posts, além de inputs com altura de 36px (`h-9`) em vez do padrão tátil ergonômico de 44px.
+3. `admin-master.botoes.tsx`, `admin-master.hubs.tsx` e `top-bar.tsx` mantinham importações ou uso de `Sparkle`, violando a Regra Absoluta 1 (Zero Sparkles).
+
+### Ações Executadas
+1. **Refatoração Visual Apple HIG**:
+   - `workspace.marketing.anuncios.tsx`: Erradicados todos os `squircle-soft` em favor de `rounded-2xl border border-border/60 bg-card p-4 sm:p-5 shadow-xs`. Grid adaptativo com quebra fluida (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`). Badges substituídos por `rounded-md font-medium text-[11px] px-2 py-0.5`. Botão primário expandido para `h-11 px-5` (44px min).
+   - `workspace.cms.calendario.tsx`: Substituídos os containers por geometria contida `rounded-2xl border`, inputs do modal e botão com `h-11 text-xs`. Modal com `max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto no-scrollbar`.
+   - `admin-master.botoes.tsx`: Substituído ícone `Sparkle` pelo canônico `Tag`. Badges convertidos para geometria anti-pill. Botões ajustados para `h-11 px-4`.
+   - `admin-master.hubs.tsx` & `top-bar.tsx`: Erradicados imports proibidos de `Sparkle`.
+2. **Validação Rigorosa**:
+   - Suíte de testes de design `src/routes/-apple-hig-design.test.ts` expandida para incluir as 4 rotas, passando 100%.
+   - Build de produção (`vite build`) executou com **código de saída 0**, gerando com sucesso os bundles Client, SSR e Cloudflare Nitro Pages.
+   - Validação E2E no navegador real comprovou renderização silenciosa e ergonômica sem quebras nas resoluções mobile (390x844).

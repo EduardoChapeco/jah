@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "@tanstack/react-router";
+import { DEFAULT_BRAND_NAME } from "@/lib/brand";
 import { LocationMasterPill } from "@/components/location/location-master-pill";
 import { MobilityQuickButton } from "@/components/mobility/mobility-quick-button";
 import { UtilityCluster } from "@/components/shell/utility-cluster";
@@ -23,8 +24,7 @@ import {
  Key,
  Compass,
  MapPin,
- Sparkle,
- MagnifyingGlass,
+  MagnifyingGlass,
 } from "@phosphor-icons/react";
 
 export interface MobileQuickChip {
@@ -86,13 +86,13 @@ export function TopBar({ session, brandSettings }: TopBarProps) {
  {brandSettings?.show_logo !== false && brandSettings?.logo_url ? (
  <img
  src={brandSettings.logo_url}
- alt={brandSettings.platform_name || "JAH"}
+ alt={brandSettings.platform_name && brandSettings.platform_name !== "Wider" ? brandSettings.platform_name : DEFAULT_BRAND_NAME}
  className="h-7 max-w-[100px] object-contain"
  />
  ) : null}
  {(brandSettings?.show_name !== false || !brandSettings?.logo_url) && (
  <span className="font-display font-black text-xl sm:text-2xl tracking-tight text-foreground leading-none">
- {brandSettings?.platform_name || "JAH"}
+ {brandSettings?.platform_name && brandSettings.platform_name !== "Wider" ? brandSettings.platform_name : DEFAULT_BRAND_NAME}
  </span>
  )}
  </Link>
