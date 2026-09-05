@@ -107,3 +107,16 @@
 | **36. Chat Realtime**               | Atendimento em tempo real entre cliente e vendedor.           | `src/services/chat.functions.ts`     | `chat_threads`, `chat_messages`      | `COMPROVADO` (BFF completo com listCustomerChatThreads, startCustomerChatThread e updateChatThreadStatus; Realtime channels ativos) |
 | **37. Google Merchant Integration** | Feed XML/JSON de produtos para Google Shopping.               | `src/routes/api.feed.xml.ts`         | `products`, `product_variants`       | `COMPROVADO` (Feed dinâmico com detecção de tamanho/cor/material sem hardcoding; inclui nome da loja e preço override de variante)  |
 | **38. Logística & Rastreio**        | Integração com Correios/Melhor Envio para cálculo e rastreio. | `src/services/shipping.functions.ts` | `shipping_rules`                     | `COMPROVADO`                                                                                                                        |
+
+---
+
+## 10. Inteligência Agêntica, Simulação & Onboarding Multimodal (6 Módulos)
+
+| Módulo | Objetivo de Negócio | BFF Handler / Server Functions | Tabelas SQL | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **39. Squads Agênticos de Marketing** | Orquestração do squad autônomo (Aria, Bruno, Carla, Diego) para redação, briefing e design. | `src/services/squads-runtime.functions.ts` | `squads`, `squad_agents`, `marketing_posts` | `COMPROVADO` (Auditoria e execução em runtime ativas) |
+| **40. Onboarding Multimodal & Master Catalog** | Ingestão de mídias por visão computacional, extração de produtos e persistência no catálogo mestre. | `src/services/multimodal-onboarding.functions.ts` | `onboarding_sessions`, `master_catalog_items` | `COMPROVADO` (Pipeline BFF integrado ao Universal Builder) |
+| **41. Inteligência Competitiva & Brand DNA** | Radar de preços e concorrentes com cálculo de posicionamento canônico e arquétipo de marca. | `src/services/market-radar.functions.ts` | `competitor_monitors`, `market_signals`, `brand_dna_profiles` | `COMPROVADO` (Rotas e gráficos reais no Supabase) |
+| **42. Canvas Psicométrico dos 7 Pecados** | Matriz de apelos comportamentais e gatilhos mentais para campanhas de alta conversão. | `src/services/seven-sins-simlab.functions.ts` | `sin_trigger_campaigns` | `COMPROVADO` (Editor interativo com badges Apple HIG) |
+| **43. Populações Sintéticas & Focus Group (SimLab V2)** | Simulação estocástica ancorada em microdados IBGE/ABEP com 50 personas e relatórios de confiança estatística (Aaru Engine). | `src/services/simlab.functions.ts` | `synthetic_archetypes`, `synthetic_personas`, `focus_group_experiments` | `COMPROVADO` (Execução estocástica comprovada com 14 testes unitários) |
+| **44. Protocolo MCP & Universal Builder** | Servidor Model Context Protocol exposto e geração de storefront automática no builder após onboarding. | `src/services/mcp-server.functions.ts` | `experience_documents`, `experience_nodes` | `COMPROVADO` (Ferramentas MCP listadas e vitrines criadas nativamente) |

@@ -382,3 +382,106 @@
    - 34 suítes e 174 testes unitários aprovados com 100% de sucesso no Vitest.
    - Sonda HTTP em runtime ativo (`http://localhost:8080/motorista/test-slug` e `/workspace`) retornando HTTP 200 OK.
    - Verificação direta de persistência na tabela `public.profiles`, `public.stores` e `public.workspace_members` no Supabase remoto via pooler PostgreSQL.
+
+## Ciclo 80 — Transfusão e Nativização dos Squads Agênticos, Onboarding Multimodal & Inteligência Competitiva
+
+- **Data/Hora:** 2026-09-04T20:45:00-03:00
+- **Módulo:** Squads Agênticos, Onboarding Multimodal, Brand DNA & Canvas dos 7 Pecados
+- **Status:** `MICROFASES COMPROVADAS EM RUNTIME E INTEGRADAS`
+
+### Diagnóstico Forense & Causa Raiz
+1. O ecossistema JAH necessitava da transfusão nativa dos módulos de marketing autônomo descritos no Dossiê Big Tech, sem o uso de mocks locais ou stubs estáticos.
+2. Inexistência prévia das tabelas relacionais de squads, agentes, catálogo mestre e sessões de onboarding no Supabase.
+3. Necessidade de criação de BFF handlers tipados para alimentar o runtime agêntico e a navegação do lojista.
+
+### Ações Executadas
+1. **Migração e Persistência no Supabase**:
+   - Criadas as tabelas `squads`, `squad_agents`, `marketing_posts`, `master_catalog_items`, `competitor_monitors`, `market_signals`, `brand_dna_profiles`, `sin_trigger_campaigns` e `onboarding_sessions`.
+   - Seed relacional canônico executado com sucesso vinculando a loja ativa.
+2. **Serviços BFF & Server Functions**:
+   - Implementados `squads-runtime.functions.ts`, `multimodal-onboarding.functions.ts`, `market-radar.functions.ts` e `seven-sins-simlab.functions.ts`.
+3. **Interfaces Reais Desenvolvidas**:
+   - `/workspace/squads`: Orquestrador dos 4 agentes (Aria, Bruno, Carla, Diego) com gaveta curricular.
+   - `/workspace/inteligencia/radar`: Radar de mercado, monitoramento de concorrentes e Brand DNA.
+   - `/workspace/marketing/canvas-pecados`: Matriz comportamental dos 7 pecados e gatilhos mentais.
+   - `/workspace/onboarding/revisao`: Ingestão multimodal e extração de catálogo para o Master Catalog.
+4. **Validação**: Testes unitários dedicados aprovados no Vitest.
+
+## Ciclo 81 — Populações Sintéticas (Aaru AI Engine), SimLab V2, Focus Group & Servidor MCP
+
+- **Data/Hora:** 2026-09-04T21:10:00-03:00
+- **Módulo:** Populações Sintéticas IBGE/ABEP, Focus Group Virtual & Protocolo MCP
+- **Status:** `MICROFASES COMPROVADAS EM RUNTIME E INTEGRADAS`
+
+### Diagnóstico Forense & Causa Raiz
+1. O Dossiê Aaru exigia simulação estocástica de mercado baseada em microdados populacionais (Classes A-E, 5 Regiões do Brasil) com intervalos de confiança de 95% e desvio padrão rígido.
+2. Necessidade de geração de slides 1080x1080 pela Agente Carla e exposição de ferramentas MCP para consumo por modelos de linguagem externos.
+
+### Ações Executadas
+1. **Migração e Persistência SimLab**:
+   - Criadas as tabelas `synthetic_archetypes`, `synthetic_personas`, `focus_group_experiments`, `focus_group_interactions` e `squad_post_slides`.
+   - Inseridas as 50 personas canônicas estocásticas derivadas do censo IBGE/ABEP.
+2. **BFF Handlers & Motor Estatístico**:
+   - Implementado `simlab.functions.ts` com Monte Carlo, cálculo de Z-score (1.96) e persistência de reações.
+   - Implementado `squad-content.functions.ts` com geração e salvamento de carrossel de slides HTML5 1080x1080.
+   - Implementado `mcp-server.functions.ts` com spec oficial MCP (Tools: `query_master_catalog`, `run_focus_group_simulation`, `generate_marketing_post`, `read_brand_dna`).
+3. **Interface do Focus Group Virtual**:
+   - Rota `/workspace/simlab/focus-group` com visualização de personas, chat de debate em tempo real e painel de métricas estatísticas.
+4. **Validação**: 14 testes unitários cobrindo todo o pipeline passando com 100% de sucesso.
+
+## Ciclo 82 — Design Silencioso Apple HIG, Anti-Pill & Ultra-Mobile-First
+
+- **Data/Hora:** 2026-09-04T21:20:00-03:00
+- **Módulo:** Design System JAH, Tipografia Inter, Elevação em Camadas e Responsividade
+- **Commit Base:** `8ca9011`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. Existência de elementos em formato de pílula inflada (`rounded-full` em badges) e cantos bulbosos (`rounded-3xl`) que comprometiam a sobriedade profissional da plataforma.
+2. Modais sem ancoragem em `100dvh` que transbordavam em smartphones compactos.
+3. Botões interativos com áreas de toque inferiores a 44px recomendados pelo Apple HIG.
+
+### Ações Executadas
+1. **Padronização Anti-Pill e Anti-Bubble**:
+   - Em `src/components/ui/badge.tsx`, badges padronizadas para `rounded-md font-medium text-[11px] px-2 py-0.5`.
+   - Modais em `src/components/ui/dialog.tsx` adaptados com altura total (`100dvh`) no mobile e padding ergonômico.
+2. **Refatoração das Rotas de Inteligência**:
+   - Redução de textos e títulos prolixos; tipografia com `tracking-tight` e paletas monocromáticas com acento índigo sutil.
+   - Carrosséis horizontais deslizáveis com `no-scrollbar` para listagens no primeiro viewport mobile.
+   - Touch targets de botões de fechamento e ação garantidos em no mínimo 44px (`size-11`).
+
+## Ciclo 83 — Fase 6 do Dossiê: Integração Onboarding -> Universal Builder
+
+- **Data/Hora:** 2026-09-04T21:26:00-03:00
+- **Módulo:** Onboarding Multimodal -> Criação Automática de Vitrine no Universal Builder
+- **Commit Base:** `19cbfbe`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. A última etapa do onboarding multimodal precisava fechar o ciclo conectando os produtos extraídos e a paleta de cores diretamente com o Universal Builder de vitrines, sem exigir intervenção manual do lojista.
+
+### Ações Executadas
+1. **Gerador Automático de Vitrine**:
+   - Implementada `executeGenerateStorefrontFromOnboarding` e Server Function `generateStorefrontFromOnboarding` em `multimodal-onboarding.functions.ts`.
+   - Criação automática de documento `home` em `experience_documents`, versão publicada em `experience_versions` e nós hierárquicos (`hero_banner`, `product_grid`) em `experience_nodes`.
+2. **Validação**: Testes unitários criados e validados em `multimodal-onboarding.test.ts`.
+
+## Ciclo 84 — Navegação Global, Resolução de Rotas Órfãs e Identidade Canônica JAH Master OS
+
+- **Data/Hora:** 2026-09-04T21:35:00-03:00
+- **Módulo:** Navegação Modular do Workspace e Higienização de Identidade de Marca
+- **Commit Base:** `18d976d`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. As novas rotas de inteligência (`/workspace/squads`, `/workspace/simlab/focus-group`, `/workspace/inteligencia/radar`, `/workspace/marketing/canvas-pecados`) estavam órfãs da barra lateral de navegação do workspace.
+2. Existência de fallbacks de branding satélite ("Wider") no título da janela em `__root.tsx`, manifest PWA e painel master.
+
+### Ações Executadas
+1. **Indexação Universal na Sidebar**:
+   - Criado e injetado o grupo `intelligence-squads` ("Squads & Inteligência") em `src/lib/workspace-navigation.ts`.
+   - Preservado o grupo em todos os nichos de negócio da plataforma.
+   - Auditoria via browser comprovou os 4 links renderizados perfeitamente na barra lateral.
+2. **Higienização de Identidade Canônica**:
+   - Normalizados fallbacks de título em `__root.tsx` (`${storeName} Master OS | JAH`), `admin-master.tsx`, `api.pwa.manifest[.]json.ts` e rotas específicas.
+   - Validados 197 testes unitários passando 100% no Vitest.

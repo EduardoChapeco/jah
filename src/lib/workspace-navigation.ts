@@ -882,6 +882,7 @@ export function resolveWorkspaceNavigation(
         group.id === "overview" ||
         group.id === "master-tasks" ||
         group.id === "master-inbox" ||
+        group.id === "intelligence-squads" ||
         group.id === "finance" ||
         group.id === "settings" ||
         group.id === "team-rh" ||
