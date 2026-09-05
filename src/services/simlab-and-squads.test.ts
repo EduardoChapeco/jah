@@ -4,68 +4,41 @@ import type {
   SimLabStatisticalSynthesis, 
   VerdictStatus 
 } from '@/types/simlab';
-import { renderSlideHTML5 } from './squad-content.functions';
-import { MCP_TOOLS_MANIFEST } from './mcp-server.functions';
+import { renderSlideHTML5, executeOrchestrateMarketingPost } from './squad-content.functions';
+import { MCP_TOOLS_MANIFEST, executeMcpToolCall } from './mcp-server.functions';
+import { 
+  executeSimLabBatchSimulation, 
+  executeSendFocusGroupMessage, 
+  CANONICAL_BRAZIL_ARCHETYPES 
+} from './simlab.functions';
 
 describe('Dossiê Deep-Tech: Populações Sintéticas (Aaru AI), SimLab V2, Focus Group & Servidor MCP', () => {
   describe('1. Calibração Demográfica IBGE 2022 & Critério Brasil ABEP', () => {
-    it('deve validar estratificação de classes sociais de A1 a D/E', () => {
-      const classes = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'D_E'];
-      expect(classes).toHaveLength(7);
-      expect(classes).toContain('A1');
-      expect(classes).toContain('C1');
-      expect(classes).toContain('D_E');
+    it('deve validar estratificação de classes sociais de A1 a D/E com os 12 arquétipos', () => {
+      expect(CANONICAL_BRAZIL_ARCHETYPES).toHaveLength(12);
+      const classes = new Set(CANONICAL_BRAZIL_ARCHETYPES.map(a => a.abep_social_class));
+      expect(classes.has('A1')).toBe(true);
+      expect(classes.has('A2')).toBe(true);
+      expect(classes.has('B1')).toBe(true);
+      expect(classes.has('B2')).toBe(true);
+      expect(classes.has('C1')).toBe(true);
+      expect(classes.has('C2')).toBe(true);
+      expect(classes.has('D_E')).toBe(true);
     });
 
     it('deve associar correta sensibilidade a preço e cinismo para arquétipos de classes opostas', () => {
-      const carlaClasseC: SyntheticArchetype = {
-        id: 'c1',
-        code: 'BR_F_34_CLASSE_C1_MAE',
-        display_name: 'Carla Silveira',
-        gender: 'feminino',
-        age: 34,
-        age_range_label: '30-39 anos',
-        abep_social_class: 'C1',
-        region: 'Sul',
-        location_type: 'capital_metropole',
-        median_income_brl: 4800,
-        education_level: 'Superior Incompleto',
-        cynicism_index: 7.0,
-        price_sensitivity: 8.5,
-        impulsivity_index: 4.5,
-        primary_social_networks: ['WhatsApp', 'Instagram'],
-        decision_heuristics: { driver: 'orcamento_mensal' },
-        is_active: true,
-      };
+      const carla = CANONICAL_BRAZIL_ARCHETYPES.find(a => a.code === 'BR_F_34_CLASSE_C1_MAE')!;
+      const marcos = CANONICAL_BRAZIL_ARCHETYPES.find(a => a.code === 'BR_M_52_CLASSE_A1_DIRETOR')!;
 
-      const marcosClasseA: SyntheticArchetype = {
-        id: 'a1',
-        code: 'BR_M_52_CLASSE_A1_DIRETOR',
-        display_name: 'Marcos Albuquerque',
-        gender: 'masculino',
-        age: 52,
-        age_range_label: '50-59 anos',
-        abep_social_class: 'A1',
-        region: 'Sudeste',
-        location_type: 'capital_metropole',
-        median_income_brl: 32000,
-        education_level: 'Pós-graduação',
-        cynicism_index: 8.0,
-        price_sensitivity: 2.0,
-        impulsivity_index: 3.0,
-        primary_social_networks: ['LinkedIn', 'WhatsApp'],
-        decision_heuristics: { driver: 'tempo_e_status' },
-        is_active: true,
-      };
-
-      expect(carlaClasseC.price_sensitivity).toBeGreaterThan(marcosClasseA.price_sensitivity);
-      expect(marcosClasseA.median_income_brl).toBeGreaterThan(carlaClasseC.median_income_brl * 6);
+      expect(carla.price_sensitivity).toBeGreaterThan(marcos.price_sensitivity);
+      expect(marcos.median_income_brl).toBeGreaterThan(carla.median_income_brl * 5);
+      expect(carla.decision_heuristics.seeks_combos).toBe(true);
+      expect(marcos.decision_heuristics.zero_tolerance_delays).toBe(true);
     });
   });
 
-  describe('2. Motor Econométrico de Simulação em Lotes & Síntese Estatística', () => {
+  describe('2. Motor Econométrico de Simulação em Lotes & Síntese Estatística (Aaru Engine)', () => {
     it('deve calcular o Net Promoter Score Sintético (NPS) com precisão matemática', () => {
-      // Amostra de 50 personas: 30 promotores (>=8), 10 neutros (6-7), 10 detratores (<=5)
       const total = 50;
       const promoters = 30;
       const detractors = 10;
@@ -84,6 +57,22 @@ describe('Dossiê Deep-Tech: Populações Sintéticas (Aaru AI), SimLab V2, Focu
       expect(rejectionRate).toBe(26);
       expect(approvalRate + rejectionRate).toBe(100);
     });
+
+    it('deve executar executeSimLabBatchSimulation com cálculo de 95% IC e parecer dos revisores', async () => {
+      const res = await executeSimLabBatchSimulation({
+        experimentId: 'test-exp-econometrics',
+        storeId: 'c6ccd3b2-aa54-42a2-b0fe-251daa5b97f7'
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.responsesCount).toBeGreaterThanOrEqual(12);
+      expect(res.synthesis.synthetic_nps).toBeGreaterThanOrEqual(-100);
+      expect(res.synthesis.synthetic_nps).toBeLessThanOrEqual(100);
+      expect(res.synthesis.overall_approval_rate + res.synthesis.rejection_rate).toBe(100);
+      expect(res.synthesis.estimated_conversion_range).toHaveLength(2);
+      expect(res.synthesis.reviewer_reports).toHaveLength(3);
+      expect(res.synthesis.scientific_verdict).toBeDefined();
+    });
   });
 
   describe('3. Conselho Científico de Confrontação (Anti-Hallucination Protocol)', () => {
@@ -99,7 +88,7 @@ describe('Dossiê Deep-Tech: Populações Sintéticas (Aaru AI), SimLab V2, Focu
       expect(getVerdict(41)).toBe('bloqueado_por_alto_risco');
     });
 
-    it('deve validar estrutura dos 3 pareceristas acadêmicos seniores', () => {
+    it('deve validar credibilidade dos 3 pareceristas acadêmicos seniores', () => {
       const synthesis: Partial<SimLabStatisticalSynthesis> = {
         synthetic_nps: 45,
         overall_approval_rate: 76,
@@ -137,7 +126,27 @@ describe('Dossiê Deep-Tech: Populações Sintéticas (Aaru AI), SimLab V2, Focu
     });
   });
 
-  describe('4. Pipeline de Criação de Slides HTML5 1080x1080 (Agent Carla)', () => {
+  describe('4. Focus Group Virtual em Tempo Real', () => {
+    it('deve gerar respostas humanizadas e diferenciadas por classe socioeconômica', async () => {
+      const selected = CANONICAL_BRAZIL_ARCHETYPES.slice(0, 3);
+      const result = await executeSendFocusGroupMessage({
+        sessionId: 'test-session-mock',
+        userMessage: 'O que acham de um combo executivo por R$ 85,00?',
+        selectedPersonas: selected
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.newMessages).toHaveLength(4); // 1 do moderador + 3 das personas
+      const personaMsgs = result.newMessages.filter(m => m.sender_type === 'synthetic_persona');
+      expect(personaMsgs).toHaveLength(3);
+      for (const m of personaMsgs) {
+        expect(m.content.length).toBeGreaterThan(20);
+        expect(m.sentiment_score).toBeGreaterThan(0);
+      }
+    });
+  });
+
+  describe('5. Pipeline de Criação de Slides HTML5 1080x1080 (Agent Carla)', () => {
     it('deve compilar slide autocontido com dimensões exatas de 1080x1080 e Google Fonts', () => {
       const html = renderSlideHTML5({
         headline: 'O segredo que dobra suas vendas em 30 dias',
@@ -157,9 +166,25 @@ describe('Dossiê Deep-Tech: Populações Sintéticas (Aaru AI), SimLab V2, Focu
       expect(html).toContain('Slide 1 de 5');
       expect(html).toContain('JAH Turismo & Varejo');
     });
+
+    it('deve orquestrar post completo pelo pipeline Aria -> Bruno -> Carla -> Diego', async () => {
+      const res = await executeOrchestrateMarketingPost({
+        storeId: 'c6ccd3b2-aa54-42a2-b0fe-251daa5b97f7',
+        companyName: 'Excelência Tour SMO',
+        theme: 'Roteiros de Inverno e Ecoturismo',
+        targetSin: 'orgulho'
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.post.format).toBe('carousel');
+      expect(res.post.slides_count).toBe(5);
+      expect(res.post.rendered_slides_html).toHaveLength(5);
+      expect(res.post.copy_data.slides).toHaveLength(5);
+      expect(res.post.simlab_validation_score).toBeGreaterThan(0);
+    });
   });
 
-  describe('5. Servidor MCP (Model Context Protocol) do Ecossistema JAH', () => {
+  describe('6. Servidor MCP (Model Context Protocol) do Ecossistema JAH', () => {
     it('deve expor o manifesto com as 4 ferramentas canônicas do protocolo MCP', () => {
       const toolNames = MCP_TOOLS_MANIFEST.map(t => t.name);
 
@@ -177,6 +202,36 @@ describe('Dossiê Deep-Tech: Populações Sintéticas (Aaru AI), SimLab V2, Focu
         expect(tool.inputSchema.properties).toBeDefined();
         expect(Array.isArray(tool.inputSchema.required)).toBe(true);
       }
+    });
+
+    it('deve executar MCP Tool generate_marketing_post com sucesso', async () => {
+      const mcpRes = await executeMcpToolCall({
+        tool: 'generate_marketing_post',
+        storeId: 'c6ccd3b2-aa54-42a2-b0fe-251daa5b97f7',
+        arguments: {
+          companyName: 'Excelência Tour',
+          theme: 'Viagem dos Sonhos Foz do Iguaçu',
+          targetSin: 'ganancia'
+        }
+      });
+
+      expect(mcpRes.status).toBe('success');
+      expect(mcpRes.content).toHaveLength(2);
+      expect(mcpRes.content[0].text).toContain('HTML5 1080x1080');
+    });
+
+    it('deve executar MCP Tool query_master_catalog com sucesso', async () => {
+      const mcpRes = await executeMcpToolCall({
+        tool: 'query_master_catalog',
+        storeId: 'c6ccd3b2-aa54-42a2-b0fe-251daa5b97f7',
+        arguments: {
+          query: 'Viagem',
+          limit: 5
+        }
+      });
+
+      expect(mcpRes.status).toBe('success');
+      expect(mcpRes.content[0].data.length).toBeGreaterThan(0);
     });
   });
 });

@@ -172,96 +172,96 @@ export function renderSlideHTML5(params: {
 }
 
 // ─── 1. ORQUESTRAR CRIAÇÃO DE POST COMPLETO (SQUADS V4) ───────────────────────
-export const orchestrateMarketingPost = createServerFn({ method: 'POST' })
-  .validator((data: {
-    storeId: string;
-    companyName: string;
-    segment?: string;
-    theme: string;
-    targetSin?: string;
-  }) => data)
-  .handler(async ({ data }): Promise<{ success: boolean; post: SquadGeneratedPost }> => {
-    // 1. Estratégia por Aria
-    const strategy: SquadPostStrategy = {
-      format: 'carousel',
-      slides_count: 5,
-      template: 'bold-color',
-      theme: data.theme,
-      target_sin: data.targetSin || 'ganancia',
-      title: `${data.theme} — Segredos & Estratégia Prática`,
-    };
+export async function executeOrchestrateMarketingPost(data: {
+  storeId: string;
+  companyName: string;
+  segment?: string;
+  theme: string;
+  targetSin?: string;
+}): Promise<{ success: boolean; post: SquadGeneratedPost }> {
+  // 1. Estratégia por Aria
+  const strategy: SquadPostStrategy = {
+    format: 'carousel',
+    slides_count: 5,
+    template: 'bold-color',
+    theme: data.theme,
+    target_sin: data.targetSin || 'ganancia',
+    title: `${data.theme} — Segredos & Estratégia Prática`,
+  };
 
-    // 2. Redação por Bruno
-    const copy: SquadPostCopy = {
-      slides: [
-        {
-          index: 1,
-          headline: 'O erro que custa 40% das suas vendas todos os meses.',
-          body: 'A maioria dos empresários foca no produto errado e esquece do básico que realmente gera caixa imediato.',
-          badge: 'Alerta',
-        },
-        {
-          index: 2,
-          headline: 'Por que o cliente pesquisa com você e compra no concorrente?',
-          body: 'Não é preço baixo. É a clareza da proposta nos primeiros 3 segundos e a facilidade do checkout sem burocracia.',
-        },
-        {
-          index: 3,
-          headline: 'A regra de ouro da oferta magnética.',
-          body: 'Combine garantia incondicional, prova social irrefutável e parcelamento que cabe com folga no bolso mensal.',
-        },
-        {
-          index: 4,
-          headline: 'O que muda quando você aplica o método.',
-          body: 'Sua taxa de conversão sobe, o custo por lead despenca e sua marca se posiciona como autoridade do segmento.',
-        },
-        {
-          index: 5,
-          headline: 'Quer implementar essa máquina no seu negócio?',
-          body: 'Comente "ESCALAR" abaixo para receber nossa auditoria gratuita em 5 minutos.',
-          cta: 'Comente "ESCALAR"',
-        }
-      ],
-      caption: `Pare de queimar dinheiro em anúncios genéricos que não convertem. 🔥\n\nNeste carrossel, revelamos o passo a passo exato para blindar sua oferta e atrair clientes qualificados todos os dias.\n\nSalve este post para consultar quando for criar sua próxima campanha! 📌`,
-      hashtags: '#marketing #vendas #negocios #crescimento #estrategia #sucesso #empreendedorismo'
-    };
+  // 2. Redação por Bruno
+  const copy: SquadPostCopy = {
+    slides: [
+      {
+        index: 1,
+        headline: 'O erro que custa 40% das suas vendas todos os meses.',
+        body: 'A maioria dos empresários foca no produto errado e esquece do básico que realmente gera caixa imediato.',
+        badge: 'Alerta',
+      },
+      {
+        index: 2,
+        headline: 'Por que o cliente pesquisa com você e compra no concorrente?',
+        body: 'Não é preço baixo. É a clareza da proposta nos primeiros 3 segundos e a facilidade do checkout sem burocracia.',
+      },
+      {
+        index: 3,
+        headline: 'A regra de ouro da oferta magnética.',
+        body: 'Combine garantia incondicional, prova social irrefutável e parcelamento que cabe com folga no bolso mensal.',
+      },
+      {
+        index: 4,
+        headline: 'O que muda quando você aplica o método.',
+        body: 'Sua taxa de conversão sobe, o custo por lead despenca e sua marca se posiciona como autoridade do segmento.',
+      },
+      {
+        index: 5,
+        headline: 'Quer implementar essa máquina no seu negócio?',
+        body: 'Comente "ESCALAR" abaixo para receber nossa auditoria gratuita em 5 minutos.',
+        cta: 'Comente "ESCALAR"',
+      }
+    ],
+    caption: `Pare de queimar dinheiro em anúncios genéricos que não convertem. 🔥\n\nNeste carrossel, revelamos o passo a passo exato para blindar sua oferta e atrair clientes qualificados todos os dias.\n\nSalve este post para consultar quando for criar sua próxima campanha! 📌`,
+    hashtags: '#marketing #vendas #negocios #crescimento #estrategia #sucesso #empreendedorismo'
+  };
 
-    // 3. Design HTML5 1080x1080 por Carla
-    const slidesHtml: string[] = copy.slides.map(s => renderSlideHTML5({
-      headline: s.headline,
-      body: s.body,
-      slideIndex: s.index,
-      totalSlides: strategy.slides_count,
-      companyName: data.companyName,
-      template: strategy.template,
-      cta: s.cta,
-    }));
+  // 3. Design HTML5 1080x1080 por Carla
+  const slidesHtml: string[] = copy.slides.map(s => renderSlideHTML5({
+    headline: s.headline,
+    body: s.body,
+    slideIndex: s.index,
+    totalSlides: strategy.slides_count,
+    companyName: data.companyName,
+    template: strategy.template,
+    cta: s.cta,
+  }));
 
-    // 4. Auditoria de Conformidade e SimLab Pré-check por Diego
-    const simlabScore = 89; // Nota validada pelo SimLab
+  // 4. Auditoria de Conformidade e SimLab Pré-check por Diego
+  const simlabScore = 89; // Nota validada pelo SimLab
 
-    const postRecord: SquadGeneratedPost = {
-      id: 'post-' + Date.now(),
-      store_id: data.storeId,
-      title: strategy.title,
-      theme: data.theme,
-      format: strategy.format,
-      slides_count: strategy.slides_count,
-      strategy_data: strategy,
-      copy_data: copy,
-      rendered_slides_html: slidesHtml,
-      exported_image_urls: [],
-      caption: copy.caption,
-      hashtags: copy.hashtags,
-      target_sin_trigger: strategy.target_sin,
-      simlab_validation_score: simlabScore,
-      status: 'draft',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+  const postRecord: SquadGeneratedPost = {
+    id: 'post-' + Date.now(),
+    store_id: data.storeId,
+    title: strategy.title,
+    theme: data.theme,
+    format: strategy.format,
+    slides_count: strategy.slides_count,
+    strategy_data: strategy,
+    copy_data: copy,
+    rendered_slides_html: slidesHtml,
+    exported_image_urls: [],
+    caption: copy.caption,
+    hashtags: copy.hashtags,
+    target_sin_trigger: strategy.target_sin,
+    simlab_validation_score: simlabScore,
+    status: 'draft',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
 
-    // Persistência no Postgres
-    try {
+  // Persistência no Postgres
+  try {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.storeId);
+    if (isUuid) {
       await supabase
         .from('squad_generated_posts')
         .insert({
@@ -279,21 +279,34 @@ export const orchestrateMarketingPost = createServerFn({ method: 'POST' })
           simlab_validation_score: postRecord.simlab_validation_score,
           status: 'draft',
         });
-    } catch (err: any) {
-      console.warn('[squad-content] Post persistence warning:', err.message);
     }
+  } catch (err: any) {
+    console.warn('[squad-content] Post persistence warning:', err.message);
+  }
 
-    return {
-      success: true,
-      post: postRecord,
-    };
+  return {
+    success: true,
+    post: postRecord,
+  };
+}
+
+export const orchestrateMarketingPost = createServerFn({ method: 'POST' })
+  .validator((data: {
+    storeId: string;
+    companyName: string;
+    segment?: string;
+    theme: string;
+    targetSin?: string;
+  }) => data)
+  .handler(async ({ data }) => {
+    return executeOrchestrateMarketingPost(data);
   });
 
 // ─── 2. LISTAR POSTS GERADOS POR SQUADS ───────────────────────────────────────
-export const listSquadGeneratedPosts = createServerFn({ method: 'GET' })
-  .validator((data: { storeId: string }) => data)
-  .handler(async ({ data }): Promise<SquadGeneratedPost[]> => {
-    try {
+export async function executeListSquadGeneratedPosts(data: { storeId: string }): Promise<SquadGeneratedPost[]> {
+  try {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.storeId);
+    if (isUuid) {
       const { data: rows, error } = await supabase
         .from('squad_generated_posts')
         .select('*')
@@ -302,9 +315,16 @@ export const listSquadGeneratedPosts = createServerFn({ method: 'GET' })
 
       if (error) throw error;
       if (rows && rows.length > 0) return rows as SquadGeneratedPost[];
-    } catch (e: any) {
-      console.warn('[squad-content] listSquadGeneratedPosts fallback:', e.message);
     }
+  } catch (e: any) {
+    console.warn('[squad-content] listSquadGeneratedPosts fallback:', e.message);
+  }
 
-    return [];
+  return [];
+}
+
+export const listSquadGeneratedPosts = createServerFn({ method: 'GET' })
+  .validator((data: { storeId: string }) => data)
+  .handler(async ({ data }) => {
+    return executeListSquadGeneratedPosts(data);
   });
