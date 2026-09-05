@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { executeGenerateStorefrontFromOnboarding } from "@/services/multimodal-onboarding.functions";
 import {
   AgentRegistrySchema,
   SquadTemplateSchema,
@@ -139,6 +140,56 @@ describe("Multimodal Onboarding, Master Catalog & Squads — Big Tech Architectu
       expect(spreadsheetRows.length).toBe(2);
       expect(spreadsheetRows[0].price_cents).toBe(1500);
       expect(spreadsheetRows[1].ean).toBe("7899876543210");
+    });
+  });
+  describe("Fase 6: Integração com o Construtor Universal (Vitrines Automáticas)", () => {
+    it("executa a geração da vitrine inicial a partir do onboarding no Universal Builder", async () => {
+      const mockDb = {
+        from: (table: string) => ({
+          select: (cols?: string, opts?: any) => {
+            if (opts && opts.count === "exact") {
+              return {
+                eq: async () => ({ count: 2, data: [] }),
+              };
+            }
+            return {
+              eq: (col1: string, val1: any) => ({
+                eq: (col2: string, val2: any) => ({
+                  eq: (col3: string, val3: any) => ({
+                    maybeSingle: async () => ({ data: { id: "doc-123" } }),
+                  }),
+                  maybeSingle: async () => ({ data: { id: "doc-123" } }),
+                }),
+                order: () => ({
+                  limit: () => ({
+                    maybeSingle: async () => ({ data: { id: "ver-123" } }),
+                  }),
+                }),
+                single: async () => ({
+                  data: {
+                    id: "sess-123",
+                    extracted_business_profile: { extracted_niche: "Gastronomia Artesanal" },
+                  },
+                }),
+                limit: async () => ({
+                  data: [{ id: "p1", title: "Burger Artesanal", price_cents: 3500 }],
+                }),
+              }),
+            };
+          },
+        }),
+      };
+
+      const result = await executeGenerateStorefrontFromOnboarding(mockDb, {
+        store_id: "store-test",
+        session_id: "sess-123",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.documentId).toBe("doc-123");
+      expect(result.versionId).toBe("ver-123");
+      expect(result.slug).toBe("home");
+      expect(result.productsCount).toBe(1);
     });
   });
 });

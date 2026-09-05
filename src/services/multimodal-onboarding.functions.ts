@@ -456,3 +456,163 @@ export const importProductsTraditional = createServerFn({ method: "POST" })
       throw new Error(e instanceof Error ? e.message : "Erro na importação manual tradicional.");
     }
   });
+
+// ---------------------------------------------------------------------------
+// 6. Universal Builder: Geração Automática de Vitrine Inicial a partir do Onboarding
+// ---------------------------------------------------------------------------
+
+export async function executeGenerateStorefrontFromOnboarding(
+  db: any,
+  params: { store_id: string; session_id: string }
+) {
+  const { store_id, session_id } = params;
+
+  // 1. Busca sessão do onboarding
+  const { data: session } = await db
+    .from("multimodal_onboarding_sessions")
+    .select("*")
+    .eq("id", session_id)
+    .single();
+
+  const businessProfile = session?.extracted_business_profile || {};
+  const niche = businessProfile.extracted_niche || "Gastronomia & Comércio";
+  const title = `Vitrine Oficial - ${niche}`;
+
+  // 2. Busca ou cria experience_document para storefront 'home'
+  let documentId: string;
+  const { data: existingDoc } = await db
+    .from("experience_documents")
+    .select("id")
+    .eq("store_id", store_id)
+    .eq("slug", "home")
+    .eq("document_type", "storefront")
+    .maybeSingle();
+
+  if (existingDoc?.id) {
+    documentId = existingDoc.id;
+  } else {
+    const { data: newDoc, error: docErr } = await db
+      .from("experience_documents")
+      .insert({
+        store_id,
+        title,
+        slug: "home",
+        document_type: "storefront",
+        is_active: true,
+        seo_metadata: {
+          title,
+          description: "Catálogo e vitrine digital oficial gerada por onboarding multimodal.",
+        },
+      })
+      .select("id")
+      .single();
+
+    if (docErr) throw docErr;
+    documentId = newDoc.id;
+  }
+
+  // 3. Busca ou cria experience_versions
+  let versionId: string;
+  const { data: existingVer } = await db
+    .from("experience_versions")
+    .select("id")
+    .eq("document_id", documentId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existingVer?.id) {
+    versionId = existingVer.id;
+  } else {
+    const { data: newVer, error: verErr } = await db
+      .from("experience_versions")
+      .insert({
+        document_id: documentId,
+        version_number: 1,
+        status: "published",
+      })
+      .select("id")
+      .single();
+
+    if (verErr) throw verErr;
+    versionId = newVer.id;
+  }
+
+  // 4. Busca produtos da loja
+  const { data: products } = await db
+    .from("products")
+    .select("id, title, price_cents, description, slug")
+    .eq("store_id", store_id)
+    .limit(8);
+
+  // 5. Cria os nós iniciais da vitrine se não existirem
+  const { count: nodesCount } = await db
+    .from("experience_nodes")
+    .select("*", { count: "exact", head: true })
+    .eq("version_id", versionId);
+
+  if (!nodesCount || nodesCount === 0) {
+    await db.from("experience_nodes").insert([
+      {
+        version_id: versionId,
+        node_type: "block",
+        block_type: "hero_banner",
+        sort_order: 1,
+        content: {
+          headline: `Bem-vindo à ${title}`,
+          subheadline: "Produtos selecionados com garantia de procedência e entrega rápida.",
+          cta_text: "Ver Cardápio Completo",
+        },
+        design_tokens: {
+          padding_y: "py-12",
+          background_color: "bg-background",
+        },
+      },
+      {
+        version_id: versionId,
+        node_type: "block",
+        block_type: "product_grid",
+        sort_order: 2,
+        content: {
+          section_title: "Destaques do Cardápio",
+          product_ids: (products || []).map((p: any) => p.id),
+        },
+        design_tokens: {
+          columns: 4,
+          gap: "gap-6",
+        },
+      },
+    ]);
+  }
+
+  return {
+    success: true,
+    documentId,
+    versionId,
+    slug: "home",
+    productsCount: (products || []).length,
+  };
+}
+
+export const generateStorefrontFromOnboarding = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      session_id: z.string().uuid(),
+      store_id: z.string().uuid().optional(),
+    })
+  )
+  .handler(async ({ data }) => {
+    try {
+      const identity = await getServerIdentity();
+      const storeId = data.store_id || identity.store_id;
+      if (!storeId) throw new Error("Loja ativa obrigatória.");
+      const db = getServerClient();
+      return await executeGenerateStorefrontFromOnboarding(db, {
+        store_id: storeId,
+        session_id: data.session_id,
+      });
+    } catch (e: unknown) {
+      logSystemError({ route: "multimodal-onboarding.generateStorefrontFromOnboarding", error: e });
+      throw new Error(e instanceof Error ? e.message : "Erro ao gerar vitrine a partir do onboarding.");
+    }
+  });
