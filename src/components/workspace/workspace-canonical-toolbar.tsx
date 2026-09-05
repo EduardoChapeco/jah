@@ -141,7 +141,7 @@ export function WorkspaceCanonicalToolbar({
       <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap flex-1 min-w-0">
         {/* 1. Menu de Abas / View Switcher Semiarredondado (Padrão Apple HIG & Tarefas) */}
         {effectiveTabs.length > 0 && (
-          <div className="flex items-center p-1 rounded-2xl bg-muted/40 border border-border/60 shrink-0 gap-0.5">
+          <div className="flex items-center p-1 rounded-2xl bg-muted/40 border border-border/60 shrink-0 gap-0.5 overflow-x-auto no-scrollbar max-w-full">
             {effectiveTabs.map((item) => {
               const Icon = item.icon;
               const isActive = currentActive === item.id;
@@ -223,7 +223,7 @@ export function WorkspaceCanonicalToolbar({
       </div>
 
       {/* ── LADO DIREITO: Métricas, Colunas, Secundárias & Primária ── */}
-      <div className="flex items-center gap-2 shrink-0 justify-end">
+      <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0 justify-start sm:justify-end w-full sm:w-auto">
         {/* Botão de Colunas do Kanban */}
         {handleColumns && (
           <Button

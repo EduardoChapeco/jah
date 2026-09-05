@@ -595,7 +595,7 @@ function WorkspaceComercialPage() {
       />
 
       {/* ── KANBAN BOARD FULL VERTICAL & HORIZONTAL (ENTERPRISE STANDARD) ── */}
-      <div className="flex-1 flex gap-4 overflow-x-auto no-scrollbar pb-6 pt-1 items-stretch [scrollbar-width:thin] scrollbar-thumb-border/60 scrollbar-track-transparent">
+      <div className="flex-1 flex gap-4 overflow-x-auto no-scrollbar pb-6 pt-1 items-stretch snap-x snap-mandatory [scrollbar-width:thin] scrollbar-thumb-border/60 scrollbar-track-transparent">
         {STAGES.map((stage, stageIndex) => {
           const stageLeads = filteredLeads.filter((l: any) => {
             if (stage.id === "won") return l.status === "won" || l.status === "converted";
@@ -613,7 +613,7 @@ function WorkspaceComercialPage() {
           return (
             <div
               key={stage.id}
-              className="flex flex-col rounded-2xl border border-border/70 bg-card/50 backdrop-blur-xs w-[330px] min-w-[330px] shrink-0 min-h-[580px] lg:min-h-[calc(100vh-320px)] shadow-2xs transition-all"
+              className="flex flex-col rounded-2xl border border-border/70 bg-card/50 backdrop-blur-xs w-[calc(100vw-2.5rem)] sm:w-[330px] min-w-[calc(100vw-2.5rem)] sm:min-w-[330px] shrink-0 min-h-[580px] lg:min-h-[calc(100vh-320px)] shadow-2xs transition-all snap-center"
             >
               {/* Header da Coluna com Somatório e Ação Rápida */}
               <div className="p-3.5 pb-2.5 border-b border-border/60 bg-muted/25 rounded-t-2xl space-y-1.5 sticky top-0 z-10">
