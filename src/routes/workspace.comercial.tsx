@@ -1,6 +1,36 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { Kanban, Users, Plus, Search, DollarSign, Phone, Mail, UserCheck, CheckCircle2, Clock, MoreVertical, Plane, Edit3, Calendar, MapPin, Tag, CheckSquare, Square, AlertTriangle, ChevronRight, ChevronLeft, X, Trash2, Layers } from 'lucide-react';
+import {
+  Kanban,
+  Users,
+  Plus,
+  Search,
+  DollarSign,
+  Phone,
+  Mail,
+  UserCheck,
+  CheckCircle2,
+  Clock,
+  MoreVertical,
+  Plane,
+  Edit3,
+  Calendar,
+  MapPin,
+  Tag,
+  CheckSquare,
+  Square,
+  AlertTriangle,
+  ChevronRight,
+  ChevronLeft,
+  X,
+  Trash2,
+  Layers,
+  Upload,
+  Calculator,
+  FileText,
+  BarChart3,
+  Settings2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -41,19 +71,29 @@ import {
   deleteLead,
 } from "@/services/crm.functions";
 import { listTeamMembers } from "@/services/admin-team.functions";
+import { getStoreSettings } from "@/services/store.functions";
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
+import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-canonical-toolbar";
+import { WorkspaceDashboardSheet } from "@/components/workspace/workspace-dashboard-sheet";
+import { KanbanColumnCustomizerModal } from "@/components/workspace/kanban/kanban-column-customizer-modal";
+import { LeadImportModal } from "@/components/commercial/lead-import-modal";
+import { LeadVisualProposalSheet } from "@/components/commercial/lead-visual-proposal-sheet";
+import { LeadCommissionCalculatorSheet } from "@/components/commercial/lead-commission-calculator-sheet";
+import { LeadFlightGridSheet } from "@/components/commercial/lead-flight-grid-sheet";
 
 export const Route = createFileRoute("/workspace/comercial")({
   head: () => ({ meta: [{ title: "Pipeline Comercial & Funil de Oportunidades | Workspace" }] }),
   loader: async () => {
-    const [leadsRes, teamRes] = await Promise.all([
+    const [leadsRes, teamRes, store] = await Promise.all([
       listLeads().catch(() => []),
       listTeamMembers().catch(() => []),
+      getStoreSettings().catch(() => null),
     ]);
     return {
       leads: leadsRes || [],
       team: teamRes || [],
+      store,
     };
   },
   component: WorkspaceComercialPage,
@@ -201,8 +241,9 @@ function getStalenessInfo(lead: any) {
 }
 
 function WorkspaceComercialPage() {
-  const { leads, team } = Route.useLoaderData();
+  const { leads, team, store } = Route.useLoaderData();
   const router = useRouter();
+  const storeId = store?.id || "";
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLead, setSelectedLead] = useState<any | null>(null);
@@ -210,6 +251,15 @@ function WorkspaceComercialPage() {
   const [newLeadTargetStage, setNewLeadTargetStage] = useState<LeadStage>("new");
   const [isSubmittingNew, setIsSubmittingNew] = useState(false);
   const [isUpdatingLead, setIsUpdatingLead] = useState(false);
+
+  // Deep modular states (Transplanted Organs)
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [proposalLead, setProposalLead] = useState<any | null>(null);
+  const [calculatorLead, setCalculatorLead] = useState<any | null>(null);
+  const [flightLead, setFlightLead] = useState<any | null>(null);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
+  const [stages, setStages] = useState(STAGES);
 
   // Formulário Avançado de Novo Lead (Padrão TravelAgências Enterprise)
   const initialNewLeadState = {
@@ -520,122 +570,29 @@ function WorkspaceComercialPage() {
 
   return (
     <div className="flex flex-col gap-5 w-full min-h-[calc(100vh-120px)] pb-12">
-      {/* ── HEADER PRINCIPAL & AÇÕES ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/50 pb-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-              Comercial & Vendas
-            </span>
-            <span className="text-muted-foreground/40">/</span>
-            <span className="text-xs font-bold text-primary">Funil de Oportunidades (TravelAgências Standard)</span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">
-            Pipeline Comercial & Negociações
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="rounded-xl text-xs font-semibold gap-1.5 border-border/80 hover:bg-muted"
-          >
-            <Link to="/workspace/clientes">
-              <Users className="size-3.5 text-primary" />
-              <span>Carteira de Clientes 360°</span>
-            </Link>
-          </Button>
-
-          <Button
-            onClick={() => {
-              setNewLeadTargetStage("new");
-              setIsNewLeadOpen(true);
-            }}
-            size="sm"
-            className="rounded-xl text-xs font-semibold gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer shadow-xs"
-          >
-            <Plus className="size-3.5" />
-            <span>Nova Oportunidade</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* ── MÉTRICAS COMPACTAS DO FUNIL (APPLE HIG) ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="p-3.5 rounded-2xl border border-border/70 bg-card/70 backdrop-blur-xs flex items-center justify-between shadow-2xs">
-          <div>
-            <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-wider block">
-              Valor no Pipeline
-            </span>
-            <p className="text-base sm:text-lg font-bold text-foreground font-mono mt-0.5">
-              {formatMoney(totalPipelineCents)}
-            </p>
-          </div>
-          <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shrink-0">
-            <DollarSign className="size-4.5" />
-          </div>
-        </div>
-
-        <div className="p-3.5 rounded-2xl border border-border/70 bg-card/70 backdrop-blur-xs flex items-center justify-between shadow-2xs">
-          <div>
-            <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-wider block">
-              Leads em Atendimento
-            </span>
-            <p className="text-base sm:text-lg font-bold text-foreground font-mono mt-0.5">
-              {filteredLeads.filter((l: any) => l.status !== "lost" && l.status !== "won" && l.status !== "converted").length}
-            </p>
-          </div>
-          <div className="size-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center border border-blue-500/20 shrink-0">
-            <Kanban className="size-4.5" />
-          </div>
-        </div>
-
-        <div className="p-3.5 rounded-2xl border border-border/70 bg-card/70 backdrop-blur-xs flex items-center justify-between shadow-2xs">
-          <div>
-            <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-wider block">
-              Ganhos / Convertidos
-            </span>
-            <p className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">
-              {filteredLeads.filter((l: any) => l.status === "won" || l.status === "converted").length}
-            </p>
-          </div>
-          <div className="size-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20 shrink-0">
-            <CheckCircle2 className="size-4.5" />
-          </div>
-        </div>
-
-        <div className="p-3.5 rounded-2xl border border-border/70 bg-card/70 backdrop-blur-xs flex items-center justify-between shadow-2xs">
-          <div>
-            <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-wider block">
-              Leads Perdidos
-            </span>
-            <p className="text-base sm:text-lg font-bold text-rose-600 dark:text-rose-400 font-mono mt-0.5">
-              {filteredLeads.filter((l: any) => l.status === "lost").length}
-            </p>
-          </div>
-          <div className="size-9 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center border border-rose-500/20 shrink-0">
-            <Clock className="size-4.5" />
-          </div>
-        </div>
-      </div>
-
-      {/* ── BARRA DE PESQUISA & FILTROS ── */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-          <Input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por nome, destino, período ou fone..."
-            className="h-9 pl-9 text-xs rounded-xl bg-background border-border/80 shadow-2xs"
-          />
-        </div>
-        <div className="text-[11px] font-mono text-muted-foreground hidden sm:block">
-          Mostrando <strong>{filteredLeads.length}</strong> de <strong>{leads.length}</strong> oportunidades
-        </div>
-      </div>
+      {/* ── BARRA OPERACIONAL CANÔNICA (SILENCIOSA & ALTA DENSIDADE) ── */}
+      <WorkspaceCanonicalToolbar
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Buscar lead por nome, destino, período ou fone..."
+        onMetricsClick={() => setIsDashboardOpen(true)}
+        metricsBadge={totalPipelineCents > 0 ? formatMoney(totalPipelineCents) : undefined}
+        onColumnsClick={() => setIsCustomizerOpen(true)}
+        secondaryAction={{
+          label: "Importar Leads",
+          icon: Upload,
+          onClick: () => setIsImportModalOpen(true),
+          variant: "outline",
+        }}
+        primaryAction={{
+          label: "Nova Oportunidade",
+          icon: Plus,
+          onClick: () => {
+            setNewLeadTargetStage("new");
+            setIsNewLeadOpen(true);
+          },
+        }}
+      />
 
       {/* ── KANBAN BOARD FULL VERTICAL & HORIZONTAL (ENTERPRISE STANDARD) ── */}
       <div className="flex-1 flex gap-4 overflow-x-auto no-scrollbar pb-6 pt-1 items-stretch [scrollbar-width:thin] scrollbar-thumb-border/60 scrollbar-track-transparent">
@@ -796,6 +753,18 @@ function WorkspaceComercialPage() {
                               <DropdownMenuItem onClick={() => openLeadDetails(lead)} className="cursor-pointer font-medium">
                                 <Edit3 className="size-3.5 mr-2" />
                                 Abrir Ficha 360°
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setProposalLead(lead)} className="cursor-pointer font-medium text-primary">
+                                <FileText className="size-3.5 mr-2" />
+                                Gerar Proposta Visual
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setCalculatorLead(lead)} className="cursor-pointer font-medium text-amber-500">
+                                <Calculator className="size-3.5 mr-2" />
+                                Calcular Comissão
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setFlightLead(lead)} className="cursor-pointer font-medium text-sky-500">
+                                <Plane className="size-3.5 mr-2" />
+                                Malha Aérea & Voos
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase font-mono">
@@ -1314,8 +1283,8 @@ function WorkspaceComercialPage() {
                   </SheetDescription>
                 </SheetHeader>
 
-                {/* Ações Rápidas no Topo — Conexão Sistêmica com Cotações e Studio de Propostas */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {/* Ações Rápidas no Topo — Conexão Sistêmica com Cotações, Propostas, Comissões e Voos */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {selectedLead.phone && (
                     <a
                       href={`https://wa.me/55${selectedLead.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
@@ -1331,43 +1300,50 @@ function WorkspaceComercialPage() {
                   )}
 
                   <Button
-                    asChild
+                    type="button"
                     variant="outline"
-                    className="h-auto p-2.5 rounded-xl border-border/80 text-foreground hover:bg-muted font-bold text-xs"
+                    onClick={() => setProposalLead({
+                      id: selectedLead.id,
+                      fullName: selectedLead.full_name,
+                      email: selectedLead.email,
+                      phone: selectedLead.phone,
+                      destination: selectedLead.destination,
+                      estimated_value_cents: selectedLead.estimated_value_cents,
+                      passenger_count: selectedLead.pax_count,
+                    })}
+                    className="h-auto p-2.5 rounded-xl border-primary/40 bg-primary/5 text-primary hover:bg-primary/10 font-bold text-xs gap-1.5 cursor-pointer"
                   >
-                    <Link
-                      to="/workspace/turismo/cotacoes"
-                      search={{
-                        leadName: selectedLead.full_name,
-                        leadPhone: selectedLead.phone || undefined,
-                        leadEmail: selectedLead.email || undefined,
-                        destination: selectedLead.destination || undefined,
-                      } as any}
-                    >
-                      <Plane className="size-3.5 mr-1 text-primary shrink-0" />
-                      <span className="truncate">Cotação</span>
-                    </Link>
+                    <FileText className="size-3.5 shrink-0 text-primary" />
+                    <span className="truncate">Gerar Proposta</span>
                   </Button>
 
                   <Button
-                    asChild
+                    type="button"
                     variant="outline"
-                    className="h-auto p-2.5 rounded-xl border-primary/40 bg-primary/5 text-primary hover:bg-primary/10 font-bold text-xs"
+                    onClick={() => setCalculatorLead({
+                      id: selectedLead.id,
+                      fullName: selectedLead.full_name,
+                      estimated_value_cents: selectedLead.estimated_value_cents,
+                      notes: selectedLead.notes,
+                    })}
+                    className="h-auto p-2.5 rounded-xl border-amber-500/30 bg-amber-500/5 text-amber-600 hover:bg-amber-500/10 font-bold text-xs gap-1.5 cursor-pointer"
                   >
-                    <Link
-                      to="/workspace/turismo/propostas"
-                      search={{
-                        leadId: selectedLead.id,
-                        clientName: selectedLead.full_name,
-                        clientPhone: selectedLead.phone || undefined,
-                        clientEmail: selectedLead.email || undefined,
-                        destination: selectedLead.destination || undefined,
-                        new: true,
-                      } as any}
-                    >
-                      <Layers className="size-3.5 mr-1 text-primary shrink-0" />
-                      <span className="truncate">Lâmina Studio</span>
-                    </Link>
+                    <Calculator className="size-3.5 shrink-0 text-amber-500" />
+                    <span className="truncate">Comissão</span>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setFlightLead({
+                      id: selectedLead.id,
+                      fullName: selectedLead.full_name,
+                      destination: selectedLead.destination,
+                    })}
+                    className="h-auto p-2.5 rounded-xl border-sky-500/30 bg-sky-500/5 text-sky-600 hover:bg-sky-500/10 font-bold text-xs gap-1.5 cursor-pointer"
+                  >
+                    <Plane className="size-3.5 shrink-0 text-sky-500" />
+                    <span className="truncate">Malha Aérea</span>
                   </Button>
                 </div>
 
@@ -1752,6 +1728,105 @@ function WorkspaceComercialPage() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* ── Painel de Métricas do Funil Sob Demanda (Apple HIG) ── */}
+      <WorkspaceDashboardSheet
+        open={isDashboardOpen}
+        onOpenChange={setIsDashboardOpen}
+        title="Painel Comercial & Pipeline de Vendas"
+        description="Indicadores de volume, taxas de conversão e negociações em andamento."
+        metrics={[
+          {
+            id: "pipeline_val",
+            label: "Valor no Pipeline",
+            value: formatMoney(totalPipelineCents),
+            icon: DollarSign,
+            trend: { value: "Ativo", direction: "up" },
+            description: "Somatório de estimativas em negociação ativa",
+          },
+          {
+            id: "leads_active",
+            label: "Leads em Atendimento",
+            value: leads.filter((l: any) => l.status !== "lost" && l.status !== "won" && l.status !== "converted").length,
+            icon: Kanban,
+            description: "Oportunidades em contato, qualificação ou proposta",
+          },
+          {
+            id: "won_leads",
+            label: "Vendas Fechadas (Ganhos)",
+            value: leads.filter((l: any) => l.status === "won" || l.status === "converted").length,
+            icon: CheckCircle2,
+            trend: { value: "Sucesso", direction: "up" },
+            description: "Pacotes e viagens confirmadas e emitidas",
+          },
+          {
+            id: "lost_leads",
+            label: "Leads Perdidos",
+            value: leads.filter((l: any) => l.status === "lost").length,
+            icon: Clock,
+            trend: { value: "Declinados", direction: "down" },
+            description: "Oportunidades sem retorno ou recusadas",
+          },
+          {
+            id: "total_leads",
+            label: "Total de Leads Cadastrados",
+            value: leads.length,
+            icon: Users,
+            description: "Volume total de contatos no sistema",
+          },
+        ]}
+        breakdown={{
+          title: "Distribuição de Oportunidades por Canal",
+          items: LEAD_SOURCES.map((src) => ({
+            label: src.label,
+            value: leads.filter((l: any) => l.source === src.value).length,
+            total: Math.max(leads.length, 1),
+            color: src.value === "whatsapp" ? "bg-emerald-500" : src.value === "instagram" ? "bg-pink-500" : "bg-primary",
+          })),
+        }}
+      />
+
+      {/* ── Modal de Customização de Colunas do Funil ── */}
+      {storeId && (
+        <KanbanColumnCustomizerModal
+          open={isCustomizerOpen}
+          onOpenChange={setIsCustomizerOpen}
+          storeId={storeId}
+          module="commercial_crm"
+          stages={stages}
+          onStagesUpdated={(updated) => setStages(updated)}
+        />
+      )}
+
+      {/* ── Transplante Modular Comercial (Órgãos Deep de Negociação) ── */}
+      <LeadImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={() => router.invalidate()}
+      />
+
+      <LeadVisualProposalSheet
+        isOpen={!!proposalLead}
+        onClose={() => setProposalLead(null)}
+        lead={proposalLead}
+        storeId={storeId}
+        onSuccess={() => router.invalidate()}
+      />
+
+      <LeadCommissionCalculatorSheet
+        isOpen={!!calculatorLead}
+        onClose={() => setCalculatorLead(null)}
+        lead={calculatorLead}
+        onSuccess={() => router.invalidate()}
+      />
+
+      <LeadFlightGridSheet
+        isOpen={!!flightLead}
+        onClose={() => setFlightLead(null)}
+        lead={flightLead}
+        storeId={storeId}
+        onSuccess={() => router.invalidate()}
+      />
     </div>
   );
 }

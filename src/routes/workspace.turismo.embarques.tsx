@@ -1,312 +1,1159 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { createFileRoute } from '@tanstack/react-router';
+import { useState, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Calendar,
   Plus,
-  Search,
   Plane,
-  Clock,
-  Phone,
-  ArrowRight,
-  ArrowLeft,
-  Trash2,
+  Hotel,
+  CheckCircle2,
+  Circle,
+  ChevronLeft,
+  ChevronRight,
   Send,
+  FileText,
+  ShieldAlert,
+  ExternalLink,
+  Loader2,
+  AlertTriangle,
   Users,
   MapPin,
+  Clock,
+  Upload,
+  X,
+  Star,
 } from 'lucide-react';
-import { PageHeader } from '@/components/commerce/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { WorkspaceCanonicalToolbar } from '@/components/workspace/workspace-canonical-toolbar';
+import { EmptyState } from '@/components/state/states';
+import { FileAttachmentUpload } from '@/components/ui/file-attachment-upload';
 import { toast } from 'sonner';
 import { getStoreSettings } from '@/services/store.functions';
 import {
   listDepartureCards,
+  getDepartureWithChecklist,
   createDepartureCard,
   updateDepartureStage,
+  updateDepartureDetails,
+  toggleChecklistItem,
+  addChecklistItem,
+  uploadBoardingDocument,
   deleteDepartureCard,
+  AIRLINE_CHECKIN_LINKS,
+  type DepartureWithChecklist,
+  type ChecklistItem,
+  type BoardingDocument,
+  type ChecklistCategory,
+  type DocumentType,
 } from '@/services/travel-departures.functions';
-import { DEPARTURE_STAGES, type DepartureStage, type DepartureCardDTO } from '@/types/travel-departures';
+import { DEPARTURE_STAGES, type DepartureStage } from '@/types/travel-departures';
+import { useWorkspaceStore } from '@/lib/store-context';
 
 export const Route = createFileRoute('/workspace/turismo/embarques')({
-  head: () => ({ meta: [{ title: 'Kanban de Embarques & Pós-Venda | Workspace' }] }),
+  head: () => ({ meta: [{ title: 'Embarques & Calendário | Workspace' }] }),
   loader: async () => {
     const store = await getStoreSettings().catch(() => null);
     return { store };
   },
-  component: WorkspaceDeparturesKanbanPage,
+  component: WorkspaceBoardingPage,
 });
 
-function WorkspaceDeparturesKanbanPage() {
-  const { store } = Route.useLoaderData();
-  const storeId = store?.id || '';
+// ── Constants ──
+const CATEGORY_LABELS: Record<ChecklistCategory, string> = {
+  documentation: 'Documentação',
+  health: 'Saúde & Vacinas',
+  insurance: 'Seguro Viagem',
+  financial: 'Taxas & Financeiro',
+  logistics: 'Logística',
+  communication: 'Comunicação',
+  airline: 'Aéreo & Check-in',
+  hotel: 'Hotel & Hospedagem',
+  custom: 'Personalizado',
+};
 
+const CATEGORY_COLORS: Record<ChecklistCategory, string> = {
+  documentation: 'text-blue-600 bg-blue-500/10',
+  health: 'text-emerald-600 bg-emerald-500/10',
+  insurance: 'text-violet-600 bg-violet-500/10',
+  financial: 'text-amber-600 bg-amber-500/10',
+  logistics: 'text-orange-600 bg-orange-500/10',
+  communication: 'text-sky-600 bg-sky-500/10',
+  airline: 'text-indigo-600 bg-indigo-500/10',
+  hotel: 'text-pink-600 bg-pink-500/10',
+  custom: 'text-muted-foreground bg-muted',
+};
+
+const DOC_TYPE_LABELS: Record<DocumentType, string> = {
+  contract: 'Contrato/Reserva',
+  airline_ticket: 'Bilhete Aéreo',
+  hotel_voucher: 'Voucher Hotel',
+  insurance_policy: 'Seguro Viagem',
+  passport_copy: 'Passaporte',
+  visa_stamp: 'Visto/Carimbo',
+  vaccine_card: 'Cartão Vacinas',
+  invoice: 'Nota Fiscal',
+  transfer_voucher: 'Voucher Transfer',
+  other: 'Outro',
+};
+
+// ── Calendar helpers ──
+function getDaysInMonth(year: number, month: number) {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+function getFirstDayOfMonth(year: number, month: number) {
+  return new Date(year, month, 1).getDay();
+}
+
+function isSameDay(d1: Date, d2: Date) {
+  return d1.getDate() === d2.getDate() && d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear();
+}
+
+// ── Main Page Component ──
+export default function WorkspaceBoardingPage() {
+  const loaderData = Route.useLoaderData?.() as any;
+  const { currentStore } = useWorkspaceStore();
+  const qc = useQueryClient();
+  const storeId = loaderData?.store?.id || currentStore?.id || '';
+
+  // View mode
+  const [viewMode, setViewMode] = useState<'calendar' | 'kanban'>('calendar');
+  const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');
-  const [modalOpen, setModalOpen] = useState(false);
+
+  // Calendar state
+  const today = new Date();
+  const [calYear, setCalYear] = useState(today.getFullYear());
+  const [calMonth, setCalMonth] = useState(today.getMonth());
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+
+  // Detail sheet
+  const [selectedDepartureId, setSelectedDepartureId] = useState<string | null>(null);
+  const [detailTab, setDetailTab] = useState<'checklist' | 'documents' | 'flight'>('checklist');
+
+  // New departure sheet
+  const [newOpen, setNewOpen] = useState(false);
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
   const [destination, setDestination] = useState('');
   const [departureDate, setDepartureDate] = useState('');
+  const [returnDate, setReturnDate] = useState('');
   const [passengersCount, setPassengersCount] = useState('2');
+  const [destinationType, setDestinationType] = useState<'domestic' | 'international' | 'cruise'>('domestic');
+  const [airlineCode, setAirlineCode] = useState('');
+  const [flightNumber, setFlightNumber] = useState('');
+  const [airlineLocator, setAirlineLocator] = useState('');
+  const [hotelName, setHotelName] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const { data: cards = [], refetch, isLoading } = useQuery({
+  // New checklist item
+  const [newItemLabel, setNewItemLabel] = useState('');
+  const [newItemCategory, setNewItemCategory] = useState<ChecklistCategory>('custom');
+
+  // Document upload
+  const [docUrl, setDocUrl] = useState('');
+  const [docType, setDocType] = useState<DocumentType>('contract');
+
+  // ── Queries ──
+  const { data: cards = [], isLoading } = useQuery({
     queryKey: ['travel-departures', storeId],
     queryFn: () => listDepartureCards({ data: { store_id: storeId } }),
+    enabled: Boolean(storeId),
   });
 
-  const filtered = cards.filter(
-    (c) =>
-      c.client_name.toLowerCase().includes(search.toLowerCase()) ||
-      c.destination.toLowerCase().includes(search.toLowerCase())
+  const { data: detailData, isLoading: detailLoading } = useQuery({
+    queryKey: ['departure-detail', selectedDepartureId],
+    queryFn: () => getDepartureWithChecklist({ data: { departure_id: selectedDepartureId! } }),
+    enabled: Boolean(selectedDepartureId),
+  });
+
+  // ── Mutations ──
+  const createMutation = useMutation({
+    mutationFn: () => createDepartureCard({
+      data: {
+        store_id: storeId,
+        client_name: clientName.trim(),
+        client_phone: clientPhone.trim() || null,
+        destination: destination.trim(),
+        departure_date: new Date(departureDate).toISOString(),
+        return_date: returnDate ? new Date(returnDate).toISOString() : null,
+        passengers_count: parseInt(passengersCount, 10) || 1,
+        airline_code: airlineCode.trim().toUpperCase() || null,
+        flight_number: flightNumber.trim() || null,
+        airline_locator: airlineLocator.trim().toUpperCase() || null,
+        hotel_name: hotelName.trim() || null,
+        destination_type: destinationType,
+        apply_default_checklist: true,
+      },
+    }),
+    onSuccess: () => {
+      toast.success('Embarque criado com checklist automático!');
+      setNewOpen(false);
+      setClientName(''); setClientPhone(''); setDestination('');
+      setDepartureDate(''); setReturnDate(''); setAirlineCode('');
+      setFlightNumber(''); setAirlineLocator(''); setHotelName('');
+      qc.invalidateQueries({ queryKey: ['travel-departures', storeId] });
+    },
+    onError: (err: any) => toast.error(err.message || 'Erro ao criar embarque'),
+  });
+
+  const toggleMutation = useMutation({
+    mutationFn: (args: { item_id: string; is_completed: boolean }) =>
+      toggleChecklistItem({ data: { item_id: args.item_id, departure_id: selectedDepartureId!, is_completed: args.is_completed } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['departure-detail', selectedDepartureId] });
+      qc.invalidateQueries({ queryKey: ['travel-departures', storeId] });
+    },
+  });
+
+  const addItemMutation = useMutation({
+    mutationFn: () => addChecklistItem({
+      data: {
+        store_id: storeId,
+        departure_id: selectedDepartureId!,
+        label: newItemLabel.trim(),
+        category: newItemCategory,
+      },
+    }),
+    onSuccess: () => {
+      setNewItemLabel('');
+      qc.invalidateQueries({ queryKey: ['departure-detail', selectedDepartureId] });
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const uploadDocMutation = useMutation({
+    mutationFn: () => uploadBoardingDocument({
+      data: {
+        store_id: storeId,
+        departure_id: selectedDepartureId!,
+        document_type: docType,
+        file_url: docUrl,
+      },
+    }),
+    onSuccess: () => {
+      toast.success('Documento registrado!');
+      setDocUrl('');
+      qc.invalidateQueries({ queryKey: ['departure-detail', selectedDepartureId] });
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const stageMutation = useMutation({
+    mutationFn: (args: { id: string; stage: string }) =>
+      updateDepartureStage({ data: args }),
+    onSuccess: () => {
+      toast.success('Etapa atualizada!');
+      qc.invalidateQueries({ queryKey: ['travel-departures', storeId] });
+      qc.invalidateQueries({ queryKey: ['departure-detail', selectedDepartureId] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteDepartureCard({ data: { id } }),
+    onSuccess: () => {
+      toast.success('Embarque removido.');
+      setSelectedDepartureId(null);
+      qc.invalidateQueries({ queryKey: ['travel-departures', storeId] });
+    },
+  });
+
+  // ── Computed ──
+  const daysInMonth = getDaysInMonth(calYear, calMonth);
+  const firstDay = getFirstDayOfMonth(calYear, calMonth);
+  const monthName = new Date(calYear, calMonth, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
+  // Get departures for a specific day
+  const getDayDepartures = (day: number) => {
+    const dayDate = new Date(calYear, calMonth, day);
+    return cards.filter(c => {
+      if (!c.departure_date) return false;
+      return isSameDay(new Date(c.departure_date), dayDate);
+    });
+  };
+
+  // Count urgent cards (departing in ≤ 3 days)
+  const urgentCount = cards.filter(c => {
+    const days = Math.ceil((new Date(c.departure_date).getTime() - Date.now()) / 86400000);
+    return days >= 0 && days <= 3;
+  }).length;
+
+  const selectedDayDepartures = selectedDay
+    ? cards.filter(c => c.departure_date && isSameDay(new Date(c.departure_date), selectedDay))
+    : [];
+
+  // Kanban filtered
+  const filteredKanban = useMemo(() =>
+    cards.filter(c => {
+      if (activeTab === 'urgent') {
+        const days = Math.ceil((new Date(c.departure_date).getTime() - Date.now()) / 86400000);
+        return days >= -1 && days <= 7;
+      }
+      if (activeTab !== 'all') return c.stage === activeTab;
+      if (search.trim()) {
+        const q = search.toLowerCase();
+        return c.client_name.toLowerCase().includes(q) || c.destination.toLowerCase().includes(q);
+      }
+      return true;
+    }),
+    [cards, activeTab, search]
   );
 
-  const handleStageMove = async (id: string, currentStage: DepartureStage, direction: 'next' | 'prev') => {
-    const stageIds = DEPARTURE_STAGES.map((s) => s.id);
-    const currIdx = stageIds.indexOf(currentStage);
-    const targetIdx = direction === 'next' ? currIdx + 1 : currIdx - 1;
-    if (targetIdx < 0 || targetIdx >= stageIds.length) return;
+  // Detail card
+  const detail = detailData?.departure;
+  const checklist = detailData?.checklist || [];
+  const documents = detailData?.documents || [];
+  const checklistByCategory = useMemo(() => {
+    const grouped: Record<string, ChecklistItem[]> = {};
+    checklist.forEach(item => {
+      if (!grouped[item.category]) grouped[item.category] = [];
+      grouped[item.category].push(item);
+    });
+    return grouped;
+  }, [checklist]);
 
-    const nextStage = stageIds[targetIdx];
-    try {
-      await updateDepartureStage({ data: { id, stage: nextStage } });
-      toast.success('Embarque avançado para ' + DEPARTURE_STAGES[targetIdx].label);
-      refetch();
-    } catch (err: any) {
-      toast.error('Erro ao mover estágio: ' + err?.message);
-    }
-  };
+  const completedRequired = checklist.filter(i => i.is_required && i.is_completed).length;
+  const totalRequired = checklist.filter(i => i.is_required).length;
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Deseja realmente remover o cartão de ${name}?`)) return;
-    try {
-      await deleteDepartureCard({ data: { id } });
-      toast.success('Cartão removido!');
-      refetch();
-    } catch (err: any) {
-      toast.error('Erro ao remover: ' + err?.message);
-    }
-  };
-
-  const handleCreate = async () => {
-    if (!clientName.trim() || !destination.trim() || !departureDate) {
-      toast.error('Preencha os campos obrigatórios (Cliente, Destino e Data).');
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      await createDepartureCard({
-        data: {
-          store_id: storeId,
-          client_name: clientName.trim(),
-          client_phone: clientPhone.trim() || null,
-          destination: destination.trim(),
-          departure_date: new Date(departureDate).toISOString(),
-          passengers_count: parseInt(passengersCount, 10) || 1,
-        },
-      });
-      toast.success('Embarque adicionado ao Kanban!');
-      setModalOpen(false);
-      setClientName('');
-      setDestination('');
-      refetch();
-    } catch (err: any) {
-      toast.error('Erro ao criar: ' + err?.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  // Days until departure
+  const daysUntilDeparture = detail
+    ? Math.ceil((new Date(detail.departure_date).getTime() - Date.now()) / 86400000)
+    : null;
 
   return (
-    <div className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-6">
-      <PageHeader
-        title="Kanban Operacional de Embarques & Pós-Venda"
-        description="Esteira de esteira de passageiros: reservas confirmadas, emissão de vouchers, check-in aéreo 48h, suporte em viagem e pós-venda."
-      >
-        <Button
-          type="button"
-          onClick={() => setModalOpen(true)}
-          className="rounded-2xl bg-primary text-primary-foreground font-bold text-xs gap-1.5 shadow-md h-10 px-4 cursor-pointer"
-        >
-          <Plus className="size-4" /> Novo Embarque
-        </Button>
-      </PageHeader>
+    <div className="flex flex-col min-h-[calc(100vh-4rem)] w-full">
+      {/* ── Canonical Toolbar ── */}
+      <WorkspaceCanonicalToolbar
+        viewModes={[
+          { id: 'calendar', label: 'Calendário', icon: Calendar },
+          { id: 'kanban', label: 'Kanban', icon: Users },
+        ]}
+        activeViewMode={viewMode}
+        onViewModeChange={(m) => setViewMode(m as any)}
+        searchPlaceholder="Buscar passageiro ou destino..."
+        searchValue={search}
+        onSearchChange={setSearch}
+        primaryAction={{
+          label: 'Novo Embarque',
+          icon: Plus,
+          onClick: () => setNewOpen(true),
+        }}
+        secondaryAction={{
+          label: activeTab === 'all' ? `${cards.length} viagens` : '',
+          variant: 'outline',
+        }}
+        filterSlot={
+          <div className="flex items-center gap-1 flex-wrap">
+            {[
+              { id: 'all', label: 'Todos' },
+              { id: 'urgent', label: `Urgentes (${urgentCount})` },
+              { id: 'booked', label: 'Confirmados' },
+              { id: 'voucher_issued', label: 'Vouchers' },
+              { id: 'in_travel', label: 'Em Viagem' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`h-7 px-2.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
+                  activeTab === tab.id
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        }
+      />
 
-      {/* Barra de Busca */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="relative w-full max-w-md">
-          <Search className="size-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filtrar passageiro ou destino..."
-            className="h-10 pl-9 rounded-xl text-xs bg-muted/20"
-          />
+      <div className="flex-1 p-4 sm:p-6 max-w-[1600px] w-full mx-auto">
+        {/* ── CALENDAR VIEW ── */}
+        {viewMode === 'calendar' && (
+          <div className="space-y-4">
+            {/* Calendar header */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-bold text-foreground capitalize">{monthName}</h2>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0 cursor-pointer"
+                  onClick={() => {
+                    if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1); }
+                    else setCalMonth(m => m - 1);
+                  }}
+                >
+                  <ChevronLeft className="size-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-xs cursor-pointer"
+                  onClick={() => { setCalYear(today.getFullYear()); setCalMonth(today.getMonth()); }}
+                >
+                  Hoje
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0 cursor-pointer"
+                  onClick={() => {
+                    if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1); }
+                    else setCalMonth(m => m + 1);
+                  }}
+                >
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Calendar grid */}
+            <div className="rounded-2xl border border-border overflow-hidden bg-card">
+              {/* Day headers */}
+              <div className="grid grid-cols-7 border-b border-border/60 bg-muted/30">
+                {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => (
+                  <div key={d} className="text-center text-[11px] font-semibold text-muted-foreground py-2">{d}</div>
+                ))}
+              </div>
+
+              {/* Calendar days */}
+              <div className="grid grid-cols-7">
+                {/* Empty cells */}
+                {Array.from({ length: firstDay }, (_, i) => (
+                  <div key={`empty-${i}`} className="min-h-[80px] sm:min-h-[100px] border-b border-r border-border/40 bg-muted/10" />
+                ))}
+
+                {/* Day cells */}
+                {Array.from({ length: daysInMonth }, (_, i) => {
+                  const day = i + 1;
+                  const dayDate = new Date(calYear, calMonth, day);
+                  const isToday = isSameDay(dayDate, today);
+                  const isSelected = selectedDay && isSameDay(dayDate, selectedDay);
+                  const dayCards = getDayDepartures(day);
+                  const col = (firstDay + i) % 7;
+                  const isWeekend = col === 0 || col === 6;
+
+                  return (
+                    <div
+                      key={day}
+                      onClick={() => setSelectedDay(isSelected ? null : dayDate)}
+                      className={`min-h-[80px] sm:min-h-[100px] border-b border-r border-border/40 p-1.5 cursor-pointer transition-colors ${
+                        isSelected ? 'bg-primary/5 border-primary/30' :
+                        isWeekend ? 'bg-muted/10' : 'bg-card hover:bg-muted/20'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full ${
+                          isToday ? 'bg-primary text-primary-foreground' : 'text-foreground'
+                        }`}>
+                          {day}
+                        </span>
+                        {dayCards.length > 0 && (
+                          <span className="text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">
+                            {dayCards.length}
+                          </span>
+                        )}
+                      </div>
+                      <div className="space-y-0.5">
+                        {dayCards.slice(0, 2).map(card => {
+                          const days = Math.ceil((new Date(card.departure_date).getTime() - Date.now()) / 86400000);
+                          return (
+                            <div
+                              key={card.id}
+                              onClick={(e) => { e.stopPropagation(); setSelectedDepartureId(card.id); }}
+                              className={`text-[10px] font-medium px-1.5 py-0.5 rounded truncate cursor-pointer ${
+                                days <= 0 ? 'bg-emerald-500/15 text-emerald-700' :
+                                days <= 2 ? 'bg-red-500/15 text-red-700 animate-pulse' :
+                                days <= 7 ? 'bg-amber-500/15 text-amber-700' :
+                                'bg-primary/10 text-primary'
+                              }`}
+                            >
+                              ✈ {card.client_name}
+                            </div>
+                          );
+                        })}
+                        {dayCards.length > 2 && (
+                          <div className="text-[9px] text-muted-foreground pl-1">+{dayCards.length - 2} mais</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Selected day panel */}
+            {selectedDay && selectedDayDepartures.length > 0 && (
+              <div className="mt-4 space-y-3">
+                <h3 className="text-sm font-bold text-foreground">
+                  {selectedDay.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {selectedDayDepartures.map(card => <DepartureCard key={card.id} card={card} onOpen={() => setSelectedDepartureId(card.id)} />)}
+                </div>
+              </div>
+            )}
+
+            {/* All upcoming departures timeline */}
+            {!selectedDay && (
+              <div className="mt-4 space-y-2">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Próximos Embarques</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {cards
+                    .filter(c => Math.ceil((new Date(c.departure_date).getTime() - Date.now()) / 86400000) >= -1)
+                    .slice(0, 9)
+                    .map(card => <DepartureCard key={card.id} card={card} onOpen={() => setSelectedDepartureId(card.id)} />)}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── KANBAN VIEW ── */}
+        {viewMode === 'kanban' && (
+          isLoading ? (
+            <div className="flex items-center justify-center py-24 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin mr-2" />Carregando embarques...
+            </div>
+          ) : (
+            <div className="flex gap-4 overflow-x-auto pb-4 min-h-[calc(100vh-12rem)]">
+              {DEPARTURE_STAGES.map(col => {
+                const colCards = filteredKanban.filter(c => c.stage === col.id);
+                return (
+                  <div
+                    key={col.id}
+                    className="flex-none w-[300px] sm:w-[320px] bg-muted/20 border border-border rounded-2xl flex flex-col"
+                  >
+                    <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between shrink-0">
+                      <div>
+                        <h3 className="text-xs font-bold text-foreground">{col.label}</h3>
+                        <p className="text-[10px] text-muted-foreground">{col.desc}</p>
+                      </div>
+                      <Badge variant="outline" className="font-mono text-[10px] h-5 px-1.5">{colCards.length}</Badge>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-3 space-y-2.5 no-scrollbar">
+                      {colCards.length === 0 ? (
+                        <div className="h-24 rounded-xl border border-dashed border-border/60 flex items-center justify-center text-[11px] text-muted-foreground">
+                          Sem viagens
+                        </div>
+                      ) : (
+                        colCards.map(card => <DepartureCard key={card.id} card={card} onOpen={() => setSelectedDepartureId(card.id)} compact />)
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
+        )}
+      </div>
+
+      {/* ── Detail Sheet ── */}
+      <Sheet open={Boolean(selectedDepartureId)} onOpenChange={(o) => !o && setSelectedDepartureId(null)}>
+        <SheetContent
+          side="right"
+          className="sm:max-w-lg md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 flex flex-col h-full bg-card overflow-hidden"
+        >
+          {detailLoading ? (
+            <div className="flex-1 flex items-center justify-center">
+              <Loader2 className="size-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : detail ? (
+            <>
+              {/* Header */}
+              <SheetHeader className="px-5 py-4 border-b border-border/60 bg-muted/20 shrink-0">
+                <SheetTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <Plane className="size-4 text-primary" />
+                  <span className="truncate">{detail.client_name}</span>
+                  {daysUntilDeparture !== null && (
+                    <Badge variant="outline" className={`ml-auto text-[10px] shrink-0 ${
+                      daysUntilDeparture <= 0 ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/30' :
+                      daysUntilDeparture <= 2 ? 'bg-red-500/10 text-red-700 border-red-500/30' :
+                      daysUntilDeparture <= 7 ? 'bg-amber-500/10 text-amber-700 border-amber-500/30' :
+                      'bg-blue-500/10 text-blue-700 border-blue-500/30'
+                    }`}>
+                      {daysUntilDeparture <= 0 ? 'Em Viagem' : `em ${daysUntilDeparture}d`}
+                    </Badge>
+                  )}
+                </SheetTitle>
+
+                {/* Meta info */}
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground font-mono pt-1">
+                  <span className="flex items-center gap-1"><MapPin className="size-3" />{detail.destination}</span>
+                  <span className="flex items-center gap-1"><Calendar className="size-3" />
+                    {new Date(detail.departure_date).toLocaleDateString('pt-BR')}
+                    {detail.return_date && ` → ${new Date(detail.return_date).toLocaleDateString('pt-BR')}`}
+                  </span>
+                  <span className="flex items-center gap-1"><Users className="size-3" />{detail.passengers_count} pax</span>
+                </div>
+
+                {/* Flight & Hotel info */}
+                {(detail.airline_code || detail.hotel_name) && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {detail.airline_code && (
+                      <div className="flex items-center gap-1.5 text-[11px] bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 px-2 py-1 rounded-lg">
+                        <Plane className="size-3" />
+                        <span className="font-semibold">{detail.airline_code}</span>
+                        {detail.flight_number && <span>{detail.flight_number}</span>}
+                        {detail.airline_locator && <span className="font-mono">({detail.airline_locator})</span>}
+                        {detail.checkin_link && (
+                          <a href={detail.checkin_link} target="_blank" rel="noreferrer" className="ml-1 underline-offset-2 hover:underline flex items-center gap-0.5">
+                            Check-in <ExternalLink className="size-2.5" />
+                          </a>
+                        )}
+                      </div>
+                    )}
+                    {detail.hotel_name && (
+                      <div className="flex items-center gap-1.5 text-[11px] bg-pink-500/10 text-pink-700 dark:text-pink-400 px-2 py-1 rounded-lg">
+                        <Hotel className="size-3" />
+                        <span className="font-semibold">{detail.hotel_name}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Checklist progress bar */}
+                {totalRequired > 0 && (
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
+                      <span>Checklist: {completedRequired}/{totalRequired} itens obrigatórios</span>
+                      <span className="font-semibold text-foreground">{detail.checklist_completed_pct || 0}%</span>
+                    </div>
+                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          (detail.checklist_completed_pct || 0) === 100 ? 'bg-emerald-500' :
+                          (detail.checklist_completed_pct || 0) >= 70 ? 'bg-amber-500' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${detail.checklist_completed_pct || 0}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Stage selector */}
+                <div className="flex items-center gap-2 pt-1">
+                  <span className="text-[11px] text-muted-foreground">Etapa:</span>
+                  <select
+                    value={detail.stage}
+                    onChange={e => stageMutation.mutate({ id: detail.id, stage: e.target.value })}
+                    className="h-7 px-2 rounded-lg border border-input bg-background text-[11px] font-semibold focus:outline-none flex-1"
+                  >
+                    {DEPARTURE_STAGES.map(s => (
+                      <option key={s.id} value={s.id}>{s.label}</option>
+                    ))}
+                  </select>
+
+                  {/* WhatsApp */}
+                  {detail.client_phone && (
+                    <a
+                      href={`https://wa.me/55${detail.client_phone.replace(/\D/g, '')}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center hover:bg-emerald-500/20 shrink-0"
+                    >
+                      <Send className="size-3.5" />
+                    </a>
+                  )}
+                </div>
+
+                {/* Tab navigation inside sheet */}
+                <div className="flex border-b border-border/60 gap-0 -mx-5 px-5 mt-1">
+                  {[
+                    { id: 'checklist', label: `Checklist (${checklist.length})` },
+                    { id: 'documents', label: `Docs (${documents.length})` },
+                    { id: 'flight', label: 'Voo & Hotel' },
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setDetailTab(tab.id as any)}
+                      className={`px-4 py-2 text-[11px] font-semibold border-b-2 transition-colors cursor-pointer ${
+                        detailTab === tab.id
+                          ? 'border-primary text-primary'
+                          : 'border-transparent text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </SheetHeader>
+
+              {/* ── Tab Content ── */}
+              <div className="flex-1 overflow-y-auto no-scrollbar">
+                {/* CHECKLIST TAB */}
+                {detailTab === 'checklist' && (
+                  <div className="p-5 space-y-4">
+                    {Object.entries(checklistByCategory).map(([category, items]) => (
+                      <div key={category}>
+                        <div className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md mb-2 ${CATEGORY_COLORS[category as ChecklistCategory]}`}>
+                          {CATEGORY_LABELS[category as ChecklistCategory]}
+                        </div>
+                        <div className="space-y-1.5">
+                          {items.map(item => (
+                            <div
+                              key={item.id}
+                              className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                                item.is_completed
+                                  ? 'bg-emerald-500/5 border-emerald-500/20'
+                                  : 'bg-card border-border hover:bg-muted/30'
+                              }`}
+                              onClick={() => toggleMutation.mutate({ item_id: item.id, is_completed: !item.is_completed })}
+                            >
+                              {item.is_completed ? (
+                                <CheckCircle2 className="size-4 text-emerald-500 shrink-0 mt-0.5" />
+                              ) : (
+                                <Circle className="size-4 text-muted-foreground shrink-0 mt-0.5" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-xs font-medium leading-snug ${item.is_completed ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+                                  {item.label}
+                                  {item.is_required && !item.is_completed && (
+                                    <span className="ml-1.5 text-[9px] text-red-500 font-bold">OBRIG.</span>
+                                  )}
+                                </p>
+                                {item.due_days_before && daysUntilDeparture !== null && !item.is_completed && (
+                                  <p className={`text-[10px] mt-0.5 ${
+                                    daysUntilDeparture <= item.due_days_before
+                                      ? 'text-amber-600 font-semibold'
+                                      : 'text-muted-foreground'
+                                  }`}>
+                                    <Clock className="size-2.5 inline mr-0.5" />
+                                    {daysUntilDeparture <= item.due_days_before ? 'AÇÃO NECESSÁRIA' : `Fazer até ${item.due_days_before}d antes`}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+
+                    {checklist.length === 0 && (
+                      <p className="text-xs text-muted-foreground italic text-center py-4">Nenhum item de checklist. Adicione abaixo.</p>
+                    )}
+
+                    {/* Add item */}
+                    <div className="pt-3 border-t border-border/60">
+                      <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Adicionar Item</p>
+                      <div className="flex gap-2">
+                        <select
+                          value={newItemCategory}
+                          onChange={e => setNewItemCategory(e.target.value as ChecklistCategory)}
+                          className="h-9 px-2 rounded-xl border border-input bg-background text-[11px] focus:outline-none shrink-0"
+                        >
+                          {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
+                            <option key={k} value={k}>{v}</option>
+                          ))}
+                        </select>
+                        <Input
+                          value={newItemLabel}
+                          onChange={e => setNewItemLabel(e.target.value)}
+                          placeholder="Descrição do item..."
+                          className="h-9 text-xs flex-1 rounded-xl"
+                          onKeyDown={e => { if (e.key === 'Enter' && newItemLabel.trim()) addItemMutation.mutate(); }}
+                        />
+                        <Button
+                          size="sm"
+                          disabled={!newItemLabel.trim() || addItemMutation.isPending}
+                          onClick={() => addItemMutation.mutate()}
+                          className="h-9 px-3 rounded-xl cursor-pointer shrink-0"
+                        >
+                          <Plus className="size-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* DOCUMENTS TAB */}
+                {detailTab === 'documents' && (
+                  <div className="p-5 space-y-3">
+                    {documents.map(doc => (
+                      <div key={doc.id} className="p-3 rounded-xl border border-border bg-card flex items-center gap-3">
+                        <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <FileText className="size-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-foreground truncate">{DOC_TYPE_LABELS[doc.document_type]}</p>
+                          <p className="text-[10px] text-muted-foreground truncate">{doc.file_name || 'Documento'}</p>
+                          {doc.ocr_status === 'completed' && doc.passenger_name && (
+                            <p className="text-[10px] text-emerald-600">OCR: {doc.passenger_name}</p>
+                          )}
+                          {doc.valid_until && (
+                            <p className="text-[10px] text-amber-600">
+                              Válido até: {new Date(doc.valid_until).toLocaleDateString('pt-BR')}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <Badge variant="outline" className={`text-[9px] ${
+                            doc.ocr_status === 'completed' ? 'text-emerald-600 border-emerald-500/30' :
+                            doc.ocr_status === 'pending' ? 'text-amber-600 border-amber-500/30' :
+                            'text-muted-foreground'
+                          }`}>
+                            {doc.ocr_status === 'completed' ? 'OCR ✓' : doc.ocr_status === 'pending' ? 'Aguardando OCR' : 'Sem OCR'}
+                          </Badge>
+                          <a href={doc.file_url} target="_blank" rel="noreferrer" className="h-7 w-7 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-foreground">
+                            <ExternalLink className="size-3" />
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+
+                    {documents.length === 0 && (
+                      <p className="text-xs text-muted-foreground italic text-center py-4">Nenhum documento anexado ainda.</p>
+                    )}
+
+                    {/* Upload */}
+                    <div className="pt-3 border-t border-border/60 space-y-2">
+                      <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Anexar Documento</p>
+                      <div className="flex gap-2">
+                        <select
+                          value={docType}
+                          onChange={e => setDocType(e.target.value as DocumentType)}
+                          className="h-9 px-2 rounded-xl border border-input bg-background text-[11px] focus:outline-none"
+                        >
+                          {Object.entries(DOC_TYPE_LABELS).map(([k, v]) => (
+                            <option key={k} value={k}>{v}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <FileAttachmentUpload
+                        value={docUrl}
+                        onChange={setDocUrl}
+                        onRemove={() => setDocUrl('')}
+                        label=""
+                        helperText="PDF, imagem ou bilhete. OCR automático para passaportes e contratos."
+                        bucket="cms-media"
+                        accept="image/*,application/pdf"
+                      />
+                      {docUrl && (
+                        <Button
+                          onClick={() => uploadDocMutation.mutate()}
+                          disabled={uploadDocMutation.isPending}
+                          className="w-full h-9 text-xs rounded-xl cursor-pointer"
+                        >
+                          {uploadDocMutation.isPending ? <Loader2 className="size-3 animate-spin mr-1.5" /> : <Upload className="size-3.5 mr-1.5" />}
+                          Registrar Documento
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* FLIGHT & HOTEL TAB */}
+                {detailTab === 'flight' && (
+                  <div className="p-5 space-y-4">
+                    <div className="space-y-3">
+                      <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Informações do Voo</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">CIA Aérea</Label>
+                          <Input defaultValue={detail.airline_code || ''} placeholder="LA, G3, AD..." className="h-9 text-xs uppercase font-mono" id="airline_code_input" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Nº do Voo</Label>
+                          <Input defaultValue={detail.flight_number || ''} placeholder="LA3214" className="h-9 text-xs font-mono" id="flight_number_input" />
+                        </div>
+                        <div className="space-y-1 col-span-2">
+                          <Label className="text-xs">Localizador / PNR</Label>
+                          <Input defaultValue={detail.airline_locator || ''} placeholder="XYZABC" className="h-9 text-xs font-mono uppercase" id="locator_input" />
+                        </div>
+                      </div>
+
+                      {detail.checkin_link ? (
+                        <a
+                          href={detail.checkin_link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-center gap-2 w-full h-10 rounded-xl border border-indigo-500/30 bg-indigo-500/5 text-indigo-700 dark:text-indigo-400 text-xs font-semibold hover:bg-indigo-500/10 transition-colors"
+                        >
+                          <Plane className="size-3.5" />
+                          Fazer Check-in Online ({detail.airline_code})
+                          <ExternalLink className="size-3" />
+                        </a>
+                      ) : (
+                        <p className="text-[11px] text-muted-foreground text-center">
+                          Informe a CIA aérea para obter o link de check-in automático.
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-3 border-t border-border/60 pt-4">
+                      <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Hotel & Hospedagem</p>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Nome do Hotel / Pousada</Label>
+                        <Input defaultValue={detail.hotel_name || ''} placeholder="Ex: Hotel Serrano" className="h-9 text-xs" id="hotel_name_input" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Check-in Hotel</Label>
+                          <Input type="datetime-local" defaultValue={detail.hotel_checkin_at?.slice(0,16) || ''} className="h-9 text-xs" id="hotel_checkin_input" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Check-out Hotel</Label>
+                          <Input type="datetime-local" defaultValue={detail.hotel_checkout_at?.slice(0,16) || ''} className="h-9 text-xs" id="hotel_checkout_input" />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Regras do Hotel (cancelamento, pets, etc.)</Label>
+                        <textarea
+                          id="hotel_rules_input"
+                          defaultValue={detail.hotel_rules || ''}
+                          placeholder="Ex: Cancelamento gratuito até 48h. Check-in a partir das 14h. Pets não permitidos."
+                          className="w-full h-20 p-3 rounded-xl border border-input bg-background text-xs text-foreground focus:outline-none resize-none leading-relaxed"
+                        />
+                      </div>
+                      <Button
+                        className="w-full h-10 text-xs rounded-xl cursor-pointer"
+                        onClick={async () => {
+                          const ac = (document.getElementById('airline_code_input') as HTMLInputElement)?.value || null;
+                          const fn = (document.getElementById('flight_number_input') as HTMLInputElement)?.value || null;
+                          const loc = (document.getElementById('locator_input') as HTMLInputElement)?.value || null;
+                          const hn = (document.getElementById('hotel_name_input') as HTMLInputElement)?.value || null;
+                          const hci = (document.getElementById('hotel_checkin_input') as HTMLInputElement)?.value || null;
+                          const hco = (document.getElementById('hotel_checkout_input') as HTMLInputElement)?.value || null;
+                          const hr = (document.getElementById('hotel_rules_input') as HTMLTextAreaElement)?.value || null;
+                          try {
+                            await updateDepartureDetails({ data: {
+                              id: detail.id,
+                              airline_code: ac,
+                              flight_number: fn,
+                              airline_locator: loc,
+                              hotel_name: hn,
+                              hotel_checkin_at: hci ? new Date(hci).toISOString() : null,
+                              hotel_checkout_at: hco ? new Date(hco).toISOString() : null,
+                              hotel_rules: hr,
+                            }});
+                            toast.success('Informações de voo e hotel salvas!');
+                            qc.invalidateQueries({ queryKey: ['departure-detail', selectedDepartureId] });
+                            qc.invalidateQueries({ queryKey: ['travel-departures', storeId] });
+                          } catch(err: any) {
+                            toast.error(err.message);
+                          }
+                        }}
+                      >
+                        Salvar Voo & Hotel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="px-5 py-3 border-t border-border/60 bg-muted/10 flex items-center justify-between shrink-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-3 text-[11px] text-destructive hover:text-destructive cursor-pointer"
+                  onClick={() => {
+                    if (window.confirm('Remover este embarque?')) deleteMutation.mutate(detail.id);
+                  }}
+                >
+                  <X className="size-3 mr-1" /> Remover
+                </Button>
+                <p className="text-[10px] text-muted-foreground font-mono">
+                  Criado em {new Date(detail.created_at).toLocaleDateString('pt-BR')}
+                </p>
+              </div>
+            </>
+          ) : null}
+        </SheetContent>
+      </Sheet>
+
+      {/* ── New Departure Sheet ── */}
+      <Sheet open={newOpen} onOpenChange={setNewOpen}>
+        <SheetContent
+          side="right"
+          className="sm:max-w-lg md:max-w-xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 flex flex-col h-full bg-card overflow-hidden"
+        >
+          <SheetHeader className="px-5 py-4 border-b border-border/60 bg-muted/20 shrink-0">
+            <SheetTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+              <Plane className="size-4 text-primary" />
+              Novo Embarque
+            </SheetTitle>
+          </SheetHeader>
+
+          <form
+            onSubmit={e => { e.preventDefault(); createMutation.mutate(); }}
+            className="flex-1 flex flex-col overflow-hidden"
+          >
+            <div className="flex-1 overflow-y-auto no-scrollbar p-5 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1 sm:col-span-2">
+                  <Label className="text-xs font-semibold">Passageiro Titular *</Label>
+                  <Input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Nome do passageiro" className="h-10 text-xs rounded-xl" required autoFocus />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold">WhatsApp</Label>
+                  <Input value={clientPhone} onChange={e => setClientPhone(e.target.value)} placeholder="(49) 99999-9999" className="h-10 text-xs rounded-xl font-mono" />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold">Nº Passageiros</Label>
+                  <Input type="number" value={passengersCount} onChange={e => setPassengersCount(e.target.value)} min="1" className="h-10 text-xs rounded-xl font-mono" />
+                </div>
+
+                <div className="space-y-1 sm:col-span-2">
+                  <Label className="text-xs font-semibold">Destino Principal *</Label>
+                  <Input value={destination} onChange={e => setDestination(e.target.value)} placeholder="Ex: Gramado, RS ou Cancún, México" className="h-10 text-xs rounded-xl" required />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold">Tipo de Destino *</Label>
+                  <select
+                    value={destinationType}
+                    onChange={e => setDestinationType(e.target.value as any)}
+                    className="w-full h-10 px-3 rounded-xl border border-input bg-background text-xs font-medium focus:outline-none"
+                  >
+                    <option value="domestic">Nacional</option>
+                    <option value="international">Internacional</option>
+                    <option value="cruise">Cruzeiro</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold">Embarque *</Label>
+                  <Input type="date" value={departureDate} onChange={e => setDepartureDate(e.target.value)} className="h-10 text-xs rounded-xl" required />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold">Retorno</Label>
+                  <Input type="date" value={returnDate} onChange={e => setReturnDate(e.target.value)} className="h-10 text-xs rounded-xl" />
+                </div>
+
+                <div className="space-y-1 sm:col-span-2 border-t border-border/60 pt-3">
+                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Voo (Opcional)</p>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold">CIA Aérea</Label>
+                  <Input
+                    value={airlineCode}
+                    onChange={e => setAirlineCode(e.target.value.toUpperCase())}
+                    placeholder="LA, G3, AD..."
+                    className="h-10 text-xs rounded-xl font-mono"
+                    maxLength={3}
+                    list="airlines-list"
+                  />
+                  <datalist id="airlines-list">
+                    {Object.keys(AIRLINE_CHECKIN_LINKS).map(k => <option key={k} value={k} />)}
+                  </datalist>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold">Nº do Voo</Label>
+                  <Input value={flightNumber} onChange={e => setFlightNumber(e.target.value.toUpperCase())} placeholder="LA3214" className="h-10 text-xs rounded-xl font-mono" />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold">Localizador / PNR</Label>
+                  <Input value={airlineLocator} onChange={e => setAirlineLocator(e.target.value.toUpperCase())} placeholder="XYZABC" className="h-10 text-xs rounded-xl font-mono" />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold">Hotel / Pousada</Label>
+                  <Input value={hotelName} onChange={e => setHotelName(e.target.value)} placeholder="Nome do hotel" className="h-10 text-xs rounded-xl" />
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3 text-[11px] text-emerald-700 dark:text-emerald-400">
+                <Star className="size-3 inline mr-1.5" />
+                Checklist automático de <strong>{destinationType === 'domestic' ? 'destino nacional' : destinationType === 'international' ? 'destino internacional' : 'cruzeiro'}</strong> será criado com {destinationType === 'domestic' ? '6' : destinationType === 'international' ? '13' : '7'} itens.
+              </div>
+            </div>
+
+            <div className="px-5 py-4 border-t border-border/60 bg-muted/20 flex items-center justify-end gap-2 shrink-0">
+              <Button type="button" variant="outline" onClick={() => setNewOpen(false)} className="h-10 px-4 rounded-xl text-xs font-semibold cursor-pointer">
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={createMutation.isPending || !clientName.trim() || !destination.trim() || !departureDate} className="h-10 px-5 rounded-xl text-xs font-bold cursor-pointer">
+                {createMutation.isPending ? <><Loader2 className="size-3 animate-spin mr-1.5" />Criando...</> : 'Criar Embarque'}
+              </Button>
+            </div>
+          </form>
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
+}
+
+// ── Card component ──
+function DepartureCard({
+  card,
+  onOpen,
+  compact = false,
+}: {
+  card: DepartureWithChecklist;
+  onOpen: () => void;
+  compact?: boolean;
+}) {
+  const daysUntil = Math.ceil((new Date(card.departure_date).getTime() - Date.now()) / 86400000);
+  const urgencyClass =
+    daysUntil <= 0 ? 'border-emerald-500/40 bg-emerald-500/5' :
+    daysUntil <= 2 ? 'border-red-500/40 bg-red-500/5' :
+    daysUntil <= 7 ? 'border-amber-500/30 bg-amber-500/5' :
+    'border-border bg-card';
+
+  const pct = card.checklist_completed_pct || 0;
+
+  return (
+    <div
+      onClick={onOpen}
+      className={`p-3.5 rounded-2xl border cursor-pointer hover:shadow-sm transition-all ${urgencyClass}`}
+    >
+      <div className="flex items-start justify-between gap-1 mb-2">
+        <div>
+          <h4 className="text-xs font-bold text-foreground leading-tight">{card.client_name}</h4>
+          <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+            <MapPin className="size-2.5" />{card.destination}
+          </p>
         </div>
-        <span className="text-xs text-muted-foreground font-mono">
-          Total de {cards.length} viagens em pipeline
+        <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 ${
+          daysUntil <= 0 ? 'bg-emerald-500/20 text-emerald-700' :
+          daysUntil <= 2 ? 'bg-red-500/20 text-red-700 animate-pulse' :
+          daysUntil <= 7 ? 'bg-amber-500/20 text-amber-700' :
+          'bg-muted text-muted-foreground'
+        }`}>
+          {daysUntil <= 0 ? '✈ Hoje/Passado' : `em ${daysUntil}d`}
         </span>
       </div>
 
-      {/* Colunas do Kanban */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-start">
-        {DEPARTURE_STAGES.map((col) => {
-          const colCards = filtered.filter((c) => c.stage === col.id);
-          return (
-            <div
-              key={col.id}
-              className="p-3.5 rounded-2xl bg-muted/20 border border-border flex flex-col space-y-3 min-h-[500px]"
-            >
-              <div className="flex items-center justify-between px-1">
-                <div>
-                  <h3 className="text-xs font-bold text-foreground">{col.label}</h3>
-                  <p className="text-[10px] text-muted-foreground">{col.desc}</p>
-                </div>
-                <Badge variant="outline" className="font-mono text-[10px] h-5 px-1.5">
-                  {colCards.length}
-                </Badge>
-              </div>
+      {!compact && (
+        <>
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono mb-2">
+            <span>{new Date(card.departure_date).toLocaleDateString('pt-BR')}</span>
+            <span>·</span>
+            <span>{card.passengers_count}pax</span>
+            {card.airline_code && <><span>·</span><span className="text-indigo-600">✈{card.airline_code}</span></>}
+          </div>
 
-              <div className="space-y-2.5 flex-1">
-                {colCards.length === 0 ? (
-                  <div className="h-32 rounded-2xl border border-dashed border-border/60 flex items-center justify-center text-[11px] text-muted-foreground">
-                    Sem viagens
-                  </div>
-                ) : (
-                  colCards.map((card) => {
-                    const daysUntil = Math.ceil(
-                      (new Date(card.departure_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-                    );
-                    return (
-                      <div
-                        key={card.id}
-                        className="p-4 rounded-2xl bg-card border border-border shadow-xs hover:border-primary/50 transition-all space-y-2.5"
-                      >
-                        <div className="flex items-start justify-between gap-1">
-                          <h4 className="text-xs font-bold text-foreground leading-tight">{card.client_name}</h4>
-                          <span
-                            className={'text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ' + (
-                              daysUntil <= 2
-                                ? 'bg-rose-500/15 text-rose-600 animate-pulse'
-                                : daysUntil <= 7
-                                ? 'bg-amber-500/15 text-amber-600'
-                                : 'bg-muted text-muted-foreground'
-                            )}
-                          >
-                            {daysUntil > 0 ? `em ${daysUntil}d` : daysUntil === 0 ? 'HOJE' : `${Math.abs(daysUntil)}d atrás`}
-                          </span>
-                        </div>
-
-                        <div className="text-[11px] text-muted-foreground space-y-1">
-                          <p className="font-semibold text-foreground flex items-center gap-1">
-                            <MapPin className="size-3 text-primary shrink-0" /> {card.destination}
-                          </p>
-                          <p className="flex items-center gap-1 font-mono text-[10px]">
-                            <Calendar className="size-3 text-muted-foreground shrink-0" />
-                            {new Date(card.departure_date).toLocaleDateString('pt-BR')} ({card.passengers_count} pax)
-                          </p>
-                        </div>
-
-                        {/* Ações de Avanço */}
-                        <div className="flex items-center justify-between border-t border-border/50 pt-2 text-xs">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            disabled={col.id === 'booked'}
-                            onClick={() => handleStageMove(card.id, card.stage, 'prev')}
-                            className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-foreground"
-                            title="Voltar etapa"
-                          >
-                            <ArrowLeft className="size-3" />
-                          </Button>
-
-                          <div className="flex items-center gap-1">
-                            {card.client_phone && (
-                              <a
-                                href={`https://wa.me/55${card.client_phone.replace(/\D/g, '')}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center hover:bg-emerald-500/20 transition-colors"
-                                title="WhatsApp"
-                              >
-                                <Send className="size-3" />
-                              </a>
-                            )}
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(card.id, card.client_name)}
-                              className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-destructive"
-                            >
-                              <Trash2 className="size-3" />
-                            </Button>
-                          </div>
-
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            disabled={col.id === 'post_trip'}
-                            onClick={() => handleStageMove(card.id, card.stage, 'next')}
-                            className="h-7 w-7 p-0 rounded-lg text-primary hover:bg-primary/10"
-                            title="Avançar etapa"
-                          >
-                            <ArrowRight className="size-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+          {/* Checklist progress */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[9px] text-muted-foreground">
+              <span>Checklist</span>
+              <span className={pct === 100 ? 'text-emerald-600 font-semibold' : pct < 50 ? 'text-red-600 font-semibold' : 'text-amber-600 font-semibold'}>{pct}%</span>
             </div>
-          );
-        })}
-      </div>
-
-      {modalOpen && (
-        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-          <DialogContent className="sm:max-w-md p-5 rounded-2xl bg-card border border-border shadow-2xl">
-            <DialogHeader>
-              <DialogTitle className="text-sm font-bold">Novo Embarque no Pipeline</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3 py-2 text-xs">
-              <div className="space-y-1">
-                <label className="font-bold">Passageiro Titular *</label>
-                <Input value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="Nome do passageiro" className="h-9 text-xs rounded-xl" />
-              </div>
-              <div className="space-y-1">
-                <label className="font-bold">WhatsApp</label>
-                <Input value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} placeholder="(49) 99999-9999" className="h-9 text-xs rounded-xl font-mono" />
-              </div>
-              <div className="space-y-1">
-                <label className="font-bold">Destino Principal *</label>
-                <Input value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="Ex: Gramado, RS ou Cancún" className="h-9 text-xs rounded-xl" />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <label className="font-bold">Data de Embarque *</label>
-                  <Input type="date" value={departureDate} onChange={(e) => setDepartureDate(e.target.value)} className="h-9 text-xs rounded-xl" />
-                </div>
-                <div className="space-y-1">
-                  <label className="font-bold">Nº Passageiros</label>
-                  <Input type="number" value={passengersCount} onChange={(e) => setPassengersCount(e.target.value)} min="1" className="h-9 text-xs rounded-xl font-mono" />
-                </div>
-              </div>
+            <div className="h-1 bg-muted rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full ${pct === 100 ? 'bg-emerald-500' : pct < 50 ? 'bg-red-500' : 'bg-amber-500'}`}
+                style={{ width: `${pct}%` }}
+              />
             </div>
-            <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setModalOpen(false)} className="rounded-xl text-xs">Cancelar</Button>
-              <Button type="button" disabled={submitting} onClick={handleCreate} className="rounded-xl bg-primary text-primary-foreground text-xs font-bold px-4">
-                {submitting ? 'Salvando...' : 'Criar Embarque'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          </div>
+        </>
       )}
     </div>
   );
