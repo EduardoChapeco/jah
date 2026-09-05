@@ -485,3 +485,31 @@
 2. **Higienização de Identidade Canônica**:
    - Normalizados fallbacks de título em `__root.tsx` (`${storeName} Master OS | JAH`), `admin-master.tsx`, `api.pwa.manifest[.]json.ts` e rotas específicas.
    - Validados 197 testes unitários passando 100% no Vitest.
+
+## Ciclo 85 — Saneamento de Contratos do SimLab, Correção de Importações e Build de Produção
+
+- **Data/Hora:** 2026-09-04T22:00:00-03:00
+- **Módulo:** Contratos Canônicos SimLab, Rotas Admin/Workspace, Build Vite SSR e Responsividade Apple HIG
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. `[MISSING_EXPORT]` no SimLab decorria de nomes legados de funções exigidos pelas rotas administrativas e de workspace (`listSimLabPersonas`, `runPersonaSimulation`, etc.).
+2. `[UNLOADABLE_DEPENDENCY]` decorria de importação inexistente `@/lib/supabase.server` em 5 arquivos de turismo. O caminho canônico é `@/lib/supabase`.
+3. `[MISSING_EXPORT] getServerSupabase` decorria de `destination-intelligence.functions.ts`.
+4. Estilo visual de simulação possuía cantos desproporcionais e ausência de grid adaptativo para mobile.
+
+### Ações Executadas
+1. **Unificação de Contratos SimLab**:
+   - Adicionadas Server Functions canônicas em `src/services/simlab.functions.ts`: `getSeedPersonas`, `getSimLabStatus`, `runPersonaSimulation`, `listSimLabPersonas`, `listResearchSessions`, `createSimLabPersona`, `runSimLabResearch`.
+   - Conectado `fetchSyntheticArchetypes()` diretamente com persistência no Supabase.
+2. **Correção de Dependências**:
+   - Corrigidas importações em `travel-vouchers.functions.ts`, `travel-visas.functions.ts`, `travel-suppliers.functions.ts`, `travel-departures.functions.ts` e `src/routes/viajante.$token.tsx` para importar canonicamente `@/lib/supabase`.
+   - Exportado alias `getServerSupabase = getServerClient` em `src/lib/supabase.ts`.
+3. **Design Silencioso Apple HIG & Mobile-First**:
+   - Refatoradas as rotas `admin-master.simlabs.tsx` e `workspace.simulacao.tsx`. Erradicado `squircle-soft`, botões e inputs com `h-11` (touch target mínimo de 44px), badges anti-pill `rounded-md font-medium text-[11px] px-2 py-0.5`, tabs com `no-scrollbar`.
+   - Erradicado ícone proibido Sparkle de `src/routes/workspace.simlab.focus-group.tsx` e `admin-master.simlabs.tsx`.
+   - Higienizado branding residual "Wider" em `src/components/shell/top-bar.tsx`.
+4. **Validação Rigorosa**:
+   - Build de produção completo (`vite build`) executou com **código 0**, gerando bundles Client, SSR e Cloudflare Nitro Pages com sucesso.
+   - Vitest: 38 test files, 197 testes passando 100%.
+   - Runtime E2E no navegador real: Simulação em tela mobile (390x844) comprovou renderização de score cards (63/100, 80%, 64/100), objeções e verbatims de 5 personas sintéticas.

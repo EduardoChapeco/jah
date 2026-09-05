@@ -1,6 +1,7 @@
 /**
  * admin-master.simlabs.tsx — SimLabs: Laboratório de Personas Sintéticas & IA
  * Simulação de Mercado, Intenção de Compra de Personas e Testes Cognitivos de Produtos.
+ * Padrão Apple HIG Silencioso, Anti-Pill e Mobile-First.
  */
 
 import { createFileRoute } from "@tanstack/react-router";
@@ -10,7 +11,7 @@ import {
   Users, 
   Play, 
   CheckCircle, 
-  Sparkle, 
+  Sliders, 
   Plus, 
   ChartBar, 
   Target, 
@@ -20,7 +21,7 @@ import { listSimLabPersonas, listResearchSessions, createSimLabPersona, runSimLa
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin-master/simlabs")({
-  head: () => ({ meta: [{ title: "SimLabs & Personas Sintéticas | Admin Master" }] }),
+  head: () => ({ meta: [{ title: "SimLabs & Personas Sintéticas | JAH Master OS" }] }),
   loader: async () => {
     try {
       const [personas, sessions] = await Promise.all([
@@ -36,7 +37,7 @@ export const Route = createFileRoute("/admin-master/simlabs")({
 });
 
 function AdminSimLabsPage() {
-  const { personas, sessions } = Route.useLoaderData();
+  const { personas, sessions } = Route.useLoaderData() as any;
   const [activeTab, setActiveTab] = useState<"sessions" | "personas" | "new_sim">("sessions");
   const [isPending, startTransition] = useTransition();
 
@@ -101,57 +102,57 @@ function AdminSimLabsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="mx-auto max-w-6xl">
-        {/* Header */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="min-h-screen bg-background p-4 sm:p-6">
+      <div className="mx-auto max-w-6xl space-y-6">
+        {/* Header Apple HIG */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-border/60 pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Brain className="h-6 w-6" />
+            <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+              <Brain className="size-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
                 SimLabs: Inteligência Sintética
               </h1>
               <p className="text-xs text-muted-foreground">
-                Simulações de mercado com esquadrões de personas consumidoras e testes preditivos de adesão.
+                Simulações de mercado calibradas com microdados populacionais e testes de elasticidade.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-full pb-1">
             <button
               onClick={() => setActiveTab("sessions")}
-              className={`rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
+              className={`rounded-xl px-3.5 h-11 text-xs font-semibold shrink-0 transition-all cursor-pointer ${
                 activeTab === "sessions"
                   ? "bg-primary text-primary-foreground"
-                  : "bg-surface-paper text-muted-foreground hover:text-foreground"
+                  : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
             >
-              <ChartBar className="mr-1.5 inline h-4 w-4" />
-              Pesquisas Simuladas ({sessions.length})
+              <ChartBar className="mr-1.5 inline size-4" />
+              Pesquisas ({sessions?.length || 0})
             </button>
             <button
               onClick={() => setActiveTab("personas")}
-              className={`rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
+              className={`rounded-xl px-3.5 h-11 text-xs font-semibold shrink-0 transition-all cursor-pointer ${
                 activeTab === "personas"
                   ? "bg-primary text-primary-foreground"
-                  : "bg-surface-paper text-muted-foreground hover:text-foreground"
+                  : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
             >
-              <Users className="mr-1.5 inline h-4 w-4" />
-              Personas Sintéticas ({personas.length})
+              <Users className="mr-1.5 inline size-4" />
+              Personas ({personas?.length || 0})
             </button>
             <button
               onClick={() => setActiveTab("new_sim")}
-              className={`rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
+              className={`rounded-xl px-3.5 h-11 text-xs font-semibold shrink-0 transition-all cursor-pointer ${
                 activeTab === "new_sim"
                   ? "bg-primary text-primary-foreground"
-                  : "bg-surface-paper text-muted-foreground hover:text-foreground"
+                  : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
             >
-              <Play className="mr-1.5 inline h-4 w-4" />
-              Nova Simulação IA
+              <Play className="mr-1.5 inline size-4" />
+              Nova Simulação
             </button>
           </div>
         </div>
@@ -159,48 +160,50 @@ function AdminSimLabsPage() {
         {/* Tab 1: Pesquisas e Insights */}
         {activeTab === "sessions" && (
           <div className="space-y-4">
-            {sessions.length === 0 ? (
-              <div className="rounded-2xl border border-border bg-card p-12 text-center">
-                <Brain className="mx-auto h-8 w-8 text-muted-foreground" />
+            {(!sessions || sessions.length === 0) ? (
+              <div className="rounded-2xl border border-border/80 bg-card p-8 sm:p-12 text-center">
+                <Brain className="mx-auto size-8 text-muted-foreground" />
                 <p className="mt-3 text-sm font-bold text-foreground">Nenhuma pesquisa simulada executada</p>
-                <p className="mt-1 text-xs text-muted-foreground">Inicie uma nova simulação para testar novos produtos com IA.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Inicie uma nova simulação para testar propostas com o conselho sintético.</p>
               </div>
             ) : (
               sessions.map((session: any) => (
-                <div key={session.id} className="rounded-2xl border border-border bg-card p-6">
+                <div key={session.id} className="rounded-2xl border border-border/80 bg-card p-5 sm:p-6 space-y-4">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <span className="rounded-lg bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
-                        SimLab Research Session
+                      <span className="rounded-md font-medium text-[11px] px-2 py-0.5 bg-primary/10 text-primary border border-primary/20">
+                        Sessão Preditiva
                       </span>
-                      <h2 className="mt-1 text-lg font-bold text-foreground">{session.title}</h2>
+                      <h2 className="mt-1.5 text-base sm:text-lg font-bold text-foreground">{session.title}</h2>
                       <p className="text-xs text-muted-foreground">{session.objective}</p>
                     </div>
 
-                    <span className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-500">
+                    <span className="rounded-md font-medium text-[11px] px-2.5 py-1 border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 self-start sm:self-auto">
                       Concluída
                     </span>
                   </div>
 
                   {/* Summary Box */}
-                  <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4 text-xs text-foreground">
-                    <div className="flex items-center gap-2 font-bold text-primary">
-                      <Lightbulb className="h-4 w-4" />
-                      Insight Preditivo do Esquadrão
+                  <div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs text-foreground">
+                    <div className="flex items-center gap-1.5 font-bold text-primary mb-1">
+                      <Lightbulb className="size-4" />
+                      Síntese Preditiva da População Sintética
                     </div>
-                    <p className="mt-1 leading-relaxed opacity-90">{session.summary_insight}</p>
+                    <p className="leading-relaxed text-muted-foreground">{session.summary_insight}</p>
                   </div>
 
                   {/* Personas Feedback */}
                   {session.execution_results && session.execution_results.length > 0 && (
-                    <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       {session.execution_results.map((res: any, idx: number) => (
-                        <div key={idx} className="rounded-xl border border-border bg-background p-3.5">
+                        <div key={idx} className="rounded-xl border border-border/80 bg-background p-3.5 space-y-1">
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-foreground">{res.persona_name}</span>
-                            <span className="text-xs font-bold text-emerald-500">{res.purchase_intent}% intenção</span>
+                            <span className="rounded-md font-medium text-[10px] px-1.5 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                              {res.purchase_intent}% intenção
+                            </span>
                           </div>
-                          <p className="mt-1.5 text-[11px] text-muted-foreground">{res.feedback}</p>
+                          <p className="text-[11px] text-muted-foreground leading-snug">{res.feedback}</p>
                         </div>
                       ))}
                     </div>
@@ -213,26 +216,28 @@ function AdminSimLabsPage() {
 
         {/* Tab 2: Personas */}
         {activeTab === "personas" && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {personas.map((persona: any) => (
-              <div key={persona.id} className="rounded-2xl border border-border bg-card p-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Users className="h-5 w-5" />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {(personas || []).map((persona: any) => (
+              <div key={persona.id} className="rounded-2xl border border-border/80 bg-card p-4 sm:p-5 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+                      <Users className="size-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm font-bold text-foreground truncate">{persona.name}</h3>
+                      <p className="text-xs text-muted-foreground truncate">{persona.archetype}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-foreground">{persona.name}</h3>
-                    <p className="text-xs text-muted-foreground">{persona.archetype}</p>
+
+                  <div className="mt-3.5 space-y-1 border-t border-border/60 pt-2.5 text-xs text-muted-foreground">
+                    <div className="flex justify-between"><span>Região:</span> <span className="font-medium text-foreground">{persona.neighborhood}</span></div>
+                    <div className="flex justify-between"><span>Idade:</span> <span className="font-medium text-foreground">{persona.age_range} anos</span></div>
+                    <div className="flex justify-between"><span>Estrato Social:</span> <span className="font-medium text-foreground">Classe {persona.income_level}</span></div>
                   </div>
                 </div>
 
-                <div className="mt-4 space-y-1.5 border-t border-border pt-3 text-xs text-muted-foreground">
-                  <div>Bairro: <span className="font-semibold text-foreground">{persona.neighborhood}</span></div>
-                  <div>Faixa Etária: <span className="font-semibold text-foreground">{persona.age_range} anos</span></div>
-                  <div>Classe Social: <span className="font-semibold text-foreground">Classe {persona.income_level}</span></div>
-                </div>
-
-                <p className="mt-3 line-clamp-3 rounded-lg bg-surface-paper p-2.5 text-[11px] italic text-muted-foreground">
+                <p className="mt-3 rounded-xl bg-muted/40 p-2.5 text-[11px] text-muted-foreground line-clamp-3 italic border border-border/40">
                   "{persona.prompt_persona}"
                 </p>
               </div>
@@ -242,47 +247,47 @@ function AdminSimLabsPage() {
 
         {/* Tab 3: Nova Simulação */}
         {activeTab === "new_sim" && (
-          <div className="rounded-2xl border border-border bg-card p-6">
+          <div className="rounded-2xl border border-border/80 bg-card p-5 sm:p-6">
             <h2 className="text-base font-bold text-foreground">Executar Nova Simulação de Mercado com IA</h2>
-            <p className="text-xs text-muted-foreground">
-              O esquadrão de personas sintéticas simulará o comportamento de compra e gerará feedbacks qualitativos.
+            <p className="text-xs text-muted-foreground mt-0.5">
+              O esquadrão de personas sintéticas avaliará o apelo da oferta, barreiras de fricção e intenção de compra.
             </p>
 
-            <form onSubmit={handleRunSimulation} className="mt-4 space-y-4">
-              <div>
-                <label className="text-xs font-bold text-foreground">Título do Experimento</label>
+            <form onSubmit={handleRunSimulation} className="mt-5 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Título do Experimento</label>
                 <input
                   type="text"
-                  placeholder="Ex: Lançamento de Combo Noturno de Sushi com Frete Grátis"
+                  placeholder="Ex: Lançamento de Combo Noturno com Frete Grátis"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                  className="w-full h-11 rounded-xl border border-input bg-background px-3.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                   required
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-foreground">Hipótese / Objetivo do Teste</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Hipótese / Objetivo do Teste</label>
                 <textarea
                   rows={3}
-                  placeholder="Ex: Queremos validar se moradores dos bairros Centro e Efapi aceitariam pagar R$ 89,90 por um combo premium com entrega em 30 min..."
+                  placeholder="Ex: Validar se consumidores das classes C e D aceitariam pagar R$ 89,90 pelo combo com entrega garantida..."
                   value={objective}
                   onChange={(e) => setObjective(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-input bg-background p-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                  className="w-full rounded-xl border border-input bg-background p-3.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                   required
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-foreground">Quantidade de Personas Simuladas</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Amostragem Demográfica</label>
                 <select
                   value={personasCount}
                   onChange={(e) => setPersonasCount(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none"
+                  className="w-full h-11 rounded-xl border border-input bg-background px-3.5 text-xs text-foreground focus:border-primary focus:outline-none cursor-pointer"
                 >
-                  <option value="3">3 Personas (Rápido)</option>
-                  <option value="5">5 Personas (Padrão Recomendado)</option>
-                  <option value="10">10 Personas (Aprofundado)</option>
+                  <option value="3">3 Personas (Sonda Rápida)</option>
+                  <option value="5">5 Personas (Padrão Calibrado)</option>
+                  <option value="10">10 Personas (Aprofundado IBGE/ABEP)</option>
                 </select>
               </div>
 
@@ -290,10 +295,10 @@ function AdminSimLabsPage() {
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 h-11 text-xs font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 cursor-pointer"
                 >
-                  <Play className="h-4 w-4" />
-                  {isPending ? "Simulando..." : "Executar Experimento IA"}
+                  <Play className="size-4" />
+                  {isPending ? "Simulando Amostra..." : "Executar Experimento IA"}
                 </button>
               </div>
             </form>

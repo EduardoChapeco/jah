@@ -16,7 +16,6 @@ import {
   Clock, 
   Command,
   MessageSquare,
-  Sparkles as _ForbiddenSparkles, // Proibido pelo Conselho Apple HIG
   ChevronRight,
   Info
 } from 'lucide-react';

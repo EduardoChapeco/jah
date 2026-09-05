@@ -13,7 +13,6 @@ import {
 } from "@/services/simlab.functions";
 import type { SimulationResult, SyntheticPersona } from "@/lib/simlab/simulator";
 import { cn } from "@/lib/utils";
-
 import { PageHeader } from "@/components/commerce/page-header";
 
 export const Route = createFileRoute("/workspace/simulacao")({
@@ -38,7 +37,7 @@ const NICHES = [
 ] as const;
 
 function SimulacaoPage() {
-  const { personas, status } = Route.useLoaderData();
+  const { personas, status } = Route.useLoaderData() as any;
 
   const [title, setTitle] = useState("Lançamento Coleção Cápsula Outono");
   const [description, setDescription] = useState(
@@ -97,8 +96,7 @@ function SimulacaoPage() {
           <Button
             onClick={handleSimulate}
             disabled={isRunning}
-            size="sm"
-            className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground  shrink-0"
+            className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground shrink-0 h-11 px-4 cursor-pointer"
           >
             {isRunning ? (
               <>
@@ -117,7 +115,7 @@ function SimulacaoPage() {
 
       {/* Admin Master Feature Flag Governance Card */}
       {status?.isAdmin && (
-        <div className="squircle-soft border border-primary/20 bg-primary/5 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ">
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-xl text-primary shrink-0">
               <Layers className="size-5" />
@@ -125,13 +123,12 @@ function SimulacaoPage() {
             <div>
               <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
                 Controle de Governança — Admin Global
-                <Badge variant="outline" className="text-[10px] rounded-full">
+                <Badge variant="outline" className="text-[10px] rounded-md font-medium px-2 py-0.5">
                   {adminSimLabActive ? "Ativo para Lojistas" : "Restrito a Administradores"}
                 </Badge>
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
-                Alterne a liberação do motor de simulação estocástica e enxame de personas para
-                produtores e lojistas comuns.
+                Alterne a liberação do motor de simulação estocástica e enxame de personas para produtores e lojistas comuns.
               </p>
             </div>
           </div>
@@ -139,7 +136,7 @@ function SimulacaoPage() {
             variant="outline"
             size="sm"
             onClick={handleToggleAdminStatus}
-            className="rounded-xl text-xs font-semibold shrink-0 h-8"
+            className="rounded-xl text-xs font-semibold shrink-0 h-11 px-4"
           >
             {adminSimLabActive ? "Restringir ao Admin" : "Liberar para Lojistas"}
           </Button>
@@ -151,7 +148,7 @@ function SimulacaoPage() {
         <div className="lg:col-span-5 space-y-5">
           <form
             onSubmit={handleSimulate}
-            className="squircle-soft bg-card  p-5 space-y-4 "
+            className="rounded-2xl border border-border/80 bg-card p-5 space-y-4"
           >
             <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Layers className="size-4 text-primary" />
@@ -160,17 +157,17 @@ function SimulacaoPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Nicho / Categoria</Label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {NICHES.map((n) => (
                   <button
                     key={n.id}
                     type="button"
                     onClick={() => setNiche(n.id)}
                     className={cn(
-                      "px-3 py-2 rounded-xl text-xs font-medium text-left border transition-all",
+                      "px-3 py-2.5 rounded-xl text-xs font-medium text-left border transition-all cursor-pointer min-h-[44px]",
                       niche === n.id
                         ? "border-primary bg-primary/10 text-primary font-bold"
-                        : "border-border bg-background text-muted-foreground hover:bg-muted/60",
+                        : "border-border/80 bg-background text-muted-foreground hover:bg-muted/60",
                     )}
                   >
                     {n.label}
@@ -188,7 +185,7 @@ function SimulacaoPage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ex: Show de Lançamento da Banda X"
-                className="h-10 text-xs rounded-xl"
+                className="h-11 text-xs rounded-xl"
                 required
               />
             </div>
@@ -208,7 +205,7 @@ function SimulacaoPage() {
                   value={priceReais}
                   onChange={(e) => setPriceReais(e.target.value)}
                   placeholder="0,00"
-                  className="h-10 pl-9 text-xs rounded-xl font-mono font-semibold"
+                  className="h-11 pl-9 text-xs rounded-xl font-mono font-semibold"
                 />
               </div>
             </div>
@@ -223,7 +220,7 @@ function SimulacaoPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
                 placeholder="Explique os diferenciais, materiais, horários e proposta..."
-                className="w-full text-xs rounded-xl  bg-background p-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="w-full text-xs rounded-xl border border-input bg-background p-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
                 required
               />
             </div>
@@ -231,7 +228,7 @@ function SimulacaoPage() {
             <Button
               type="submit"
               disabled={isRunning}
-              className="w-full rounded-xl font-semibold gap-2 mt-2"
+              className="w-full rounded-xl font-bold gap-2 mt-2 h-11 cursor-pointer"
             >
               {isRunning ? (
                 <>
@@ -248,31 +245,31 @@ function SimulacaoPage() {
           </form>
 
           {/* Personas em Monitoramento */}
-          <div className="squircle-soft bg-card  p-4 space-y-3">
+          <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-3">
             <h3 className="text-xs font-bold text-foreground flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <Users className="size-3.5 text-primary" />
                 Catálogo de Personas Disponíveis
               </span>
               <span className="text-[11px] text-muted-foreground font-normal">
-                {personas.length} calibradas
+                {personas?.length || 0} calibradas
               </span>
             </h3>
-            <div className="space-y-2">
-              {personas.map((p: SyntheticPersona) => (
+            <div className="space-y-2 max-h-72 overflow-y-auto no-scrollbar pr-1">
+              {(personas || []).map((p: any) => (
                 <div
                   key={p.id}
-                  className="flex items-center justify-between p-2.5 rounded-xl  bg-background text-xs"
+                  className="flex items-center justify-between p-2.5 rounded-xl border border-border/60 bg-background text-xs"
                 >
-                  <div>
-                    <p className="font-semibold text-foreground">{p.name}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {p.demographic.age} anos • {p.demographic.city}/{p.demographic.state} •{" "}
-                      {p.demographic.occupation}
+                  <div className="min-w-0 pr-2">
+                    <p className="font-semibold text-foreground truncate">{p.name}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {p.demographic?.age || p.age_range || 35} anos • {p.demographic?.city || p.neighborhood || "Região"} •{" "}
+                      {p.demographic?.occupation || p.archetype || "Comércio"}
                     </p>
                   </div>
-                  <Badge variant="outline" className="text-[10px] rounded-full">
-                    R$ {p.demographic.income}/mês
+                  <Badge variant="outline" className="text-[10px] rounded-md font-medium px-2 py-0.5 shrink-0">
+                    Classe {p.socioeconomic_class || p.demographic?.socioeconomic_class || p.income_level || "C1"}
                   </Badge>
                 </div>
               ))}
@@ -283,21 +280,21 @@ function SimulacaoPage() {
         {/* Painel Direito: Resultados da Simulação */}
         <div className="lg:col-span-7 space-y-5">
           {!result && !isRunning && (
-            <div className="squircle-soft bg-card border-0 p-12 text-center flex flex-col items-center justify-center space-y-3 min-h-[400px]">
+            <div className="rounded-2xl border border-border/80 bg-card p-8 sm:p-12 text-center flex flex-col items-center justify-center space-y-3 min-h-[400px]">
               <div className="p-4 bg-primary/10 rounded-2xl text-primary">
                 <Layers className="size-8" />
               </div>
               <h3 className="text-base font-bold text-foreground">Aguardando Execução do Enxame</h3>
               <p className="text-xs text-muted-foreground max-w-sm">
                 Preencha os dados da sua oferta à esquerda e clique em{" "}
-                <strong>"Simular Proposta"</strong> para obter previsão de conversão, elasticidade e
+                <strong>"Executar Simulação"</strong> para obter previsão de conversão, elasticidade e
                 objeções reais de clientes.
               </p>
             </div>
           )}
 
           {isRunning && (
-            <div className="squircle-soft bg-card  p-12 text-center flex flex-col items-center justify-center space-y-4 min-h-[400px]">
+            <div className="rounded-2xl border border-border/80 bg-card p-8 sm:p-12 text-center flex flex-col items-center justify-center space-y-4 min-h-[400px]">
               <Loader2 className="size-10 text-primary animate-spin" />
               <div className="space-y-1">
                 <h3 className="text-base font-bold text-foreground">
@@ -315,7 +312,7 @@ function SimulacaoPage() {
             <div className="space-y-5">
               {/* Score Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="squircle-soft bg-card  p-4 space-y-1 ">
+                <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                       Atratividade Geral
@@ -328,7 +325,7 @@ function SimulacaoPage() {
                   </p>
                 </div>
 
-                <div className="squircle-soft bg-card  p-4 space-y-1 ">
+                <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                       Conversão Estimada
@@ -340,7 +337,7 @@ function SimulacaoPage() {
                   </p>
                 </div>
 
-                <div className="squircle-soft bg-card  p-4 space-y-1 ">
+                <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                       Percepção de Preço
@@ -356,7 +353,7 @@ function SimulacaoPage() {
 
               {/* Recomendações e Objeções */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="squircle-soft bg-card  p-4 space-y-2">
+                <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-2">
                   <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
                     <AlertTriangle className="size-3.5 text-amber-500" />
                     Top Objeções Identificadas
@@ -377,70 +374,78 @@ function SimulacaoPage() {
                   )}
                 </div>
 
-                <div className="squircle-soft bg-card  p-4 space-y-2">
+                <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-2">
                   <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
                     <CheckCircle2 className="size-3.5 text-emerald-500" />
-                    Recomendações do SimLab
+                    Ações Recomendadas
                   </h4>
-                  <ul className="space-y-1.5 text-xs text-muted-foreground">
-                    {result.recommendations.map((rec, i) => (
-                      <li key={i} className="flex items-start gap-1.5">
-                        <span className="text-emerald-500 font-bold">✓</span>
-                        <span>{rec}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {result.recommendations.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      Proposta com boa calibragem de mercado.
+                    </p>
+                  ) : (
+                    <ul className="space-y-1.5 text-xs text-muted-foreground">
+                      {result.recommendations.map((rec, i) => (
+                        <li key={i} className="flex items-start gap-1.5">
+                          <span className="text-emerald-500 font-bold">•</span>
+                          <span>{rec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
 
-              {/* Feedbacks Individuais das Personas */}
-              <div className="squircle-soft bg-card  p-5 space-y-4">
-                <h3 className="text-sm font-bold text-foreground flex items-center justify-between">
-                  <span>Reações Detalhadas por Persona</span>
-                  <span className="text-xs text-muted-foreground font-normal">
-                    {result.favorableCount} favoráveis • {result.skepticalCount} céticos
+              {/* Avaliações das Personas */}
+              <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-3">
+                <h4 className="text-xs font-bold text-foreground flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Users className="size-3.5 text-primary" />
+                    Reações Individuais do Enxame
                   </span>
-                </h3>
+                  <span className="text-[11px] text-muted-foreground font-normal">
+                    {result.evaluations.length} respostas coletadas
+                  </span>
+                </h4>
 
-                <div className="space-y-3">
-                  {result.evaluations.map((ev) => (
+                <div className="space-y-2.5 max-h-96 overflow-y-auto no-scrollbar pr-1">
+                  {result.evaluations.map((ev, idx) => (
                     <div
-                      key={ev.persona.id}
-                      className=" bg-background rounded-xl p-3.5 space-y-2"
+                      key={idx}
+                      className="p-3 rounded-xl border border-border/60 bg-background text-xs space-y-1.5"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <p className="text-xs font-bold text-foreground">{ev.persona.name}</p>
-                          <span className="text-[10px] text-muted-foreground">
-                            ({ev.persona.demographic.city}/{ev.persona.demographic.state})
+                          <span className="font-bold text-foreground">{ev.persona.name}</span>
+                          <span className="text-[10px] text-muted-foreground font-mono">
+                            Classe {ev.persona.demographic.socioeconomic_class}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant={ev.willConvert ? "default" : "secondary"}
-                            className="text-[10px] rounded-full"
-                          >
-                            {ev.willConvert ? "Compraria (Provável)" : "Rejeitaria"}
-                          </Badge>
-                          <span className="text-xs font-mono font-bold text-primary">
-                            {ev.conversionProbability}%
-                          </span>
-                        </div>
+                        <Badge
+                          variant={ev.willConvert ? "default" : "outline"}
+                          className="text-[10px] rounded-md font-medium px-2 py-0.5"
+                        >
+                          {ev.willConvert ? "Converteria" : "Não Converteria"} (
+                          {ev.conversionProbability}%)
+                        </Badge>
                       </div>
 
-                      <p className="text-xs italic text-foreground/90 bg-muted/30 p-2.5 rounded-lg ">
+                      <p className="text-[11px] text-muted-foreground italic bg-muted/30 p-2 rounded-lg border border-border/40">
                         "{ev.quote}"
                       </p>
 
-                      <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1">
+                      <div className="flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground pt-0.5">
                         <span>
-                          Gatilho:{" "}
-                          <strong className="text-foreground">{ev.triggerActivated}</strong>
+                          Percepção: <strong className="text-foreground">{ev.pricePerception}</strong>
                         </span>
                         <span>
-                          Preço percebido:{" "}
-                          <strong className="text-foreground">{ev.pricePerception}</strong>
+                          Sentimento: <strong className="text-foreground">{ev.sentiment}</strong>
                         </span>
+                        {ev.keyObjection && (
+                          <span className="text-amber-500">
+                            Objeção: <strong>{ev.keyObjection}</strong>
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}
