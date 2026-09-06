@@ -65,10 +65,10 @@ export const PERSONAL_NAV_GROUPS: NavigationGroup[] = [
  ],
  },
  {
- id: "social-p2p",
- title: "Negociações & Anúncios",
- items: [
- { to: "/conta/negociacoes", label: "Negociações P2P", icon: Handshake },
+    id: "social-negociacoes",
+    title: "Negociações & Anúncios",
+    items: [
+      { to: "/conta/negociacoes", label: "Minhas Negociações", icon: Handshake },
  { to: "/conta/classificados", label: "Meus Anúncios", icon: Tag },
  { to: "/conta/conversas", label: "Mensagens", icon: MessageSquare },
  ],

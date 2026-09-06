@@ -5,7 +5,22 @@ import { DEFAULT_BRAND_NAME } from "@/lib/brand";
 import { LocationMasterPill } from "@/components/location/location-master-pill";
 import { MobilityQuickButton } from "@/components/mobility/mobility-quick-button";
 import { UtilityCluster } from "@/components/shell/utility-cluster";
-import { House, ChatCircleText, Newspaper, Flame, ForkKnife, Storefront, Heartbeat, Coffee, CalendarDots, Scissors, DeviceMobile, TShirt, Briefcase, CarProfile, AirplaneTilt, Key, Compass, MapPin, MagnifyingGlass,  } from "@phosphor-icons/react";
+import { 
+  House, 
+  Newspaper, 
+  Flame, 
+  Storefront, 
+  Compass, 
+  Scissors, 
+  AirplaneTilt, 
+  Briefcase, 
+  CalendarDots, 
+  Gift, 
+  Target, 
+  MapPin, 
+  ForkKnife,
+  MagnifyingGlass 
+} from "@phosphor-icons/react";
 
 export interface MobileQuickChip {
  to: string;
@@ -14,16 +29,18 @@ export interface MobileQuickChip {
 }
 
 export const MOBILE_QUICK_CHIPS: MobileQuickChip[] = [
-  { to: "/noticias", label: "Notícias", icon: Newspaper },
+  { to: "/", label: "Início", icon: House },
   { to: "/classificados", label: "Classificados", icon: Tag },
+  { to: "/noticias", label: "Notícias", icon: Newspaper },
   { to: "/ofertas", label: "Ofertas", icon: Flame },
   { to: "/mercado", label: "Mercado", icon: Storefront },
-  { to: "/agenda", label: "Eventos", icon: CalendarDots },
-  { to: "/diretorio", label: "Guia & Lojas", icon: Compass },
-  { to: "/gastronomia", label: "Comida", icon: ForkKnife },
+  { to: "/diretorio", label: "Guia", icon: Compass },
+  { to: "/agendar", label: "Agendar", icon: Scissors },
   { to: "/turismo", label: "Turismo", icon: AirplaneTilt },
-  { to: "/mapa", label: "Mapa", icon: MapPin },
-  { to: "/convite", label: "Prêmios", icon: House },
+  { to: "/empregos", label: "Empregos", icon: Briefcase },
+  { to: "/agenda", label: "Agenda", icon: CalendarDots },
+  { to: "/convite", label: "Convide & Ganhe", icon: Gift },
+  { to: "/afiliados", label: "Afiliados", icon: Target },
 ];
 
 export interface TopBarProps {
@@ -104,34 +121,34 @@ export function TopBar({ session, brandSettings }: TopBarProps) {
  </div>
  </div>
 
- {/* ── Camada 2: Chips de Navegação Rápida (Mobile/Tablet) ── */}
- <div className="lg:hidden flex items-center gap-1 px-2.5 py-1 overflow-x-auto no-scrollbar bg-muted/10 border-t border-border/30">
- {MOBILE_QUICK_CHIPS.map((chip) => {
- const isSelected =
- chip.to === "/"
- ? location.pathname === "/"
- : location.pathname.startsWith(chip.to.split("?")[0]) &&
- (chip.to.includes("?")
- ? location.searchStr.includes(chip.to.split("?")[1])
- : true);
- const Icon = chip.icon;
+      {/* ── Camada 2: Chips de Navegação Rápida (Mobile/Tablet) ── */}
+      <div className="lg:hidden flex items-center gap-1.5 px-3 py-1.5 overflow-x-auto no-scrollbar bg-background/80 backdrop-blur-sm border-t border-border/30">
+        {MOBILE_QUICK_CHIPS.map((chip) => {
+          const isSelected =
+            chip.to === "/"
+              ? location.pathname === "/"
+              : location.pathname.startsWith(chip.to.split("?")[0]) &&
+                (chip.to.includes("?")
+                  ? location.searchStr.includes(chip.to.split("?")[1])
+                  : true);
+          const Icon = chip.icon;
 
- return (
- <Link
- key={chip.label}
- to={chip.to as any}
- className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold shrink-0 transition-all ${
- isSelected
- ? "bg-foreground text-background"
- : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
- }`}
- >
- <Icon size={12} weight={isSelected ? "fill" : "bold"} />
- <span className="whitespace-nowrap">{chip.label}</span>
- </Link>
- );
- })}
- </div>
+          return (
+            <Link
+              key={chip.label}
+              to={chip.to as any}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold font-sans shrink-0 transition-all ${
+                isSelected
+                  ? "bg-foreground text-background shadow-xs"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/70 bg-muted/30"
+              }`}
+            >
+              <Icon size={14} weight={isSelected ? "fill" : "bold"} />
+              <span className="whitespace-nowrap">{chip.label}</span>
+            </Link>
+          );
+        })}
+      </div>
  </header>
  );
 }

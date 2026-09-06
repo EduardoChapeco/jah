@@ -560,3 +560,43 @@ export const authenticateEmployeePin = createServerFn({ method: "POST" })
 
  return { status: "success", sessionToken };
  });
+
+// ---------------------------------------------------------------------------
+// 5. RESOLUÇÃO DINÂMICA DE COLABORADOR / EMPREGADO LOGADO
+// ---------------------------------------------------------------------------
+export const getMyEmployeeRecord = createServerFn({ method: "GET" }).handler(async () => {
+  const identity = await getServerIdentity();
+  if (!identity?.id) return null;
+
+  const supabase = getServerClient();
+  const { data: employee } = await supabase
+    .from("employees")
+    .select("id, store_id, full_name, job_title, department, admission_date, stores(id, name, logo_url)")
+    .or(`profile_id.eq.${identity.id},email.eq.${identity.email || ""}`)
+    .order("created_at", { ascending: false })
+    .maybeSingle();
+
+  if (employee) {
+    return employee;
+  }
+
+  // Fallback para membro de equipe de workspace
+  const { data: member } = await supabase
+    .from("workspace_members")
+    .select("profile_id, role, store_id, stores(id, name, logo_url)")
+    .eq("profile_id", identity.id)
+    .maybeSingle();
+
+  if (member) {
+    return {
+      id: member.profile_id,
+      store_id: member.store_id,
+      full_name: identity.fullName || "Colaborador",
+      job_title: member.role || "Membro de Equipe",
+      department: "Operações",
+      stores: (member as any)?.stores || null,
+    };
+  }
+
+  return null;
+});

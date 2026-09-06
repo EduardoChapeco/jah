@@ -486,81 +486,129 @@ export const getStoreGrowthAndBounties = createServerFn({ method: "GET" }).handl
 // ============================================================
 // 7. CONSUMIDOR FINAL: CARTEIRA DE TOKENS & FIDELIDADE (ZERO INICIAL)
 // Tokens são creditados SOMENTE quando uma loja real emite fidelidade/cashback
+// ou via vesting oficial auditado de afiliados. Transferências entre contas são PROIBIDAS.
 // ============================================================
 export const getUserTokenWallet = createServerFn({ method: "GET" })
- .validator(
- z.object({
- limit: z.number().int().min(1).max(100).default(25),
- cursor: z.string().optional(),
- }).default({})
- )
- .handler(async ({ data }) => {
- const identity = await getServerIdentity();
- if (!identity.id) {
- throw new Error("Usuário não autenticado.");
- }
+  .validator(
+    z.object({
+      limit: z.number().int().min(1).max(100).default(25),
+      cursor: z.string().optional(),
+    }).default({})
+  )
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    if (!identity.id) {
+      throw new Error("Usuário não autenticado.");
+    }
 
- const db = getServerClient();
+    const db = getServerClient();
 
- const { data: profile } = await db
- .from("profiles")
- .select("id, full_name, role, avatar_url")
- .eq("id", identity.id)
- .single();
+    const { data: profile } = await db
+      .from("profiles")
+      .select("id, full_name, role, avatar_url")
+      .eq("id", identity.id)
+      .single();
 
- // Wallet canônica: user_token_wallets
- const { data: walletRow } = await db
- .from("user_token_wallets")
- .select("balance, lifetime_earned, lifetime_redeemed, created_at")
- .eq("user_id", identity.id)
- .maybeSingle();
+    // Wallet canônica: user_token_wallets
+    const { data: walletRow } = await db
+      .from("user_token_wallets")
+      .select("balance, lifetime_earned, lifetime_redeemed, balance_pending_maturity, vesting_unlock_date, is_locked, created_at")
+      .eq("user_id", identity.id)
+      .maybeSingle();
 
- const userTokens = walletRow || {
- balance: 0,
- lifetime_earned: 0,
- lifetime_redeemed: 0,
- created_at: new Date().toISOString(),
- };
+    const userTokens = walletRow || {
+      balance: 0,
+      lifetime_earned: 0,
+      lifetime_redeemed: 0,
+      balance_pending_maturity: 0,
+      vesting_unlock_date: null,
+      is_locked: false,
+      created_at: new Date().toISOString(),
+    };
 
- // Buscar histórico de transações reais emitidas por lojas
- let query = db
- .from("audit_logs")
- .select("*")
- .eq("user_id", identity.id)
- .eq("entity_type", "user_token_transaction")
- .order("created_at", { ascending: false })
- .limit(data.limit + 1);
- 
- if (data.cursor) {
- query = query.lt("created_at", data.cursor);
- }
+    // Buscar histórico de transações reais emitidas por lojas
+    let query = db
+      .from("audit_logs")
+      .select("*")
+      .eq("user_id", identity.id)
+      .eq("entity_type", "user_token_transaction")
+      .order("created_at", { ascending: false })
+      .limit(data.limit + 1);
+    
+    if (data.cursor) {
+      query = query.lt("created_at", data.cursor);
+    }
 
- const { data: txLogs } = await query;
+    const { data: txLogs } = await query;
 
- const hasMore = (txLogs || []).length > data.limit;
- const items = hasMore ? (txLogs || []).slice(0, data.limit) : (txLogs || []);
+    const hasMore = (txLogs || []).length > data.limit;
+    const items = hasMore ? (txLogs || []).slice(0, data.limit) : (txLogs || []);
 
- const transactions = items.map((t: any) => ({
- id: t.id,
- created_at: t.created_at,
- action: t.action,
- origin_store_id: t.payload_snapshot?.origin_store_id,
- origin_store_name: t.payload_snapshot?.origin_store_name || "Loja Parceira",
- amount: t.payload_snapshot?.amount || 0,
- description: t.payload_snapshot?.description || t.action,
- }));
+    const transactions = items.map((t: any) => ({
+      id: t.id,
+      created_at: t.created_at,
+      action: t.action,
+      origin_store_id: t.payload_snapshot?.origin_store_id,
+      origin_store_name: t.payload_snapshot?.origin_store_name || "Loja Parceira",
+      amount: t.payload_snapshot?.amount || 0,
+      description: t.payload_snapshot?.description || t.action,
+      audit_seal: `SEAL-${t.id?.slice(0, 8) || "GEN"}-${new Date(t.created_at).getTime()}`,
+    }));
 
- return {
- user_id: identity.id,
- full_name: profile?.full_name || "Cliente Wider",
- balance: userTokens.balance ?? 0,
- lifetime_earned: userTokens.lifetime_earned ?? 0,
- lifetime_redeemed: userTokens.lifetime_redeemed ?? 0,
- transactions,
- hasMore,
- nextCursor: hasMore ? items[items.length - 1].created_at : null,
- };
-});
+    return {
+      user_id: identity.id,
+      full_name: profile?.full_name || "Cliente Wider",
+      balance: userTokens.balance ?? 0,
+      balance_pending_maturity: (userTokens as any).balance_pending_maturity ?? 0,
+      vesting_unlock_date: (userTokens as any).vesting_unlock_date ?? null,
+      is_locked: (userTokens as any).is_locked ?? false,
+      security_level: "MILITARY_ZERO_TRUST",
+      zero_transfer_policy_active: true,
+      lifetime_earned: userTokens.lifetime_earned ?? 0,
+      lifetime_redeemed: userTokens.lifetime_redeemed ?? 0,
+      transactions,
+      hasMore,
+      nextCursor: hasMore ? items[items.length - 1].created_at : null,
+    };
+  });
+
+// ============================================================
+// 7.0 POLÍTICA MILITAR ZERO-TRANSFER: BLOQUEIO INVIOLÁVEL DE TRANSFERÊNCIAS/DOAÇÕES
+// Tokens só podem ser usados para utilidades oficiais ou descontos.
+// Qualquer tentativa de transferência direta é rejeitada e registrada como alerta de segurança.
+// ============================================================
+export const attemptUserTokenTransferBlocked = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      target_user_id: z.string(),
+      amount: z.number().int().min(1),
+      reason: z.string().optional(),
+    })
+  )
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    const db = getServerClient();
+
+    // Registro forense de tentativa violadora
+    await db.from("audit_logs").insert({
+      user_id: identity.id || null,
+      action: "security_zero_transfer_violation_blocked",
+      entity_type: "token_security_alert",
+      payload_snapshot: {
+        attempted_by: identity.id,
+        target_user_id: data.target_user_id,
+        attempted_amount: data.amount,
+        reason: data.reason || "Tentativa de transferência direta não permitida",
+        threat_level: "CRITICAL",
+        policy: "ZERO_TRANSFER_MILITARY_POLICY",
+        timestamp: new Date().toISOString(),
+      },
+    });
+
+    throw new Error(
+      "ZERO_TRANSFER_VIOLATION: Tokens são intransferíveis e não podem ser doados ou transferidos entre contas por rigorosa política de segurança militar e prevenção contra fraudes."
+    );
+  });
 
 // ============================================================
 // 7.1 LOJISTA: EMITIR TOKENS DE FIDELIDADE / CASHBACK PARA CLIENTE

@@ -38,9 +38,12 @@ interface QuickActionItem {
 export function QuickCreateModal({
  isAuthenticated = false,
  session,
+ asNavButton = false,
 }: {
  isAuthenticated?: boolean;
  session?: any;
+ /** Quando true, renderiza o trigger como botão quadrado arredondado da bottom nav */
+ asNavButton?: boolean;
 }) {
  const [open, setOpen] = useState(false);
  const [isPostDrawerOpen, setIsPostDrawerOpen] = useState(false);
@@ -157,9 +160,13 @@ export function QuickCreateModal({
  type="button"
  onClick={handleTriggerClick}
  aria-label="Criar ou Anunciar"
- className="size-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center -mt-5 hover:scale-105 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer border-2 border-background"
+ className={
+ asNavButton
+ ? "h-11 w-11 shrink-0 rounded-2xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-900 dark:text-neutral-100 flex items-center justify-center border border-border/50 active:scale-95 transition-all focus:outline-none cursor-pointer shadow-xs"
+ : "size-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center -mt-5 hover:scale-105 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer border-2 border-background"
+ }
  >
- <Plus className="size-6 stroke-[2.5]" />
+ <Plus className={asNavButton ? "size-5.5 stroke-[2.5]" : "size-6 stroke-[2.5]"} />
  </button>
  </SheetTrigger>
 

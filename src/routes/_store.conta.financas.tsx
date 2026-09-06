@@ -36,7 +36,12 @@ import {
   Landmark,
   ScanLine,
   Lock,
+  Coins,
+  Shield,
+  Sparkles,
+  ExternalLink,
 } from "lucide-react";
+import { getUserTokenWallet } from "@/services/tokens.functions";
 import {
   getPersonalFinanceSummary,
   listPersonalFinanceEntries,
@@ -63,16 +68,24 @@ export const Route = createFileRoute("/_store/conta/financas")({
     const currentYear = now.getFullYear();
 
     try {
-      const [summary, entries, categories] = await Promise.all([
+      const [summary, entries, categories, tokenWallet] = await Promise.all([
         getPersonalFinanceSummary({ data: { month: currentMonth, year: currentYear } }),
         listPersonalFinanceEntries({ data: { month: currentMonth, year: currentYear } }),
         listPersonalFinanceCategories(),
+        getUserTokenWallet().catch(() => ({
+          balance: 0,
+          balance_pending_maturity: 0,
+          security_level: "MILITARY_ZERO_TRUST",
+          zero_transfer_policy_active: true,
+          transactions: [],
+        })),
       ]);
 
       return {
         initialSummary: summary,
         initialEntries: entries,
         categories,
+        tokenWallet,
         currentMonth,
         currentYear,
       };
@@ -91,6 +104,13 @@ export const Route = createFileRoute("/_store/conta/financas")({
         } as PersonalFinanceSummaryDTO,
         initialEntries: [] as PersonalFinancialEntryDTO[],
         categories: [] as PersonalFinancialCategoryDTO[],
+        tokenWallet: {
+          balance: 0,
+          balance_pending_maturity: 0,
+          security_level: "MILITARY_ZERO_TRUST",
+          zero_transfer_policy_active: true,
+          transactions: [],
+        },
         currentMonth,
         currentYear,
       };
@@ -144,7 +164,7 @@ function getCategoryIcon(iconName: string) {
 
 function PersonalFinancePage() {
   const router = useRouter();
-  const { initialSummary, initialEntries, categories, currentMonth, currentYear } =
+  const { initialSummary, initialEntries, categories, tokenWallet, currentMonth, currentYear } =
     Route.useLoaderData();
 
   const [month, setMonth] = useState(currentMonth);
@@ -433,6 +453,77 @@ function PersonalFinancePage() {
               {formatCents(summary.totalExpenseCents)}
             </div>
             <div className="text-xs text-muted-foreground mt-2">Saídas do mês</div>
+          </div>
+        </div>
+
+        {/* Card de Governança Militar: Carteira de Tokens & Fidelidade */}
+        <div className="bg-card border border-border/70 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                <Coins className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-semibold tracking-tight text-foreground">
+                    Carteira de Tokens & Fidelidade
+                  </h2>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    <Shield className="h-2.5 w-2.5" /> Segurança Militar
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Ledger criptográfico pétreo e intransferível de utilidade regional
+                </p>
+              </div>
+            </div>
+
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="rounded-xl text-xs font-semibold h-8 gap-1.5 self-start sm:self-auto border-border/80"
+            >
+              <Link to="/conta/tokens">
+                <span>Ver Ledger & Extrato</span>
+                <ExternalLink className="h-3 w-3 text-muted-foreground" />
+              </Link>
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="p-3.5 rounded-xl bg-muted/30 border border-border/40 space-y-1">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
+                Saldo de Tokens Disponíveis
+              </span>
+              <div className="text-xl sm:text-2xl font-bold tracking-tight text-foreground font-mono">
+                {Number(tokenWallet?.balance || 0).toLocaleString()}{" "}
+                <span className="text-xs font-normal text-muted-foreground">Tokens</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                Para desconto em compras, produtos e serviços parceiros credenciados.
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-muted/30 border border-border/40 space-y-1">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
+                Tokens em Vesting (Maturação Futura)
+              </span>
+              <div className="text-xl sm:text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400 font-mono">
+                {Number(tokenWallet?.balance_pending_maturity || 0).toLocaleString()}{" "}
+                <span className="text-xs font-normal text-muted-foreground">Tokens</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                Bônus de indicação e recompensas em quarentena de validação auditável.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground bg-muted/20 px-3 py-2 rounded-xl border border-border/30">
+            <Lock className="h-3.5 w-3.5 shrink-0 text-primary" />
+            <span>
+              <strong>Zero-Transfer Policy Ativa:</strong> Tokens são intransferíveis e protegidos contra drenagem de conta e fraudes de terceiros.
+            </span>
           </div>
         </div>
 

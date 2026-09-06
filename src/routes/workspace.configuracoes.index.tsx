@@ -338,19 +338,26 @@ export default function WorkspaceConfiguracoesPage() {
  title="Configurações"
  actions={
  <div className="flex items-center gap-2">
- <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
- <Link to="/workspace/configuracoes/sessoes">
- <ShieldCheck className="size-3.5 text-primary" />
- <span>Sessões</span>
- </Link>
- </Button>
+            <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
+              <Link to="/workspace/configuracoes/privacidade-loja">
+                <ShieldCheck className="size-3.5 text-primary" />
+                <span>Privacidade & Marketplace</span>
+              </Link>
+            </Button>
 
- <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
- <Link to="/workspace/configuracoes/equipe">
- <Building2 className="size-3.5" />
- <span>Equipe</span>
- </Link>
- </Button>
+            <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
+              <Link to="/workspace/configuracoes/sessoes">
+                <ShieldCheck className="size-3.5 text-primary" />
+                <span>Sessões</span>
+              </Link>
+            </Button>
+
+            <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
+              <Link to="/workspace/configuracoes/equipe">
+                <Building2 className="size-3.5" />
+                <span>Equipe</span>
+              </Link>
+            </Button>
 
  <Button
  onClick={handleSaveAll}

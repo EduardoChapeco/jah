@@ -112,7 +112,7 @@ function NegociacoesPage() {
  <div className=" pb-4 flex items-center justify-between gap-4">
  <div className="flex items-center gap-2">
  <Badge variant="outline" className="font-mono text-[10px] uppercase font-bold px-2.5 py-0.5">
- P2P
+ DIRETAS
  </Badge>
  <span className="text-xs text-muted-foreground font-mono">Negociações & Reservas</span>
  </div>

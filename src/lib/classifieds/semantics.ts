@@ -105,7 +105,7 @@ export const NICHE_DEFINITIONS: Record<ClassifiedNicheId, ClassifiedNicheDefinit
  canonicalCategory: "sale",
  dealType: "venda",
  title: "Desapego & Produto Físico",
- shortLabel: "Desapego P2P",
+ shortLabel: "Desapego Direto",
  subtitle: "Eletrônicos, Móveis, Equipamentos & Moda",
  icon: Tag,
  badge: "Desapego da Região",

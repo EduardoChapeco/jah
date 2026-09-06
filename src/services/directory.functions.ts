@@ -33,74 +33,100 @@ export interface DirectoryListingDTO {
  created_at: string;
 }
 
+const CATEGORY_DEFAULT_BANNERS: Record<string, string> = {
+  turismo: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80",
+  gastronomia: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80",
+  comercio: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80",
+  saude: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=800&q=80",
+  reformas: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
+  auto: "https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=800&q=80",
+  pet: "https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=800&q=80",
+  servicos: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
+};
+
 export const getPublicDirectory = createServerFn({ method: "GET" })
- .validator(
- z
- .object({
- limit: z.number().int().min(1).max(100).optional(),
- category: z.string().optional(),
- search: z.string().optional(),
- })
- .optional(),
- )
- .handler(async ({ data }) => {
- const supabase = getServerClient();
- const limit = data?.limit ?? 50;
+  .validator(
+    z
+      .object({
+        limit: z.number().int().min(1).max(100).optional(),
+        category: z.string().optional(),
+        search: z.string().optional(),
+      })
+      .optional(),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const limit = data?.limit ?? 50;
 
- let query = supabase
- .from("directory_listings")
- .select("*, stores(id, name, slug, settings)")
- .eq("status", "active")
- .order("is_verified", { ascending: false })
- .order("rating", { ascending: false })
- .limit(limit);
+    let query = supabase
+      .from("directory_listings")
+      .select("*, stores(id, name, slug, settings, is_hidden_from_directory, access_type)")
+      .eq("status", "active")
+      .order("is_verified", { ascending: false })
+      .order("rating", { ascending: false })
+      .limit(limit);
 
- if (data?.category && data.category !== "todos") {
- query = query.eq("category", data.category);
- }
+    if (data?.category && data.category !== "todos") {
+      query = query.eq("category", data.category);
+    }
 
- if (data?.search && data.search.trim()) {
- const q = `%${data.search.trim()}%`;
- query = query.or(`business_name.ilike.${q},description.ilike.${q},address.ilike.${q}`);
- }
+    if (data?.search && data.search.trim()) {
+      const q = `%${data.search.trim()}%`;
+      query = query.or(`business_name.ilike.${q},description.ilike.${q},address.ilike.${q}`);
+    }
 
- const { data: rows, error } = await query;
+    const { data: rows, error } = await query;
 
- if (error) {
- console.error("Erro ao listar diretório no Supabase:", error);
- return [];
- }
+    if (error) {
+      console.error("Erro ao listar diretório no Supabase:", error);
+      return [];
+    }
 
- return (rows || []).map((row: any) => {
- const storeSettings = (row.stores?.settings as any) || {};
- const storeLogo = storeSettings.logoUrl || storeSettings.logo_url || null;
- return {
- id: row.id,
- store_id: row.store_id,
- store: row.stores || null,
- author_profile_id: row.author_profile_id,
- business_name: row.business_name || row.stores?.name || "Negócio Local",
- category: row.category,
- description: row.description || "",
- specialties: row.specialties || [],
- address: row.address || "Regional",
- latitude: row.latitude,
- longitude: row.longitude,
- contact_phone: row.contact_phone,
- contact_whatsapp: row.contact_whatsapp,
- contact_email: row.contact_email,
- website_url: row.website_url,
- working_hours: typeof row.working_hours === "string" ? row.working_hours : (row.working_hours?.weekdays || "Seg a Sex: 08:00 - 18:00"),
- is_verified: !!row.is_verified,
- rating: Number(row.rating || 5.0),
- reviews_count: Number(row.reviews_count || 0),
- avatar_url: row.avatar_url || storeLogo,
- banner_url: row.banner_url || storeSettings.bannerUrl || null,
- status: row.status,
- created_at: row.created_at,
- };
- }) as DirectoryListingDTO[];
- });
+    return (rows || [])
+      .filter((row: any) => {
+        // Filtro inviolável: lojas ocultas ou privadas não aparecem no diretório público
+        if (row.stores) {
+          if (row.stores.is_hidden_from_directory === true) return false;
+          if (row.stores.access_type && row.stores.access_type !== "public") return false;
+        }
+        return true;
+      })
+      .map((row: any) => {
+        const storeSettings = (row.stores?.settings as any) || {};
+        const storeLogo = storeSettings.logoUrl || storeSettings.logo_url || null;
+        const cat = row.category || "servicos";
+        const fallbackBanner = CATEGORY_DEFAULT_BANNERS[cat] || CATEGORY_DEFAULT_BANNERS.servicos;
+
+        return {
+          id: row.id,
+          store_id: row.store_id,
+          store: row.stores || null,
+          author_profile_id: row.author_profile_id,
+          business_name: row.business_name || row.stores?.name || "Negócio Local",
+          category: cat,
+          description: row.description || "",
+          specialties: row.specialties || [],
+          address: row.address || "Regional",
+          latitude: row.latitude,
+          longitude: row.longitude,
+          contact_phone: row.contact_phone,
+          contact_whatsapp: row.contact_whatsapp,
+          contact_email: row.contact_email,
+          website_url: row.website_url,
+          working_hours:
+            typeof row.working_hours === "string"
+              ? row.working_hours
+              : row.working_hours?.weekdays || "Seg a Sex: 08:00 - 18:00",
+          is_verified: !!row.is_verified,
+          rating: Number(row.rating || 5.0),
+          reviews_count: Number(row.reviews_count || 0),
+          avatar_url: row.avatar_url || storeLogo,
+          banner_url: row.banner_url || storeSettings.bannerUrl || fallbackBanner,
+          status: row.status,
+          created_at: row.created_at,
+        };
+      }) as DirectoryListingDTO[];
+  });
 
 export const getPublicDirectoryById = createServerFn({ method: "GET" })
  .validator(z.object({ listingId: z.string() }))

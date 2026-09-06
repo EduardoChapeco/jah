@@ -221,28 +221,28 @@ function CustomerInstallmentsPage() {
  </section>
  )}
 
- {/* Seção 2: Recebíveis e Parcelas P2P */}
- {receivables && receivables.length > 0 && (
- <section className="space-y-4">
- <div>
- <h2 className="text-xl font-semibold tracking-tight flex items-center gap-2">
- <Handshake className="h-5 w-5 text-primary" />
- Recebíveis & Parcelas de Negociações (P2P)
- </h2>
- <p className="text-sm text-muted-foreground">
- Acompanhe as parcelas de vendas parceladas, contratos e acordos entre membros.
- </p>
- </div>
+        {/* Seção 2: Recebíveis e Parcelas de Negociações Diretas */}
+        {receivables && receivables.length > 0 && (
+          <section className="space-y-4">
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight flex items-center gap-2">
+                <Handshake className="h-5 w-5 text-primary" />
+                Recebíveis & Parcelas de Negociações Diretas
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Acompanhe as parcelas de vendas parceladas, contratos e acordos comerciais.
+              </p>
+            </div>
 
- <div className="space-y-6">
- {receivables.map((rec: any) => (
- <Surface variant="default" padding="none" key={rec.id}>
- <div className="flex flex-row items-center justify-between p-6 bg-muted/30 ">
- <div>
- <h3 className="text-lg flex items-center font-bold">
- <FileText className="mr-2 h-5 w-5 text-primary" />
- {rec.title || "Acordo P2P"}
- </h3>
+            <div className="space-y-6">
+              {receivables.map((rec: any) => (
+                <Surface variant="default" padding="none" key={rec.id}>
+                  <div className="flex flex-row items-center justify-between p-6 bg-muted/30 ">
+                    <div>
+                      <h3 className="text-lg flex items-center font-bold">
+                        <FileText className="mr-2 h-5 w-5 text-primary" />
+                        {rec.title || "Acordo Comercial"}
+                      </h3>
  <p className="text-sm text-muted-foreground mt-1">
  Total:{" "}
  <strong className="text-foreground">

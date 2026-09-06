@@ -77,19 +77,32 @@ export const Route = createFileRoute("/_store/")({
  },
  ],
  }),
- loader: async () => {
- const [
- banners,
- heroCards,
- categoryChips,
- editorialHotpages,
- categoryHubs,
- modularFeed,
- stories,
- newsArticles,
- packages,
- ] = await Promise.all([
- listActiveBanners({ data: { placement: "home" } }).catch(() => []),
+  loader: async ({ location }) => {
+    let activeCity: string | undefined = (location.search as any)?.city;
+    if (!activeCity && typeof document !== "undefined") {
+      const match = document.cookie.match(/wider_city=([^;]+)/);
+      if (match) {
+        try {
+          activeCity = decodeURIComponent(match[1]);
+        } catch {
+          // ignore
+        }
+      }
+    }
+    const filteredCity = activeCity && activeCity !== "Global" ? activeCity : undefined;
+
+    const [
+      banners,
+      heroCards,
+      categoryChips,
+      editorialHotpages,
+      categoryHubs,
+      modularFeed,
+      stories,
+      newsArticles,
+      packages,
+    ] = await Promise.all([
+      listActiveBanners({ data: { placement: "home", city: filteredCity } }).catch(() => []),
  listHomeHeroCards().catch(() => []),
  listSubcategoryChips().catch(() => []),
  listEditorialHotpages({ data: { module: "home" } }).catch(() => []),

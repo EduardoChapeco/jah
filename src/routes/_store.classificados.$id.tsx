@@ -207,6 +207,49 @@ function ClassifiedDetailPage() {
  const [isBooking, setIsBooking] = useState(false);
  const [isBuyingDirect, setIsBuyingDirect] = useState(false);
 
+  // Service Booking State
+  const [serviceBookingOpen, setServiceBookingOpen] = useState(false);
+  const [serviceDate, setServiceDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split("T")[0];
+  });
+  const [serviceTime, setServiceTime] = useState("09:00");
+  const [serviceLocationType, setServiceLocationType] = useState<"presencial" | "domicilio" | "remoto">("presencial");
+  const [serviceAddress, setServiceAddress] = useState("");
+  const [serviceNotes, setServiceNotes] = useState("");
+  const [isBookingService, setIsBookingService] = useState(false);
+
+  const handleBookService = async () => {
+    if (!serviceDate || !serviceTime) {
+      toast.error("Por favor, selecione a data e o horário desejado.");
+      return;
+    }
+
+    setIsBookingService(true);
+    try {
+      const scheduledDateTime = new Date(`${serviceDate}T${serviceTime}:00`).toISOString();
+      await createDealProposal({
+        data: {
+          classifiedId: classified.id,
+          sellerId: classified.author_profile_id,
+          proposedPriceCents: classified.price_cents || 0,
+          dealType: "service",
+          startDate: scheduledDateTime,
+          terms: `Agendamento de Serviço: ${classified.title}\nData: ${serviceDate} às ${serviceTime}\nModalidade: ${serviceLocationType === "domicilio" ? "A Domicílio" : serviceLocationType === "remoto" ? "Remoto / Online" : "No Estabelecimento do Prestador"}${serviceAddress ? `\nEndereço: ${serviceAddress}` : ""}${serviceNotes ? `\nObservações: ${serviceNotes}` : ""}`,
+        },
+      });
+
+      toast.success("Solicitação de agendamento enviada com sucesso! O prestador foi notificado.");
+      setServiceBookingOpen(false);
+      navigate({ to: "/conta/negociacoes" });
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao solicitar agendamento.");
+    } finally {
+      setIsBookingService(false);
+    }
+  };
+
  // Job Candidacy State (Microfase 78B — BigTech InfoJobs & LinkedIn Style)
  const [applyModalOpen, setApplyModalOpen] = useState(false);
  const [applyTab, setApplyTab] = useState<"perfil_wider" | "upload_cv" | "whatsapp">("perfil_wider");
@@ -1162,6 +1205,94 @@ const handleDownloadDigitalFile = async () => {
  </div>
  )}
 
+ {/* Ficha Técnica de Serviço Profissional & Agenda de Atendimento */}
+  {(classified.category === "service" || classified.attributes?.niche === "servico") && (
+    <div className="pt-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Wrench className="size-4 text-primary" />
+          <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+            Agenda de Atendimento & Disponibilidade
+          </h3>
+        </div>
+        <Badge variant="outline" className="text-[10px] uppercase font-mono font-bold text-primary border-primary/30">
+          Serviço Agendável
+        </Badge>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-muted/30 p-4 rounded-2xl text-center">
+        <div>
+          <span className="text-muted-foreground block text-[10px] mb-0.5">Modalidade</span>
+          <span className="font-bold text-foreground capitalize">
+            {classified.attributes?.modality === "domicilio"
+              ? "A Domicílio"
+              : classified.attributes?.modality === "remoto"
+              ? "Remoto / Online"
+              : "No Local / Presencial"}
+          </span>
+        </div>
+        <div>
+          <span className="text-muted-foreground block text-[10px] mb-0.5">Cobrança</span>
+          <span className="font-bold text-foreground capitalize">
+            {classified.attributes?.pricing_type === "por_hora"
+              ? "Por Hora"
+              : classified.attributes?.pricing_type === "a_combinar"
+              ? "Sob Consulta"
+              : "Preço Fixo"}
+          </span>
+        </div>
+        <div>
+          <span className="text-muted-foreground block text-[10px] mb-0.5">Duração Média</span>
+          <span className="font-bold text-foreground">
+            {classified.service_duration_minutes || classified.attributes?.service_duration_minutes || 60} min
+          </span>
+        </div>
+        <div>
+          <span className="text-muted-foreground block text-[10px] mb-0.5">Horário Atendido</span>
+          <span className="font-bold text-foreground font-mono">
+            {classified.attributes?.working_hours_start || "08:00"} às {classified.attributes?.working_hours_end || "18:00"}
+          </span>
+        </div>
+      </div>
+
+      {/* Dias de Atendimento na Semana */}
+      <div className="space-y-2 pt-1">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
+          Dias da Semana com Atendimento Disponível
+        </span>
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            { id: "seg", label: "Segunda" },
+            { id: "ter", label: "Terça" },
+            { id: "qua", label: "Quarta" },
+            { id: "qui", label: "Quinta" },
+            { id: "sex", label: "Sexta" },
+            { id: "sab", label: "Sábado" },
+            { id: "dom", label: "Domingo" },
+          ].map((day) => {
+            const weekdays = Array.isArray(classified.attributes?.available_weekdays)
+              ? classified.attributes.available_weekdays
+              : ["seg", "ter", "qua", "qui", "sex"];
+            const isAvailable = weekdays.includes(day.id);
+            return (
+              <Badge
+                key={day.id}
+                variant={isAvailable ? "default" : "outline"}
+                className={`text-xs px-2.5 py-1 rounded-lg ${
+                  isAvailable
+                    ? "bg-primary text-primary-foreground font-semibold"
+                    : "opacity-40 line-through"
+                }`}
+              >
+                {day.label}
+              </Badge>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  )}
+
  {/* Ficha Técnica de Imóvel & Hospedagem */}
  {classified.category === "real_estate" && (
  <div className=" pt-4 space-y-4">
@@ -1771,7 +1902,178 @@ const handleDownloadDigitalFile = async () => {
  </DialogContent>
  </Dialog>
  </div>
- ) : (
+  ) : (classified.category === "service" || classified.booking_enabled || classified.attributes?.booking_enabled) ? (
+    /* Bloco Especial de Agendamento de Serviço Profissional */
+    <div className="space-y-3">
+      <Dialog open={serviceBookingOpen} onOpenChange={setServiceBookingOpen}>
+        <DialogTrigger asChild>
+          <Button
+            size="lg"
+            className="w-full h-12 rounded-xl font-bold bg-primary text-primary-foreground gap-2 text-sm shadow-md hover:bg-primary/90 transition-all cursor-pointer"
+          >
+            <Calendar className="size-5" />
+            <span>Agendar Atendimento</span>
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-md sm:rounded-2xl">
+          {viewerContext === "anonymous" ? (
+            <div className="text-center py-6 space-y-4">
+              <Calendar className="size-10 text-primary mx-auto" />
+              <div className="space-y-1">
+                <DialogTitle className="text-lg font-bold">
+                  Identifique-se para agendar
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Faça login na sua conta Wider para solicitar o agendamento com segurança e garantias regionais.
+                </DialogDescription>
+              </div>
+              <Button
+                asChild
+                className="w-full h-11 rounded-xl font-bold bg-primary text-primary-foreground text-sm"
+              >
+                <Link
+                  to="/entrar"
+                  search={{ returnUrl: `/classificados/${classified.id}` }}
+                >
+                  Entrar na Minha Conta
+                </Link>
+              </Button>
+            </div>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-lg font-bold flex items-center gap-2">
+                  <Calendar className="size-5 text-primary" />
+                  Agendar Atendimento
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Escolha o dia, horário e modalidade para solicitar o atendimento com {author?.full_name || "o profissional"}.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-foreground">Data Desejada *</label>
+                    <Input
+                      type="date"
+                      value={serviceDate}
+                      onChange={(e) => setServiceDate(e.target.value)}
+                      className="h-10 rounded-xl text-xs bg-background font-mono"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-foreground">Horário Estimado *</label>
+                    <select
+                      value={serviceTime}
+                      onChange={(e) => setServiceTime(e.target.value)}
+                      className="w-full h-10 rounded-xl text-xs bg-background border border-border px-3 font-mono"
+                    >
+                      {["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"].map((time) => (
+                        <option key={time} value={time}>{time}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground">Modalidade de Atendimento</label>
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    {[
+                      { id: "presencial", label: "No Local" },
+                      { id: "domicilio", label: "A Domicílio" },
+                      { id: "remoto", label: "Online" },
+                    ].map((mod) => (
+                      <button
+                        key={mod.id}
+                        type="button"
+                        onClick={() => setServiceLocationType(mod.id as any)}
+                        className={`py-2 px-1 rounded-xl border text-center font-medium transition-all ${
+                          serviceLocationType === mod.id
+                            ? "bg-primary text-primary-foreground border-primary font-bold shadow-xs"
+                            : "bg-background border-border text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {mod.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {serviceLocationType === "domicilio" && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-foreground">Endereço de Atendimento *</label>
+                    <Input
+                      value={serviceAddress}
+                      onChange={(e) => setServiceAddress(e.target.value)}
+                      placeholder="Rua, número, bairro..."
+                      className="h-10 rounded-xl text-xs bg-background"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground">Detalhes do que você precisa</label>
+                  <Textarea
+                    value={serviceNotes}
+                    onChange={(e) => setServiceNotes(e.target.value)}
+                    placeholder="Descreva o que precisa ser feito no atendimento..."
+                    rows={3}
+                    className="rounded-xl text-xs bg-background resize-none leading-relaxed"
+                  />
+                </div>
+
+                {classified.price_cents && classified.price_cents > 0 ? (
+                  <div className="p-3.5 rounded-xl bg-muted/40 flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Valor Estimado do Atendimento:</span>
+                    <span className="font-bold text-sm text-primary font-mono">{formatMoney(classified.price_cents)}</span>
+                  </div>
+                ) : null}
+
+                <Button
+                  onClick={handleBookService}
+                  disabled={isBookingService}
+                  className="w-full h-11 rounded-xl text-xs font-bold gap-2"
+                >
+                  {isBookingService ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      <span>Enviando Solicitação...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="size-4" />
+                      <span>Confirmar Solicitação de Agendamento</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {(classified.contact_whatsapp || classified.whatsapp || classified.profiles?.phone) && (
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={() => {
+            const targetPhone = classified.contact_whatsapp || classified.whatsapp || classified.profiles?.phone;
+            const text = `Olá! Vi o seu serviço "${classified.title}" no portal Wider e gostaria de tirar dúvidas sobre atendimento.`;
+            trackAndOpenWhatsApp(targetPhone, text, {
+              classifiedId: classified.id,
+              classifiedTitle: classified.title,
+              action: "service_whatsapp_inquiry",
+            });
+          }}
+          className="w-full h-11 rounded-xl font-semibold text-xs gap-2 border-emerald-600/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 cursor-pointer"
+        >
+          <MessageCircle className="size-4 text-emerald-600" />
+          <span>Falar com o Prestador via WhatsApp</span>
+        </Button>
+      )}
+    </div>
+  ) : (
  /* Bloco de Compra / Negociação para Venda, Aluguel e Outros Itens */
  <div className="space-y-3">
  {/* Botão Primário Semântico adaptado ao nicho */}

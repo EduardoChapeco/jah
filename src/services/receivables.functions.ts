@@ -5,7 +5,7 @@ import { getIdentity } from "./identity.functions";
 import { getServerIdentity, assertStoreAccess, requirePlatformAdmin } from "@/lib/server-access";
 
 // ==============================================================================
-// 1. FUNÇÕES LEGADAS / COMPATIBILIDADE P2P
+// 1. FUNÇÕES LEGADAS / COMPATIBILIDADE DE NEGOCIAÇÕES DIRETAS
 // ==============================================================================
 
 export const listUserReceivables = createServerFn({ method: "GET" }).handler(async () => {
@@ -1024,8 +1024,8 @@ export const getMasterCarnesOverview = createServerFn({ method: "GET" }).handler
       totalSettledCents += Number(c.total_cents || 0);
     }
 
-    const storeId = c.store_id || "direto_p2p";
-    const storeName = c.store?.name || "Acordo P2P Direto";
+    const storeId = c.store_id || "direto_acordo";
+    const storeName = c.store?.name || "Acordo Comercial Direto";
 
     if (!storeMap[storeId]) {
       storeMap[storeId] = {

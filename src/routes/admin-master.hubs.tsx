@@ -75,7 +75,7 @@ const MODULES: { id: HotpageModule; label: string; emoji: string }[] = [
  { id: "agenda", label: "Agenda & Eventos", emoji: "📅" },
  { id: "turismo", label: "Turismo & Hospedagem", emoji: "✈️" },
  { id: "empregos", label: "Empregos & Vagas", emoji: "💼" },
- { id: "classificados", label: "Classificados P2P", emoji: "🏷️" },
+ { id: "classificados", label: "Classificados Locais", emoji: "🏷️" },
  { id: "diretorio", label: "Diretório Comercial", emoji: "🧭" },
  { id: "mobilidade", label: "Mobilidade Urbana", emoji: "🚗" },
  { id: "ofertas", label: "Ofertas & Promoções", emoji: "⚡" },

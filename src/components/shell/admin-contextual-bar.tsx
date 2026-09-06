@@ -30,7 +30,7 @@ const ROUTE_NICHE_MAP: Record<string, { id: string; label: string; emoji: string
  "/agenda": { id: "agenda", label: "Agenda & Eventos", emoji: "📅" },
  "/turismo": { id: "turismo", label: "Turismo & Hospedagem", emoji: "✈️" },
  "/empregos": { id: "empregos", label: "Empregos & Vagas", emoji: "💼" },
- "/classificados": { id: "classificados", label: "Classificados P2P", emoji: "🏷️" },
+ "/classificados": { id: "classificados", label: "Classificados Locais", emoji: "🏷️" },
  "/diretorio": { id: "diretorio", label: "Diretório Comercial", emoji: "🧭" },
  "/mobilidade": { id: "mobilidade", label: "Mobilidade Urbana", emoji: "🚗" },
  "/ofertas": { id: "ofertas", label: "Ofertas Relâmpago", emoji: "⚡" },

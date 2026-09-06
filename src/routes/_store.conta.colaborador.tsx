@@ -20,155 +20,180 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
- recordTimeClock, 
- listEmployeeTimeEntries, 
- listEmployeePayslips, 
- acknowledgePayslip,
- createEmployeeRequest 
+  recordTimeClock, 
+  listEmployeeTimeEntries, 
+  listEmployeePayslips, 
+  acknowledgePayslip,
+  createEmployeeRequest,
+  getMyEmployeeRecord,
 } from "@/services/hr.functions";
 import { formatDateTime, formatTimeOnly } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/colaborador")({
- head: () => ({ meta: [{ title: "Espaço do Colaborador | Wider Hub" }] }),
- component: ColaboradorPortalPage,
+  head: () => ({ meta: [{ title: "Espaço do Colaborador | Wider Hub" }] }),
+  loader: async () => {
+    const employee = await getMyEmployeeRecord().catch(() => null);
+    return { employee };
+  },
+  component: ColaboradorPortalPage,
 });
 
 function ColaboradorPortalPage() {
- const queryClient = useQueryClient();
- const [activeTab, setActiveTab] = useState<"ponto" | "holerites" | "solicitacoes">("ponto");
- const [currentTime, setCurrentTime] = useState(new Date());
- const [geoCoords, setGeoCoords] = useState<{ latitude?: number; longitude?: number } | null>(null);
+  const { employee } = Route.useLoaderData();
+  const [activeTab, setActiveTab] = useState("ponto");
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [requestType, setRequestType] = useState("salary_advance");
+  const [requestTitle, setRequestTitle] = useState("");
+  const [requestDesc, setRequestDesc] = useState("");
+  const [requestAmount, setRequestAmount] = useState("");
+  const [geoCoords, setGeoCoords] = useState<{ lat: number; lng: number } | null>(null);
 
- // Solicitação form
- const [requestType, setRequestType] = useState<any>("salary_advance");
- const [requestTitle, setRequestTitle] = useState("");
- const [requestDesc, setRequestDesc] = useState("");
- const [requestAmount, setRequestAmount] = useState("");
+  const queryClient = useQueryClient();
+  const employeeId = employee?.id;
 
- // Relógio em tempo real
- useEffect(() => {
- const timer = setInterval(() => setCurrentTime(new Date()), 1000);
- return () => clearInterval(timer);
- }, []);
+  const { data: timeEntries = [] } = useQuery({
+    queryKey: ["my-time-entries", employeeId],
+    queryFn: () => listEmployeeTimeEntries({ params: { employeeId } }),
+    enabled: !!employeeId,
+  });
 
- // Obter localização GPS do dispositivo
- useEffect(() => {
- if ("geolocation" in navigator) {
- navigator.geolocation.getCurrentPosition(
- (pos) => setGeoCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
- (err) => console.warn("GPS não autorizado:", err.message),
- { enableHighAccuracy: true }
- );
- }
- }, []);
+  const { data: payslips = [] } = useQuery({
+    queryKey: ["my-payslips", employeeId],
+    queryFn: () => listEmployeePayslips({ params: { employeeId } }),
+    enabled: !!employeeId,
+  });
 
- // Mock employeeId do usuário logado (em prod vem da session)
- const employeeId = "00000000-0000-0000-0000-000000000000";
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        setGeoCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      });
+    }
+    return () => clearInterval(timer);
+  }, []);
 
- const { data: timeEntries = [], isLoading: loadingEntries } = useQuery({
- queryKey: ["my-time-entries"],
- queryFn: () => listEmployeeTimeEntries({ data: { employeeId } }),
- });
+  const clockMutation = useMutation({
+    mutationFn: (entryType: string) =>
+      recordTimeClock({
+        data: {
+          employeeId,
+          entryType,
+          source: "mobile_pwa",
+          geolocation: geoCoords || {},
+        },
+      }),
+    onSuccess: (_, entryType) => {
+      toast.success(`Batida de ponto (${entryType}) registrada com sucesso!`);
+      queryClient.invalidateQueries({ queryKey: ["my-time-entries"] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Erro ao registrar ponto.");
+    },
+  });
 
- const { data: payslips = [], isLoading: loadingPayslips } = useQuery({
- queryKey: ["my-payslips"],
- queryFn: () => listEmployeePayslips({ data: { employeeId } }),
- });
+  const requestMutation = useMutation({
+    mutationFn: () =>
+      createEmployeeRequest({
+        data: {
+          employeeId,
+          requestType,
+          title: requestTitle,
+          description: requestDesc,
+          amountCents: requestAmount ? Math.round(parseFloat(requestAmount) * 100) : undefined,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Solicitação enviada para o gestor com sucesso!");
+      setRequestTitle("");
+      setRequestDesc("");
+      setRequestAmount("");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Erro ao enviar solicitação.");
+    },
+  });
 
- const clockMutation = useMutation({
- mutationFn: (entryType: any) =>
- recordTimeClock({
- data: {
- employeeId,
- entryType,
- source: "mobile_pwa",
- geolocation: geoCoords || {},
- },
- }),
- onSuccess: (_, entryType) => {
- toast.success(`Batida de ponto (${entryType}) registrada com sucesso!`);
- queryClient.invalidateQueries({ queryKey: ["my-time-entries"] });
- },
- onError: (err: Error) => {
- toast.error(err.message || "Erro ao registrar ponto.");
- },
- });
+  const acknowledgeMutation = useMutation({
+    mutationFn: (payslipId: string) =>
+      acknowledgePayslip({ data: { payslipId } }),
+    onSuccess: () => {
+      toast.success("Recebimento de holerite confirmado digitalmente!");
+      queryClient.invalidateQueries({ queryKey: ["my-payslips"] });
+    },
+  });
 
- const requestMutation = useMutation({
- mutationFn: () =>
- createEmployeeRequest({
- data: {
- employeeId,
- requestType,
- title: requestTitle,
- description: requestDesc,
- amountCents: requestAmount ? Math.round(parseFloat(requestAmount) * 100) : undefined,
- },
- }),
- onSuccess: () => {
- toast.success("Solicitação enviada para o gestor com sucesso!");
- setRequestTitle("");
- setRequestDesc("");
- setRequestAmount("");
- },
- onError: (err: Error) => {
- toast.error(err.message || "Erro ao enviar solicitação.");
- },
- });
+  const storeName = employee?.stores?.name || "Empresa Parceira";
+  const employeeName = employee?.full_name || "Colaborador";
+  const employeeRole = employee?.job_title || "Membro de Equipe";
+  const initials =
+    employeeName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((s: string) => s[0]?.toUpperCase())
+      .join("") || "CL";
 
- const acknowledgeMutation = useMutation({
- mutationFn: (payslipId: string) =>
- acknowledgePayslip({ data: { payslipId } }),
- onSuccess: () => {
- toast.success("Recebimento de holerite confirmado digitalmente!");
- queryClient.invalidateQueries({ queryKey: ["my-payslips"] });
- },
- });
+  return (
+    <div className="min-h-screen bg-background text-foreground pb-20">
+      {/* Header Estilo Apple HIG com Blur e Elevação */}
+      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border px-4 sm:px-6 py-3 sm:py-4">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-md shrink-0">
+              {initials}
+            </div>
+            <div>
+              <h1 className="font-bold text-base leading-tight">{employeeName}</h1>
+              <p className="text-xs text-muted-foreground">{employeeRole} • {storeName}</p>
+            </div>
+          </div>
 
- return (
- <div className="min-h-screen bg-background text-foreground pb-16">
- {/* Header Estilo Apple HIG com Blur e Elevação */}
- <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border px-6 py-4">
- <div className="max-w-4xl mx-auto flex items-center justify-between">
- <div className="flex items-center gap-3">
- <div className="h-10 w-10 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-md">
- JH
- </div>
- <div>
- <h1 className="font-bold text-base leading-tight">Hub do Colaborador</h1>
- <p className="text-xs text-muted-foreground">Portal do Funcionário Wider</p>
- </div>
- </div>
+          {/* Navegação por Abas com Touch Targets de 44px */}
+          <div className="flex gap-1 bg-muted/60 p-1 rounded-2xl border border-border w-full sm:w-auto overflow-x-auto no-scrollbar">
+            <button
+              onClick={() => setActiveTab("ponto")}
+              className={`min-h-[44px] px-3.5 rounded-xl text-xs font-semibold transition-all shrink-0 ${
+                activeTab === "ponto" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Ponto Digital
+            </button>
+            <button
+              onClick={() => setActiveTab("holerites")}
+              className={`min-h-[44px] px-3.5 rounded-xl text-xs font-semibold transition-all shrink-0 ${
+                activeTab === "holerites" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Holerites
+            </button>
+            <button
+              onClick={() => setActiveTab("solicitacoes")}
+              className={`min-h-[44px] px-3.5 rounded-xl text-xs font-semibold transition-all shrink-0 ${
+                activeTab === "solicitacoes" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Vales & Férias
+            </button>
+          </div>
+        </div>
+      </div>
 
- {/* Navegação por Abas com Touch Targets de 44px */}
- <div className="flex gap-1 bg-muted/60 p-1 rounded-2xl border border-border">
- <button
- onClick={() => setActiveTab("ponto")}
- className={`min-h-[44px] px-3.5 rounded-xl text-xs font-semibold transition-all ${
- activeTab === "ponto" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
- }`}
- >
- Ponto Digital
- </button>
- <button
- onClick={() => setActiveTab("holerites")}
- className={`min-h-[44px] px-3.5 rounded-xl text-xs font-semibold transition-all ${
- activeTab === "holerites" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
- }`}
- >
- Holerites
- </button>
- <button
- onClick={() => setActiveTab("solicitacoes")}
- className={`min-h-[44px] px-3.5 rounded-xl text-xs font-semibold transition-all ${
- activeTab === "solicitacoes" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
- }`}
- >
- Vales & Férias
- </button>
- </div>
- </div>
- </div>
+      {!employee && (
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-4">
+          <div className="rounded-2xl border border-border/80 bg-muted/30 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-foreground">Vínculo em Aberto ou em Homologação</p>
+              <p className="text-xs text-muted-foreground">
+                Seu perfil ainda não está associado a uma folha de pagamento ativa. Solicite ao gestor da sua empresa para vincular seu perfil na equipe da loja.
+              </p>
+            </div>
+            <Button asChild variant="outline" size="sm" className="rounded-xl h-9 text-xs shrink-0">
+              <a href="/conta">Voltar para Conta</a>
+            </Button>
+          </div>
+        </div>
+      )}
 
  <div className="max-w-4xl mx-auto px-6 pt-6 space-y-6">
  {activeTab === "ponto" && (

@@ -109,7 +109,7 @@ export function LegalTermsSheet({
  { slug: "termos", label: "Termos Gerais de Uso" },
  { slug: "privacidade", label: "Privacidade & LGPD" },
  { slug: "uso-de-ia", label: "IA & Biometria" },
- { slug: "isencao", label: "Isenção P2P" },
+ { slug: "isencao", label: "Isenção de Negociações" },
  { slug: "cookies", label: "Cookies" },
  { slug: "lojistas", label: "Lojistas" },
  { slug: "entregadores", label: "Entregadores" },

@@ -72,7 +72,7 @@ export function LegalDocumentViewer({ document }: LegalDocumentProps) {
  <Link to="/politicas/$slug" params={{ slug: "cookies" }}>Cookies</Link>
  </Button>
  <Button asChild variant="outline" size="sm" className="rounded-xl text-xs h-7">
- <Link to="/politicas/$slug" params={{ slug: "isencao" }}>Isenção P2P</Link>
+ <Link to="/politicas/$slug" params={{ slug: "isencao" }}>Isenção de Negociações</Link>
  </Button>
  <Button asChild variant="outline" size="sm" className="rounded-xl text-xs h-7">
  <Link to="/politicas/$slug" params={{ slug: "lojistas" }}>Lojistas</Link>

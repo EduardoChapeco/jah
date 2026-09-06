@@ -294,7 +294,7 @@ function IntegrationsPage() {
  <IntegrationCard
  provider="whatsapp_cloud_api"
  title="WhatsApp Cloud API (Oficial)"
- description="Disparo automatizado de status de pedidos, agendamentos e propostas P2P."
+ description="Disparo automatizado de status de pedidos, agendamentos e propostas diretas de negociação."
  icon={MessageCircle}
  existingSetting={settings.find((s: any) => s.provider === "whatsapp_cloud_api")}
  onSave={handleSave}

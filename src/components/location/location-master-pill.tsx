@@ -165,6 +165,7 @@ export function useMasterLocation() {
  };
  setLocation(autoLoc);
  localStorage.setItem("wider_master_location", JSON.stringify(autoLoc));
+ document.cookie = `wider_city=${encodeURIComponent(autoLoc.city)}; path=/; max-age=31536000; SameSite=Lax`;
  localStorage.removeItem("wider_geo_permission_dismissed");
  localStorage.setItem("wider_geo_permission_granted", "true");
  window.dispatchEvent(new CustomEvent("wider:location-updated", { detail: autoLoc }));
@@ -216,13 +217,14 @@ export function useMasterLocation() {
  };
  }, []);
 
- const updateLocation = (newLoc: LocationState) => {
- setLocation(newLoc);
- if (typeof window !== "undefined") {
- localStorage.setItem("wider_master_location", JSON.stringify(newLoc));
- window.dispatchEvent(new CustomEvent("wider:location-updated", { detail: newLoc }));
- }
- };
+  const updateLocation = (newLoc: LocationState) => {
+    setLocation(newLoc);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("wider_master_location", JSON.stringify(newLoc));
+      document.cookie = `wider_city=${encodeURIComponent(newLoc.city)}; path=/; max-age=31536000; SameSite=Lax`;
+      window.dispatchEvent(new CustomEvent("wider:location-updated", { detail: newLoc }));
+    }
+  };
 
  return { location, updateLocation };
 }

@@ -419,10 +419,21 @@ function SpecializedClassifiedEditor({
     "presencial",
   );
   const [serviceArea, setServiceArea] = useState("");
-  const [serviceDuration, setServiceDuration] = useState("");
+  const [serviceDuration, setServiceDuration] = useState("60");
   const [servicePricingType, setServicePricingType] = useState<"fixo" | "por_hora" | "a_combinar">(
     "fixo",
   );
+  const [serviceBookingEnabled, setServiceBookingEnabled] = useState(true);
+  const [serviceAvailableDays, setServiceAvailableDays] = useState<string[]>([
+    "seg",
+    "ter",
+    "qua",
+    "qui",
+    "sex",
+  ]);
+  const [serviceHoursStart, setServiceHoursStart] = useState("08:00");
+  const [serviceHoursEnd, setServiceHoursEnd] = useState("18:00");
+  const [serviceDailySlots, setServiceDailySlots] = useState("8");
 
   // Specialized: Produto Digital & Downloads
   const [digitalFileType, setDigitalFileType] = useState("ebook");
@@ -513,6 +524,12 @@ function SpecializedClassifiedEditor({
         attributes.service_area = serviceArea;
         attributes.estimated_duration = serviceDuration;
         attributes.pricing_type = servicePricingType;
+        attributes.booking_enabled = serviceBookingEnabled;
+        attributes.available_weekdays = serviceAvailableDays;
+        attributes.working_hours_start = serviceHoursStart;
+        attributes.working_hours_end = serviceHoursEnd;
+        attributes.service_duration_minutes = parseInt(serviceDuration) || 60;
+        attributes.available_slots = parseInt(serviceDailySlots) || 8;
       } else if (niche.id === "digital") {
         attributes.niche = "digital";
         attributes.is_digital = true;
@@ -616,6 +633,12 @@ function SpecializedClassifiedEditor({
           digital_file_size_bytes: niche.id === "digital" ? digitalFileSize : undefined,
           download_limit: niche.id === "digital" ? (parseInt(digitalDownloadLimit) || 5) : undefined,
           digital_preview_url: niche.id === "digital" ? (digitalPreviewUrl.trim() || undefined) : undefined,
+          booking_enabled: niche.id === "servico" ? serviceBookingEnabled : undefined,
+          service_duration_minutes: niche.id === "servico" ? (parseInt(serviceDuration) || 60) : undefined,
+          available_slots: niche.id === "servico" ? (parseInt(serviceDailySlots) || 8) : undefined,
+          available_weekdays: niche.id === "servico" ? serviceAvailableDays : undefined,
+          working_hours_start: niche.id === "servico" ? serviceHoursStart : undefined,
+          working_hours_end: niche.id === "servico" ? serviceHoursEnd : undefined,
           negotiable,
           whatsapp: whatsapp.trim() || undefined,
           contact_whatsapp: whatsapp.trim() || undefined,

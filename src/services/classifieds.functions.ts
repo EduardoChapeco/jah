@@ -258,6 +258,9 @@ const upsertClassifiedInput = z.object({
  booking_enabled: z.boolean().optional(),
  available_slots: z.number().int().optional(),
  service_duration_minutes: z.number().int().optional(),
+ available_weekdays: z.array(z.string()).optional(),
+ working_hours_start: z.string().optional(),
+ working_hours_end: z.string().optional(),
  property_tags: z.array(z.string()).optional(),
  is_boosted: z.boolean().optional(),
  delivery_mode: z.enum(["pickup", "local_delivery", "national_shipping", "both"]).optional(),
@@ -333,7 +336,12 @@ export const upsertClassified = createServerFn({ method: "POST" })
  images: Array.isArray(rest.images) ? rest.images : [],
  condition: rest.condition || null,
  negotiable: rest.negotiable ?? true,
- attributes: rest.attributes || {},
+ attributes: {
+   ...(rest.attributes || {}),
+   ...(rest.available_weekdays ? { available_weekdays: rest.available_weekdays } : {}),
+   ...(rest.working_hours_start ? { working_hours_start: rest.working_hours_start } : {}),
+   ...(rest.working_hours_end ? { working_hours_end: rest.working_hours_end } : {}),
+ },
  status: rest.status || "active",
  author_profile_id: identity.id,
  };

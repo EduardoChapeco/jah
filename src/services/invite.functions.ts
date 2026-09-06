@@ -7,9 +7,11 @@ export interface InviteOverviewDTO {
   code: string;
   shareUrl: string;
   totalPoints: number;
+  totalTokens: number;
   ambassadorTier: "starter" | "bronze" | "silver" | "gold" | "platinum";
   nextTier: "bronze" | "silver" | "gold" | "platinum" | null;
   pointsToNextTier: number;
+  tokensToNextTier: number;
   tierProgressPercent: number;
   clicks: number;
   conversions: number;
@@ -17,6 +19,7 @@ export interface InviteOverviewDTO {
     id: string;
     invitedName: string;
     pointsAwarded: number;
+    tokensAwarded: number;
     createdAt: string;
   }>;
 }
@@ -26,6 +29,7 @@ export interface AmbassadorLeaderboardItem {
   displayName: string;
   avatarUrl: string | null;
   totalPoints: number;
+  totalTokens: number;
   tier: string;
   rank: number;
 }
@@ -36,6 +40,7 @@ export interface InviteRewardDTO {
   description: string | null;
   imageUrl: string | null;
   pointsRequired: number;
+  tokensRequired: number;
   rewardType: string;
   stock: number | null;
   active: boolean;
@@ -49,6 +54,7 @@ export interface RaffleDTO {
   rules: Record<string, any>;
   ticketPriceCents: number;
   pointsCost: number;
+  tokensCost: number;
   maxTicketsPerUser: number;
   drawDate: string;
   status: "draft" | "active" | "drawing" | "completed" | "cancelled";
@@ -178,6 +184,7 @@ export const getMyInviteOverview = createServerFn({ method: "GET" })
           id: c.id,
           invitedName: profMap.get(c.invited_user_id) || "Membro Convidado",
           pointsAwarded: c.points_awarded,
+          tokensAwarded: c.points_awarded,
           createdAt: c.created_at,
         }));
       }
@@ -187,9 +194,11 @@ export const getMyInviteOverview = createServerFn({ method: "GET" })
       code,
       shareUrl: `https://wider.app.br/convite?ref=${code}`,
       totalPoints,
+      totalTokens: totalPoints,
       ambassadorTier: tierMeta.currentTier,
       nextTier: tierMeta.nextTier,
       pointsToNextTier: tierMeta.pointsToNext,
+      tokensToNextTier: tierMeta.pointsToNext,
       tierProgressPercent: tierMeta.percent,
       clicks: linkData?.clicks || 0,
       conversions: linkData?.conversions || 0,
@@ -233,6 +242,7 @@ export const getInviteLeaderboard = createServerFn({ method: "GET" })
         displayName: name,
         avatarUrl: prof?.avatar_url || null,
         totalPoints: s.total_points,
+        totalTokens: s.total_points,
         tier: s.ambassador_tier,
         rank: idx + 1,
       };
@@ -260,6 +270,7 @@ export const getAvailableRewards = createServerFn({ method: "GET" })
       description: r.description,
       imageUrl: r.image_url,
       pointsRequired: r.points_required,
+      tokensRequired: r.points_required,
       rewardType: r.reward_type,
       stock: r.stock,
       active: r.active,
@@ -369,6 +380,7 @@ export const getActiveRaffles = createServerFn({ method: "GET" })
       rules: r.rules || {},
       ticketPriceCents: r.ticket_price_cents || 0,
       pointsCost: r.points_cost || 50,
+      tokensCost: r.points_cost || 50,
       maxTicketsPerUser: r.max_tickets_per_user || 10,
       drawDate: r.draw_date,
       status: r.status,

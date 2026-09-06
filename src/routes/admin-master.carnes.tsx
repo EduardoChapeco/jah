@@ -304,7 +304,7 @@ function AdminMasterCarnesPage() {
       ) : (
         <div className="space-y-4">
           {carnes.map((carne: any) => {
-            const storeName = carne.store?.name || carne.creditor?.full_name || "Acordo P2P Direto";
+            const storeName = carne.store?.name || carne.creditor?.full_name || "Acordo Comercial Direto";
             const debtor = carne.debtor;
             const installments = carne.installments || [];
 
@@ -330,7 +330,7 @@ function AdminMasterCarnesPage() {
                       <span>•</span>
                       <span className="flex items-center gap-1 font-medium text-foreground">
                         <User className="h-3.5 w-3.5 text-primary" /> Cliente:{" "}
-                        {debtor?.full_name || "Cliente P2P"}
+                        {debtor?.full_name || "Cliente Direto"}
                       </span>
                       {debtor?.email && <span>({debtor.email})</span>}
                       {carne.contract && (

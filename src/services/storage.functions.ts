@@ -71,7 +71,8 @@ export const getSignedUploadUrl = createServerFn({ method: "POST" })
 
  enforceRateLimit(userId || store_id || "guest", "media_upload");
 
- const uniqueName = `${store_id}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${ext}`;
+ const folder = store_id || userId;
+ const uniqueName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${ext}`;
 
  // Tenta criar a URL assinada
  let result = await supabase.storage.from(bucket).createSignedUploadUrl(uniqueName);

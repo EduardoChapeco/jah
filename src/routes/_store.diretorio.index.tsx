@@ -133,32 +133,31 @@ function DirectoryPage() {
 
  {/* ── 4. Renderização Conforme o Modo de Visualização ── */}
 
- {/* MODE 1: FEED / TIMELINE DE EMPRESAS E TRILHOS TEMÁTICOS */}
+ {/* MODE 1: FEED / TIMELINE DE EMPRESAS COM TRILHOS TEMÁTICOS CANÔNICOS */}
  {viewMode === "feed" && (
- <div className="space-y-10">
- {/* Trilho de Empresas em Destaque / Mais Bem Avaliadas */}
+ <div className="space-y-8">
+ {/* Trilho de Empresas em Destaque (Mais Bem Avaliadas / Verificadas) */}
  {topRatedListings.length > 0 && (
  <HorizontalRail
  title="Destaques & Mais Bem Avaliados"
- hideHeader={true}
  badge="Top Escolhas"
- actionLabel="Ver grade completa"
+ actionLabel="Ver grade"
  onAction={() => setViewMode("grid")}
  >
  {topRatedListings.map((item) => (
- <div key={item.id} className="min-w-[290px] sm:min-w-[320px] max-w-[340px] shrink-0">
+ <div key={item.id} className="min-w-[280px] sm:min-w-[320px] max-w-[340px] shrink-0">
  <DirectoryBusinessCard item={item} />
  </div>
  ))}
  </HorizontalRail>
  )}
 
- {/* Trilhos por Categoria de Serviços com Carrossel Padronizado */}
- {listingsByCategory.map(({ categoryKey, categoryName, items }) => (
+ {/* Trilhos por Categoria com Títulos Limpos e Itens Específicos */}
+ {listingsByCategory.length > 1 &&
+ listingsByCategory.map(({ categoryKey, categoryName, items }) => (
  <HorizontalRail
  key={categoryKey}
  title={categoryName}
- hideHeader={true}
  badge={`${items.length} ${items.length === 1 ? "empresa" : "empresas"}`}
  actionLabel="Ver todas"
  onAction={() => {
@@ -167,15 +166,15 @@ function DirectoryPage() {
  }}
  >
  {items.map((item) => (
- <div key={item.id} className="min-w-[290px] sm:min-w-[320px] max-w-[340px] shrink-0">
+ <div key={item.id} className="min-w-[280px] sm:min-w-[320px] max-w-[340px] shrink-0">
  <DirectoryBusinessCard item={item} />
  </div>
  ))}
  </HorizontalRail>
  ))}
 
- {/* Feed Geral de Empresas no Fim da Página */}
- <div className="space-y-4 pt-6 ">
+ {/* Seção Geral: Todas as Empresas da Região */}
+ <div className="space-y-4 pt-4 border-t border-border/40">
  <div className="flex items-center justify-between">
  <h2 className="text-base font-bold text-foreground flex items-center gap-2">
  <Storefront size={18} weight="bold" className="text-primary" />
@@ -214,7 +213,7 @@ function DirectoryPage() {
  </div>
  )}
 
- {/* MODE 2: GRADE EXPANDIDA PADRONIZADA COM FOTOS DE CAPA E LOGO */}
+ {/* MODE 2: GRADE EXPANDIDA PADRONIZADA COM IMAGEM FULL SPLIT */}
  {viewMode === "grid" && (
  <div>
  {filteredListings.length === 0 && !isLoading ? (
@@ -231,7 +230,7 @@ function DirectoryPage() {
  </div>
  )}
 
- {/* MODE 3: LISTA ESTILO GUIA COMERCIAL COMPACTO (LARGURA MÁXIMA) */}
+ {/* MODE 3: LISTA ESTILO GUIA COMERCIAL COM SPLIT HORIZONTAL PERFEITO */}
  {viewMode === "list" && (
  <div className="space-y-3 w-full">
  {filteredListings.length === 0 && !isLoading ? (
@@ -251,13 +250,11 @@ function DirectoryPage() {
  );
 }
 
-// ─── COMPONENTE PADRONIZADO: CARD DE EMPRESA COM CAPA FULL & LOGO ──────────────
+// ─── COMPONENTE PADRONIZADO: CARD DE EMPRESA COM IMAGEM FULL SPLIT & APPLE HIG ──────────────
 function DirectoryBusinessCard({
  item,
- compactMode = false,
 }: {
  item: DirectoryListingDTO;
- compactMode?: boolean;
 }) {
  const coverUrl = item.banner_url || item.avatar_url;
 
@@ -267,14 +264,14 @@ function DirectoryBusinessCard({
  const whatsappNumber = (item.contact_whatsapp || item.contact_phone || "").replace(/\D/g, "");
 
  return (
- <div className="group relative flex flex-col justify-between rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 hover:border-foreground/25 transition-all duration-300">
+ <div className="group relative flex flex-col justify-between rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 transition-all duration-300">
  <Link
  to="/diretorio/$id"
  params={{ id: item.id }}
- className="space-y-3 focus-visible:outline-none block"
+ className="focus-visible:outline-none block"
  >
- {/* ── Imagem Full de Capa do Negócio com Overlay ── */}
- <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-muted/40">
+ {/* ── Imagem Full Split Superior (16:9 Limpo e Sem Cortes Estranhos) ── */}
+ <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted/30">
  {coverUrl ? (
  <img
  src={coverUrl}
@@ -288,12 +285,12 @@ function DirectoryBusinessCard({
  </div>
  )}
 
- {/* Gradiente sutil */}
- <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+ {/* Gradiente de proteção para badges superiores */}
+ <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/30 pointer-events-none" />
 
  {/* Badge de Categoria no Topo Esquerdo */}
  <div className="absolute top-2.5 left-2.5">
- <Badge className="bg-background/90 text-foreground backdrop-blur-md text-[10px] font-bold px-2 py-0.5 rounded-lg ">
+ <Badge className="bg-background/90 text-foreground backdrop-blur-md text-[10px] font-bold px-2 py-0.5 rounded-lg border border-border/40">
  {categoryLabel}
  </Badge>
  </div>
@@ -301,7 +298,7 @@ function DirectoryBusinessCard({
  {/* Badge de Verificado no Topo Direito */}
  {item.is_verified && (
  <div className="absolute top-2.5 right-2.5">
- <Badge className="bg-emerald-500/90 text-white backdrop-blur-md text-[10px] font-black px-2 py-0.5 rounded-lg flex items-center gap-1">
+ <Badge className="bg-emerald-500/90 text-white backdrop-blur-md text-[10px] font-black px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-xs">
  <ShieldCheck size={12} weight="bold" />
  <span>Verificado</span>
  </Badge>
@@ -309,11 +306,11 @@ function DirectoryBusinessCard({
  )}
  </div>
 
- {/* ── Header da Empresa: Logo Avatar + Nome + Avaliação ── */}
- <div className="space-y-2">
+ {/* ── Conteúdo do Card: Header Alinhado (Logo + Título + Avaliação) ── */}
+ <div className="p-4 space-y-3">
  <div className="flex items-start gap-3">
- {/* Logo Avatar Flutuante */}
- <div className="size-12 rounded-2xl bg-card border-2 border-background overflow-hidden shrink-0 flex items-center justify-center -mt-6 relative z-10">
+ {/* Logo Avatar Não-Destrutivo (Alinhado ao lado do título, sem cortar capa) */}
+ <div className="size-11 rounded-xl bg-card border border-border/80 overflow-hidden shrink-0 flex items-center justify-center shadow-xs">
  {item.avatar_url ? (
  <img
  src={item.avatar_url}
@@ -321,7 +318,7 @@ function DirectoryBusinessCard({
  className="size-full object-cover"
  />
  ) : (
- <div className="size-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+ <div className="size-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs font-mono">
  {item.business_name.slice(0, 2).toUpperCase()}
  </div>
  )}
@@ -352,18 +349,18 @@ function DirectoryBusinessCard({
  </div>
 
  {/* Endereço / Localização */}
- <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium pt-1">
+ <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
  <MapPin size={14} weight="bold" className="text-primary shrink-0" />
  <span className="truncate">{item.address || "Regional"}</span>
  </div>
 
  {/* Especialidades / Tags */}
  {item.specialties && item.specialties.length > 0 && (
- <div className="flex flex-wrap gap-1 pt-1">
+ <div className="flex flex-wrap gap-1">
  {item.specialties.slice(0, 3).map((spec, i) => (
  <span
  key={i}
- className="text-[10px] font-bold bg-muted text-muted-foreground px-2 py-0.5 rounded-md truncate max-w-[120px]"
+ className="text-[10px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md truncate max-w-[120px]"
  >
  {spec}
  </span>
@@ -371,17 +368,17 @@ function DirectoryBusinessCard({
  </div>
  )}
 
- {/* Descrição resumida */}
+ {/* Descrição Resumida */}
  {item.description && (
- <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed pt-0.5">
+ <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
  {item.description}
  </p>
  )}
  </div>
  </Link>
 
- {/* ── Barra de Ações Rápidas (WhatsApp + Perfil Completo) ── */}
- <div className="pt-3 mt-3 flex items-center justify-between gap-2">
+ {/* ── Barra de Ações Rápidas (WhatsApp + Perfil Completo com Touch Target 44px) ── */}
+ <div className="px-4 pb-4 flex items-center justify-between gap-2 pt-1 border-t border-border/40">
  {whatsappNumber ? (
  <button
  type="button"
@@ -397,7 +394,7 @@ function DirectoryBusinessCard({
  niche: item.category,
  });
  }}
- className="size-9 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 flex items-center justify-center transition-all shrink-0 cursor-pointer"
+ className="size-10 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 flex items-center justify-center transition-all shrink-0 cursor-pointer"
  title="Conversar no WhatsApp"
  >
  <WhatsappLogo size={18} weight="bold" />
@@ -409,7 +406,7 @@ function DirectoryBusinessCard({
  <Button
  asChild
  size="sm"
- className="rounded-xl font-bold text-xs h-9 px-4 flex-1 bg-foreground text-background hover:bg-foreground/90 transition-all gap-1.5 "
+ className="rounded-xl font-bold text-xs h-10 px-4 flex-1 bg-foreground text-background hover:bg-foreground/90 transition-all gap-1.5 cursor-pointer"
  >
  <Link to="/diretorio/$id" params={{ id: item.id }}>
  <span>Ver Perfil</span>
@@ -421,7 +418,7 @@ function DirectoryBusinessCard({
  );
 }
 
-// ─── COMPONENTE: ITEM EM MODO LISTA COMPACTA ──────────────────────────────────
+// ─── COMPONENTE PADRONIZADO: ITEM EM MODO LISTA COM SPLIT HORIZONTAL PERFEITO ──────────────────────────────────
 function DirectoryListItem({ item }: { item: DirectoryListingDTO }) {
  const coverUrl = item.banner_url || item.avatar_url;
 
@@ -431,14 +428,14 @@ function DirectoryListItem({ item }: { item: DirectoryListingDTO }) {
  const whatsappNumber = (item.contact_whatsapp || item.contact_phone || "").replace(/\D/g, "");
 
  return (
- <div className="flex items-center justify-between p-3 sm:p-4 rounded-2xl border border-border/60 bg-card hover:border-foreground/30 transition-all gap-3.5 group">
+ <div className="flex flex-col sm:flex-row items-stretch justify-between rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 transition-all group">
  <Link
  to="/diretorio/$id"
  params={{ id: item.id }}
- className="flex items-center gap-3.5 min-w-0 flex-1 focus-visible:outline-none"
+ className="flex flex-col sm:flex-row items-stretch min-w-0 flex-1 focus-visible:outline-none"
  >
- {/* Thumbnail de Capa */}
- <div className="relative size-16 sm:size-20 rounded-xl overflow-hidden bg-muted/40 shrink-0 flex items-center justify-center">
+ {/* ── Imagem Split Lateral Completa (Full Split) ── */}
+ <div className="relative w-full sm:w-44 md:w-52 aspect-[16/10] sm:aspect-auto sm:h-full min-h-[140px] overflow-hidden bg-muted/30 shrink-0">
  {coverUrl ? (
  <img
  src={coverUrl}
@@ -447,50 +444,69 @@ function DirectoryListItem({ item }: { item: DirectoryListingDTO }) {
  loading="lazy"
  />
  ) : (
- <Briefcase size={20} className="text-primary/30" />
- )}
- {item.avatar_url && coverUrl !== item.avatar_url && (
- <img
- src={item.avatar_url}
- alt=""
- className="absolute bottom-1 right-1 size-6 rounded-md border border-background object-cover bg-card"
- />
- )}
+ <div className="size-full flex items-center justify-center bg-muted/50">
+ <Briefcase size={24} className="text-primary/30" />
  </div>
+ )}
 
- {/* Informações da Empresa */}
- <div className="min-w-0 space-y-1">
- <div className="flex items-center gap-2">
- <Badge variant="outline" className="text-[9px] font-mono font-bold uppercase px-1.5 py-0 h-4">
+ <div className="absolute top-2.5 left-2.5">
+ <Badge className="bg-background/90 text-foreground backdrop-blur-md text-[9px] font-bold px-2 py-0.5 rounded-md border border-border/40">
  {categoryLabel}
  </Badge>
+ </div>
+ </div>
+
+ {/* ── Informações da Empresa ── */}
+ <div className="p-4 sm:p-5 flex flex-col justify-between space-y-2 min-w-0 flex-1">
+ <div className="space-y-1.5">
+ <div className="flex items-center gap-2">
+ <h3 className="font-bold text-sm sm:text-base text-foreground truncate group-hover:text-primary transition-colors">
+ {item.business_name}
+ </h3>
+
  {item.is_verified && (
- <span className="text-emerald-600 flex items-center text-[10px] font-bold gap-0.5">
- <CheckCircle size={12} weight="fill" />
- <span>Verificado</span>
+ <span className="text-emerald-600 flex items-center text-[10px] font-bold gap-0.5 shrink-0">
+ <ShieldCheck size={14} weight="fill" />
+ <span className="hidden sm:inline">Verificado</span>
  </span>
  )}
  </div>
 
- <h3 className="font-bold text-sm text-foreground truncate group-hover:text-primary transition-colors">
- {item.business_name}
- </h3>
-
  {item.rating && (
  <div className="flex items-center gap-2 text-xs text-muted-foreground">
  <div className="flex items-center text-amber-500 font-bold font-mono">
- <Star size={12} weight="fill" className="mr-0.5" />
+ <Star size={13} weight="fill" className="mr-0.5" />
  <span>{Number(item.rating).toFixed(1)}</span>
  </div>
  <span>•</span>
  <span className="truncate">{item.address || "Regional"}</span>
  </div>
  )}
+
+ {item.description && (
+ <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed pt-0.5">
+ {item.description}
+ </p>
+ )}
+ </div>
+
+ {item.specialties && item.specialties.length > 0 && (
+ <div className="flex flex-wrap gap-1 pt-1">
+ {item.specialties.slice(0, 3).map((spec, i) => (
+ <span
+ key={i}
+ className="text-[10px] font-medium bg-muted text-muted-foreground px-2 py-0.5 rounded-md"
+ >
+ {spec}
+ </span>
+ ))}
+ </div>
+ )}
  </div>
  </Link>
 
- {/* Botões de Ação na Lista */}
- <div className="flex items-center gap-2 shrink-0">
+ {/* ── Botões de Ação na Lista (Touch Target 44px) ── */}
+ <div className="p-4 sm:p-5 flex sm:flex-col items-center justify-end gap-2 shrink-0 border-t sm:border-t-0 sm:border-l border-border/40 bg-muted/10">
  {whatsappNumber && (
  <button
  type="button"
@@ -504,17 +520,18 @@ function DirectoryListItem({ item }: { item: DirectoryListingDTO }) {
  niche: item.category,
  })
  }
- className="size-8 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 flex items-center justify-center transition-all cursor-pointer"
+ className="h-10 px-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 flex items-center justify-center gap-1.5 text-xs font-bold transition-all cursor-pointer w-full sm:w-auto"
  title="WhatsApp"
  >
  <WhatsappLogo size={16} weight="bold" />
+ <span className="sm:hidden">WhatsApp</span>
  </button>
  )}
 
  <Button
  asChild
  size="sm"
- className="h-8 px-3 rounded-xl font-bold text-xs bg-foreground text-background hover:bg-foreground/90 "
+ className="h-10 px-4 rounded-xl font-bold text-xs bg-foreground text-background hover:bg-foreground/90 w-full sm:w-auto cursor-pointer"
  >
  <Link to="/diretorio/$id" params={{ id: item.id }}>
  Ver Perfil

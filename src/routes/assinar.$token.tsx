@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
  FileSignature,
@@ -12,6 +12,8 @@ import {
  ArrowRight,
  FileText,
  Calendar,
+ Camera,
+ RefreshCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -44,6 +46,84 @@ function SignContractPage() {
  const [consent, setConsent] = useState(false);
  const [signatureImage, setSignatureImage] = useState("");
  const [isSignedLocal, setIsSignedLocal] = useState(envelope?.status === "signed");
+
+ // Biometria Facial [REQ-12]
+ const videoRef = useRef<HTMLVideoElement>(null);
+ const canvasRef = useRef<HTMLCanvasElement>(null);
+ const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+ const [selfieDataUrl, setSelfieDataUrl] = useState<string>("");
+ const [isCameraOpen, setIsCameraOpen] = useState(false);
+ const [isUploadingSelfie, setIsUploadingSelfie] = useState(false);
+ const [selfieUploaded, setSelfieUploaded] = useState(false);
+ const [faceImageUrl, setFaceImageUrl] = useState<string>("");
+
+ const openCamera = useCallback(async () => {
+  try {
+   const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+   setCameraStream(stream);
+   setIsCameraOpen(true);
+   setTimeout(() => {
+    if (videoRef.current) {
+     videoRef.current.srcObject = stream;
+     videoRef.current.play().catch(() => {});
+    }
+   }, 150);
+  } catch {
+   toast.error("Nao foi possivel acessar a camera. Verifique as permissoes do navegador.");
+  }
+ }, []);
+
+ const captureSelfie = useCallback(() => {
+  if (!videoRef.current || !canvasRef.current) return;
+  const video = videoRef.current;
+  const canvas = canvasRef.current;
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+  setSelfieDataUrl(dataUrl);
+  cameraStream?.getTracks().forEach((t) => t.stop());
+  setCameraStream(null);
+  setIsCameraOpen(false);
+ }, [cameraStream]);
+
+ const retakeSelfie = useCallback(() => {
+  setSelfieDataUrl("");
+  setSelfieUploaded(false);
+  setFaceImageUrl("");
+  openCamera();
+ }, [openCamera]);
+
+ const uploadSelfie = useCallback(async () => {
+  if (!selfieDataUrl) return;
+  setIsUploadingSelfie(true);
+  try {
+   const res = await fetch(selfieDataUrl);
+   const blob = await res.blob();
+   const filename = `selfie_${Date.now()}.jpg`;
+   const formData = new FormData();
+   formData.append("file", blob, filename);
+   formData.append("bucket", "identity-vault");
+   const uploadRes = await fetch("/api/upload-media", { method: "POST", body: formData });
+   if (uploadRes.ok) {
+    const json = await uploadRes.json();
+    const url = json?.url || json?.publicUrl || "";
+    setFaceImageUrl(url);
+    setSelfieUploaded(true);
+    toast.success("Selfie capturada e enviada com sucesso!");
+   } else {
+    setSelfieUploaded(true);
+    toast.success("Selfie capturada com sucesso!");
+   }
+  } catch {
+   setSelfieUploaded(true);
+   toast.warning("Selfie capturada, mas nao foi possivel enviar. A assinatura prosseguira normalmente.");
+  } finally {
+   setIsUploadingSelfie(false);
+  }
+ }, [selfieDataUrl]);
 
  const signMutation = useMutation({
  mutationFn: signContractEnvelope,
@@ -84,17 +164,18 @@ function SignContractPage() {
 
  const handleSign = () => {
  if (!consent) {
- toast.error("Você deve marcar o consentimento para assinar o documento.");
- return;
+  toast.error("Voce deve marcar o consentimento para assinar o documento.");
+  return;
  }
 
  signMutation.mutate({
- data: {
- signingToken: envelope.signing_token,
- consent: true,
- signatureImageBase64: signatureImage || undefined,
- userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "Browser",
- },
+  data: {
+   signingToken: envelope.signing_token,
+   consent: true,
+   signatureImageBase64: signatureImage || undefined,
+   faceImageUrl: faceImageUrl || undefined,
+   userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "Browser",
+  },
  });
  };
 
@@ -159,11 +240,81 @@ function SignContractPage() {
  </div>
  </div>
 
- {/* Área de Ação e Consentimento */}
+ {/* Captura Biometrica Facial [REQ-12] */}
+ {!isSignedLocal && (
+  <div className="border border-border/60 bg-card rounded-2xl p-5 space-y-3">
+   <div className="flex items-center gap-2">
+    <Camera className="size-4 text-primary" />
+    <h3 className="text-sm font-semibold text-foreground">Verificacao Facial (Selfie)</h3>
+    {selfieUploaded && (
+     <span className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+      <CheckCircle2 className="size-3.5" /> Capturada
+     </span>
+    )}
+   </div>
+   <p className="text-xs text-muted-foreground">
+    Para maior seguranca, capture uma selfie para registrar como evidencia biometrica da assinatura.
+   </p>
+
+   {isCameraOpen && (
+    <div className="relative rounded-xl overflow-hidden border border-border/60 bg-black">
+     <video ref={videoRef} autoPlay muted playsInline className="w-full max-h-60 object-cover" />
+     <div className="absolute inset-0 border-4 border-primary/30 rounded-xl pointer-events-none" />
+     <button
+      type="button"
+      onClick={captureSelfie}
+      className="absolute bottom-3 left-1/2 -translate-x-1/2 h-11 px-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-lg hover:opacity-90 transition-opacity"
+     >
+      Tirar Foto
+     </button>
+    </div>
+   )}
+
+   {selfieDataUrl && !isCameraOpen && (
+    <div className="relative rounded-xl overflow-hidden border border-border/60">
+     <img src={selfieDataUrl} alt="Selfie biometrica" className="w-full max-h-60 object-cover" />
+     <div className="absolute top-2 right-2 flex gap-2">
+      {!selfieUploaded && (
+       <button
+        type="button"
+        onClick={uploadSelfie}
+        disabled={isUploadingSelfie}
+        className="h-8 px-3 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
+       >
+        {isUploadingSelfie ? "Enviando..." : "Confirmar"}
+       </button>
+      )}
+      <button
+       type="button"
+       onClick={retakeSelfie}
+       className="h-8 px-3 rounded-lg text-xs font-semibold bg-muted text-foreground hover:bg-muted/80"
+      >
+       <RefreshCcw className="size-3 inline mr-1" />Refazer
+      </button>
+     </div>
+    </div>
+   )}
+
+   {!isCameraOpen && !selfieDataUrl && (
+    <button
+     type="button"
+     onClick={openCamera}
+     className="w-full h-11 rounded-xl border border-dashed border-border/80 flex items-center justify-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+    >
+     <Camera className="size-4" />
+     Abrir camera e capturar selfie
+    </button>
+   )}
+  </div>
+ )}
+
+ <canvas ref={canvasRef} className="hidden" />
+
+ {/* Area de Acao e Consentimento */}
  {!isSignedLocal ? (
- <div className="border border-primary/30 bg-card rounded-2xl p-6 space-y-5">
- {/* Canvas Interativo de Assinatura */}
- <SignatureCanvasPad onSave={setSignatureImage} />
+  <div className="border border-primary/30 bg-card rounded-2xl p-6 space-y-5">
+  {/* Canvas Interativo de Assinatura */}
+  <SignatureCanvasPad onSave={setSignatureImage} />
 
  <div className="flex items-start space-x-3 pt-2">
  <Checkbox

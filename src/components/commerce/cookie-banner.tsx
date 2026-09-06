@@ -104,7 +104,7 @@ export function CookieBanner() {
  </Link>{" "}
  e{" "}
  <Link to="/politicas/$slug" params={{ slug: "isencao" }} className="underline font-semibold hover:text-foreground">
- Isenção P2P
+ Isenção de Negociações
  </Link>
  .
  </p>
