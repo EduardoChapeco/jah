@@ -990,11 +990,32 @@ Retorne APENAS o texto do resumo, sem formatação ou prefixos.`;
  const gJson = await gRes.json();
  const summary = gJson?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
- // Persiste o resumo no artigo
- await supabase
- .from("news_articles")
- .update({ ai_summary: summary, updated_at: new Date().toISOString() })
- .eq("id", article_id);
+  // Persiste o resumo no artigo
+  await supabase
+    .from("news_articles")
+    .update({ ai_summary: summary, updated_at: new Date().toISOString() })
+    .eq("id", article_id);
 
- return { summary };
- });
+  return { summary };
+});
+
+/**
+ * Retorna os patrocinadores ativos vinculados à loja
+ */
+export const listStorePublicSponsors = createServerFn({ method: "GET" })
+  .validator(z.object({ storeId: z.string() }))
+  .handler(async ({ data: { storeId } }): Promise<SponsorDTO[]> => {
+    try {
+      const supabase = getServerClient();
+      const { data, error } = await supabase
+        .from("sponsors")
+        .select("*")
+        .eq("store_id", storeId)
+        .order("created_at", { ascending: false });
+
+      if (error) return [];
+      return (data || []) as SponsorDTO[];
+    } catch {
+      return [];
+    }
+  });

@@ -913,3 +913,35 @@ export const listCustomerReviews = createServerFn({ method: "GET" }).handler(asy
  return [];
  }
 });
+
+/**
+ * Retorna avaliações aprovadas de uma loja para exibição pública em seu perfil comercial
+ */
+export const listStorePublicReviews = createServerFn({ method: "GET" })
+  .validator(z.object({ storeId: z.string() }))
+  .handler(async ({ data: { storeId } }) => {
+    try {
+      const db = getServerClient();
+      const { data, error } = await db
+        .from("reviews")
+        .select("id, rating, comment, created_at, products(title)")
+        .eq("store_id", storeId)
+        .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        .limit(30);
+
+      if (error) {
+        console.warn("[cms.functions] listStorePublicReviews error:", error);
+        return [];
+      }
+      return (data || []).map((r: any) => ({
+        id: r.id,
+        rating: r.rating || 5,
+        comment: r.comment || "",
+        created_at: r.created_at,
+        product_name: r.products?.title || null,
+      }));
+    } catch {
+      return [];
+    }
+  });

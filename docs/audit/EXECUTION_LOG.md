@@ -570,3 +570,38 @@
    - Suíte global Vitest: 41 arquivos de teste, 211 testes passando sem regressões.
    - Build de produção (`vite build` + Nitro Cloudflare Pages) com código de saída 0.
 
+## Ciclo 88 — Microfase 88A
+
+- **Data/Hora:** 2026-09-06T19:00:00-03:00
+- **Módulo:** Perfil Comercial Público & Unificação de Vitrine (`store-public-profile`)
+- **Capacidade:** Unificação da Presença Pública de Empresas no Padrão Apple HIG do Perfil de Membro com Abas Ricas (Vitrine com Banners e Hotpages, Sobre & Atendimento com Horários e Pagamentos, Posts Sociais em Grid/Feed com Lightbox, Vagas, Avaliações Verificadas e Patrocinadores).
+- **Commit Base:** `c0ad697`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. Existia duplicidade esquizofrênica entre a rota de diretório (`_store.diretorio.$id.tsx`) e a rota da loja (`_store.perfil-da-loja.tsx`). O diretório exibia uma casca escura estática com blocos verticais empilhados ("Sobre", "Especialidades") e um card isolado no meio com link "Abrir Loja & Catálogo", forçando o visitante a mudar de página para ver produtos.
+2. O perfil público de empresas não seguia a mesma linguagem visual, física de toque e elegância do perfil público do usuário (`_store.u.$username` / `_store.membro.$id`), faltando as abas de Posts Sociais (Feed/Grid), Avaliações de Clientes e Patrocinadores.
+3. A rota da loja fazia um bypass total da tela caso houvesse `builderTree`, destruindo as abas institucionais e o cabeçalho.
+4. Banners promocionais e hotpages cadastradas no Workspace não estavam integradas no topo do cardápio/catálogo.
+
+### Ações Executadas
+1. **Componente Canônico de Perfil Universal**:
+   - Criado `src/components/commerce/canonical-store-profile-view.tsx` com capa fluida, avatar com anel refinado, badges anti-pill, indicador de status Aberto/Fechado em tempo real com modal semanal (`WEEKDAYS_ORDER`), ações de conversão no topo (WhatsApp oficial, Ligar, Pedir Orçamento) e abas completas:
+     - **Tab 1: Vitrine / Cardápio / Catálogo**: Banners da loja com `BannerHeroCarousel`, botões/hotpages com `DynamicMediaChip`, faixa de patrocinadores, busca instantânea, categorias e catálogo com modificadores (`ProductModifiersModal`) e adição à sacola.
+     - **Tab 2: Sobre & Atendimento**: Descrição institucional, especialidades, modalidades de entrega (Delivery, Retirada, No Local), métodos de pagamento (Pix, Cartão, Dinheiro, Carnê Local), grade horária dia a dia, canais oficiais e formulário de orçamento.
+     - **Tab 3: Posts & Novidades (Mural Social)**: Publicações e fotos da loja integradas com a tabela `posts`, visual em grade/feed e lightbox modal (`MediaLightboxModal`).
+     - **Tab 4: Vagas**: Vagas abertas da empresa vinculadas a `jobs`.
+     - **Tab 5: Avaliações & Recomendações**: Depoimentos reais de clientes aprovados vinculados a `reviews`.
+     - **Tab 6: Patrocinadores**: Grade de apoiadores e anunciantes parceiros vinculados a `sponsors`.
+2. **Unificação das Rotas**:
+   - Refatorada `src/routes/_store.perfil-da-loja.tsx` para consumir `CanonicalStoreProfileView` com carregamento de banners, posts, reviews e patrocinadores.
+   - Refatorada `src/routes/_store.diretorio.$id.tsx` para erradicar a tela escura estática e renderizar exatamente a mesma experiência completa com abas.
+3. **BFF Server Functions**:
+   - Atualizada `getMuralFeed` em `src/services/social.functions.ts` para suportar filtro por `store_id`.
+   - Adicionada `listStorePublicReviews` em `src/services/cms.functions.ts`.
+   - Adicionada `listStorePublicSponsors` em `src/services/news.functions.ts`.
+4. **Validação**:
+   - 41 arquivos de teste, 211 testes passando 100% no Vitest.
+   - Build de produção (`vite build` + Nitro Cloudflare Pages) com código de saída 0.
+
+

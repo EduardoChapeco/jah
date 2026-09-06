@@ -262,6 +262,7 @@ const muralFeedInput = z.object({
  "classified",
  ])
  .optional(),
+ store_id: z.string().optional(),
 });
 
 export type MuralFeedInput = z.infer<typeof muralFeedInput>;
@@ -279,7 +280,7 @@ export const getMuralFeed = createServerFn({ method: "GET" })
  // anonymous visitor — no likes
  }
 
- const { limit = 20, cursor, post_type } = input || {};
+ const { limit = 20, cursor, post_type, store_id } = input || {};
 
  // ── 1. Fetch posts (single query with joined author info) ──────────────
  let query = db
@@ -294,6 +295,10 @@ export const getMuralFeed = createServerFn({ method: "GET" })
  `,
  )
  .eq("status", "active");
+
+ if (store_id) {
+ query = query.eq("author_store_id", store_id);
+ }
 
  if (cursor) {
  query = query.lt("created_at", cursor);
