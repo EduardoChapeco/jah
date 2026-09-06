@@ -8,7 +8,7 @@ import { getProfile, getUserSession, signOut } from "@/services/auth.functions";
 import { getMyStoresList } from "@/services/store.functions";
 import { formatDate } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
-import { Shield, Store, LayoutDashboard, ArrowUpRight, Plus, Eye, Edit3, ArrowRight, ShoppingBag, Calendar, Ticket, Bookmark, Plane, CreditCard, Coins, Gift, HelpCircle, RotateCcw, Layers, LogOut, User, ExternalLink, ChevronRight, Building2, Lock } from 'lucide-react';
+import { Shield, Store, LayoutDashboard, ArrowUpRight, Plus, Eye, Edit3, ArrowRight, ShoppingBag, Calendar, Ticket, Bookmark, Plane, CreditCard, Coins, Gift, HelpCircle, RotateCcw, Layers, LogOut, User, ExternalLink, ChevronRight, Building2, Lock, ShieldCheck, Briefcase, Car, Wallet, FileText } from 'lucide-react';
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/")({
@@ -40,7 +40,13 @@ export const Route = createFileRoute("/_store/conta/")({
 });
 
 const ACCOUNT_SECTIONS = [
+ { to: "/conta/financas", label: "Gestão Financeira & Gastos", icon: Wallet, badge: "Novo" },
+ { to: "/conta/contratos", label: "Meus Contratos & Certificados", icon: FileText, badge: "Assinados" },
+ { to: "/conta/carnes", label: "Carnês & Parcelamentos", icon: CreditCard, badge: "Parcelas" },
  { to: "/conta/pedidos", label: "Meus Pedidos & Compras", icon: ShoppingBag, badge: null },
+ { to: "/conta/verificacao", label: "Verificação de Identidade (KYC)", icon: ShieldCheck, badge: "Oficial" },
+ { to: "/conta/colaborador", label: "Espaço do Colaborador (Ponto & Holerite)", icon: Briefcase, badge: "RH" },
+ { to: "/conta/mobilidade", label: "Minhas Corridas & Entregas", icon: Car, badge: "Mobilidade" },
  { to: "/conta/agendamentos", label: "Minha Agenda & Horários", icon: Calendar, badge: "Serviços" },
  { to: "/conta/pacotes", label: "Meus Pacotes & Sessões", icon: Ticket, badge: null },
  { to: "/conta/viagens", label: "Minhas Viagens & Roteiros", icon: Plane, badge: null },

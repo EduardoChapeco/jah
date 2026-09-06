@@ -2,219 +2,1189 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
- Banknote,
- Receipt,
- Clock,
- CheckCircle2,
- XCircle,
- FileText,
- Upload,
- Calendar,
- AlertCircle
+  Banknote,
+  Receipt,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  FileText,
+  Upload,
+  Calendar,
+  AlertCircle,
+  Plus,
+  Send,
+  Search,
+  Filter,
+  Eye,
+  Percent,
+  Check,
+  Building2,
+  User,
+  ShieldCheck,
+  ChevronRight,
+  ExternalLink,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
-
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/datetime";
-import { listUserReceivables, registerInstallmentPayment } from "@/services/receivables.functions";
-
-import { ImageUpload } from "@/components/ui/image-upload";
+import { cn } from "@/lib/utils";
 import {
- Dialog,
- DialogContent,
- DialogDescription,
- DialogHeader,
- DialogTitle,
- DialogTrigger,
+  listStoreCarnes,
+  getCarnesReportSummary,
+  approveInstallmentPayment,
+  rejectInstallmentPayment,
+  adjustInstallmentAmount,
+  sendMassBillingReminders,
+  createStoreCarne,
+  searchCustomersForCarne,
+} from "@/services/receivables.functions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/workspace/financeiro/recebiveis")({
- head: () => ({ meta: [{ title: "Contas a Receber | Workspace Wider OS" }] }),
- loader: async () => {
- try {
- const receivables = await listUserReceivables();
- return { receivables };
- } catch {
- return { receivables: [] };
- }
- },
- component: ReceivablesDashboard,
+  head: () => ({ meta: [{ title: "Carnês & Contas a Receber | Workspace Wider OS" }] }),
+  loader: async () => {
+    try {
+      const [carnes, report] = await Promise.all([
+        listStoreCarnes({ data: { filter: "all" } }).catch(() => []),
+        getCarnesReportSummary({ data: {} }).catch(() => null),
+      ]);
+      return { carnes, report };
+    } catch {
+      return { carnes: [], report: null };
+    }
+  },
+  component: ReceivablesDashboard,
 });
 
 function ReceivablesDashboard() {
- const { receivables: initialData } = Route.useLoaderData();
- const queryClient = useQueryClient();
+  const { carnes: initialCarnes, report: initialReport } = Route.useLoaderData();
+  const queryClient = useQueryClient();
 
- const { data: receivables } = useQuery({
- queryKey: ["receivables-list"],
- queryFn: () => listUserReceivables(),
- initialData,
- });
+  const [activeFilter, setActiveFilter] = useState<
+    "all" | "due_soon" | "late" | "pending_conciliation" | "settled"
+  >("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
- const { mutate: payInstallment, isPending: isPaying } = useMutation({
- mutationFn: registerInstallmentPayment,
- onSuccess: () => {
- toast.success("Pagamento registrado com sucesso!");
- queryClient.invalidateQueries({ queryKey: ["receivables-list"] });
- },
- onError: (err: any) => {
- toast.error(err.message || "Erro ao registrar pagamento.");
- }
- });
+  // Queries
+  const { data: carnes = [] } = useQuery({
+    queryKey: ["store-carnes", activeFilter, searchTerm],
+    queryFn: () => listStoreCarnes({ data: { filter: activeFilter, search: searchTerm || undefined } }),
+    initialData: activeFilter === "all" && !searchTerm ? initialCarnes : undefined,
+  });
 
- const [selectedInstallment, setSelectedInstallment] = useState<any>(null);
- const [isPayModalOpen, setIsPayModalOpen] = useState(false);
- const [proofUrl, setProofUrl] = useState("");
- const [paymentNotes, setPaymentNotes] = useState("");
+  const { data: report } = useQuery({
+    queryKey: ["store-carnes-report"],
+    queryFn: () => getCarnesReportSummary({ data: {} }),
+    initialData: initialReport,
+  });
 
- const handlePay = (e: React.FormEvent) => {
- e.preventDefault();
- if (!selectedInstallment) return;
- 
- payInstallment({
- data: {
- installmentId: selectedInstallment.id,
- paymentMethod: "PIX",
- paymentProofUrl: proofUrl || undefined,
- notes: paymentNotes || undefined,
- }
- });
- setIsPayModalOpen(false);
- setProofUrl("");
- setPaymentNotes("");
- };
+  // Estado de Seleção em Massa
+  const [selectedInstallmentIds, setSelectedInstallmentIds] = useState<string[]>([]);
+  const [isMassBillingOpen, setIsMassBillingOpen] = useState(false);
+  const [massTemplate, setMassTemplate] = useState<"friendly" | "due_warning" | "overdue_discount" | "custom">("friendly");
+  const [massDiscount, setMassDiscount] = useState(10);
+  const [massCustomMessage, setMassCustomMessage] = useState("");
 
- return (
- <div className="space-y-6 max-w-6xl mx-auto pb-20">
- <PageHeader
- title="Contas a Receber e Pagar (P2P)"
- />
- <p className="text-muted-foreground text-sm max-w-2xl">
- Gestão financeira de seus acordos e contratos. Acompanhe as parcelas recebíveis ou faturas pendentes que você precisa pagar a outras partes.
- </p>
+  // Estado de Conciliação / Renegociação de Parcela
+  const [selectedInstallment, setSelectedInstallment] = useState<any>(null);
+  const [selectedCarne, setSelectedCarne] = useState<any>(null);
+  const [isConciliationOpen, setIsConciliationOpen] = useState(false);
+  const [waiveInterest, setWaiveInterest] = useState(false);
+  const [discountCents, setDiscountCents] = useState(0);
+  const [conciliationNotes, setConciliationNotes] = useState("");
+  const [rejectReason, setRejectReason] = useState("");
+  const [isRejecting, setIsRejecting] = useState(false);
 
- {receivables.length === 0 ? (
- <div className="py-20 text-center space-y-4 bg-muted/10 rounded-2xl p-8 border border-dashed">
- <Banknote size={48} className="text-muted-foreground/30 mx-auto" />
- <h2 className="text-lg font-bold text-foreground">Nenhuma conta encontrada</h2>
- <p className="text-sm text-muted-foreground">Você ainda não tem acordos financeiros firmados.</p>
- </div>
- ) : (
- <div className="grid gap-6 mt-6">
- {receivables.map((rec: any) => {
- const isCreditor = rec.creditor?.id !== undefined; // Actually depends on logged in user, but UI groups it globally here for simplicity as listUserReceivables handles OR.
- return (
- <div key={rec.id} className="bg-card rounded-2xl border shadow-sm overflow-hidden">
- {/* Header do Recebível */}
- <div className="p-6 border-b bg-muted/20 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
- <div>
- <h3 className="font-bold text-lg flex items-center gap-2">
- <Receipt size={20} className="text-primary" /> {rec.title}
- </h3>
- <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mt-2">
- <span className="flex items-center gap-1"><FileText size={14}/> Total: {formatMoney(rec.total_cents)}</span>
- <span className="flex items-center gap-1"><Calendar size={14}/> {rec.installments_count} Parcelas</span>
- </div>
- </div>
- <div>
- <Badge variant={rec.status === 'active' ? 'default' : rec.status === 'settled' ? 'secondary' : 'destructive'} className="text-sm">
- {rec.status === 'active' ? 'Ativo' : rec.status === 'settled' ? 'Quitado' : rec.status}
- </Badge>
- </div>
- </div>
+  // Estado de Emissão de Carnê
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newTotalReais, setNewTotalReais] = useState<number>(0);
+  const [newInstallmentsCount, setNewInstallmentsCount] = useState<number>(3);
+  const [newFirstDueDate, setNewFirstDueDate] = useState<string>(
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+  );
+  const [newInterestRate, setNewInterestRate] = useState<number>(2.5);
+  const [newFinePercent, setNewFinePercent] = useState<number>(2.0);
+  const [newGraceDays, setNewGraceDays] = useState<number>(3);
 
- {/* Lista de Parcelas */}
- <div className="p-6">
- <h4 className="text-sm font-bold text-muted-foreground mb-4 uppercase tracking-wider">Cronograma de Parcelas</h4>
- <div className="space-y-3">
- {rec.installments?.sort((a: any, b: any) => a.installment_number - b.installment_number).map((inst: any) => {
- const isOverdue = new Date(inst.due_date) < new Date() && inst.status === "pending";
- return (
- <div key={inst.id} className={`flex items-center justify-between p-4 rounded-2xl border ${isOverdue ? 'bg-destructive/5 border-destructive/20' : 'bg-background'}`}>
- <div className="flex items-center gap-4">
- <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${inst.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
- {inst.installment_number}
- </div>
- <div>
- <p className="font-bold text-sm">{formatMoney(inst.amount_cents)}</p>
- <p className={`text-xs flex items-center gap-1 ${isOverdue ? 'text-destructive font-bold' : 'text-muted-foreground'}`}>
- <Clock size={12} /> Vence: {formatDate(inst.due_date)}
- </p>
- </div>
- </div>
+  // Busca de clientes
+  const { data: searchedCustomers = [] } = useQuery({
+    queryKey: ["search-customers", customerSearch],
+    queryFn: () => searchCustomersForCarne({ data: { query: customerSearch } }),
+    enabled: customerSearch.length >= 2,
+  });
 
- <div className="flex items-center gap-3">
- <Badge variant={inst.status === 'paid' ? 'outline' : 'secondary'} className={inst.status === 'paid' ? 'border-emerald-500 text-emerald-600 bg-emerald-50' : ''}>
- {inst.status === 'paid' ? 'Pago' : inst.status === 'pending' ? 'Pendente' : inst.status}
- </Badge>
- 
- {inst.status === "pending" && (
- <Button 
- size="sm" 
- className="rounded-xl"
- onClick={() => {
- setSelectedInstallment(inst);
- setIsPayModalOpen(true);
- }}
- >
- Dar Baixa
- </Button>
- )}
- </div>
- </div>
- );
- })}
- </div>
- </div>
- </div>
- );
- })}
- </div>
- )}
+  // Mutação de Aprovação de Conciliação
+  const { mutate: approvePayment, isPending: isApproving } = useMutation({
+    mutationFn: approveInstallmentPayment,
+    onSuccess: () => {
+      toast.success("Pagamento conciliado com sucesso! Espelhado no Financeiro Pessoal do cliente.");
+      queryClient.invalidateQueries({ queryKey: ["store-carnes"] });
+      queryClient.invalidateQueries({ queryKey: ["store-carnes-report"] });
+      setIsConciliationOpen(false);
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Erro ao aprovar conciliação.");
+    },
+  });
 
- {/* Modal de Baixa de Pagamento */}
- <Dialog open={isPayModalOpen} onOpenChange={setIsPayModalOpen}>
- <DialogContent className="sm:max-w-[425px]">
- <DialogHeader>
- <DialogTitle>Registrar Pagamento</DialogTitle>
- <DialogDescription>
- Confirme o recebimento (ou pagamento) da Parcela {selectedInstallment?.installment_number} no valor de {selectedInstallment ? formatMoney(selectedInstallment.amount_cents) : ''}.
- </DialogDescription>
- </DialogHeader>
- <form onSubmit={handlePay} className="space-y-4 pt-4">
- <div className="space-y-2">
- <Label className="text-xs font-bold text-foreground">Comprovante de Pagamento (Foto / Anexo)</Label>
- <ImageUpload
- value={proofUrl}
- onChange={(url) => setProofUrl(url)}
- onRemove={() => setProofUrl("")}
- bucket="cms-media"
- aspectPreset="square"
- className="w-28 h-28"
- helperText="Foto ou print do comprovante"
- />
- </div>
- <div className="space-y-2">
- <Label className="text-xs font-bold text-foreground">Observações</Label>
- <Textarea 
- placeholder="Ex: Transferência via PIX recebida na conta..." 
- value={paymentNotes}
- onChange={(e) => setPaymentNotes(e.target.value)}
- className="rounded-2xl text-xs resize-none"
- />
- </div>
- <Button type="submit" className="w-full h-11 text-xs rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white" disabled={isPaying}>
- <CheckCircle2 className="mr-2 size-4" /> Confirmar Liquidação
- </Button>
- </form>
- </DialogContent>
- </Dialog>
- </div>
- );
+  // Mutação de Rejeição de Comprovante
+  const { mutate: rejectPayment, isPending: isRejectingMutation } = useMutation({
+    mutationFn: rejectInstallmentPayment,
+    onSuccess: () => {
+      toast.success("Comprovante recusado. O cliente foi notificado para reenvio.");
+      queryClient.invalidateQueries({ queryKey: ["store-carnes"] });
+      queryClient.invalidateQueries({ queryKey: ["store-carnes-report"] });
+      setIsConciliationOpen(false);
+      setIsRejecting(false);
+      setRejectReason("");
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Erro ao recusar comprovante.");
+    },
+  });
+
+  // Mutação de Cobrança em Massa
+  const { mutate: sendMassReminders, isPending: isSendingMass } = useMutation({
+    mutationFn: sendMassBillingReminders,
+    onSuccess: (res: any) => {
+      toast.success(`${res.sentCount} notificação(ões) de cobrança enviada(s) com sucesso!`);
+      setIsMassBillingOpen(false);
+      setSelectedInstallmentIds([]);
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Erro ao enviar cobranças.");
+    },
+  });
+
+  // Mutação de Criação de Carnê
+  const { mutate: createCarne, isPending: isCreating } = useMutation({
+    mutationFn: createStoreCarne,
+    onSuccess: () => {
+      toast.success("Carnê digital emitido com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["store-carnes"] });
+      queryClient.invalidateQueries({ queryKey: ["store-carnes-report"] });
+      setIsCreateModalOpen(false);
+      resetCreateForm();
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Erro ao emitir carnê.");
+    },
+  });
+
+  const resetCreateForm = () => {
+    setSelectedCustomer(null);
+    setCustomerSearch("");
+    setNewTitle("");
+    setNewDescription("");
+    setNewTotalReais(0);
+    setNewInstallmentsCount(3);
+  };
+
+  const handleOpenConciliation = (carne: any, inst: any) => {
+    setSelectedCarne(carne);
+    setSelectedInstallment(inst);
+    setWaiveInterest(false);
+    setDiscountCents(0);
+    setConciliationNotes("");
+    setIsRejecting(false);
+    setRejectReason("");
+    setIsConciliationOpen(true);
+  };
+
+  const handleConfirmApproval = () => {
+    if (!selectedInstallment) return;
+    approvePayment({
+      data: {
+        installmentId: selectedInstallment.id,
+        waiveInterest,
+        discountCents,
+        paymentMethod: selectedInstallment.payment_method || "pix",
+        notes: conciliationNotes || undefined,
+      },
+    });
+  };
+
+  const handleConfirmRejection = () => {
+    if (!selectedInstallment) return;
+    if (!rejectReason.trim()) {
+      toast.error("Informe a justificativa da recusa para o cliente.");
+      return;
+    }
+    rejectPayment({
+      data: {
+        installmentId: selectedInstallment.id,
+        reason: rejectReason,
+      },
+    });
+  };
+
+  const handleCreateCarneSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCustomer) {
+      toast.error("Selecione um cliente para vincular ao carnê.");
+      return;
+    }
+    if (!newTitle.trim()) {
+      toast.error("Informe o título do carnê.");
+      return;
+    }
+    if (newTotalReais <= 0) {
+      toast.error("Informe um valor total válido.");
+      return;
+    }
+
+    createCarne({
+      data: {
+        debtorId: selectedCustomer.id,
+        title: newTitle,
+        description: newDescription || undefined,
+        totalCents: Math.round(newTotalReais * 100),
+        installmentsCount: newInstallmentsCount,
+        firstDueDate: newFirstDueDate,
+        interestRateMonthly: newInterestRate,
+        finePercent: newFinePercent,
+        graceDays: newGraceDays,
+      },
+    });
+  };
+
+  const handleToggleSelectAll = (allIds: string[]) => {
+    if (selectedInstallmentIds.length === allIds.length) {
+      setSelectedInstallmentIds([]);
+    } else {
+      setSelectedInstallmentIds(allIds);
+    }
+  };
+
+  const handleToggleSelectOne = (id: string) => {
+    if (selectedInstallmentIds.includes(id)) {
+      setSelectedInstallmentIds(selectedInstallmentIds.filter((i) => i !== id));
+    } else {
+      setSelectedInstallmentIds([...selectedInstallmentIds, id]);
+    }
+  };
+
+  // Coleta todas as parcelas não pagas para permitir seleção
+  const allSelectableInstallmentIds = carnes.flatMap((c: any) =>
+    (c.installments || [])
+      .filter((i: any) => i.status !== "paid")
+      .map((i: any) => i.id),
+  );
+
+  return (
+    <div className="space-y-6 max-w-7xl mx-auto pb-28 font-sans">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <PageHeader title="Carnês & Contas a Receber" />
+          <p className="text-muted-foreground text-sm max-w-2xl mt-1">
+            Gestão bancária de compras parceladas direto com a loja. Concilie comprovantes enviados por clientes, conceda isenções e dispare cobranças.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          {selectedInstallmentIds.length > 0 && (
+            <Button
+              className="rounded-xl bg-primary text-primary-foreground font-medium text-xs h-10 px-3.5 shadow-sm"
+              onClick={() => setIsMassBillingOpen(true)}
+            >
+              <Send className="h-3.5 w-3.5 mr-1.5" /> Cobrar ({selectedInstallmentIds.length}) Selecionados
+            </Button>
+          )}
+
+          <Button
+            className="rounded-xl bg-foreground text-background hover:bg-foreground/90 font-medium text-xs h-10 px-4 shadow-sm"
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            <Plus className="h-4 w-4 mr-1.5" /> Emitir Novo Carnê
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Cards de Carteira (Clean Paradigm) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className="p-5 rounded-2xl bg-card border border-border/60 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Total a Receber
+            </span>
+            <Banknote className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="text-xl font-bold text-foreground">
+            {formatMoney(report?.totalReceivableCents || 0)}
+          </div>
+          <div className="text-xs text-muted-foreground">Carteira ativa em aberto</div>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-card border border-border/60 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Inadimplência Geral
+            </span>
+            <Percent className="h-4 w-4 text-rose-500" />
+          </div>
+          <div className="text-xl font-bold text-rose-600 dark:text-rose-400">
+            {report?.defaultRatePercent || 0}%
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {formatMoney(report?.overdueAmountCents || 0)} em atraso ({report?.overdueCount || 0} parcelas)
+          </div>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-card border border-border/60 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Recebido no Mês
+            </span>
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+          </div>
+          <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+            {formatMoney(report?.receivedThisMonthCents || 0)}
+          </div>
+          <div className="text-xs text-muted-foreground">Liquidações confirmadas</div>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-card border border-border/60 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Conciliações Pendentes
+            </span>
+            <Clock className="h-4 w-4 text-amber-500" />
+          </div>
+          <div className="text-xl font-bold text-amber-600 dark:text-amber-400">
+            {report?.pendingConciliationCount || 0}
+          </div>
+          <div className="text-xs text-muted-foreground">Aguardando análise da loja</div>
+        </div>
+      </div>
+
+      {/* Barra de Filtros e Busca */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+        {/* Tabs de Filtro */}
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-muted/60 border border-border/50 overflow-x-auto">
+          <button
+            type="button"
+            onClick={() => setActiveFilter("all")}
+            className={cn(
+              "px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap",
+              activeFilter === "all"
+                ? "bg-background text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            Todos ({carnes.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter("due_soon")}
+            className={cn(
+              "px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap",
+              activeFilter === "due_soon"
+                ? "bg-background text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            A Vencer (7d)
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter("late")}
+            className={cn(
+              "px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap",
+              activeFilter === "late"
+                ? "bg-background text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            Em Atraso
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter("pending_conciliation")}
+            className={cn(
+              "px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5",
+              activeFilter === "pending_conciliation"
+                ? "bg-background text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            ⏳ Conciliações
+            {(report?.pendingConciliationCount || 0) > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-amber-500/10 text-amber-600 font-bold text-[10px]">
+                {report?.pendingConciliationCount}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter("settled")}
+            className={cn(
+              "px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap",
+              activeFilter === "settled"
+                ? "bg-background text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            Quitados
+          </button>
+        </div>
+
+        {/* Campo de Busca */}
+        <div className="relative w-full sm:w-72">
+          <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por cliente, título..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 h-10 text-xs rounded-xl bg-card"
+          />
+        </div>
+      </div>
+
+      {/* Lista de Carnês & Parcelas */}
+      {carnes.length === 0 ? (
+        <div className="py-16 text-center space-y-3 bg-card rounded-2xl p-8 border border-dashed border-border/60 shadow-xs">
+          <Receipt size={40} className="text-muted-foreground/40 mx-auto" />
+          <h3 className="text-base font-semibold text-foreground">Nenhum carnê encontrado</h3>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            Não há contas a receber correspondentes ao filtro ativo. Use o botão acima para emitir um novo carnê.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {carnes.map((carne: any) => {
+            const debtor = carne.debtor;
+            const installments = carne.installments || [];
+            const isSettled = carne.status === "settled";
+
+            return (
+              <div
+                key={carne.id}
+                className="bg-card rounded-2xl border border-border/60 shadow-xs overflow-hidden space-y-4 p-5"
+              >
+                {/* Header do Carnê */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-border/50">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-base text-foreground flex items-center gap-2">
+                        <Receipt className="h-4 w-4 text-primary" /> {carne.title}
+                      </h3>
+                      {isSettled ? (
+                        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs">
+                          Quitado
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs">
+                          Ativo
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1 font-medium text-foreground">
+                        <User className="h-3 w-3" /> {debtor?.full_name || "Cliente não cadastrado"}
+                      </span>
+                      {debtor?.phone && <span>• Tel: {debtor.phone}</span>}
+                      {carne.contract && (
+                        <span className="text-primary font-medium flex items-center gap-1">
+                          • Contrato: {carne.contract.title || "Assinado"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="text-left sm:text-right">
+                    <div className="text-base font-bold text-foreground">
+                      {formatMoney(carne.total_cents)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {carne.installments_count} parcelas • Juros: {carne.interest_rate_monthly || 0}% a.m.
+                    </div>
+                  </div>
+                </div>
+
+                {/* Grade de Parcelas */}
+                <div className="divide-y divide-border/40 -mx-5 px-5">
+                  {installments.map((inst: any) => {
+                    const isPaid = inst.status === "paid";
+                    const isPending = inst.conciliation_status === "pending";
+                    const isRejected = inst.conciliation_status === "rejected";
+                    const dueDate = new Date(inst.due_date);
+                    const isOverdue = !isPaid && dueDate < new Date();
+                    const isChecked = selectedInstallmentIds.includes(inst.id);
+
+                    const finalAmount = Number(
+                      inst.final_amount_cents || inst.original_amount_cents || inst.amount_cents || 0,
+                    );
+                    const fineAmount = Number(inst.fine_cents || 0);
+                    const interestAmount = Number(inst.interest_accrued_cents || 0);
+                    const discountAmount = Number(inst.discount_cents || 0);
+
+                    return (
+                      <div
+                        key={inst.id}
+                        className={cn(
+                          "py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm transition-colors",
+                          isPending && "bg-amber-500/5 -mx-5 px-5",
+                        )}
+                      >
+                        {/* Checkbox e Detalhes da Parcela */}
+                        <div className="flex items-start sm:items-center gap-3">
+                          {!isPaid && (
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={() => handleToggleSelectOne(inst.id)}
+                              className="mt-1 sm:mt-0 rounded-md"
+                            />
+                          )}
+
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-foreground text-xs sm:text-sm">
+                                Parcela {inst.installment_number}/{carne.installments_count}
+                              </span>
+
+                              {isPaid && (
+                                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] py-0">
+                                  Quitada
+                                </Badge>
+                              )}
+
+                              {!isPaid && isPending && (
+                                <Badge variant="outline" className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 text-[10px] py-0 animate-pulse">
+                                  ⏳ Comprovante Enviado
+                                </Badge>
+                              )}
+
+                              {!isPaid && isRejected && (
+                                <Badge variant="outline" className="bg-rose-500/10 text-rose-600 border-rose-500/20 text-[10px] py-0">
+                                  Comprovante Recusado
+                                </Badge>
+                              )}
+
+                              {!isPaid && !isPending && isOverdue && (
+                                <Badge variant="outline" className="bg-rose-500/10 text-rose-600 border-rose-500/20 text-[10px] py-0">
+                                  Vencida ({inst.late_days || 1}d)
+                                </Badge>
+                              )}
+
+                              {!isPaid && !isPending && !isOverdue && (
+                                <Badge variant="outline" className="bg-muted text-muted-foreground text-[10px] py-0">
+                                  A Vencer
+                                </Badge>
+                              )}
+                            </div>
+
+                            <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-2">
+                              <span>Vencimento: {formatDate(inst.due_date)}</span>
+                              {isPaid && inst.paid_at && (
+                                <span>• Baixa em: {formatDate(inst.paid_at)}</span>
+                              )}
+                              {inst.payment_method && (
+                                <span>• Via: {inst.payment_method.toUpperCase()}</span>
+                              )}
+                            </div>
+
+                            {/* Detalhes de Encargos */}
+                            {!isPaid && (fineAmount > 0 || interestAmount > 0 || discountAmount > 0) && (
+                              <div className="text-[11px] text-muted-foreground flex items-center gap-2">
+                                <span>Nominal: {formatMoney(inst.original_amount_cents || inst.amount_cents)}</span>
+                                {fineAmount > 0 && <span className="text-rose-500">+Multa: {formatMoney(fineAmount)}</span>}
+                                {interestAmount > 0 && <span className="text-rose-500">+Juros: {formatMoney(interestAmount)}</span>}
+                                {discountAmount > 0 && <span className="text-emerald-500">-Desc: {formatMoney(discountAmount)}</span>}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Valor e Ação */}
+                        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+                          <div className="text-left sm:text-right">
+                            <div className="font-semibold text-foreground">
+                              {formatMoney(finalAmount)}
+                            </div>
+                            {isPaid && (
+                              <div className="text-[11px] text-emerald-600 flex items-center gap-0.5 justify-end">
+                                <ShieldCheck className="h-3 w-3" /> Conciliado
+                              </div>
+                            )}
+                          </div>
+
+                          {!isPaid && (
+                            <Button
+                              size="sm"
+                              variant={isPending ? "default" : "outline"}
+                              className={cn(
+                                "h-8 px-3 text-xs rounded-xl font-medium",
+                                isPending
+                                  ? "bg-amber-600 hover:bg-amber-700 text-white"
+                                  : "text-foreground",
+                              )}
+                              onClick={() => handleOpenConciliation(carne, inst)}
+                            >
+                              {isPending ? (
+                                <>
+                                  <Eye className="h-3.5 w-3.5 mr-1" /> Analisar Comprovante
+                                </>
+                              ) : (
+                                <>Conciliar / Renegociar</>
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Drawer Lateral / Modal de Conciliação e Aprovação */}
+      <Dialog open={isConciliationOpen} onOpenChange={setIsConciliationOpen}>
+        <DialogContent className="max-w-md sm:max-w-lg rounded-2xl p-6 space-y-4">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              Conciliação da Parcela {selectedInstallment?.installment_number}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              {selectedCarne?.title} • Devedor: {selectedCarne?.debtor?.full_name}
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Visualização do Comprovante Enviado */}
+          {selectedInstallment?.conciliation_proof_url ? (
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold text-foreground">
+                Comprovante Enviado pelo Cliente
+              </Label>
+              <div className="relative rounded-xl border overflow-hidden bg-muted/30 max-h-56 flex items-center justify-center">
+                <img
+                  src={selectedInstallment.conciliation_proof_url}
+                  alt="Comprovante de Pagamento"
+                  className="max-h-56 w-auto object-contain"
+                />
+                <a
+                  href={selectedInstallment.conciliation_proof_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="absolute top-2 right-2 p-1.5 rounded-lg bg-background/80 hover:bg-background text-foreground shadow-xs text-xs flex items-center gap-1"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" /> Ampliar
+                </a>
+              </div>
+              {selectedInstallment.notes && (
+                <p className="text-xs text-muted-foreground italic bg-muted/40 p-2 rounded-lg">
+                  "{selectedInstallment.notes}"
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="p-3 rounded-xl bg-muted/30 text-xs text-muted-foreground text-center">
+              Nenhum comprovante anexado pelo cliente. Esta é uma baixa manual direta pela loja.
+            </div>
+          )}
+
+          {/* Resumo de Valores e Opções de Desconto/Isenção */}
+          {!isRejecting ? (
+            <div className="space-y-3 pt-1">
+              <div className="p-3.5 rounded-xl bg-muted/40 border border-border/50 space-y-2 text-xs">
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Valor Nominal:</span>
+                  <span>
+                    {formatMoney(
+                      selectedInstallment?.original_amount_cents ||
+                        selectedInstallment?.amount_cents ||
+                        0,
+                    )}
+                  </span>
+                </div>
+
+                {Number(selectedInstallment?.fine_cents || 0) > 0 && (
+                  <div className="flex justify-between text-rose-600">
+                    <span>Multa de Mora:</span>
+                    <span>+{formatMoney(selectedInstallment.fine_cents)}</span>
+                  </div>
+                )}
+
+                {Number(selectedInstallment?.interest_accrued_cents || 0) > 0 && (
+                  <div className="flex justify-between text-rose-600">
+                    <span>Juros Moratórios:</span>
+                    <span>+{formatMoney(selectedInstallment.interest_accrued_cents)}</span>
+                  </div>
+                )}
+
+                {waiveInterest && (
+                  <div className="flex justify-between text-emerald-600 font-medium">
+                    <span>Isenção de Encargos:</span>
+                    <span>
+                      -
+                      {formatMoney(
+                        Number(selectedInstallment?.fine_cents || 0) +
+                          Number(selectedInstallment?.interest_accrued_cents || 0),
+                      )}
+                    </span>
+                  </div>
+                )}
+
+                {discountCents > 0 && (
+                  <div className="flex justify-between text-emerald-600 font-medium">
+                    <span>Desconto Adicional:</span>
+                    <span>-{formatMoney(discountCents)}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between text-sm font-bold text-foreground pt-1.5 border-t border-border/40">
+                  <span>Valor Final Aprovado:</span>
+                  <span className="text-primary">
+                    {formatMoney(
+                      Math.max(
+                        0,
+                        (waiveInterest
+                          ? Number(
+                              selectedInstallment?.original_amount_cents ||
+                                selectedInstallment?.amount_cents ||
+                                0,
+                            )
+                          : Number(
+                              selectedInstallment?.final_amount_cents ||
+                                selectedInstallment?.original_amount_cents ||
+                                selectedInstallment?.amount_cents ||
+                                0,
+                            )) - discountCents,
+                      ),
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {/* Toggles de Renegociação */}
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="waive-interest"
+                    checked={waiveInterest}
+                    onCheckedChange={(checked) => setWaiveInterest(!!checked)}
+                  />
+                  <label
+                    htmlFor="waive-interest"
+                    className="text-xs font-medium text-foreground cursor-pointer"
+                  >
+                    Isentar juros e multa de atraso para o cliente
+                  </label>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">
+                    Desconto adicional em reais (R$, opcional)
+                  </Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    placeholder="0.00"
+                    onChange={(e) => setDiscountCents(Math.round(Number(e.target.value) * 100))}
+                    className="h-9 text-xs rounded-xl"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Observação da conciliação</Label>
+                  <Input
+                    placeholder="Ex: Pagamento conferido na conta Santander..."
+                    value={conciliationNotes}
+                    onChange={(e) => setConciliationNotes(e.target.value)}
+                    className="h-9 text-xs rounded-xl"
+                  />
+                </div>
+              </div>
+
+              {/* Botões de Ação */}
+              <div className="flex items-center justify-between gap-2 pt-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-xl text-rose-600 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-xs h-10"
+                  onClick={() => setIsRejecting(true)}
+                >
+                  <XCircle className="h-4 w-4 mr-1" /> Recusar Comprovante
+                </Button>
+
+                <Button
+                  type="button"
+                  disabled={isApproving}
+                  className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-10 px-4 font-medium"
+                  onClick={handleConfirmApproval}
+                >
+                  {isApproving ? "Conciliando..." : "Confirmar Baixa & Espelhar"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            /* Fluxo de Recusa do Comprovante */
+            <div className="space-y-3 pt-1">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground">
+                  Justificativa da Recusa para o Cliente *
+                </Label>
+                <Textarea
+                  placeholder="Ex: O comprovante está ilegível / Valor transferido inferior ao devido..."
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  className="text-xs min-h-[80px] rounded-xl"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-xl text-xs h-10"
+                  onClick={() => setIsRejecting(false)}
+                >
+                  Voltar
+                </Button>
+                <Button
+                  type="button"
+                  disabled={isRejectingMutation || !rejectReason.trim()}
+                  className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs h-10 px-4"
+                  onClick={handleConfirmRejection}
+                >
+                  {isRejectingMutation ? "Recusando..." : "Confirmar Recusa e Notificar"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Cobrança em Massa */}
+      <Dialog open={isMassBillingOpen} onOpenChange={setIsMassBillingOpen}>
+        <DialogContent className="max-w-md rounded-2xl p-6 space-y-4">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold flex items-center gap-2">
+              <Send className="h-5 w-5 text-primary" />
+              Cobrança em Massa
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Você selecionou {selectedInstallmentIds.length} parcela(s) para envio de notificação.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-foreground">Template de Notificação</Label>
+              <div className="space-y-2">
+                <label className="flex items-start gap-2.5 p-3 rounded-xl border bg-card cursor-pointer hover:bg-muted/30">
+                  <input
+                    type="radio"
+                    name="massTemplate"
+                    checked={massTemplate === "friendly"}
+                    onChange={() => setMassTemplate("friendly")}
+                    className="mt-0.5"
+                  />
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-semibold text-foreground block">
+                      📅 Lembrete Amigável
+                    </span>
+                    <span className="text-[11px] text-muted-foreground block">
+                      Avisa sobre o vencimento próximo da parcela com instruções de pagamento.
+                    </span>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-2.5 p-3 rounded-xl border bg-card cursor-pointer hover:bg-muted/30">
+                  <input
+                    type="radio"
+                    name="massTemplate"
+                    checked={massTemplate === "due_warning"}
+                    onChange={() => setMassTemplate("due_warning")}
+                    className="mt-0.5"
+                  />
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-semibold text-foreground block">
+                      ⚠️ Aviso de Vencimento
+                    </span>
+                    <span className="text-[11px] text-muted-foreground block">
+                      Alerta sobre juros de mora e pede a regularização imediata da dívida.
+                    </span>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-2.5 p-3 rounded-xl border bg-card cursor-pointer hover:bg-muted/30">
+                  <input
+                    type="radio"
+                    name="massTemplate"
+                    checked={massTemplate === "overdue_discount"}
+                    onChange={() => setMassTemplate("overdue_discount")}
+                    className="mt-0.5"
+                  />
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-semibold text-foreground block">
+                      🎁 Oferta de Desconto para Quitação
+                    </span>
+                    <span className="text-[11px] text-muted-foreground block">
+                      Oferece um percentual de desconto caso o cliente quite a parcela hoje.
+                    </span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {massTemplate === "overdue_discount" && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Desconto Ofertado (%)</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="50"
+                  value={massDiscount}
+                  onChange={(e) => setMassDiscount(Number(e.target.value))}
+                  className="h-9 text-xs rounded-xl"
+                />
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-xl text-xs h-10"
+                onClick={() => setIsMassBillingOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                disabled={isSendingMass}
+                className="rounded-xl bg-primary text-primary-foreground text-xs h-10 px-4 font-medium"
+                onClick={() =>
+                  sendMassReminders({
+                    data: {
+                      installmentIds: selectedInstallmentIds,
+                      template: massTemplate,
+                      discountOfferedPercent:
+                        massTemplate === "overdue_discount" ? massDiscount : undefined,
+                    },
+                  })
+                }
+              >
+                {isSendingMass ? "Enviando..." : "Disparar Cobranças"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Emissão Direta de Carnê */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="max-w-lg rounded-2xl p-6 space-y-4">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold flex items-center gap-2">
+              <Plus className="h-5 w-5 text-primary" />
+              Emitir Novo Carnê Digital
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Gere um plano de parcelamento para um cliente com cálculo automático de juros e vencimentos.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleCreateCarneSubmit} className="space-y-3.5 pt-1">
+            {/* Seleção do Cliente */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-foreground">Cliente (Devedor) *</Label>
+              {selectedCustomer ? (
+                <div className="flex items-center justify-between p-2.5 rounded-xl border bg-muted/20">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-primary" />
+                    <div>
+                      <span className="text-xs font-semibold text-foreground block">
+                        {selectedCustomer.full_name}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground block">
+                        {selectedCustomer.email || selectedCustomer.phone}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground hover:text-foreground h-7"
+                    onClick={() => setSelectedCustomer(null)}
+                  >
+                    Trocar
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <Input
+                    placeholder="Digite nome, e-mail ou telefone do cliente..."
+                    value={customerSearch}
+                    onChange={(e) => setCustomerSearch(e.target.value)}
+                    className="h-9 text-xs rounded-xl"
+                  />
+                  {searchedCustomers.length > 0 && (
+                    <div className="rounded-xl border divide-y bg-card max-h-36 overflow-y-auto shadow-xs">
+                      {searchedCustomers.map((cust: any) => (
+                        <div
+                          key={cust.id}
+                          className="p-2 text-xs flex items-center justify-between hover:bg-muted/40 cursor-pointer"
+                          onClick={() => {
+                            setSelectedCustomer(cust);
+                            setCustomerSearch("");
+                          }}
+                        >
+                          <div>
+                            <span className="font-medium text-foreground block">{cust.full_name}</span>
+                            <span className="text-[11px] text-muted-foreground block">
+                              {cust.email || cust.phone}
+                            </span>
+                          </div>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Título da Compra */}
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-foreground">Título do Carnê / Compra *</Label>
+              <Input
+                placeholder="Ex: Compra de Móveis Planejados, Tratamento Dental..."
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                className="h-9 text-xs rounded-xl"
+                required
+              />
+            </div>
+
+            {/* Valor e Parcelas */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold text-foreground">Valor Total (R$) *</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="1"
+                  placeholder="0.00"
+                  value={newTotalReais || ""}
+                  onChange={(e) => setNewTotalReais(Number(e.target.value))}
+                  className="h-9 text-xs rounded-xl"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold text-foreground">Quantidade de Parcelas *</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="72"
+                  value={newInstallmentsCount}
+                  onChange={(e) => setNewInstallmentsCount(Number(e.target.value))}
+                  className="h-9 text-xs rounded-xl"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Primeira Data de Vencimento */}
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-foreground">
+                Primeiro Vencimento *
+              </Label>
+              <Input
+                type="date"
+                value={newFirstDueDate}
+                onChange={(e) => setNewFirstDueDate(e.target.value)}
+                className="h-9 text-xs rounded-xl"
+                required
+              />
+            </div>
+
+            {/* Taxas de Encargos */}
+            <div className="grid grid-cols-3 gap-2.5 pt-1">
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Juros Mensal (%)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={newInterestRate}
+                  onChange={(e) => setNewInterestRate(Number(e.target.value))}
+                  className="h-8 text-xs rounded-xl"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Multa Atraso (%)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={newFinePercent}
+                  onChange={(e) => setNewFinePercent(Number(e.target.value))}
+                  className="h-8 text-xs rounded-xl"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Carência (dias)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={newGraceDays}
+                  onChange={(e) => setNewGraceDays(Number(e.target.value))}
+                  className="h-8 text-xs rounded-xl"
+                />
+              </div>
+            </div>
+
+            {/* Botões de Ação */}
+            <div className="flex items-center justify-end gap-2 pt-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-xl text-xs h-10"
+                onClick={() => setIsCreateModalOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={isCreating}
+                className="rounded-xl bg-primary text-primary-foreground text-xs h-10 px-4 font-medium"
+              >
+                {isCreating ? "Gerando Carnê..." : "Emitir Carnê Digital"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 }

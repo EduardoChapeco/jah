@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, redirect, Link, isRedirect } from "@tanstack/react-router";
 import { getProfile, getUserSession } from "@/services/auth.functions";
-import { Shield, ShieldAlert, LayoutDashboard, DollarSign, Store, AlertTriangle, Users, UserCheck, Scale, Image as ImageIcon, Palette, Plug, Layers, ArrowUpRight, ExternalLink, Menu, X, Truck, Server, Eye, Coins, Sliders, Globe, Cpu, FlaskConical, Layout, Fingerprint, Radio, Gift } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, LayoutDashboard, DollarSign, Store, AlertTriangle, Users, UserCheck, Scale, Image as ImageIcon, Palette, Plug, Layers, ArrowUpRight, ExternalLink, Menu, X, Truck, Server, Eye, Coins, Sliders, Globe, Cpu, FlaskConical, Layout, Fingerprint, Radio, Gift, Receipt } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -46,8 +46,10 @@ const NAV_SECTIONS = [
  title: "Operação & Ecossistema",
  items: [
  { to: "/admin-master/lojas", label: "Lojas & Empresas", icon: Store },
+ { to: "/admin-master/carnes", label: "Carnês & Inadimplência", icon: Receipt },
  { to: "/admin-master/usuarios", label: "Usuários & Perfis", icon: Users },
  { to: "/admin-master/logistica", label: "Logística & MotoLink", icon: Truck },
+ { to: "/admin-master/entregadores/auditoria", label: "Auditoria Entregadores", icon: ShieldCheck },
  { to: "/admin-master/mining", label: "Mineração & Scrapers", icon: Cpu },
  { to: "/admin-master/simlabs", label: "SimLabs & Cenários", icon: FlaskConical },
  ],

@@ -604,4 +604,45 @@
    - 41 arquivos de teste, 211 testes passando 100% no Vitest.
    - Build de produção (`vite build` + Nitro Cloudflare Pages) com código de saída 0.
 
+## Ciclo 89 — Microfase 89A
+
+- **Data/Hora:** 2026-09-06T19:15:00-03:00
+- **Módulo:** Gestão Financeira Pessoal, Carnês Digitais de Compras & Conciliação Bilateral (`personal-finance-and-carnes`)
+- **Capacidade:** Carnês Digitais no App do Usuário (`_store.conta.carnes.tsx`), Gestão Financeira Pessoal (`_store.conta.financas.tsx`), Contratos Digitais (`_store.conta.contratos.tsx`), Conciliação e Renegociação no Workspace da Loja (`workspace.financeiro.recebiveis.tsx`) e Governança Master (`admin-master.carnes.tsx`).
+- **Commit Base:** `a674470`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. Clientes finais que compram a prazo / crediário nas lojas locais não dispunham de uma central pessoal para acompanhar seus carnês, saldo devedor, quantidade de parcelas restantes e calcular juros/multas contratuais automaticamente em caso de atraso.
+2. Não havia fluxo bilateral seguro para que o cliente fizesse upload do comprovante de pagamento da parcela (PIX / Transferência / Depósito) e a loja conciliasse (aprovando a baixa ou recusando com justificativa).
+3. Lojistas necessitavam de flexibilidade de renegociação no Workspace: poder perdoar juros de mora, aplicar descontos negociados ou ajustar o valor final sem distorcer o valor original nem violar o contrato, mantendo trilha de auditoria (`receivable_adjustment_log`).
+4. A gestão financeira pessoal do usuário não sincronizava pagamentos de parcelas com o fluxo de caixa pessoal.
+5. Faltava visão executiva no Admin Master para monitorar inadimplência global e auditar carnês emitidos por todas as empresas do ecossistema.
+
+### Ações Executadas
+1. **Modelagem de Dados & PostgreSQL Remoto**:
+   - Confirmadas e aplicadas as migrações `20260925000000_personal_finance_system.sql` e `20260927000000_carne_digital_installments_system.sql`.
+   - Tabelas operacionais em produção: `personal_financial_entries`, `personal_financial_categories`, `receivables`, `receivable_installments`, `receivable_adjustment_log`.
+   - Stored Procedures em produção: `approve_installment_conciliation`, `create_receivable_with_installments`, `recalculate_installment_interest`.
+2. **Serviços BFF & Contratos**:
+   - `src/services/personal-finance.functions.ts`: CRUD completo de entradas financeiras pessoais, agregação de receitas/despesas, saldo em centavos e categorização.
+   - `src/services/receivables.functions.ts`: Gerenciamento bilateral de recebíveis e carnês:
+     - `getMyCarnesList`: Consulta de carnês do cliente com parcelas, cálculo de dias em atraso, juros diários com carência (`grace_days`) e multa.
+     - `uploadInstallmentPaymentProof`: Upload de comprovante de pagamento para bucket `receipts` e alteração de status para `pending`.
+     - `approveInstallmentPayment` & `rejectInstallmentPayment`: Conciliação pela loja com registro de operador e data.
+     - `adjustInstallmentAmount`: Renegociação bilateral com perdão de juros ou desconto pontual e persistência em `receivable_adjustment_log`.
+     - `listAdminGlobalCarnes`: Governança de rede no Admin Master.
+3. **Rotas e Interfaces**:
+   - `src/routes/_store.conta.carnes.tsx`: Central do cliente com visão de carnês, status das parcelas, modal de upload de comprovante e cálculo em tempo real de juros.
+   - `src/routes/_store.conta.financas.tsx`: Gestão financeira pessoal limpa no padrão Apple HIG, sem ícones decorativos Sparkles, com gráficos e lançamentos.
+   - `src/routes/_store.conta.contratos.tsx`: Central de contratos e termos assinados.
+   - `src/routes/workspace.financeiro.recebiveis.tsx`: Painel do lojista com abas de Carnês Emitidos, Conciliações Pendentes, Renegociação com Perdão de Juros e Cobrança.
+   - `src/routes/admin-master.carnes.tsx`: Painel do Super Admin com métricas globais de emissão, inadimplência e conciliações.
+   - Atualizados menus em `src/routes/_store.conta.index.tsx` e `src/routes/admin-master.tsx`.
+4. **Validação & Testes**:
+   - Criada suíte `src/services/personal-finance-and-carnes.test.ts` com 7 testes unitários cobrindo lançamentos, cálculos de juros, carência e payload de conciliação (100% de sucesso).
+   - Suíte global Vitest: 42 arquivos de teste, 218 testes passando com sucesso.
+   - Build de produção (`npm run build` -> Vite + Nitro Cloudflare Pages) com código de saída 0.
+
+
 
