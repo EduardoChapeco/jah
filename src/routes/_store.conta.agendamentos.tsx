@@ -5,329 +5,329 @@ import { toast } from "sonner";
 import { formatMoney } from "@/lib/money";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
+ Dialog,
+ DialogContent,
+ DialogHeader,
+ DialogTitle,
+ DialogDescription,
+ DialogFooter,
 } from "@/components/ui/dialog";
 import { getUserSession } from "@/services/auth.functions";
 import {
-  listCustomerAppointments,
-  cancelCustomerAppointment,
+ listCustomerAppointments,
+ cancelCustomerAppointment,
 } from "@/services/booking.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/conta/agendamentos")({
-  head: () => ({
-    meta: [{ title: "Minha Agenda | JAH Master OS" }],
-  }),
-  loader: async () => {
-    const session = await getUserSession().catch(() => null);
+ head: () => ({
+ meta: [{ title: "Minha Agenda | Wider OS" }],
+ }),
+ loader: async () => {
+ const session = await getUserSession().catch(() => null);
 
-    const initialAppointments = await listCustomerAppointments({
-      data: { status: "all" },
-    }).catch(() => []);
+ const initialAppointments = await listCustomerAppointments({
+ data: { status: "all" },
+ }).catch(() => []);
 
-    return { initialAppointments, session };
-  },
-  component: CustomerAgendaPage,
+ return { initialAppointments, session };
+ },
+ component: CustomerAgendaPage,
 });
 
 function getStatusBadge(status: string) {
-  switch (status) {
-    case "confirmed":
-      return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/40">
-          Confirmado
-        </span>
-      );
-    case "pending":
-      return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/40">
-          Pendente
-        </span>
-      );
-    case "completed":
-      return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-          Concluído
-        </span>
-      );
-    case "cancelled":
-      return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/40">
-          Cancelado
-        </span>
-      );
-    default:
-      return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-muted text-muted-foreground">
-          {status}
-        </span>
-      );
-  }
+ switch (status) {
+ case "confirmed":
+ return (
+ <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/40">
+ Confirmado
+ </span>
+ );
+ case "pending":
+ return (
+ <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/40">
+ Pendente
+ </span>
+ );
+ case "completed":
+ return (
+ <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+ Concluído
+ </span>
+ );
+ case "cancelled":
+ return (
+ <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/40">
+ Cancelado
+ </span>
+ );
+ default:
+ return (
+ <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-muted text-muted-foreground">
+ {status}
+ </span>
+ );
+ }
 }
 
 function CustomerAgendaPage() {
-  const { initialAppointments } = Route.useLoaderData();
-  const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
-  const [cancellingAppt, setCancellingAppt] = useState<any | null>(null);
-  const [cancelReason, setCancelReason] = useState("");
-  const router = useRouter();
+ const { initialAppointments } = Route.useLoaderData();
+ const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
+ const [cancellingAppt, setCancellingAppt] = useState<any | null>(null);
+ const [cancelReason, setCancelReason] = useState("");
+ const router = useRouter();
 
-  const { data: appointments, refetch } = useQuery({
-    queryKey: ["customer-appointments", activeTab],
-    queryFn: () =>
-      listCustomerAppointments({
-        data: { status: activeTab },
-      }),
-    initialData:
-      activeTab === "upcoming"
-        ? (initialAppointments || []).filter(
-            (a: any) => new Date(a.scheduled_at) >= new Date(),
-          )
-        : (initialAppointments || []).filter(
-            (a: any) => new Date(a.scheduled_at) < new Date(),
-          ),
-  });
+ const { data: appointments, refetch } = useQuery({
+ queryKey: ["customer-appointments", activeTab],
+ queryFn: () =>
+ listCustomerAppointments({
+ data: { status: activeTab },
+ }),
+ initialData:
+ activeTab === "upcoming"
+ ? (initialAppointments || []).filter(
+ (a: any) => new Date(a.scheduled_at) >= new Date(),
+ )
+ : (initialAppointments || []).filter(
+ (a: any) => new Date(a.scheduled_at) < new Date(),
+ ),
+ });
 
-  const cancelMutation = useMutation({
-    mutationFn: (appointmentId: string) =>
-      cancelCustomerAppointment({
-        data: { appointmentId, reason: cancelReason || undefined },
-      }),
-    onSuccess: () => {
-      toast.success("Agendamento cancelado com sucesso.");
-      setCancellingAppt(null);
-      setCancelReason("");
-      refetch();
-      router.invalidate();
-    },
-    onError: (err: any) => {
-      toast.error(err.message || "Erro ao cancelar agendamento.");
-    },
-  });
+ const cancelMutation = useMutation({
+ mutationFn: (appointmentId: string) =>
+ cancelCustomerAppointment({
+ data: { appointmentId, reason: cancelReason || undefined },
+ }),
+ onSuccess: () => {
+ toast.success("Agendamento cancelado com sucesso.");
+ setCancellingAppt(null);
+ setCancelReason("");
+ refetch();
+ router.invalidate();
+ },
+ onError: (err: any) => {
+ toast.error(err.message || "Erro ao cancelar agendamento.");
+ },
+ });
 
-  const apptList = appointments || [];
+ const apptList = appointments || [];
 
-  return (
-    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
-      {/* ── 1. Top Header Unificado ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5 pt-2">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Link
-              to="/conta"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
-            >
-              Minha Conta
-            </Link>
-            <span className="text-xs text-muted-foreground">/</span>
-            <Badge variant="outline" className="text-[10px] font-mono uppercase font-bold tracking-wider">
-              Agenda
-            </Badge>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Minha Agenda & Agendamentos
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Consulte horários marcados, profissionais de beleza, consultas e serviços agendados.
-          </p>
-        </div>
+ return (
+ <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+ {/* ── 1. Top Header Unificado ── */}
+ <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5 pt-2">
+ <div className="space-y-1">
+ <div className="flex items-center gap-2">
+ <Link
+ to="/conta"
+ className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
+ >
+ Minha Conta
+ </Link>
+ <span className="text-xs text-muted-foreground">/</span>
+ <Badge variant="outline" className="text-[10px] font-mono uppercase font-bold tracking-wider">
+ Agenda
+ </Badge>
+ </div>
+ <h1 className="text-2xl font-bold tracking-tight text-foreground">
+ Minha Agenda & Agendamentos
+ </h1>
+ <p className="text-xs text-muted-foreground">
+ Consulte horários marcados, profissionais de beleza, consultas e serviços agendados.
+ </p>
+ </div>
 
-        <Button
-          asChild
-          size="sm"
-          variant="outline"
-          className="rounded-xl text-xs font-semibold h-9 px-4 cursor-pointer self-start sm:self-auto"
-        >
-          <Link to="/agendar">Novo Agendamento</Link>
-        </Button>
-      </div>
+ <Button
+ asChild
+ size="sm"
+ variant="outline"
+ className="rounded-xl text-xs font-semibold h-9 px-4 cursor-pointer self-start sm:self-auto"
+ >
+ <Link to="/agendar">Novo Agendamento</Link>
+ </Button>
+ </div>
 
-      {/* ── 2. Minimalist Tab Controls (Apple iOS Segments) ── */}
-      <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-2xl w-fit border border-border/40">
-        <button
-          type="button"
-          onClick={() => setActiveTab("upcoming")}
-          className={cn(
-            "px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer",
-            activeTab === "upcoming"
-              ? "bg-card text-foreground shadow-2xs"
-              : "text-muted-foreground hover:text-foreground",
-          )}
-        >
-          Próximos Agendamentos
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("past")}
-          className={cn(
-            "px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer",
-            activeTab === "past"
-              ? "bg-card text-foreground shadow-2xs"
-              : "text-muted-foreground hover:text-foreground",
-          )}
-        >
-          Histórico
-        </button>
-      </div>
+ {/* ── 2. Minimalist Tab Controls (Apple iOS Segments) ── */}
+ <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-2xl w-fit border border-border/40">
+ <button
+ type="button"
+ onClick={() => setActiveTab("upcoming")}
+ className={cn(
+ "px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer",
+ activeTab === "upcoming"
+ ? "bg-card text-foreground shadow-2xs"
+ : "text-muted-foreground hover:text-foreground",
+ )}
+ >
+ Próximos Agendamentos
+ </button>
+ <button
+ type="button"
+ onClick={() => setActiveTab("past")}
+ className={cn(
+ "px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer",
+ activeTab === "past"
+ ? "bg-card text-foreground shadow-2xs"
+ : "text-muted-foreground hover:text-foreground",
+ )}
+ >
+ Histórico
+ </button>
+ </div>
 
-      {/* ── 3. Appointments List (Grouped iOS Surface) ── */}
-      {apptList.length === 0 ? (
-        <div className="rounded-2xl border border-border/60 bg-card p-10 text-center space-y-3">
-          <p className="text-sm font-semibold text-foreground">
-            {activeTab === "upcoming"
-              ? "Nenhum agendamento futuro encontrado"
-              : "Nenhum histórico de agendamentos"}
-          </p>
-          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            {activeTab === "upcoming"
-              ? "Você ainda não possui horários marcados. Explore os serviços locais disponíveis para agendar."
-              : "Seus atendimentos anteriores concluídos ou cancelados aparecerão aqui."}
-          </p>
-          {activeTab === "upcoming" && (
-            <div className="pt-2">
-              <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-9">
-                <Link to="/agendar">Explorar Serviços</Link>
-              </Button>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {apptList.map((appt: any) => {
-            const dateObj = new Date(appt.scheduled_at);
-            const isUpcoming = dateObj >= new Date() && appt.status !== "cancelled";
-            const serviceTitle = appt.booking_services?.title || "Serviço";
-            const storeName = appt.stores?.name || "Estabelecimento";
-            const duration = appt.booking_services?.duration_minutes || 30;
-            const price = appt.booking_services?.price_cents || 0;
+ {/* ── 3. Appointments List (Grouped iOS Surface) ── */}
+ {apptList.length === 0 ? (
+ <div className="rounded-2xl border border-border/60 bg-card p-10 text-center space-y-3">
+ <p className="text-sm font-semibold text-foreground">
+ {activeTab === "upcoming"
+ ? "Nenhum agendamento futuro encontrado"
+ : "Nenhum histórico de agendamentos"}
+ </p>
+ <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+ {activeTab === "upcoming"
+ ? "Você ainda não possui horários marcados. Explore os serviços locais disponíveis para agendar."
+ : "Seus atendimentos anteriores concluídos ou cancelados aparecerão aqui."}
+ </p>
+ {activeTab === "upcoming" && (
+ <div className="pt-2">
+ <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-9">
+ <Link to="/agendar">Explorar Serviços</Link>
+ </Button>
+ </div>
+ )}
+ </div>
+ ) : (
+ <div className="space-y-3">
+ {apptList.map((appt: any) => {
+ const dateObj = new Date(appt.scheduled_at);
+ const isUpcoming = dateObj >= new Date() && appt.status !== "cancelled";
+ const serviceTitle = appt.booking_services?.title || "Serviço";
+ const storeName = appt.stores?.name || "Estabelecimento";
+ const duration = appt.booking_services?.duration_minutes || 30;
+ const price = appt.booking_services?.price_cents || 0;
 
-            return (
-              <div
-                key={appt.id}
-                className="rounded-2xl border border-border/60 bg-card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-border shadow-2xs"
-              >
-                {/* Data e Horário em Destaque */}
-                <div className="flex items-start gap-4">
-                  <div className="size-14 rounded-2xl bg-muted/40 border border-border/50 flex flex-col items-center justify-center shrink-0">
-                    <span className="text-[10px] font-bold uppercase text-muted-foreground">
-                      {dateObj.toLocaleDateString("pt-BR", { month: "short" })}
-                    </span>
-                    <span className="text-lg font-black text-foreground leading-none">
-                      {dateObj.getDate()}
-                    </span>
-                  </div>
+ return (
+ <div
+ key={appt.id}
+ className="rounded-2xl border border-border/60 bg-card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-border shadow-2xs"
+ >
+ {/* Data e Horário em Destaque */}
+ <div className="flex items-start gap-4">
+ <div className="size-14 rounded-2xl bg-muted/40 border border-border/50 flex flex-col items-center justify-center shrink-0">
+ <span className="text-[10px] font-bold uppercase text-muted-foreground">
+ {dateObj.toLocaleDateString("pt-BR", { month: "short" })}
+ </span>
+ <span className="text-lg font-black text-foreground leading-none">
+ {dateObj.getDate()}
+ </span>
+ </div>
 
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className="text-sm font-bold text-foreground truncate">
-                        {serviceTitle}
-                      </h2>
-                      {getStatusBadge(appt.status)}
-                      {appt.pass_id && (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary">
-                          Pacote de Sessões
-                        </span>
-                      )}
-                    </div>
+ <div className="space-y-1 min-w-0">
+ <div className="flex items-center gap-2 flex-wrap">
+ <h2 className="text-sm font-bold text-foreground truncate">
+ {serviceTitle}
+ </h2>
+ {getStatusBadge(appt.status)}
+ {appt.pass_id && (
+ <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary">
+ Pacote de Sessões
+ </span>
+ )}
+ </div>
 
-                    <p className="text-xs text-muted-foreground font-medium">
-                      {storeName} • {dateObj.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} ({duration} min)
-                    </p>
+ <p className="text-xs text-muted-foreground font-medium">
+ {storeName} • {dateObj.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} ({duration} min)
+ </p>
 
-                    {appt.notes && (
-                      <p className="text-[11px] text-muted-foreground/80 line-clamp-1 italic pt-0.5">
-                        Nota: {appt.notes}
-                      </p>
-                    )}
-                  </div>
-                </div>
+ {appt.notes && (
+ <p className="text-[11px] text-muted-foreground/80 line-clamp-1 italic pt-0.5">
+ Nota: {appt.notes}
+ </p>
+ )}
+ </div>
+ </div>
 
-                {/* Ações e Preço */}
-                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-border/40">
-                  <div className="text-left sm:text-right">
-                    <span className="text-xs font-mono font-bold text-foreground">
-                      {appt.pass_id ? "Crédito Pago" : formatMoney(price)}
-                    </span>
-                  </div>
+ {/* Ações e Preço */}
+ <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-border/40">
+ <div className="text-left sm:text-right">
+ <span className="text-xs font-mono font-bold text-foreground">
+ {appt.pass_id ? "Crédito Pago" : formatMoney(price)}
+ </span>
+ </div>
 
-                  <div className="flex items-center gap-2">
-                    {isUpcoming && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCancellingAppt(appt)}
-                        className="rounded-xl text-xs font-semibold h-8 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 border-border/60 cursor-pointer"
-                      >
-                        Cancelar
-                      </Button>
-                    )}
+ <div className="flex items-center gap-2">
+ {isUpcoming && (
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ onClick={() => setCancellingAppt(appt)}
+ className="rounded-xl text-xs font-semibold h-8 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 border-border/60 cursor-pointer"
+ >
+ Cancelar
+ </Button>
+ )}
 
-                    {appt.stores?.slug && (
-                      <Button
-                        asChild
-                        variant="ghost"
-                        size="sm"
-                        className="rounded-xl text-xs font-semibold h-8 text-muted-foreground hover:text-foreground cursor-pointer"
-                      >
-                        <Link to="/mercado">
-                          Ver Loja ↗
-                        </Link>
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+ {appt.stores?.slug && (
+ <Button
+ asChild
+ variant="ghost"
+ size="sm"
+ className="rounded-xl text-xs font-semibold h-8 text-muted-foreground hover:text-foreground cursor-pointer"
+ >
+ <Link to="/mercado">
+ Ver Loja ↗
+ </Link>
+ </Button>
+ )}
+ </div>
+ </div>
+ </div>
+ );
+ })}
+ </div>
+ )}
 
-      {/* ── Modal de Confirmação de Cancelamento ── */}
-      <Dialog
-        open={!!cancellingAppt}
-        onOpenChange={(open) => !open && setCancellingAppt(null)}
-      >
-        <DialogContent className="sm:max-w-md sm:rounded-2xl sm:p-6">
-          <DialogHeader className="space-y-1.5">
-            <DialogTitle className="text-base font-bold text-foreground">
-              Cancelar Agendamento?
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              {cancellingAppt?.pass_id
-                ? "Este agendamento foi realizado utilizando um pacote de créditos. Ao confirmar o cancelamento, 1 crédito será estornado automaticamente para sua carteira."
-                : "Tem certeza de que deseja cancelar este horário? O estabelecimento será notificado."}
-            </DialogDescription>
-          </DialogHeader>
+ {/* ── Modal de Confirmação de Cancelamento ── */}
+ <Dialog
+ open={!!cancellingAppt}
+ onOpenChange={(open) => !open && setCancellingAppt(null)}
+ >
+ <DialogContent className="sm:max-w-md sm:rounded-2xl sm:p-6">
+ <DialogHeader className="space-y-1.5">
+ <DialogTitle className="text-base font-bold text-foreground">
+ Cancelar Agendamento?
+ </DialogTitle>
+ <DialogDescription className="text-xs text-muted-foreground">
+ {cancellingAppt?.pass_id
+ ? "Este agendamento foi realizado utilizando um pacote de créditos. Ao confirmar o cancelamento, 1 crédito será estornado automaticamente para sua carteira."
+ : "Tem certeza de que deseja cancelar este horário? O estabelecimento será notificado."}
+ </DialogDescription>
+ </DialogHeader>
 
-          <DialogFooter className="flex-row gap-2 pt-3 justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setCancellingAppt(null)}
-              className="rounded-xl text-xs font-semibold h-9"
-            >
-              Manter Horário
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              disabled={cancelMutation.isPending}
-              onClick={() => cancellingAppt && cancelMutation.mutate(cancellingAppt.id)}
-              className="rounded-xl text-xs font-semibold h-9"
-            >
-              {cancelMutation.isPending ? "Cancelando..." : "Confirmar Cancelamento"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+ <DialogFooter className="flex-row gap-2 pt-3 justify-end">
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ onClick={() => setCancellingAppt(null)}
+ className="rounded-xl text-xs font-semibold h-9"
+ >
+ Manter Horário
+ </Button>
+ <Button
+ type="button"
+ variant="destructive"
+ size="sm"
+ disabled={cancelMutation.isPending}
+ onClick={() => cancellingAppt && cancelMutation.mutate(cancellingAppt.id)}
+ className="rounded-xl text-xs font-semibold h-9"
+ >
+ {cancelMutation.isPending ? "Cancelando..." : "Confirmar Cancelamento"}
+ </Button>
+ </DialogFooter>
+ </DialogContent>
+ </Dialog>
+ </div>
+ );
 }

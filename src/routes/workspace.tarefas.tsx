@@ -3,24 +3,17 @@ import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import {
   Plus,
-  Search,
   Sun,
   ListTodo,
   Kanban,
   CheckCircle2,
-  Clock,
-  AlertTriangle,
-  Star,
-  Filter,
   Calendar,
-  Layers,
+  AlertCircle,
+  Clock,
+  Flame,
+  CheckCheck,
 } from "lucide-react";
 
-import { PageHeader } from "@/components/commerce/page-header";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/state/states";
 
 import { getStoreSettings } from "@/services/store.functions";
@@ -30,42 +23,54 @@ import {
   toggleTaskMyDay,
   getDailyTaskDigest,
 } from "@/services/tasks.functions";
+import {
+  listKanbanStages,
+  type KanbanStageDTO,
+} from "@/services/kanban-config.functions";
 
-import type { WorkspaceTask, TaskStatus, TaskPriority } from "@/components/tasks/task-types";
+import type { WorkspaceTask, TaskStatus } from "@/components/tasks/task-types";
 import { TaskItemCard } from "@/components/tasks/task-item-card";
 import { TaskKanbanBoard } from "@/components/tasks/task-kanban";
 import { NewTaskModal } from "@/components/tasks/new-task-modal";
 import { TaskDetailSheet } from "@/components/tasks/task-detail-sheet";
 import { TaskCalendarView } from "@/components/tasks/task-calendar-view";
 
+import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-canonical-toolbar";
+import { WorkspaceDashboardSheet } from "@/components/workspace/workspace-dashboard-sheet";
+import { KanbanColumnCustomizerModal } from "@/components/workspace/kanban/kanban-column-customizer-modal";
+
 export const Route = createFileRoute("/workspace/tarefas")({
-  head: () => ({ meta: [{ title: "Tarefas & Produtividade | Workspace JAH Master OS" }] }),
+  head: () => ({ meta: [{ title: "Tarefas | Workspace Wider OS" }] }),
   loader: async () => {
     const store = await getStoreSettings().catch(() => null);
     const storeId = store?.id || "";
-    const [tasks, digest] = await Promise.all([
+    const [tasks, digest, stages] = await Promise.all([
       storeId ? listWorkspaceTasks({ data: { store_id: storeId } }).catch(() => []) : [],
       storeId ? getDailyTaskDigest({ data: { store_id: storeId } }).catch(() => null) : null,
+      storeId ? listKanbanStages({ data: { storeId, module: "tasks" } }).catch(() => []) : [],
     ]);
     return {
       store,
       initialTasks: (tasks || []) as WorkspaceTask[],
       initialDigest: digest,
+      initialStages: (stages || []) as KanbanStageDTO[],
     };
   },
   component: WorkspaceTasksPage,
 });
 
 function WorkspaceTasksPage() {
-  const { store, initialTasks, initialDigest } = (Route.useLoaderData as any)();
+  const { store, initialTasks, initialDigest, initialStages } = (Route.useLoaderData as any)();
   const router = useRouter();
-
   const storeId = store?.id || "";
 
-  const [tasks, setTasks] = useState<WorkspaceTask[]>(initialTasks);
+  const [tasks, setTasks] = useState<WorkspaceTask[]>(initialTasks || []);
+  const [stages, setStages] = useState<KanbanStageDTO[]>(initialStages || []);
   const [digest, setDigest] = useState(initialDigest);
   const [activeTab, setActiveTab] = useState<"my-day" | "kanban" | "list" | "calendar">("my-day");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [contextFilter, setContextFilter] = useState<string>("all");
 
@@ -171,213 +176,139 @@ function WorkspaceTasksPage() {
 
       return true;
     });
-  }, [tasks, activeTab, searchQuery, priorityFilter, contextFilter]);
+  }, [tasks, activeTab, contextFilter, searchQuery, priorityFilter]);
 
-  const pendingTasks = filteredTasks.filter((t) => t.status !== "done");
-  const completedTasks = filteredTasks.filter((t) => t.status === "done");
+  const pendingTasks = useMemo(() => filteredTasks.filter((t) => t.status !== "done"), [filteredTasks]);
+  const completedTasks = useMemo(() => filteredTasks.filter((t) => t.status === "done"), [filteredTasks]);
+
+  // Indicadores do Dashboard Sob Demanda
+  const dashboardMetrics = useMemo(() => {
+    return [
+      {
+        id: "my-day",
+        label: "Meu Dia (Foco)",
+        value: digest?.myDayCount ?? tasks.filter((t) => t.is_my_day && t.status !== "done").length,
+        icon: Sun,
+        trend: { value: "Hoje", direction: "neutral" as const },
+        description: "Tarefas selecionadas para execução prioritária hoje",
+      },
+      {
+        id: "pending",
+        label: "Pendentes",
+        value: digest?.pendingCount ?? tasks.filter((t) => t.status !== "done").length,
+        icon: Clock,
+        trend: { value: "Abertas", direction: "neutral" as const },
+        description: "Aguardando execução ou em andamento",
+      },
+      {
+        id: "completed-today",
+        label: "Concluídas Hoje",
+        value: digest?.completedTodayCount ?? 0,
+        icon: CheckCheck,
+        trend: { value: "Finalizadas", direction: "up" as const },
+        description: "Entregas finalizadas nas últimas 24 horas",
+      },
+      {
+        id: "urgent",
+        label: "Urgentes / Críticas",
+        value: digest?.urgentCount ?? tasks.filter((t) => (t.priority === "urgent" || t.priority === "high") && t.status !== "done").length,
+        icon: Flame,
+        description: "Demandas que exigem atenção imediata",
+      },
+      {
+        id: "overdue",
+        label: "Prazos Atrasados",
+        value: digest?.overdueCount ?? 0,
+        icon: AlertCircle,
+        trend: (digest?.overdueCount ?? 0) > 0 ? { value: "Atenção", direction: "down" as const } : undefined,
+        description: "Tarefas que ultrapassaram a data limite estimada",
+      },
+    ];
+  }, [digest, tasks]);
 
   return (
-    <div className="w-full space-y-6 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 pb-24">
-      {/* ── 1. Page Header Canônico ── */}
-      <PageHeader
-        eyebrow="Operação & Rotina"
-        title="Tarefas & Produtividade"
-        actions={
-          <Button
-            type="button"
-            onClick={() => setNewTaskOpen(true)}
-            className="h-11 px-5 rounded-xl text-xs font-bold gap-2 cursor-pointer shadow-xs"
-          >
-            <Plus className="size-4" /> Nova Tarefa
-          </Button>
-        }
+    <div className="flex flex-col gap-4 min-h-[calc(100vh-8.5rem)]">
+      {/* ── 1. Barra Canônica de Operação Silenciosa ── */}
+      <WorkspaceCanonicalToolbar
+        tabs={[
+          { id: "my-day", label: "Meu Dia", icon: Sun, count: tasks.filter((t) => t.is_my_day && t.status !== "done").length },
+          { id: "kanban", label: "Kanban", icon: Kanban },
+          { id: "list", label: "Lista", icon: ListTodo, count: pendingTasks.length },
+          { id: "calendar", label: "Calendário", icon: Calendar },
+        ]}
+        activeTab={activeTab}
+        onTabChange={(id) => setActiveTab(id as any)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Buscar por título, código ou tag..."
+        filters={[
+          {
+            id: "priority",
+            label: "Prioridade",
+            value: priorityFilter,
+            options: [
+              { label: "Todas Prioridades", value: "all" },
+              { label: "Urgente", value: "urgent" },
+              { label: "Alta", value: "high" },
+              { label: "Normal", value: "medium" },
+              { label: "Baixa", value: "low" },
+            ],
+            onChange: setPriorityFilter,
+          },
+          {
+            id: "context",
+            label: "Contexto",
+            value: contextFilter,
+            options: [
+              { label: "Todos os Contextos", value: "all" },
+              { label: "Geral", value: "general" },
+              { label: "Turismo", value: "turismo" },
+              { label: "Eventos", value: "eventos" },
+              { label: "Delivery", value: "delivery" },
+              { label: "Comercial", value: "comercial" },
+            ],
+            onChange: setContextFilter,
+          },
+        ]}
+        onMetricsClick={() => setIsDashboardOpen(true)}
+        metricsBadge={(digest?.overdueCount ?? 0) > 0 ? `${digest.overdueCount} atrasadas` : undefined}
+        onColumnsClick={activeTab === "kanban" ? () => setIsCustomizerOpen(true) : undefined}
+        primaryAction={{
+          label: "Nova Tarefa",
+          icon: Plus,
+          onClick: () => setNewTaskOpen(true),
+        }}
       />
 
-      {/* ── 2. Cards de Métricas Operacionais (Digest) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Meu Dia</span>
-            <Sun className="size-4 text-amber-500" />
-          </div>
-          <p className="text-2xl font-extrabold text-foreground font-mono">
-            {digest?.myDayCount ?? 0}
-          </p>
-          <p className="text-[11px] text-muted-foreground">Prioridades para hoje</p>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Pendentes</span>
-            <Clock className="size-4 text-sky-500" />
-          </div>
-          <p className="text-2xl font-extrabold text-foreground font-mono">
-            {digest?.pendingCount ?? 0}
-          </p>
-          <p className="text-[11px] text-muted-foreground">Em todo o workspace</p>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Concluídas Hoje</span>
-            <CheckCircle2 className="size-4 text-emerald-500" />
-          </div>
-          <p className="text-2xl font-extrabold text-foreground font-mono">
-            {digest?.completedTodayCount ?? 0}
-          </p>
-          <p className="text-[11px] text-muted-foreground">Finalizadas com sucesso</p>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Urgentes / Atrasadas</span>
-            <AlertTriangle className="size-4 text-rose-500" />
-          </div>
-          <p className="text-2xl font-extrabold text-foreground font-mono text-rose-600">
-            {digest?.urgentCount ?? 0}
-          </p>
-          <p className="text-[11px] text-muted-foreground">Requerem atenção imediata</p>
-        </div>
-      </div>
-
-      {/* ── 3. Barra de Controle & Abas Canônicas ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pt-2">
-        <Tabs
-          value={activeTab}
-          onValueChange={(val) => setActiveTab(val as any)}
-          className="w-auto overflow-x-auto no-scrollbar"
-        >
-          <TabsList className="h-11 p-1 rounded-xl bg-muted/30 border border-border/70 flex-nowrap overflow-x-auto no-scrollbar scrollbar-none">
-            <TabsTrigger
-              value="my-day"
-              className="rounded-lg px-3 sm:px-4 text-xs font-semibold gap-1.5 cursor-pointer data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs"
-            >
-              <Sun className="size-3.5 text-amber-500" /> Meu Dia
-            </TabsTrigger>
-            <TabsTrigger
-              value="list"
-              className="rounded-lg px-3 sm:px-4 text-xs font-semibold gap-1.5 cursor-pointer data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs"
-            >
-              <ListTodo className="size-3.5 text-sky-500" /> Lista
-            </TabsTrigger>
-            <TabsTrigger
-              value="kanban"
-              className="rounded-lg px-3 sm:px-4 text-xs font-semibold gap-1.5 cursor-pointer data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs"
-            >
-              <Kanban className="size-3.5 text-emerald-500" /> Quadro
-            </TabsTrigger>
-            <TabsTrigger
-              value="calendar"
-              className="rounded-lg px-3 sm:px-4 text-xs font-semibold gap-1.5 cursor-pointer data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs"
-            >
-              <Calendar className="size-3.5 text-purple-500" /> Calendário
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {/* Filtros de Nicho, Busca e Prioridade */}
-        <div className="flex flex-wrap items-center gap-2 flex-1 lg:max-w-2xl justify-end">
-          <div className="relative flex-1 min-w-0 w-full sm:w-auto">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por título, tag, código..."
-              className="h-10 pl-9 rounded-xl text-xs"
-            />
-          </div>
-
-          <select
-            value={contextFilter}
-            onChange={(e) => setContextFilter(e.target.value)}
-            className="h-10 px-3 rounded-xl border border-input bg-card text-xs font-semibold text-foreground focus:outline-none"
-          >
-            <option value="all">Todas as Áreas</option>
-            <option value="group_tour">Viagens / Pacotes</option>
-            <option value="order">Pedidos / Vendas</option>
-            <option value="inventory">Estoque / Fornecedor</option>
-            <option value="lead">Leads / Comercial</option>
-            <option value="general">Geral</option>
-          </select>
-
-          <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            className="h-10 px-3 rounded-xl border border-input bg-card text-xs font-semibold text-foreground focus:outline-none"
-          >
-            <option value="all">Prioridades</option>
-            <option value="urgent">Urgente</option>
-            <option value="high">Alta</option>
-            <option value="medium">Média</option>
-            <option value="low">Baixa</option>
-          </select>
-        </div>
-      </div>
-
-      {/* ── 4. Conteúdo das Abas ── */}
-      {activeTab === "calendar" ? (
-        <TaskCalendarView
-          tasks={filteredTasks}
-          onSelectTask={(task) => {
-            setSelectedTask(task);
-            setDetailOpen(true);
-          }}
-          onAddTaskOnDate={() => setNewTaskOpen(true)}
-        />
-      ) : activeTab === "kanban" ? (
-        <TaskKanbanBoard
-          tasks={filteredTasks}
-          onToggleStatus={handleToggleStatus}
-          onToggleMyDay={handleToggleMyDay}
-          onSelectTask={(task) => {
-            setSelectedTask(task);
-            setDetailOpen(true);
-          }}
-          onMoveTaskStatus={handleMoveTaskStatus}
-          onNewTaskClick={() => setNewTaskOpen(true)}
-        />
-      ) : (
-        <div className="space-y-6">
-          {/* Tarefas Pendentes */}
-          <div className="space-y-2">
-            {pendingTasks.map((task) => (
-              <TaskItemCard
-                key={task.id}
-                task={task}
-                onToggleStatus={handleToggleStatus}
-                onToggleMyDay={handleToggleMyDay}
-                onClick={(t) => {
-                  setSelectedTask(t);
-                  setDetailOpen(true);
-                }}
-              />
-            ))}
-
-            {pendingTasks.length === 0 && (
-              <EmptyState
-                title={
-                  activeTab === "my-day"
-                    ? "Nenhuma tarefa focada para hoje"
-                    : "Nenhuma tarefa pendente encontrada"
-                }
-                description={
-                  activeTab === "my-day"
-                    ? "Marque com a estrela as tarefas que deseja executar hoje ou crie uma nova."
-                    : "Todas as atividades deste filtro foram concluídas ou ainda não foram criadas."
-                }
-              />
-            )}
-          </div>
-
-          {/* Tarefas Concluídas */}
-          {completedTasks.length > 0 && (
-            <div className="space-y-2 pt-4 border-t border-border/60">
-              <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-                <CheckCircle2 className="size-4 text-emerald-500" />
-                <span>Concluídas ({completedTasks.length})</span>
-              </div>
-
-              {completedTasks.map((task) => (
+      {/* ── 2. Área Principal de Visualização ── */}
+      <div className="flex-1 min-h-0">
+        {activeTab === "calendar" ? (
+          <TaskCalendarView
+            tasks={filteredTasks}
+            onSelectTask={(task) => {
+              setSelectedTask(task);
+              setDetailOpen(true);
+            }}
+            onAddTaskOnDate={() => setNewTaskOpen(true)}
+          />
+        ) : activeTab === "kanban" ? (
+          <TaskKanbanBoard
+            tasks={filteredTasks}
+            stages={stages}
+            onToggleStatus={handleToggleStatus}
+            onToggleMyDay={handleToggleMyDay}
+            onSelectTask={(task) => {
+              setSelectedTask(task);
+              setDetailOpen(true);
+            }}
+            onMoveTaskStatus={handleMoveTaskStatus}
+            onNewTaskClick={() => setNewTaskOpen(true)}
+          />
+        ) : (
+          <div className="space-y-6">
+            {/* Tarefas Pendentes */}
+            <div className="space-y-2">
+              {pendingTasks.map((task) => (
                 <TaskItemCard
                   key={task.id}
                   task={task}
@@ -389,9 +320,97 @@ function WorkspaceTasksPage() {
                   }}
                 />
               ))}
+
+              {pendingTasks.length === 0 && (
+                <EmptyState
+                  title={
+                    activeTab === "my-day"
+                      ? "Nenhuma tarefa focada para hoje"
+                      : "Nenhuma tarefa pendente encontrada"
+                  }
+                  description={
+                    activeTab === "my-day"
+                      ? "Marque com a estrela as tarefas que deseja executar hoje ou crie uma nova."
+                      : "Todas as atividades deste filtro foram concluídas ou ainda não foram criadas."
+                  }
+                />
+              )}
             </div>
-          )}
-        </div>
+
+            {/* Tarefas Concluídas */}
+            {completedTasks.length > 0 && (
+              <div className="space-y-2 pt-4 border-t border-border/60">
+                <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
+                  <CheckCircle2 className="size-4 text-emerald-500" />
+                  <span>Concluídas ({completedTasks.length})</span>
+                </div>
+
+                {completedTasks.map((task) => (
+                  <TaskItemCard
+                    key={task.id}
+                    task={task}
+                    onToggleStatus={handleToggleStatus}
+                    onToggleMyDay={handleToggleMyDay}
+                    onClick={(t) => {
+                      setSelectedTask(t);
+                      setDetailOpen(true);
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── 3. Painel de Métricas / Dashboard Sob Demanda ── */}
+      <WorkspaceDashboardSheet
+        open={isDashboardOpen}
+        onOpenChange={setIsDashboardOpen}
+        title="Painel de Produtividade & Tarefas"
+        description="Indicadores de foco, volume pendente, conclusões e atrasos da equipe."
+        metrics={dashboardMetrics}
+        breakdown={{
+          title: "Distribuição por Prioridade",
+          items: [
+            {
+              label: "Urgente",
+              value: tasks.filter((t) => t.priority === "urgent" && t.status !== "done").length,
+              total: Math.max(tasks.length, 1),
+              color: "bg-red-500",
+            },
+            {
+              label: "Alta",
+              value: tasks.filter((t) => t.priority === "high" && t.status !== "done").length,
+              total: Math.max(tasks.length, 1),
+              color: "bg-amber-500",
+            },
+            {
+              label: "Normal",
+              value: tasks.filter((t) => t.priority === "medium" && t.status !== "done").length,
+              total: Math.max(tasks.length, 1),
+              color: "bg-sky-500",
+            },
+            {
+              label: "Baixa",
+              value: tasks.filter((t) => t.priority === "low" && t.status !== "done").length,
+              total: Math.max(tasks.length, 1),
+              color: "bg-slate-400",
+            },
+          ],
+        }}
+      />
+
+      {/* ── 4. Modal de Customização de Colunas do Kanban ── */}
+      {storeId && (
+        <KanbanColumnCustomizerModal
+          open={isCustomizerOpen}
+          onOpenChange={setIsCustomizerOpen}
+          storeId={storeId}
+          module="tasks"
+          stages={stages}
+          onStagesUpdated={(updated) => setStages(updated)}
+        />
       )}
 
       {/* ── 5. Modal de Criação de Tarefa ── */}

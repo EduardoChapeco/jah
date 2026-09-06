@@ -20,13 +20,13 @@ import { getServerClient } from "@/lib/supabase";
 // ---------------------------------------------------------------------------
 
 const federatedSearchInput = z.object({
-  query: z.string().min(1).max(200),
-  types: z
-    .array(z.enum(["product", "event", "classified", "store"]))
-    .optional()
-    .default(["product", "event", "classified", "store"]),
-  limit: z.number().int().min(1).max(50).optional().default(10),
-  store_id: z.string().uuid().optional(), // Opcional: filtrar por loja específica
+ query: z.string().min(1).max(200),
+ types: z
+ .array(z.enum(["product", "event", "classified", "store"]))
+ .optional()
+ .default(["product", "event", "classified", "store"]),
+ limit: z.number().int().min(1).max(50).optional().default(10),
+ store_id: z.string().uuid().optional(), // Opcional: filtrar por loja específica
 });
 
 export type FederatedSearchInput = z.infer<typeof federatedSearchInput>;
@@ -36,62 +36,62 @@ export type FederatedSearchInput = z.infer<typeof federatedSearchInput>;
 // ---------------------------------------------------------------------------
 
 export type SearchResultProduct = {
-  type: "product";
-  id: string;
-  title: string;
-  slug: string;
-  price_cents: number;
-  cover_url: string | null;
-  store_id: string;
-  status: string;
+ type: "product";
+ id: string;
+ title: string;
+ slug: string;
+ price_cents: number;
+ cover_url: string | null;
+ store_id: string;
+ status: string;
 };
 
 export type SearchResultEvent = {
-  type: "event";
-  id: string;
-  title: string;
-  description: string | null;
-  event_date: string;
-  location: string | null;
-  is_free: boolean;
-  cover_image: string | null;
-  store_id: string;
-  status: string;
+ type: "event";
+ id: string;
+ title: string;
+ description: string | null;
+ event_date: string;
+ location: string | null;
+ is_free: boolean;
+ cover_image: string | null;
+ store_id: string;
+ status: string;
 };
 
 export type SearchResultClassified = {
-  type: "classified";
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  price_cents: number | null;
-  location_text: string | null;
-  images: string[];
-  condition: string | null;
-  negotiable: boolean;
-  author_profile_id: string;
-  status: string;
+ type: "classified";
+ id: string;
+ title: string;
+ content: string;
+ category: string;
+ price_cents: number | null;
+ location_text: string | null;
+ images: string[];
+ condition: string | null;
+ negotiable: boolean;
+ author_profile_id: string;
+ status: string;
 };
 
 export type SearchResultStore = {
-  type: "store";
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  logo_url: string | null;
+ type: "store";
+ id: string;
+ name: string;
+ slug: string;
+ description: string | null;
+ logo_url: string | null;
 };
 
 export type SearchResult =
-  SearchResultProduct | SearchResultEvent | SearchResultClassified | SearchResultStore;
+ SearchResultProduct | SearchResultEvent | SearchResultClassified | SearchResultStore;
 
 export type FederatedSearchResponse = {
-  products: SearchResultProduct[];
-  events: SearchResultEvent[];
-  classifieds: SearchResultClassified[];
-  stores: SearchResultStore[];
-  total: number;
+ products: SearchResultProduct[];
+ events: SearchResultEvent[];
+ classifieds: SearchResultClassified[];
+ stores: SearchResultStore[];
+ total: number;
 };
 
 // ---------------------------------------------------------------------------
@@ -99,233 +99,233 @@ export type FederatedSearchResponse = {
 // ---------------------------------------------------------------------------
 
 async function _federatedSearch(input: FederatedSearchInput): Promise<FederatedSearchResponse> {
-  const db = getServerClient();
-  const { query, types, limit, store_id } = input;
+ const db = getServerClient();
+ const { query, types, limit, store_id } = input;
 
-  // Preparar o termo de busca para FTS e ILIKE
-  const ftsTerm = query
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((w) => `${w}:*`)
-    .join(" & ");
+ // Preparar o termo de busca para FTS e ILIKE
+ const ftsTerm = query
+ .trim()
+ .split(/\s+/)
+ .filter(Boolean)
+ .map((w) => `${w}:*`)
+ .join(" & ");
 
-  const ilikeTerm = `%${query.trim()}%`;
+ const ilikeTerm = `%${query.trim()}%`;
 
-  const results: FederatedSearchResponse = {
-    products: [],
-    events: [],
-    classifieds: [],
-    stores: [],
-    total: 0,
-  };
+ const results: FederatedSearchResponse = {
+ products: [],
+ events: [],
+ classifieds: [],
+ stores: [],
+ total: 0,
+ };
 
-  const promises: Promise<void>[] = [];
+ const promises: Promise<void>[] = [];
 
-  // ── Produtos ──────────────────────────────────────────────────────────────
-  if (types.includes("product")) {
-    promises.push(
-      (async () => {
-        let q = db
-          .from("products")
-          .select("id, title, slug, price_cents, status, store_id, product_media(url, is_cover, sort_order)")
-          .eq("status", "published")
-          .limit(limit);
+ // ── Produtos ──────────────────────────────────────────────────────────────
+ if (types.includes("product")) {
+ promises.push(
+ (async () => {
+ let q = db
+ .from("products")
+ .select("id, title, slug, price_cents, status, store_id, product_media(url, is_cover, sort_order)")
+ .eq("status", "published")
+ .limit(limit);
 
-        if (store_id) q = q.eq("store_id", store_id);
+ if (store_id) q = q.eq("store_id", store_id);
 
-        const extractCover = (mediaList: any[] = []) => {
-          if (!mediaList || mediaList.length === 0) return null;
-          const cover = mediaList.find((m) => m.is_cover);
-          return cover?.url || mediaList[0]?.url || null;
-        };
+ const extractCover = (mediaList: any[] = []) => {
+ if (!mediaList || mediaList.length === 0) return null;
+ const cover = mediaList.find((m) => m.is_cover);
+ return cover?.url || mediaList[0]?.url || null;
+ };
 
-        // Tenta FTS primeiro, cai para ILIKE se search_vector não existir
-        try {
-          const { data, error } = await q.textSearch("search_vector", ftsTerm, {
-            type: "websearch",
-            config: "portuguese",
-          });
-          if (!error && data) {
-            results.products = data.map((p: any) => ({
-              type: "product" as const,
-              id: p.id,
-              title: p.title,
-              slug: p.slug,
-              price_cents: p.price_cents,
-              cover_url: extractCover(p.product_media),
-              store_id: p.store_id,
-              status: p.status,
-            }));
-            return;
-          }
-        } catch (err) {
-          // ignore error and fallback
-        }
+ // Tenta FTS primeiro, cai para ILIKE se search_vector não existir
+ try {
+ const { data, error } = await q.textSearch("search_vector", ftsTerm, {
+ type: "websearch",
+ config: "portuguese",
+ });
+ if (!error && data) {
+ results.products = data.map((p: any) => ({
+ type: "product" as const,
+ id: p.id,
+ title: p.title,
+ slug: p.slug,
+ price_cents: p.price_cents,
+ cover_url: extractCover(p.product_media),
+ store_id: p.store_id,
+ status: p.status,
+ }));
+ return;
+ }
+ } catch (err) {
+ // ignore error and fallback
+ }
 
-        // Fallback ILIKE
-        const { data } = await q.ilike("title", ilikeTerm);
-        results.products = (data || []).map((p: any) => ({
-          type: "product" as const,
-          id: p.id,
-          title: p.title,
-          slug: p.slug,
-          price_cents: p.price_cents,
-          cover_url: extractCover(p.product_media),
-          store_id: p.store_id,
-          status: p.status,
-        }));
-      })(),
-    );
-  }
+ // Fallback ILIKE
+ const { data } = await q.ilike("title", ilikeTerm);
+ results.products = (data || []).map((p: any) => ({
+ type: "product" as const,
+ id: p.id,
+ title: p.title,
+ slug: p.slug,
+ price_cents: p.price_cents,
+ cover_url: extractCover(p.product_media),
+ store_id: p.store_id,
+ status: p.status,
+ }));
+ })(),
+ );
+ }
 
-  // ── Eventos ────────────────────────────────────────────────────────────────
-  if (types.includes("event")) {
-    promises.push(
-      (async () => {
-        let q = db
-          .from("events")
-          .select(
-            "id, title, description, event_date, location, is_free, cover_image, store_id, status",
-          )
-          .eq("status", "published")
-          .gte("event_date", new Date().toISOString()) // Apenas eventos futuros
-          .order("event_date", { ascending: true })
-          .limit(limit);
+ // ── Eventos ────────────────────────────────────────────────────────────────
+ if (types.includes("event")) {
+ promises.push(
+ (async () => {
+ let q = db
+ .from("events")
+ .select(
+ "id, title, description, event_date, location, is_free, cover_image, store_id, status",
+ )
+ .eq("status", "published")
+ .gte("event_date", new Date().toISOString()) // Apenas eventos futuros
+ .order("event_date", { ascending: true })
+ .limit(limit);
 
-        if (store_id) q = q.eq("store_id", store_id);
+ if (store_id) q = q.eq("store_id", store_id);
 
-        try {
-          const { data, error } = await q.textSearch("search_vector", ftsTerm, {
-            type: "websearch",
-            config: "portuguese",
-          });
-          if (!error && data) {
-            results.events = data.map((e) => ({
-              type: "event" as const,
-              id: e.id,
-              title: e.title,
-              description: e.description,
-              event_date: e.event_date,
-              location: e.location,
-              is_free: e.is_free ?? false,
-              cover_image: e.cover_image,
-              store_id: e.store_id,
-              status: e.status,
-            }));
-            return;
-          }
-        } catch (err) {
-          // ignore error and fallback
-        }
+ try {
+ const { data, error } = await q.textSearch("search_vector", ftsTerm, {
+ type: "websearch",
+ config: "portuguese",
+ });
+ if (!error && data) {
+ results.events = data.map((e) => ({
+ type: "event" as const,
+ id: e.id,
+ title: e.title,
+ description: e.description,
+ event_date: e.event_date,
+ location: e.location,
+ is_free: e.is_free ?? false,
+ cover_image: e.cover_image,
+ store_id: e.store_id,
+ status: e.status,
+ }));
+ return;
+ }
+ } catch (err) {
+ // ignore error and fallback
+ }
 
-        const { data } = await q.ilike("title", ilikeTerm);
-        results.events = (data || []).map((e) => ({
-          type: "event" as const,
-          id: e.id,
-          title: e.title,
-          description: e.description,
-          event_date: e.event_date,
-          location: e.location,
-          is_free: e.is_free ?? false,
-          cover_image: e.cover_image,
-          store_id: e.store_id,
-          status: e.status,
-        }));
-      })(),
-    );
-  }
+ const { data } = await q.ilike("title", ilikeTerm);
+ results.events = (data || []).map((e) => ({
+ type: "event" as const,
+ id: e.id,
+ title: e.title,
+ description: e.description,
+ event_date: e.event_date,
+ location: e.location,
+ is_free: e.is_free ?? false,
+ cover_image: e.cover_image,
+ store_id: e.store_id,
+ status: e.status,
+ }));
+ })(),
+ );
+ }
 
-  // ── Classificados ─────────────────────────────────────────────────────────
-  if (types.includes("classified")) {
-    promises.push(
-      (async () => {
-        const q = db
-          .from("classifieds")
-          .select(
-            "id, title, content, category, price_cents, location_text, images, condition, negotiable, author_profile_id, status",
-          )
-          .eq("status", "active")
-          .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
-          .order("created_at", { ascending: false })
-          .limit(limit);
+ // ── Classificados ─────────────────────────────────────────────────────────
+ if (types.includes("classified")) {
+ promises.push(
+ (async () => {
+ const q = db
+ .from("classifieds")
+ .select(
+ "id, title, content, category, price_cents, location_text, images, condition, negotiable, author_profile_id, status",
+ )
+ .eq("status", "active")
+ .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+ .order("created_at", { ascending: false })
+ .limit(limit);
 
-        try {
-          const { data, error } = await q.textSearch("search_vector", ftsTerm, {
-            type: "websearch",
-            config: "portuguese",
-          });
-          if (!error && data) {
-            results.classifieds = data.map((c) => ({
-              type: "classified" as const,
-              id: c.id,
-              title: c.title,
-              content: c.content,
-              category: c.category,
-              price_cents: c.price_cents,
-              location_text: c.location_text,
-              images: c.images ?? [],
-              condition: c.condition,
-              negotiable: c.negotiable ?? true,
-              author_profile_id: c.author_profile_id,
-              status: c.status,
-            }));
-            return;
-          }
-        } catch (err) {
-          // ignore error and fallback
-        }
+ try {
+ const { data, error } = await q.textSearch("search_vector", ftsTerm, {
+ type: "websearch",
+ config: "portuguese",
+ });
+ if (!error && data) {
+ results.classifieds = data.map((c) => ({
+ type: "classified" as const,
+ id: c.id,
+ title: c.title,
+ content: c.content,
+ category: c.category,
+ price_cents: c.price_cents,
+ location_text: c.location_text,
+ images: c.images ?? [],
+ condition: c.condition,
+ negotiable: c.negotiable ?? true,
+ author_profile_id: c.author_profile_id,
+ status: c.status,
+ }));
+ return;
+ }
+ } catch (err) {
+ // ignore error and fallback
+ }
 
-        const { data } = await q.ilike("title", ilikeTerm);
-        results.classifieds = (data || []).map((c) => ({
-          type: "classified" as const,
-          id: c.id,
-          title: c.title,
-          content: c.content,
-          category: c.category,
-          price_cents: c.price_cents,
-          location_text: c.location_text,
-          images: c.images ?? [],
-          condition: c.condition,
-          negotiable: c.negotiable ?? true,
-          author_profile_id: c.author_profile_id,
-          status: c.status,
-        }));
-      })(),
-    );
-  }
+ const { data } = await q.ilike("title", ilikeTerm);
+ results.classifieds = (data || []).map((c) => ({
+ type: "classified" as const,
+ id: c.id,
+ title: c.title,
+ content: c.content,
+ category: c.category,
+ price_cents: c.price_cents,
+ location_text: c.location_text,
+ images: c.images ?? [],
+ condition: c.condition,
+ negotiable: c.negotiable ?? true,
+ author_profile_id: c.author_profile_id,
+ status: c.status,
+ }));
+ })(),
+ );
+ }
 
-  // ── Lojas/Perfis ──────────────────────────────────────────────────────────
-  if (types.includes("store")) {
-    promises.push(
-      (async () => {
-        const { data } = await db
-          .from("stores")
-          .select("id, name, slug, settings")
-          .ilike("name", ilikeTerm)
-          .limit(limit);
+ // ── Lojas/Perfis ──────────────────────────────────────────────────────────
+ if (types.includes("store")) {
+ promises.push(
+ (async () => {
+ const { data } = await db
+ .from("stores")
+ .select("id, name, slug, settings")
+ .ilike("name", ilikeTerm)
+ .limit(limit);
 
-        results.stores = (data || []).map((s) => ({
-          type: "store" as const,
-          id: s.id,
-          name: s.name,
-          slug: s.slug,
-          description: (s.settings as any)?.description || null,
-          logo_url: (s.settings as any)?.logoUrl || (s.settings as any)?.logo_url || null,
-        }));
-      })(),
-    );
-  }
+ results.stores = (data || []).map((s) => ({
+ type: "store" as const,
+ id: s.id,
+ name: s.name,
+ slug: s.slug,
+ description: (s.settings as any)?.description || null,
+ logo_url: (s.settings as any)?.logoUrl || (s.settings as any)?.logo_url || null,
+ }));
+ })(),
+ );
+ }
 
-  await Promise.allSettled(promises);
+ await Promise.allSettled(promises);
 
-  results.total =
-    results.products.length +
-    results.events.length +
-    results.classifieds.length +
-    results.stores.length;
+ results.total =
+ results.products.length +
+ results.events.length +
+ results.classifieds.length +
+ results.stores.length;
 
-  return results;
+ return results;
 }
 
 // ---------------------------------------------------------------------------
@@ -333,56 +333,56 @@ async function _federatedSearch(input: FederatedSearchInput): Promise<FederatedS
 // ---------------------------------------------------------------------------
 
 export const federatedSearch = createServerFn({ method: "GET" })
-  .validator(federatedSearchInput)
-  .handler(async ({ data }) => _federatedSearch(data));
+ .validator(federatedSearchInput)
+ .handler(async ({ data }) => _federatedSearch(data));
 
 // ---------------------------------------------------------------------------
 // Instant Typeahead Search (Real-time Overlay)
 // ---------------------------------------------------------------------------
 export const instantTypeaheadSearch = createServerFn({ method: "GET" })
-  .validator(
-    z.object({
-      query: z.string().default(""),
-      limit: z.number().int().min(1).max(20).default(6),
-    }),
-  )
-  .handler(async ({ data }) => {
-    const q = data.query.trim();
-    if (q.length < 2) {
-      return {
-        query: q,
-        suggestions: [],
-        stores: [],
-        products: [],
-      };
-    }
+ .validator(
+ z.object({
+ query: z.string().default(""),
+ limit: z.number().int().min(1).max(20).default(6),
+ }),
+ )
+ .handler(async ({ data }) => {
+ const q = data.query.trim();
+ if (q.length < 2) {
+ return {
+ query: q,
+ suggestions: [],
+ stores: [],
+ products: [],
+ };
+ }
 
-    const db = getServerClient();
-    const { data: res, error } = await db.rpc("search_typeahead_instant", {
-      p_query: q,
-      p_limit: data.limit,
-    });
+ const db = getServerClient();
+ const { data: res, error } = await db.rpc("search_typeahead_instant", {
+ p_query: q,
+ p_limit: data.limit,
+ });
 
-    if (error || !res) {
-      // Fallback gracioso com queries padrão
-      const [storesRes, productsRes] = await Promise.all([
-        db.from("stores").select("id, name, slug, settings").ilike("name", `%${q}%`).limit(4),
-        db.from("products").select("id, title, slug, price_cents, cover_url, store_id").ilike("title", `%${q}%`).eq("status", "active").limit(4),
-      ]);
+ if (error || !res) {
+ // Fallback gracioso com queries padrão
+ const [storesRes, productsRes] = await Promise.all([
+ db.from("stores").select("id, name, slug, settings").ilike("name", `%${q}%`).limit(4),
+ db.from("products").select("id, title, slug, price_cents, cover_url, store_id").ilike("title", `%${q}%`).eq("status", "active").limit(4),
+ ]);
 
-      return {
-        query: q,
-        suggestions: (productsRes.data || []).map((p: any) => p.title).slice(0, 3),
-        stores: (storesRes.data || []).map((s: any) => ({
-          id: s.id,
-          name: s.name,
-          slug: s.slug,
-          logo_url: s.settings?.logoUrl || s.settings?.logo_url || null,
-        })),
-        products: productsRes.data || [],
-      };
-    }
+ return {
+ query: q,
+ suggestions: (productsRes.data || []).map((p: any) => p.title).slice(0, 3),
+ stores: (storesRes.data || []).map((s: any) => ({
+ id: s.id,
+ name: s.name,
+ slug: s.slug,
+ logo_url: s.settings?.logoUrl || s.settings?.logo_url || null,
+ })),
+ products: productsRes.data || [],
+ };
+ }
 
-    return res;
-  });
+ return res;
+ });
 

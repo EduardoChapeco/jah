@@ -3,6 +3,7 @@ import { getServerClient } from "@/lib/supabase";
 import { getServerIdentity } from "@/lib/server-access";
 import { z } from "zod";
 import crypto from "node:crypto";
+import { DEFAULT_BRAND_NAME } from "@/lib/brand";
 
 /**
  * Validates that the current user is a Platform Admin (Master).
@@ -123,7 +124,7 @@ export const toggleStoreStatus = createServerFn({ method: "POST" })
  .single();
 
  if (targetStore?.is_platform_root || targetStore?.slug === "wider") {
- throw new Error("A loja oficial da plataforma (JAH Root) é protegida contra suspensão ou exclusão.");
+ throw new Error("A loja oficial da plataforma (Wider Root) é protegida contra suspensão ou exclusão.");
  }
 
  const { error } = await db
@@ -441,6 +442,47 @@ export const revokeUserSanction = createServerFn({ method: "POST" })
  return { success: true };
  });
 
+export const adminUpdateUserRole = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      targetUserId: z.string().uuid(),
+      newRole: z.enum(["customer", "store_owner", "operator", "platform_admin"]),
+    }),
+  )
+  .handler(async ({ data: { targetUserId, newRole } }) => {
+    const admin = await requirePlatformAdmin();
+    const db = getServerClient();
+
+    const { error: rpcErr } = await db.rpc("admin_set_user_role", {
+      p_target_user_id: targetUserId,
+      p_new_role: newRole,
+    });
+
+    if (rpcErr) {
+      const { error: updateErr } = await db
+        .from("profiles")
+        .update({ role: newRole })
+        .eq("id", targetUserId);
+
+      if (updateErr) {
+        throw new Error("Erro ao atualizar papel do usuário: " + updateErr.message);
+      }
+    }
+
+    try {
+      await db.from("forensic_audit_events").insert({
+        actor_id: admin.id,
+        actor_role: "platform_admin",
+        target_entity_type: "user",
+        target_entity_id: targetUserId,
+        action: `update_user_role_to_${newRole}`,
+        payload_snapshot: { newRole },
+      });
+    } catch {}
+
+    return { success: true, message: `Nível do usuário atualizado para ${newRole}.` };
+  });
+
 // ============================================================
 // 5. KYC & VERIFICAÇÃO FACIAL / SELO DE AUTENTICIDADE
 // ============================================================
@@ -651,9 +693,11 @@ export const getPublicBrandSettings = createServerFn({ method: "GET" }).handler(
  const store = await resolvePlatformRootStore(db);
 
  const settings = (store?.settings as Record<string, any>) || {};
+ const storeName = store?.name && store.name !== "Wider" ? store.name : DEFAULT_BRAND_NAME;
+
  return {
  store_id: store?.id || null,
- platform_name: store?.name || "JAH",
+ platform_name: storeName,
  logo_url: settings.logoUrl || settings.logo_url || null,
  favicon_url: settings.faviconUrl || settings.favicon_url || null,
  show_name: settings.show_name !== false,
@@ -683,9 +727,11 @@ export const getPlatformBrandSettings = createServerFn({ method: "GET" }).handle
  const store = await resolvePlatformRootStore(db);
 
  const settings = (store?.settings as Record<string, any>) || {};
+ const storeName = store?.name && store.name !== "Wider" ? store.name : DEFAULT_BRAND_NAME;
+
  return {
  store_id: store?.id || null,
- platform_name: store?.name || "JAH",
+ platform_name: storeName,
  logo_url: settings.logoUrl || settings.logo_url || null,
  favicon_url: settings.faviconUrl || settings.favicon_url || null,
  show_name: settings.show_name !== false,
@@ -742,7 +788,7 @@ export const updatePlatformBrandSettings = createServerFn({ method: "POST" })
  const { data: newStore, error: createErr } = await db
  .from("stores")
  .insert({
- name: input.platform_name || "JAH",
+ name: input.platform_name || "Wider",
  slug: "wider-matriz",
  is_platform_root: true,
  is_active: true,
@@ -975,7 +1021,7 @@ export const DEFAULT_LOGISTICS_PRESENTATION: LogisticsPresentationSettings = {
  title: "Logística Integrada & MotoLink",
  subtitle: "Conecte-se aos entregadores autônomos da sua cidade sem intermediários e com zero taxa de frete.",
  badge: "Zero Taxa de Intermediação",
- disclaimer: "O JAH é uma infraestrutura tecnológica aberta. Não intermediamos pagamentos de fretes nem cobramos comissão entre entregadores e empresas. A relação comercial e operacional é direta e independente entre as partes.",
+ disclaimer: "O Wider é uma infraestrutura tecnológica aberta. Não intermediamos pagamentos de fretes nem cobramos comissão entre entregadores e empresas. A relação comercial e operacional é direta e independente entre as partes.",
  image_desktop_url: null,
  image_tablet_url: null,
  image_mobile_url: null,
@@ -1141,7 +1187,7 @@ export const getPlatformSystemHealth = createServerFn({ method: "GET" }).handler
  total_wallets: walletsCount.count || 0,
  },
  algorithm: {
- name: "JAH Pulse Multi-Signal v1",
+ name: "Wider Pulse Multi-Signal v1",
  total_weights_percent: totalWeights,
  is_calibrated: totalWeights === 100,
  weights: {

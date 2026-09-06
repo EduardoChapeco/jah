@@ -13,7 +13,7 @@ import { getPlatformBrandSettings, updatePlatformBrandSettings } from "@/service
 import { uploadBrandAsset } from "@/services/storage.functions";
 
 export const Route = createFileRoute("/admin-master/marca")({
- head: () => ({ meta: [{ title: "Identidade da Marca & CMS | JAH Master" }] }),
+ head: () => ({ meta: [{ title: "Identidade da Marca & CMS | Admin Wider OS" }] }),
  loader: async () => {
  try {
  const brand = await getPlatformBrandSettings();
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/admin-master/marca")({
  return {
  brand: {
  store_id: null,
- platform_name: "JAH",
+ platform_name: "Wider",
  logo_url: null,
  favicon_url: null,
  show_name: true,
@@ -52,7 +52,7 @@ function AdminMasterMarcaPage() {
  const router = useRouter();
 
  // Estados dos Campos
- const [platformName, setPlatformName] = useState(initialBrand.platform_name || "JAH");
+ const [platformName, setPlatformName] = useState(initialBrand.platform_name && initialBrand.platform_name !== "Wider" ? initialBrand.platform_name : "Wider");
  const [showName, setShowName] = useState(initialBrand.show_name !== false);
  const [showLogo, setShowLogo] = useState(initialBrand.show_logo !== false);
  const [logoUrl, setLogoUrl] = useState<string | null>(initialBrand.logo_url || null);
@@ -94,7 +94,7 @@ function AdminMasterMarcaPage() {
  // Verificação de Alterações Pendentes (Dirty State)
  const isDirty = useMemo(() => {
  return (
- platformName !== (initialBrand.platform_name || "JAH") ||
+ platformName !== (initialBrand.platform_name || "Wider") ||
  showName !== (initialBrand.show_name !== false) ||
  showLogo !== (initialBrand.show_logo !== false) ||
  logoUrl !== (initialBrand.logo_url || null) ||
@@ -762,7 +762,7 @@ function AdminMasterMarcaPage() {
  ) : null}
  {(showName || !logoUrl) && (
  <span className="font-display font-black text-base tracking-tight text-foreground">
- {platformName || "JAH"}
+ {platformName || "Wider"}
  </span>
  )}
  {!showLogo && !showName && (
@@ -908,7 +908,7 @@ function AdminMasterMarcaPage() {
  <div className="flex items-center justify-between">
  <span className="text-[10px] font-bold text-white">Acessar Conta</span>
  <Badge className="bg-primary text-primary-foreground text-[8px] px-1.5 py-0">
- {platformName || "JAH"}
+ {platformName || "Wider"}
  </Badge>
  </div>
  <div className="h-6 rounded-md bg-white/10 border border-white/15 px-2 flex items-center justify-between text-[9px] text-white/60">
@@ -935,7 +935,7 @@ function AdminMasterMarcaPage() {
  )}
  </div>
  <span className="text-xs text-foreground font-medium truncate flex-1">
- {platformName || "JAH"} — Master OS
+ {platformName || "Wider"} — Wider OS
  </span>
  <span className="text-xs text-muted-foreground ml-1">×</span>
  </div>

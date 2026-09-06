@@ -8,7 +8,7 @@ export const listTravelSuppliers = createServerFn({ method: 'GET' })
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  const storeId = data.store_id || identity.store_id;
- assertStoreAccess(identity, storeId);
+ assertStoreAccess(identity);
 
  const db = getServerClient();
  let q = db
@@ -44,7 +44,7 @@ export const createTravelSupplier = createServerFn({ method: 'POST' })
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  const storeId = data.store_id || identity.store_id;
- assertStoreAccess(identity, storeId);
+ assertStoreAccess(identity);
 
  const db = getServerClient();
  const { data: row, error } = await db

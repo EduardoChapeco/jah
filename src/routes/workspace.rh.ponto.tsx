@@ -1,32 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   Clock, 
-  Calendar, 
   MapPin, 
   ShieldCheck, 
   UserCheck, 
   AlertCircle, 
-  FileText, 
-  Filter,
   CheckCircle2,
   Edit3,
   Search,
-  Users
+  Users,
+  TrendingUp,
+  SlidersHorizontal
 } from "lucide-react";
 import { toast } from "sonner";
-import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { listEmployeeTimeEntries, adjustTimeEntry } from "@/services/hr.functions";
 import { formatDateTime, formatTimeOnly } from "@/lib/datetime";
+import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-canonical-toolbar";
+import { WorkspaceDashboardSheet } from "@/components/workspace/workspace-dashboard-sheet";
 
 export const Route = createFileRoute("/workspace/rh/ponto")({
-  head: () => ({ meta: [{ title: "Espelho de Ponto Eletrônico | Gestão RH JAH" }] }),
+  head: () => ({ meta: [{ title: "Espelho de Ponto Eletrônico | Gestão RH Wider" }] }),
   component: WorkspaceRHPontoPage,
 });
 
@@ -36,6 +35,7 @@ function WorkspaceRHPontoPage() {
   const [adjustmentReason, setAdjustmentReason] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [searchEmployee, setSearchEmployee] = useState("");
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
 
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ["employee-time-entries"],
@@ -56,14 +56,24 @@ function WorkspaceRHPontoPage() {
     },
   });
 
-  const filteredEntries = entries.filter((entry: any) => {
-    if (filterType !== "all" && entry.entry_type !== filterType) return false;
-    if (searchEmployee) {
-      const name = entry.employee?.full_name?.toLowerCase() || "";
-      if (!name.includes(searchEmployee.toLowerCase())) return false;
-    }
-    return true;
-  });
+  const filteredEntries = useMemo(() => {
+    return entries.filter((entry: any) => {
+      if (filterType !== "all" && entry.entry_type !== filterType) return false;
+      if (searchEmployee) {
+        const name = entry.employee?.full_name?.toLowerCase() || "";
+        if (!name.includes(searchEmployee.toLowerCase())) return false;
+      }
+      return true;
+    });
+  }, [entries, filterType, searchEmployee]);
+
+  const stats = useMemo(() => {
+    const total = entries.length;
+    const verified = entries.filter((e: any) => e.status === "verified").length;
+    const adjusted = entries.filter((e: any) => e.status === "adjusted").length;
+    const uniqueEmployees = new Set(entries.map((e: any) => e.employee_id || e.employee?.full_name)).size;
+    return { total, verified, adjusted, uniqueEmployees };
+  }, [entries]);
 
   const ENTRY_TYPE_LABELS: Record<string, { label: string; color: string }> = {
     clock_in: { label: "Entrada", color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
@@ -75,41 +85,60 @@ function WorkspaceRHPontoPage() {
   };
 
   return (
-    <div className="flex-1 space-y-6 p-6 max-w-7xl mx-auto">
-      <PageHeader
-        title="Espelho de Ponto Eletrônico"
-        description="Monitoramento em tempo real de jornada, geolocalização com GPS e auditoria de batidas."
+    <div className="flex-1 space-y-4 p-4 md:p-6 max-w-7xl mx-auto">
+      {/* ── 1. Barra Canônica de Operação Silenciosa ── */}
+      <WorkspaceCanonicalToolbar
+        tabs={[
+          { id: "all", label: "Todas Batidas", icon: Clock, count: entries.length },
+          { id: "clock_in", label: "Entrada", icon: UserCheck, count: entries.filter((e: any) => e.entry_type === "clock_in").length },
+          { id: "lunch_out", label: "Almoço", icon: Clock, count: entries.filter((e: any) => e.entry_type === "lunch_out").length },
+          { id: "clock_out", label: "Saída", icon: ShieldCheck, count: entries.filter((e: any) => e.entry_type === "clock_out").length },
+        ]}
+        activeTab={filterType}
+        onTabChange={(id) => setFilterType(id)}
+        searchQuery={searchEmployee}
+        onSearchChange={setSearchEmployee}
+        searchPlaceholder="Buscar por colaborador ou matrícula..."
+        onMetricsClick={() => setIsDashboardOpen(true)}
+        metricsBadge={`${stats.total} registros`}
       />
 
-      {/* Layer 1: Filtros e Barra de Controle Apple HIG */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card/60 backdrop-blur-xl p-4 rounded-2xl border border-border shadow-sm">
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por colaborador..."
-            value={searchEmployee}
-            onChange={(e) => setSearchEmployee(e.target.value)}
-            className="pl-10 h-11 rounded-xl bg-background/50 min-h-[44px]"
-          />
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto pb-2 sm:pb-0">
-          {["all", "clock_in", "lunch_out", "lunch_in", "clock_out"].map((type) => (
-            <Button
-              key={type}
-              variant={filterType === type ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilterType(type)}
-              className="h-10 rounded-xl px-3.5 min-h-[44px] text-xs font-medium shrink-0"
-            >
-              {type === "all" ? "Todos os Pontos" : ENTRY_TYPE_LABELS[type]?.label || type}
-            </Button>
-          ))}
-        </div>
-      </div>
+      {/* ── Dashboard Drawer Sob Demanda ── */}
+      <WorkspaceDashboardSheet
+        isOpen={isDashboardOpen}
+        onClose={() => setIsDashboardOpen(false)}
+        title="Telemetria de Jornada e Ponto Eletrônico"
+        description="Métricas em tempo real de assiduidade, conformidade geolocalizada e ajustes."
+        metrics={[
+          {
+            label: "Total de Batidas",
+            value: stats.total,
+            description: "Registros auditados no espelho",
+            icon: Clock,
+          },
+          {
+            label: "Colaboradores Ativos",
+            value: stats.uniqueEmployees,
+            description: "Com registros no período",
+            icon: Users,
+          },
+          {
+            label: "Batidas Verificadas",
+            value: stats.verified,
+            description: "Auditadas e conformes",
+            icon: CheckCircle2,
+          },
+          {
+            label: "Ajustes Manuais",
+            value: stats.adjusted,
+            description: "Solicitações de alteração",
+            icon: AlertCircle,
+          },
+        ]}
+      />
 
       {/* Layer 2: Tabela de Registros com Elevação e Touch Targets */}
-      <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
+      <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-xs">
         <div className="overflow-x-auto no-scrollbar">
           <table className="w-full text-left text-sm">
             <thead className="bg-muted/40 text-muted-foreground font-semibold border-b border-border">
@@ -170,7 +199,7 @@ function WorkspaceRHPontoPage() {
                         </div>
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="text-xs text-muted-foreground capitalize">{entry.source.replace("_", " ")}</span>
+                        <span className="text-xs text-muted-foreground capitalize">{entry.source?.replace("_", " ") || "web"}</span>
                       </td>
                       <td className="py-3.5 px-4">
                         <Badge variant="secondary" className="text-xs rounded-lg">

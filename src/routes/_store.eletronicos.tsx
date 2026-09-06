@@ -1,16 +1,16 @@
+import { Tag } from "lucide-react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { useState, useMemo } from "react";
 import {
-  Laptop,
-  Sparkle,
-  DeviceMobile,
-  GameController,
-  Headphones,
-  Television,
-  Plug,
-  Storefront,
-  ShoppingBag,
+ Laptop,
+ DeviceMobile,
+ GameController,
+ Headphones,
+ Television,
+ Plug,
+ Storefront,
+ ShoppingBag,
 } from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button";
@@ -21,9 +21,9 @@ import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import { StoreCard } from "@/components/commerce/store-card";
 import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 import {
-  DiscoveryControlBar,
-  type ViewModeType,
-  type FilterChipOption,
+ DiscoveryControlBar,
+ type ViewModeType,
+ type FilterChipOption,
 } from "@/components/commerce/discovery-control-bar";
 import { getModularSurfaceFeed } from "@/services/surface-cms.functions";
 import { ModularSurfaceFeed } from "@/components/commerce/modular-surface-feed";
@@ -36,206 +36,206 @@ import type { ProductCardDTO } from "@/types/catalog";
 import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const SearchSchema = z.object({
-  q: z.string().optional(),
-  view: z.enum(["feed", "grid", "list"]).default("feed").optional(),
-  sort: z.enum(["newest", "price_asc", "price_desc", "in_stock"]).default("newest").optional(),
-  categoria: z.string().optional(),
+ q: z.string().optional(),
+ view: z.enum(["feed", "grid", "list"]).default("feed").optional(),
+ sort: z.enum(["newest", "price_asc", "price_desc", "in_stock"]).default("newest").optional(),
+ categoria: z.string().optional(),
 });
 
 type EletronicosSearch = z.infer<typeof SearchSchema>;
 
 const ELETRONICOS_DEPARTMENTS: FilterChipOption[] = [
-  { id: "todos", label: "Tudo em Eletrônicos & Tech", icon: Sparkle },
-  { id: "smartphones", label: "Smartphones & Celulares", icon: DeviceMobile },
-  { id: "notebooks", label: "Notebooks & Computadores", icon: Laptop },
-  { id: "gamer", label: "PC Gamer & Periféricos", icon: GameController },
-  { id: "audio", label: "Fones, Caixas & Áudio", icon: Headphones },
-  { id: "tvs", label: "Smart TVs & Monitores", icon: Television },
-  { id: "acessorios", label: "Cabos, Carregadores & Suportes", icon: Plug },
+ { id: "todos", label: "Tudo em Eletrônicos & Tech", icon: Tag },
+ { id: "smartphones", label: "Smartphones & Celulares", icon: DeviceMobile },
+ { id: "notebooks", label: "Notebooks & Computadores", icon: Laptop },
+ { id: "gamer", label: "PC Gamer & Periféricos", icon: GameController },
+ { id: "audio", label: "Fones, Caixas & Áudio", icon: Headphones },
+ { id: "tvs", label: "Smart TVs & Monitores", icon: Television },
+ { id: "acessorios", label: "Cabos, Carregadores & Suportes", icon: Plug },
 ];
 
 export const Route = createFileRoute("/_store/eletronicos")({
-  head: () => ({
-    meta: [
-      { title: "Eletrônicos, Informática, Smartphones & Gamers | JAH Master OS" },
-      {
-        name: "description",
-        content:
-          "Encontre celulares, computadores, consoles, fones de ouvido, televisores e acessórios nas melhores lojas de tecnologia da sua cidade.",
-      },
-    ],
-  }),
-  validateSearch: (search: Record<string, unknown>): EletronicosSearch => SearchSchema.parse(search),
-  loaderDeps: ({ search }) => search,
-  loader: async () => {
-    const [banners, hotpages, marketplaceFeed, productsRes] = await Promise.all([
-      listActiveBanners({ data: { placement: "eletronicos" } }).catch(() => []),
-      listHotpages({ data: { module: "eletronicos" } }).catch(() => []),
-      getModularSurfaceFeed({ data: { surfaceSlug: "eletronicos" } }).catch(() => ({ sections: [], allProducts: [] })),
-      listPublishedProducts({ data: { niche: "eletronicos", limit: 40 } }).catch(() => ({ status: "empty" as const, data: [] as ProductCardDTO[] })),
-    ]);
-    return {
-      banners,
-      hotpages,
-      marketplaceFeed,
-      catalogProducts: (productsRes as any).data ?? [],
-    };
-  },
-  component: EletronicosVerticalPage,
-  pendingComponent: PageSkeleton,
+ head: () => ({
+ meta: [
+ { title: "Eletrônicos, Informática, Smartphones & Gamers | Wider OS" },
+ {
+ name: "description",
+ content:
+ "Encontre celulares, computadores, consoles, fones de ouvido, televisores e acessórios nas melhores lojas de tecnologia da sua cidade.",
+ },
+ ],
+ }),
+ validateSearch: (search: Record<string, unknown>): EletronicosSearch => SearchSchema.parse(search),
+ loaderDeps: ({ search }) => search,
+ loader: async () => {
+ const [banners, hotpages, marketplaceFeed, productsRes] = await Promise.all([
+ listActiveBanners({ data: { placement: "eletronicos" } }).catch(() => []),
+ listHotpages({ data: { module: "eletronicos" } }).catch(() => []),
+ getModularSurfaceFeed({ data: { surfaceSlug: "eletronicos" } }).catch(() => ({ sections: [], allProducts: [] })),
+ listPublishedProducts({ data: { niche: "eletronicos", limit: 40 } }).catch(() => ({ status: "empty" as const, data: [] as ProductCardDTO[] })),
+ ]);
+ return {
+ banners,
+ hotpages,
+ marketplaceFeed,
+ catalogProducts: (productsRes as any).data ?? [],
+ };
+ },
+ component: EletronicosVerticalPage,
+ pendingComponent: PageSkeleton,
 });
 
 function EletronicosVerticalPage() {
-  const { banners, hotpages, marketplaceFeed } = Route.useLoaderData();
-  const search = Route.useSearch();
-  const navigate = useNavigate({ from: Route.fullPath });
+ const { banners, hotpages, marketplaceFeed } = Route.useLoaderData();
+ const search = Route.useSearch();
+ const navigate = useNavigate({ from: Route.fullPath });
 
-  const [activeDepartment, setActiveDepartment] = useState(search.categoria || "todos");
-  const [viewMode, setViewMode] = useState<ViewModeType>(search.view || "feed");
+ const [activeDepartment, setActiveDepartment] = useState(search.categoria || "todos");
+ const [viewMode, setViewMode] = useState<ViewModeType>(search.view || "feed");
 
-  const handleDepartmentChange = (depId: string) => {
-    setActiveDepartment(depId);
-    navigate({
-      search: (prev) => ({
-        ...prev,
-        categoria: depId === "todos" ? undefined : depId,
-      }),
-    });
-  };
+ const handleDepartmentChange = (depId: string) => {
+ setActiveDepartment(depId);
+ navigate({
+ search: (prev) => ({
+ ...prev,
+ categoria: depId === "todos" ? undefined : depId,
+ }),
+ });
+ };
 
-  const handleViewModeChange = (mode: ViewModeType) => {
-    setViewMode(mode);
-    navigate({
-      search: (prev) => ({
-        ...prev,
-        view: mode === "feed" ? undefined : mode,
-      }),
-    });
-  };
+ const handleViewModeChange = (mode: ViewModeType) => {
+ setViewMode(mode);
+ navigate({
+ search: (prev) => ({
+ ...prev,
+ view: mode === "feed" ? undefined : mode,
+ }),
+ });
+ };
 
-  const handleSearchChange = (q: string) => {
-    navigate({
-      search: (prev) => ({
-        ...prev,
-        q: q || undefined,
-      }),
-    });
-  };
+ const handleSearchChange = (q: string) => {
+ navigate({
+ search: (prev) => ({
+ ...prev,
+ q: q || undefined,
+ }),
+ });
+ };
 
-  const relevantHotpages = useMemo(() => {
-    if (!hotpages) return [];
-    return hotpages.filter(
-      (hp) =>
-        hp.module === "marketplace" ||
-        hp.slug.includes("tech") ||
-        hp.slug.includes("gamer") ||
-        hp.slug.includes("fone") ||
-        hp.slug.includes("celular"),
-    );
-  }, [hotpages]);
+ const relevantHotpages = useMemo(() => {
+ if (!hotpages) return [];
+ return hotpages.filter(
+ (hp) =>
+ hp.module === "marketplace" ||
+ hp.slug.includes("tech") ||
+ hp.slug.includes("gamer") ||
+ hp.slug.includes("fone") ||
+ hp.slug.includes("celular"),
+ );
+ }, [hotpages]);
 
-  const allProducts = useMemo(() => {
-    if (!marketplaceFeed?.allProducts) return [];
-    let list = marketplaceFeed.allProducts;
-    if (search.q) {
-      const qLower = search.q.toLowerCase();
-      list = list.filter((p: any) => p.title.toLowerCase().includes(qLower));
-    }
-    return list;
-  }, [marketplaceFeed, search.q]);
+ const allProducts = useMemo(() => {
+ if (!marketplaceFeed?.allProducts) return [];
+ let list = marketplaceFeed.allProducts;
+ if (search.q) {
+ const qLower = search.q.toLowerCase();
+ list = list.filter((p: any) => p.title.toLowerCase().includes(qLower));
+ }
+ return list;
+ }, [marketplaceFeed, search.q]);
 
-  const relevantStores = useMemo(() => {
-    if (!marketplaceFeed?.sections) return [];
-    const storeSection = marketplaceFeed.sections.find((s: any) => s.type === "store_rail");
-    return storeSection?.items || [];
-  }, [marketplaceFeed]);
+ const relevantStores = useMemo(() => {
+ if (!marketplaceFeed?.sections) return [];
+ const storeSection = marketplaceFeed.sections.find((s: any) => s.type === "store_rail");
+ return storeSection?.items || [];
+ }, [marketplaceFeed]);
 
-  return (
-    <div className="w-full space-y-6 pb-20">
-      {/* ── 1. Banners de Tecnologia & Eletrônicos ── */}
-      {banners && banners.length > 0 && (
-        <section aria-label="Destaques de Tecnologia">
-          <BannerHeroCarousel banners={banners} />
-        </section>
-      )}
+ return (
+ <div className="w-full space-y-6 pb-20">
+ {/* ── 1. Banners de Tecnologia & Eletrônicos ── */}
+ {banners && banners.length > 0 && (
+ <section aria-label="Destaques de Tecnologia">
+ <BannerHeroCarousel banners={banners} />
+ </section>
+ )}
 
-      {/* ── 2. Hotpages de Eletrônicos & Informática ── */}
-      {relevantHotpages.length > 0 && (
-        <section aria-label="Coleções de Tecnologia">
-          <HotpagesRail hotpages={relevantHotpages} basePath="/eletronicos" />
-        </section>
-      )}
+ {/* ── 2. Hotpages de Eletrônicos & Informática ── */}
+ {relevantHotpages.length > 0 && (
+ <section aria-label="Coleções de Tecnologia">
+ <HotpagesRail hotpages={relevantHotpages} basePath="/eletronicos" />
+ </section>
+ )}
 
-      {/* ── 3. Barra Canônica de Controle de Descoberta ── */}
-      <DiscoveryControlBar
-        search={search.q || ""}
-        onSearchChange={(q) => navigate({ search: (prev) => ({ ...prev, q }) })}
-        searchPlaceholder="Buscar celulares, notebooks, fones, tvs, gamers..."
-        categories={ELETRONICOS_DEPARTMENTS}
-        activeCategory={activeDepartment}
-        onSelectCategory={handleDepartmentChange}
-        viewMode={viewMode}
-        onViewModeChange={handleViewModeChange}
-        resultsCount={allProducts.length}
-      />
+ {/* ── 3. Barra Canônica de Controle de Descoberta ── */}
+ <DiscoveryControlBar
+ search={search.q || ""}
+ onSearchChange={(q) => navigate({ search: (prev) => ({ ...prev, q }) })}
+ searchPlaceholder="Buscar celulares, notebooks, fones, tvs, gamers..."
+ categories={ELETRONICOS_DEPARTMENTS}
+ activeCategory={activeDepartment}
+ onSelectCategory={handleDepartmentChange}
+ viewMode={viewMode}
+ onViewModeChange={handleViewModeChange}
+ resultsCount={allProducts.length}
+ />
 
-      {/* ── 4. Lojas Especializadas em Tecnologia da Região ── */}
-      {relevantStores.length > 0 && (
-        <section aria-label="Lojas de Tecnologia">
-          <HorizontalRail
-            title="Lojas de Eletrônicos & Informática"
-            hideHeader={true}
-            actionTo="/buscar"
-          >
-            {relevantStores.map((store: any) => (
-              <StoreCard key={store.id} {...store} />
-            ))}
-          </HorizontalRail>
-        </section>
-      )}
+ {/* ── 4. Lojas Especializadas em Tecnologia da Região ── */}
+ {relevantStores.length > 0 && (
+ <section aria-label="Lojas de Tecnologia">
+ <HorizontalRail
+ title="Lojas de Eletrônicos & Informática"
+ hideHeader={true}
+ actionTo="/buscar"
+ >
+ {relevantStores.map((store: any) => (
+ <StoreCard key={store.id} {...store} />
+ ))}
+ </HorizontalRail>
+ </section>
+ )}
 
-      {/* ── 5. Grade / Feed de Produtos de Tecnologia ── */}
-      {viewMode === "feed" ? (
-        <div className="space-y-8">
-          {marketplaceFeed?.sections && marketplaceFeed.sections.length > 0 ? (
-            <ModularSurfaceFeed sections={marketplaceFeed.sections} />
-          ) : (
-            <div className="py-12 text-center text-xs text-muted-foreground">
-              Nenhuma seção ativa no momento.
-            </div>
-          )}
-        </div>
-      ) : allProducts.length === 0 ? (
-        <EmptyState
-          title="Nenhum produto eletrônico encontrado"
-          description="Tente ajustar os termos de busca ou navegue pelos departamentos acima."
-          action={
-            <Button
-              variant="outline"
-              onClick={() => handleDepartmentChange("todos")}
-              className="rounded-xl border-border"
-            >
-              Ver todos os eletrônicos
-            </Button>
-          }
-        />
-      ) : viewMode === "list" ? (
-        <section aria-label="Produtos de Eletrônicos">
-          <div className="flex flex-col gap-3">
-            {allProducts.map((product: any) => (
-              <OfferCard key={product.id} {...product} />
-            ))}
-          </div>
-        </section>
-      ) : (
-        <section aria-label="Produtos de Eletrônicos">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-            {allProducts.map((product: any) => (
-              <OfferCard key={product.id} {...product} />
-            ))}
-          </div>
-        </section>
-      )}
-    </div>
-  );
+ {/* ── 5. Grade / Feed de Produtos de Tecnologia ── */}
+ {viewMode === "feed" ? (
+ <div className="space-y-8">
+ {marketplaceFeed?.sections && marketplaceFeed.sections.length > 0 ? (
+ <ModularSurfaceFeed sections={marketplaceFeed.sections} />
+ ) : (
+ <div className="py-12 text-center text-xs text-muted-foreground">
+ Nenhuma seção ativa no momento.
+ </div>
+ )}
+ </div>
+ ) : allProducts.length === 0 ? (
+ <EmptyState
+ title="Nenhum produto eletrônico encontrado"
+ description="Tente ajustar os termos de busca ou navegue pelos departamentos acima."
+ action={
+ <Button
+ variant="outline"
+ onClick={() => handleDepartmentChange("todos")}
+ className="rounded-xl border-border"
+ >
+ Ver todos os eletrônicos
+ </Button>
+ }
+ />
+ ) : viewMode === "list" ? (
+ <section aria-label="Produtos de Eletrônicos">
+ <div className="flex flex-col gap-3">
+ {allProducts.map((product: any) => (
+ <OfferCard key={product.id} {...product} />
+ ))}
+ </div>
+ </section>
+ ) : (
+ <section aria-label="Produtos de Eletrônicos">
+ <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+ {allProducts.map((product: any) => (
+ <OfferCard key={product.id} {...product} />
+ ))}
+ </div>
+ </section>
+ )}
+ </div>
+ );
 }

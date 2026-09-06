@@ -37,7 +37,7 @@ import { toast } from "sonner";
 import { Surface } from "@/components/ui/surface";
 
 export const Route = createFileRoute("/_store/checkout")({
- head: () => ({ meta: [{ title: "Checkout | JAH Master OS" }] }),
+ head: () => ({ meta: [{ title: "Checkout | Wider OS" }] }),
  validateSearch: (search: Record<string, unknown>): { store?: string } => {
  return {
  store: (search.store as string) || undefined,
@@ -672,7 +672,7 @@ export function CheckoutPage() {
  onClick={() => canNavigate && setActiveStep(step.number)}
  disabled={!canNavigate}
  className={cn(
- "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all select-none cursor-pointer",
+ "flex items-center gap-2 px-3.5 py-2.5 min-h-[44px] rounded-xl text-xs font-bold transition-all select-none cursor-pointer",
  isActive
  ? "bg-foreground text-background scale-102"
  : isCompleted
@@ -733,7 +733,7 @@ export function CheckoutPage() {
  placeholder="Seu nome completo"
  value={formData.customerName}
  onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
- className="h-10 rounded-xl"
+ className="h-11 rounded-xl text-base sm:text-sm"
  />
  </div>
 
@@ -745,7 +745,7 @@ export function CheckoutPage() {
  placeholder="seuemail@exemplo.com"
  value={formData.customerEmail}
  onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
- className="h-10 rounded-xl"
+ className="h-11 rounded-xl text-base sm:text-sm"
  />
  </div>
 
@@ -757,7 +757,7 @@ export function CheckoutPage() {
  placeholder="(99) 99999-9999"
  value={formData.customerPhone}
  onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
- className="h-10 rounded-xl"
+ className="h-11 rounded-xl text-base sm:text-sm"
  />
  </div>
 
@@ -769,7 +769,7 @@ export function CheckoutPage() {
  placeholder="000.000.000-00"
  value={formData.customerDocument}
  onChange={(e) => setFormData({ ...formData, customerDocument: e.target.value })}
- className="h-10 rounded-xl"
+ className="h-11 rounded-xl text-base sm:text-sm"
  />
  </div>
 
@@ -814,7 +814,7 @@ export function CheckoutPage() {
  placeholder={f.placeholder || "Digite sua resposta..."}
  rows={2}
  required={f.required}
- className="w-full rounded-xl border border-input bg-card p-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+ className="w-full rounded-xl border border-input bg-card p-3 text-base sm:text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none min-h-[80px]"
  />
  ) : (
  <Input
@@ -828,7 +828,7 @@ export function CheckoutPage() {
  }
  placeholder={f.placeholder || "Digite sua resposta..."}
  required={f.required}
- className="h-10 rounded-xl text-xs"
+ className="h-11 rounded-xl text-base sm:text-sm"
  />
  )}
  </div>
@@ -847,7 +847,7 @@ export function CheckoutPage() {
  placeholder="Instruções especiais ou ponto de referência..."
  value={orderNotes}
  onChange={(e) => setOrderNotes(e.target.value)}
- className="h-10 rounded-xl text-xs"
+ className="h-11 rounded-xl text-base sm:text-sm"
  />
  </div>
  </div>
@@ -856,10 +856,10 @@ export function CheckoutPage() {
  <Button
  onClick={handleAdvanceToDelivery}
  disabled={!formData.customerName || !formData.customerEmail || !formData.customerPhone}
- className="rounded-xl px-6 h-10 font-bold text-xs cursor-pointer active:scale-98 transition-all"
+ className="rounded-xl px-6 h-11 w-full sm:w-auto font-bold text-xs sm:text-sm cursor-pointer active:scale-98 transition-all"
  >
- <span>Continuar</span>
- <ChevronRight size={14} className="ml-1" />
+ <span>Continuar para Entrega</span>
+ <ChevronRight size={15} className="ml-1" />
  </Button>
  </div>
  </Surface>
@@ -1023,7 +1023,7 @@ export function CheckoutPage() {
  maxLength={9}
  value={formData.shippingAddress.zipcode}
  onChange={(e) => handleCepChange(e.target.value)}
- className="h-9 rounded-xl text-xs font-mono"
+ className="h-11 rounded-xl text-base sm:text-sm font-mono"
  />
  </div>
 
@@ -1038,7 +1038,7 @@ export function CheckoutPage() {
  shippingAddress: { ...formData.shippingAddress, street: e.target.value },
  })
  }
- className="h-9 rounded-xl text-xs"
+ className="h-11 rounded-xl text-base sm:text-sm"
  />
  </div>
 
@@ -1053,7 +1053,7 @@ export function CheckoutPage() {
  shippingAddress: { ...formData.shippingAddress, number: e.target.value },
  })
  }
- className="h-9 rounded-xl text-xs"
+ className="h-11 rounded-xl text-base sm:text-sm"
  />
  </div>
 
@@ -1068,7 +1068,7 @@ export function CheckoutPage() {
  shippingAddress: { ...formData.shippingAddress, complement: e.target.value },
  })
  }
- className="h-9 rounded-xl text-xs"
+ className="h-11 rounded-xl text-base sm:text-sm"
  />
  </div>
 
@@ -1083,7 +1083,7 @@ export function CheckoutPage() {
  shippingAddress: { ...formData.shippingAddress, neighborhood: e.target.value },
  })
  }
- className="h-9 rounded-xl text-xs"
+ className="h-11 rounded-xl text-base sm:text-sm"
  />
  </div>
 
@@ -1098,7 +1098,7 @@ export function CheckoutPage() {
  shippingAddress: { ...formData.shippingAddress, city: e.target.value },
  })
  }
- className="h-9 rounded-xl text-xs"
+ className="h-11 rounded-xl text-base sm:text-sm"
  />
  </div>
 
@@ -1114,7 +1114,7 @@ export function CheckoutPage() {
  shippingAddress: { ...formData.shippingAddress, state: e.target.value.toUpperCase() },
  })
  }
- className="h-9 rounded-xl text-xs uppercase"
+ className="h-11 rounded-xl text-base sm:text-sm uppercase"
  />
  </div>
  </div>
@@ -1253,21 +1253,21 @@ export function CheckoutPage() {
  </div>
  )}
 
- <div className="pt-3 flex justify-between gap-3">
+ <div className="pt-3 flex items-center justify-between gap-3">
  <Button
  variant="outline"
  onClick={() => setActiveStep(1)}
- className="rounded-xl px-5 h-10 font-bold text-xs"
+ className="rounded-xl px-5 h-11 font-bold text-xs sm:text-sm"
  >
  Voltar
  </Button>
  <Button
  onClick={() => setActiveStep(3)}
  disabled={formData.shippingMethod !== "pickup" && !formData.shippingAddress.zipcode}
- className="rounded-xl px-6 h-10 font-bold text-xs cursor-pointer active:scale-98 transition-all"
+ className="rounded-xl px-6 h-11 font-bold text-xs sm:text-sm cursor-pointer active:scale-98 transition-all flex items-center gap-1.5"
  >
- <span>Continuar para Pagamento</span>
- <ChevronRight size={14} className="ml-1" />
+ <span>Ir para Pagamento</span>
+ <ChevronRight size={15} />
  </Button>
  </div>
  </Surface>
@@ -1339,7 +1339,7 @@ export function CheckoutPage() {
  maxLength={19}
  value={creditCardData.number}
  onChange={(e) => setCreditCardData({ ...creditCardData, number: e.target.value })}
- className="h-9 rounded-xl text-xs font-mono"
+ className="h-11 rounded-xl text-base sm:text-sm font-mono"
  />
  </div>
 
@@ -1349,7 +1349,7 @@ export function CheckoutPage() {
  placeholder="Como está gravado no cartão"
  value={creditCardData.holderName}
  onChange={(e) => setCreditCardData({ ...creditCardData, holderName: e.target.value.toUpperCase() })}
- className="h-9 rounded-xl text-xs uppercase"
+ className="h-11 rounded-xl text-base sm:text-sm uppercase"
  />
  </div>
 
@@ -1361,7 +1361,7 @@ export function CheckoutPage() {
  maxLength={5}
  value={creditCardData.expiryDate}
  onChange={(e) => setCreditCardData({ ...creditCardData, expiryDate: e.target.value })}
- className="h-9 rounded-xl text-xs font-mono"
+ className="h-11 rounded-xl text-base sm:text-sm font-mono"
  />
  </div>
  <div className="space-y-1">
@@ -1371,7 +1371,7 @@ export function CheckoutPage() {
  maxLength={4}
  value={creditCardData.cvv}
  onChange={(e) => setCreditCardData({ ...creditCardData, cvv: e.target.value })}
- className="h-9 rounded-xl text-xs font-mono"
+ className="h-11 rounded-xl text-base sm:text-sm font-mono"
  />
  </div>
  </div>
@@ -1383,7 +1383,7 @@ export function CheckoutPage() {
  value={String(selectedInstallment)}
  onValueChange={(v) => setSelectedInstallment(Number(v))}
  >
- <SelectTrigger className="h-9 rounded-xl text-xs">
+ <SelectTrigger className="h-11 rounded-xl text-base sm:text-sm">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1440,20 +1440,20 @@ export function CheckoutPage() {
  )}
  </div>
 
- <div className="pt-3 flex justify-between gap-3">
+ <div className="pt-3 flex items-center justify-between gap-3">
  <Button
  variant="outline"
  onClick={() => setActiveStep(2)}
- className="rounded-xl px-5 h-10 font-bold text-xs"
+ className="rounded-xl px-5 h-11 font-bold text-xs sm:text-sm"
  >
  Voltar
  </Button>
  <Button
  onClick={() => setActiveStep(4)}
- className="rounded-xl px-6 h-10 font-bold text-xs cursor-pointer active:scale-98 transition-all"
+ className="rounded-xl px-6 h-11 font-bold text-xs sm:text-sm cursor-pointer active:scale-98 transition-all flex items-center gap-1.5"
  >
  <span>Revisar Pedido</span>
- <ChevronRight size={14} className="ml-1" />
+ <ChevronRight size={15} />
  </Button>
  </div>
  </Surface>
@@ -1522,26 +1522,26 @@ export function CheckoutPage() {
  <Input
  placeholder="Ex: Deixar na portaria, ponto de referência..."
  value={orderNotes}
- onChange={(e) => setOrderNotes(e.target.value)}
- className="h-10 rounded-xl text-xs"
+                  onChange={(e) => setOrderNotes(e.target.value)}
+                  className="h-11 rounded-xl text-base sm:text-sm"
  />
  </div>
  </div>
 
- <div className="pt-3 flex justify-between gap-3">
- <Button
- variant="outline"
- onClick={() => setActiveStep(3)}
- disabled={isSubmitting}
- className="rounded-xl px-5 h-10 font-bold text-xs"
- >
- Voltar
- </Button>
- <Button
- onClick={handleSubmitOrder}
- disabled={isSubmitting}
- className="rounded-xl px-8 h-11 bg-primary text-primary-foreground font-bold text-sm cursor-pointer active:scale-98 transition-all"
- >
+ <div className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveStep(3)}
+                  disabled={isSubmitting}
+                  className="rounded-xl px-5 h-11 w-full sm:w-auto font-bold text-xs sm:text-sm"
+                >
+                  Voltar
+                </Button>
+                <Button
+                  onClick={handleSubmitOrder}
+                  disabled={isSubmitting}
+                  className="rounded-xl px-8 h-12 w-full sm:w-auto bg-primary text-primary-foreground font-bold text-sm sm:text-base cursor-pointer active:scale-98 transition-all shadow-sm flex items-center justify-center gap-2"
+                >
  {isSubmitting ? (
  <>
  <Loader2 size={16} className="animate-spin mr-2" />
@@ -1587,15 +1587,15 @@ export function CheckoutPage() {
  <Input
  placeholder="Cupom ou Vale-presente"
  value={promoCode}
- onChange={(e) => setPromoCode(e.target.value)}
- className="h-8 rounded-xl text-xs"
- />
- <Button
- size="sm"
- variant="outline"
- onClick={handleApplyPromo}
- disabled={isApplyingPromo || !promoCode.trim()}
- className="h-8 rounded-xl text-xs font-bold px-3 cursor-pointer"
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  className="h-10 rounded-xl text-base sm:text-sm"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleApplyPromo}
+                  disabled={isApplyingPromo || !promoCode.trim()}
+                  className="h-10 rounded-xl text-xs font-bold px-3.5 cursor-pointer"
  >
  {isApplyingPromo ? <Loader2 size={12} className="animate-spin" /> : "Aplicar"}
  </Button>

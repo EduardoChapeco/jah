@@ -6,18 +6,18 @@
 
 /** Membership roles. `visitor` = not authenticated. See docs/SECURITY.md RBAC. */
 export type Role =
-  | "visitor"
-  | "customer"
-  | "owner"
-  | "admin"
-  | "manager"
-  | "seller"
-  | "stock"
-  | "finance"
-  | "content"
-  | "support"
-  | "platform_admin"
-  | "master";
+ | "visitor"
+ | "customer"
+ | "owner"
+ | "admin"
+ | "manager"
+ | "seller"
+ | "stock"
+ | "finance"
+ | "content"
+ | "support"
+ | "platform_admin"
+ | "master";
 
 /** Delivery phases per docs/ROADMAP.md. */
 export type Phase = 0 | 1 | 2 | 3 | 4 | 5;

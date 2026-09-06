@@ -284,83 +284,84 @@ const GROUP_REAL_ESTATE: NavGroup = {
   ],
 };
 
-// 8. Turismo & Agência de Viagens — Especialização Modular (Padrão TravelAgências / Enterprise)
+// 8. Turismo & Agência de Viagens — Especialização Modular Canônica
 const GROUP_TURISMO_COMMERCIAL: NavGroup = {
   id: "tourism-commercial",
-  label: "Comercial & CRM",
+  label: "Comercial",
   icon: Kanban,
   section: "niche",
   items: [
-    { path: "/workspace/comercial", label: "Funil de Leads (Kanban)", icon: Kanban },
-    { path: "/workspace/turismo/cotacoes", label: "Cotações Rápidas (Balcão/IA)", icon: Plane },
-    { path: "/workspace/turismo/propostas", label: "Lâminas & Propostas (Studio)", icon: FileSpreadsheet },
+    { path: "/workspace/comercial", label: "Funil de Vendas", icon: Kanban },
+    { path: "/workspace/turismo/cotacoes", label: "Cotações Rápidas", icon: Plane },
+    { path: "/workspace/turismo/propostas", label: "Propostas Studio", icon: FileSpreadsheet },
     { path: "/workspace/orcamentos", label: "Orçamentos Corporativos", icon: FileText },
   ],
 };
 
 const GROUP_TURISMO_OPERATIONS: NavGroup = {
   id: "tourism-trips",
-  label: "Operações & Viagens",
+  label: "Operações",
   icon: Compass,
   section: "niche",
   items: [
-    { path: "/workspace/turismo/viagens", label: "Viagens & Reservas (Trips)", icon: Compass },
-    { path: "/workspace/turismo/aereos", label: "Malha Aérea & Trechos (PNR)", icon: Plane },
-    { path: "/workspace/turismo/reacomodacao", label: "Reacomodação Aérea (ANAC 400)", icon: AlertTriangle },
-    { path: "/workspace/turismo/embarques", label: "Pipeline de Embarques (Kanban)", icon: Calendar },
-    { path: "/workspace/turismo/vouchers", label: "Vouchers & Boarding Passes", icon: Ticket },
-    { path: "/workspace/turismo/contratos", label: "Contratos & Assinatura Digital", icon: FileText },
-    { path: "/workspace/turismo/vistos", label: "Passaportes & Vistos", icon: Globe },
-    { path: "/workspace/turismo/radar", label: "Radar Global de Passageiros", icon: Navigation },
+    { path: "/workspace/turismo/viagens", label: "Viagens & Reservas", icon: Compass },
+    { path: "/workspace/turismo/aereos", label: "Malha Aérea", icon: Plane },
+    { path: "/workspace/turismo/incidentes", label: "Incidentes", icon: AlertTriangle },
+    { path: "/workspace/turismo/reacomodacao", label: "Reacomodação ANAC", icon: ShieldAlert },
+    { path: "/workspace/turismo/embarques", label: "Embarques & Calendário", icon: Calendar },
+    { path: "/workspace/turismo/vouchers", label: "Vouchers & Bilhetes", icon: Ticket },
+    { path: "/workspace/turismo/contratos", label: "Contratos Digitais", icon: FileText },
+    { path: "/workspace/turismo/vistos", label: "Vistos & Passaportes", icon: Globe },
+    { path: "/workspace/turismo/radar", label: "Radar de Passageiros", icon: Navigation },
     { path: "/workspace/turismo/viagens?view=embarque", label: "Check-in Rápido", icon: UserCheck },
   ],
 };
 
 const GROUP_TURISMO_CATALOG: NavGroup = {
   id: "tourism-catalog",
-  label: "Catálogo & Destinos",
+  label: "Catálogo",
   icon: Package,
   section: "niche",
   items: [
     { path: "/workspace/catalogo/produtos", label: "Pacotes & Roteiros", icon: Package },
-    { path: "/workspace/turismo/destinos", label: "Banco de Destinos", icon: MapPin },
-    { path: "/workspace/turismo/hoteis", label: "Banco de Hotéis & Resorts", icon: Building2 },
-    { path: "/workspace/turismo/fornecedores", label: "Fornecedores & DMCs", icon: Building2 },
+    { path: "/workspace/turismo/destinos", label: "Destinos", icon: MapPin },
+    { path: "/workspace/turismo/hoteis", label: "Hotéis & Resorts", icon: Building2 },
+    { path: "/workspace/turismo/fornecedores", label: "Fornecedores", icon: Building2 },
   ],
 };
 
 const GROUP_TURISMO_FLEET_GROUPS: NavGroup = {
   id: "tourism-fleet-groups",
-  label: "Grupos & Frota",
+  label: "Frota & Grupos",
   icon: Bus,
   section: "niche",
   items: [
     { path: "/workspace/turismo/grupos", label: "Grupos & Excursões", icon: Users },
-    { path: "/workspace/turismo/frota", label: "Frota de Ônibus (Layout 2D)", icon: Bus },
+    { path: "/workspace/turismo/frota", label: "Frota de Ônibus", icon: Bus },
     { path: "/workspace/eventos", label: "Passeios & Ingressos", icon: Calendar },
   ],
 };
 
 const GROUP_TURISMO_CLIENTS: NavGroup = {
   id: "tourism-clients",
-  label: "Passageiros & Clientes",
+  label: "Passageiros",
   icon: Users,
   section: "niche",
   items: [
-    { path: "/workspace/clientes", label: "Carteira de Passageiros (CRM 360°)", icon: Users },
-    { path: "/workspace/pedidos", label: "Histórico de Emissões & Vendas", icon: ShoppingBag },
+    { path: "/workspace/clientes", label: "Carteira de Passageiros", icon: Users },
+    { path: "/workspace/pedidos", label: "Histórico de Emissões", icon: ShoppingBag },
   ],
 };
 
 const GROUP_TURISMO_MARKETING: NavGroup = {
   id: "tourism-marketing",
-  label: "Vitrine & Divulgação",
+  label: "Vitrine",
   icon: Megaphone,
   section: "corporate",
   items: [
-    { path: "/workspace/marketing/vitrine", label: "Vitrine de Pacotes (Builder)", icon: LayoutGrid },
-    { path: "/workspace/cms/paginas", label: "Roteiros & Landing Pages", icon: FileText },
-    { path: "/workspace/cms/bio", label: "Link da Bio da Agência", icon: Link2 },
+    { path: "/workspace/marketing/vitrine", label: "Vitrine Visual", icon: LayoutGrid },
+    { path: "/workspace/cms/paginas", label: "Páginas & Roteiros", icon: FileText },
+    { path: "/workspace/cms/bio", label: "Link da Bio", icon: Link2 },
     { path: "/workspace/marketing/banners", label: "Banners & Destaques", icon: ImageIcon },
     { path: "/workspace/marketing/promocoes", label: "Ofertas & Descontos", icon: Flame },
     { path: "/workspace/marketing/anuncios", label: "Campanhas Publicitárias", icon: Megaphone },
@@ -522,7 +523,6 @@ const GROUP_MARKETING_VITRINE: NavGroup = {
     { path: "/workspace/marketing/vitrine", label: "Vitrine Visual (Builder)", icon: LayoutGrid },
     { path: "/workspace/cms/paginas", label: "Páginas & Landing Pages", icon: FileText },
     { path: "/workspace/cms/bio", label: "Link da Bio & Perfil", icon: Link2 },
-    { path: "/workspace/estudio", label: "Estúdio Gráfico & Vídeo", icon: Palette },
     { path: "/workspace/marketing/banners", label: "Banners & Topo", icon: ImageIcon },
     { path: "/workspace/marketing/hotpages", label: "Páginas de Destaque (Hotpages)", icon: Layers },
     { path: "/workspace/marketing/promocoes", label: "Promoções & Cupons", icon: Flame },

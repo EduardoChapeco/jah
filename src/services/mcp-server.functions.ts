@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start';
-import { supabase } from '@/lib/supabase';
+import { getServerClient } from '@/lib/supabase';
 import { executeSimLabBatchSimulation } from './simlab.functions';
 import { executeOrchestrateMarketingPost } from './squad-content.functions';
 
@@ -169,7 +169,8 @@ export async function executeMcpToolCall(data: McpToolCallRequest): Promise<McpT
     if (data.tool === 'query_master_catalog') {
       let catalogResults: any[] = [];
       try {
-        const { data: prods } = await supabase
+        const db = getServerClient();
+        const { data: prods } = await db
           .from('products')
           .select('id, title, price_cents, ean, category, store_id')
           .ilike('title', `%${data.arguments.query}%`)

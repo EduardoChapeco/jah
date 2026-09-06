@@ -19,30 +19,30 @@ export { assertStoreAccess, STAFF_ROLES } from "@/lib/identity-core";
 
 /** Cliente Supabase SSR (anon key + cookies do usuário). Servidor apenas. */
 export async function getSSRClient(): Promise<SupabaseClient> {
-  const mod = await import("@/lib/supabase-ssr.server");
-  return mod.getSSRClient();
+ const mod = await import("@/lib/supabase-ssr.server");
+ return mod.getSSRClient();
 }
 
 /** Identidade completa do usuário autenticado. Servidor apenas. */
 export async function getServerIdentity(): Promise<ServerIdentity> {
-  const mod = await import("@/lib/identity.server");
-  return mod.getServerIdentity();
+ const mod = await import("@/lib/identity.server");
+ return mod.getServerIdentity();
 }
 
 /** Exige um dos papéis informados. Lança se não autorizado. Servidor apenas. */
 export async function requireRole(allowedRoles: Role[]): Promise<{ id: string; role: Role; store_id: string }> {
-  const mod = await import("@/lib/auth-guards.server");
-  return mod.requireRole(allowedRoles);
+ const mod = await import("@/lib/auth-guards.server");
+ return mod.requireRole(allowedRoles);
 }
 
 /** Exige acesso administrativo/gerencial. Servidor apenas. */
 export async function requireAdmin(): Promise<{ id: string; role: Role; store_id: string }> {
-  const mod = await import("@/lib/auth-guards.server");
-  return mod.requireAdmin();
+ const mod = await import("@/lib/auth-guards.server");
+ return mod.requireAdmin();
 }
 
 /** Exige acesso administrativo global (master). Servidor apenas. */
 export async function requirePlatformAdmin(): Promise<{ id: string; role: Role; store_id: string }> {
-  const mod = await import("@/lib/auth-guards.server");
-  return mod.requirePlatformAdmin();
+ const mod = await import("@/lib/auth-guards.server");
+ return mod.requirePlatformAdmin();
 }

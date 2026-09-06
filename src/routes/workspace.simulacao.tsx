@@ -1,460 +1,590 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Layers, Users, TrendingUp, AlertTriangle, CheckCircle2, DollarSign, Loader2, HelpCircle, ArrowRight } from 'lucide-react';
+import {
+  Layers,
+  Users,
+  TrendingUp,
+  AlertTriangle,
+  CheckCircle2,
+  DollarSign,
+  Loader2,
+  Play,
+  ArrowRight,
+  MessageSquare,
+  BarChart3,
+  ShieldCheck,
+  Search,
+  SlidersHorizontal,
+  Bot,
+  BrainCircuit,
+  Award,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
-  getSeedPersonas,
-  runPersonaSimulation,
+  fetchSyntheticArchetypes,
+  createSimLabExperiment,
+  executeSimLabBatchSimulation,
   getSimLabStatus,
 } from "@/services/simlab.functions";
-import type { SimulationResult, SyntheticPersona } from "@/lib/simlab/simulator";
+import { getStoreSettings } from "@/services/store.functions";
+import type {
+  SyntheticArchetype,
+  SimLabPersonaResponse,
+  SimLabStatisticalSynthesis,
+} from "@/types/simlab";
 import { cn } from "@/lib/utils";
-import { PageHeader } from "@/components/commerce/page-header";
+import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-canonical-toolbar";
+import {
+  WorkspaceDashboardSheet,
+  type MetricCardItem,
+} from "@/components/workspace/workspace-dashboard-sheet";
 
 export const Route = createFileRoute("/workspace/simulacao")({
-  head: () => ({ meta: [{ title: "SimLab — Enxame de Validação Preditiva | JAH Master OS" }] }),
+  head: () => ({
+    meta: [
+      {
+        title:
+          "SimLab — Enxame de Validação Preditiva Censo IBGE | Workspace Wider OS",
+      },
+    ],
+  }),
   loader: async () => {
-    const [personas, status] = await Promise.all([
-      getSeedPersonas(),
-      getSimLabStatus().catch(() => ({ isEnabled: true, isAdmin: false, role: "customer" })),
+    const [personas, status, store] = await Promise.all([
+      fetchSyntheticArchetypes().catch(() => []),
+      getSimLabStatus().catch(() => ({
+        isEnabled: true,
+        isAdmin: false,
+        role: "customer",
+      })),
+      getStoreSettings().catch(() => null),
     ]);
-    return { personas, status };
+    return {
+      personas: personas as SyntheticArchetype[],
+      status,
+      store,
+    };
   },
   component: SimulacaoPage,
 });
 
 const NICHES = [
+  { id: "all", label: "Todos os Nichos" },
   { id: "eventos", label: "Eventos & Festas" },
   { id: "gastronomia", label: "Gastronomia & Restaurante" },
-  { id: "moda", label: "Moda & Acessórios" },
+  { id: "moda", label: "Moda & Vestuário" },
+  { id: "turismo", label: "Turismo & Viagens" },
   { id: "musica", label: "Música & Shows" },
   { id: "servicos", label: "Serviços Culturais" },
   { id: "classificados", label: "Classificados & Desapego" },
 ] as const;
 
 function SimulacaoPage() {
-  const { personas, status } = Route.useLoaderData() as any;
+  const { personas, status, store } = Route.useLoaderData() as {
+    personas: SyntheticArchetype[];
+    status: { isEnabled: boolean; isAdmin: boolean; role: string };
+    store: any;
+  };
+
+  const storeId = store?.id || "";
 
   const [title, setTitle] = useState("Lançamento Coleção Cápsula Outono");
   const [description, setDescription] = useState(
-    "Peças exclusivas feitas à mão com algodão sustentável e tiragem limitada de 50 unidades. Acompanha zine editorial impresso.",
+    "Peças exclusivas feitas à mão com algodão sustentável e tiragem limitada de 50 unidades. Acompanha zine editorial impresso e brinde artesanal.",
   );
   const [priceReais, setPriceReais] = useState("129.90");
-  const [niche, setNiche] = useState<any>("moda");
+  const [selectedNiche, setSelectedNiche] = useState<string>("moda");
+  const [searchTerm, setSearchTerm] = useState("");
   const [isRunning, setIsRunning] = useState(false);
-  const [result, setResult] = useState<SimulationResult | null>(null);
-  const [adminSimLabActive, setAdminSimLabActive] = useState(status?.isEnabled ?? true);
+  const [isMetricsOpen, setIsMetricsOpen] = useState(false);
 
-  const handleToggleAdminStatus = () => {
-    setAdminSimLabActive(!adminSimLabActive);
-    toast.success(
-      !adminSimLabActive
-        ? "SimLab IA ativado para todos os lojistas do workspace."
-        : "SimLab IA restrito ao modo de governança Admin Master.",
+  // Resultados de persistência real
+  const [synthesis, setSynthesis] = useState<SimLabStatisticalSynthesis | null>(
+    null,
+  );
+  const [evaluations, setEvaluations] = useState<SimLabPersonaResponse[]>([]);
+
+  // Filtragem rápida de personas na lista
+  const filteredPersonas = useMemo(() => {
+    if (!searchTerm.trim()) return personas;
+    const q = searchTerm.toLowerCase();
+    return personas.filter(
+      (p) =>
+        p.display_name.toLowerCase().includes(q) ||
+        p.abep_social_class.toLowerCase().includes(q) ||
+        p.region.toLowerCase().includes(q) ||
+        p.code.toLowerCase().includes(q),
     );
-  };
+  }, [personas, searchTerm]);
 
-  const handleSimulate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSimulate = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!title.trim() || !description.trim()) {
-      toast.error("Preencha título e descrição para simular.");
+      toast.error("Preencha título e descrição para simular a proposta.");
       return;
     }
 
     setIsRunning(true);
     try {
-      const priceCents = Math.round(parseFloat(priceReais || "0") * 100);
-      const res = await runPersonaSimulation({
+      const priceNum = parseFloat(priceReais || "0");
+
+      // 1. Cria experimento persistido na tabela `simlab_market_experiments`
+      const expRes = await createSimLabExperiment({
         data: {
-          title,
-          description,
-          priceCents,
-          niche,
+          storeId,
+          title: title.trim(),
+          objective: description.trim(),
+          stimulusPayload: {
+            title: title.trim(),
+            description: description.trim(),
+            test_price_brl: priceNum,
+            niche: selectedNiche,
+          },
+          sampleSize: personas.length || 12,
         },
       });
 
-      setResult(res);
-      toast.success("Simulação do Enxame concluída!");
-    } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao rodar simulação.");
+      const expId = expRes?.experiment?.id;
+      if (!expId) throw new Error("Falha ao registrar experimento.");
+
+      // 2. Dispara simulação estocástica ou IA Real calibrada
+      const simRes = await executeSimLabBatchSimulation({
+        experimentId: expId,
+        storeId,
+      });
+
+      if (simRes?.synthesis) {
+        setSynthesis(simRes.synthesis);
+        setEvaluations(simRes.responses || []);
+        toast.success("Simulação concluída e salva no banco de dados!");
+      }
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Erro ao executar simulação.";
+      toast.error(msg);
     } finally {
       setIsRunning(false);
     }
   };
 
+  // KPIs dinâmicos para a Dashboard Sheet sob demanda
+  const metricsItems: MetricCardItem[] = useMemo(() => {
+    if (!synthesis) {
+      return [
+        {
+          label: "Amostragem Censo IBGE",
+          value: `${personas.length} personas`,
+          description: "12 arquétipos estratificados pelo Critério ABEP 2022",
+        },
+        {
+          label: "Previsão de Conversão",
+          value: "--",
+          description: "Execute a simulação para calcular o intervalo de 95% CI",
+        },
+        {
+          label: "Net Promoter Score",
+          value: "--",
+          description: "Balanço entre promotores e detratores sintéticos",
+        },
+        {
+          label: "Elasticidade de Preço",
+          value: "--",
+          description: "Sensibilidade estocástica em relação à renda mediana",
+        },
+      ];
+    }
+
+    const nps = synthesis.synthetic_nps;
+    return [
+      {
+        label: "Net Promoter Score Sintético",
+        value: `${nps > 0 ? "+" : ""}${nps}`,
+        description: `Balanço ABEP: ${synthesis.overall_approval_rate}% de aprovação da amostra`,
+        trend: {
+          value: `${synthesis.overall_approval_rate}% aprovados`,
+          isPositive: nps >= 20,
+        },
+      },
+      {
+        label: "Conversão Estimada (95% CI)",
+        value: `${synthesis.estimated_conversion_range[0]}% - ${synthesis.estimated_conversion_range[1]}%`,
+        description: "Intervalo estatístico de probabilidade real de compra",
+        trend: {
+          value: `${synthesis.rejection_rate}% rejeição`,
+          isPositive: synthesis.rejection_rate < 30,
+        },
+      },
+      {
+        label: "Elasticidade de Preço",
+        value: `${synthesis.price_elasticity_score.toFixed(2)}x`,
+        description: "Coeficiente de atrito econômico frente à renda diária",
+      },
+      {
+        label: "Amostragem Efetiva",
+        value: `${evaluations.length} perfis`,
+        description: "100% de representatividade demográfica auditada",
+      },
+    ];
+  }, [synthesis, personas.length, evaluations.length]);
+
   return (
-    <div className="space-y-6 max-w-6xl pb-16">
-      {/* Header */}
-      <PageHeader
-        eyebrow="Inteligência Artificial"
-        title="SimLab — Enxame de Validação"
-        actions={
-          <Button
-            onClick={handleSimulate}
-            disabled={isRunning}
-            className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground shrink-0 h-11 px-4 cursor-pointer"
-          >
-            {isRunning ? (
-              <>
-                <Loader2 className="size-3.5 animate-spin mr-1" />
-                <span>Simulando Enxame...</span>
-              </>
-            ) : (
-              <>
-                <Layers className="size-3.5" />
-                <span>Executar Simulação</span>
-              </>
-            )}
-          </Button>
-        }
+    <div className="flex flex-col min-h-[calc(100vh-4rem)] w-full">
+      {/* ── 1. BARRA CANÔNICA APPLE HIG (SEM TÍTULOS PROLIXOS) ── */}
+      <WorkspaceCanonicalToolbar
+        placeholder="Buscar por nome, classe ABEP ou região..."
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        filterChips={NICHES.map((n) => ({
+          id: n.id,
+          label: n.label,
+          active: selectedNiche === n.id,
+        }))}
+        onFilterChange={(id) => setSelectedNiche(id)}
+        primaryAction={{
+          label: isRunning ? "Simulando Enxame..." : "Executar Simulação",
+          icon: isRunning ? Loader2 : Play,
+          onClick: () => void handleSimulate(),
+          disabled: isRunning,
+        }}
+        secondaryAction={{
+          label: "Focus Group",
+          icon: MessageSquare,
+          onClick: () => {},
+        }}
+        onMetricsClick={() => setIsMetricsOpen(true)}
+        metricsBadge={synthesis ? `${synthesis.synthetic_nps} NPS` : undefined}
       />
 
-      {/* Admin Master Feature Flag Governance Card */}
-      {status?.isAdmin && (
-        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-xl text-primary shrink-0">
-              <Layers className="size-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                Controle de Governança — Admin Global
-                <Badge variant="outline" className="text-[10px] rounded-md font-medium px-2 py-0.5">
-                  {adminSimLabActive ? "Ativo para Lojistas" : "Restrito a Administradores"}
-                </Badge>
-              </p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Alterne a liberação do motor de simulação estocástica e enxame de personas para produtores e lojistas comuns.
-              </p>
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleToggleAdminStatus}
-            className="rounded-xl text-xs font-semibold shrink-0 h-11 px-4"
-          >
-            {adminSimLabActive ? "Restringir ao Admin" : "Liberar para Lojistas"}
-          </Button>
-        </div>
-      )}
+      {/* ── 2. PAINEL PRINCIPAL EM DUAS COLUNAS OPERACIONAIS ── */}
+      <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Coluna Esquerda: Formulação da Proposta & Amostragem IBGE */}
+          <div className="lg:col-span-5 space-y-5">
+            <form
+              onSubmit={(e) => void handleSimulate(e)}
+              className="rounded-2xl border border-border/80 bg-card p-5 space-y-4 shadow-sm"
+            >
+              <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <Layers className="size-4 text-primary" />
+                  Hipótese da Oferta
+                </span>
+                <span className="text-[11px] text-muted-foreground font-mono">
+                  {selectedNiche}
+                </span>
+              </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Painel Esquerdo: Formulário da Proposta */}
-        <div className="lg:col-span-5 space-y-5">
-          <form
-            onSubmit={handleSimulate}
-            className="rounded-2xl border border-border/80 bg-card p-5 space-y-4"
-          >
-            <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <Layers className="size-4 text-primary" />
-              Dados da Proposta para Teste
-            </h2>
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="sim-title"
+                  className="text-xs font-semibold text-foreground"
+                >
+                  Título da Oferta / Produto
+                </Label>
+                <Input
+                  id="sim-title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Ex: Show de Lançamento da Banda X"
+                  className="h-11 min-h-[44px] text-xs rounded-xl bg-background"
+                  required
+                />
+              </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">Nicho / Categoria</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {NICHES.map((n) => (
-                  <button
-                    key={n.id}
-                    type="button"
-                    onClick={() => setNiche(n.id)}
-                    className={cn(
-                      "px-3 py-2.5 rounded-xl text-xs font-medium text-left border transition-all cursor-pointer min-h-[44px]",
-                      niche === n.id
-                        ? "border-primary bg-primary/10 text-primary font-bold"
-                        : "border-border/80 bg-background text-muted-foreground hover:bg-muted/60",
-                    )}
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="sim-price"
+                  className="text-xs font-semibold text-foreground"
+                >
+                  Preço Pretendido (R$)
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold">
+                    R$
+                  </span>
+                  <Input
+                    id="sim-price"
+                    type="number"
+                    step="0.01"
+                    value={priceReais}
+                    onChange={(e) => setPriceReais(e.target.value)}
+                    placeholder="0,00"
+                    className="h-11 min-h-[44px] pl-9 text-xs rounded-xl font-mono font-semibold bg-background"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="sim-desc"
+                  className="text-xs font-semibold text-foreground"
+                >
+                  Pitch da Oferta & Condições
+                </Label>
+                <textarea
+                  id="sim-desc"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={4}
+                  placeholder="Descreva benefícios, garantias, tiragem e diferenciais..."
+                  className="w-full text-xs rounded-xl border border-input bg-background p-3 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                  required
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isRunning}
+                className="w-full rounded-xl font-bold gap-2 mt-2 h-11 min-h-[44px] cursor-pointer"
+              >
+                {isRunning ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Simulando Enxame...
+                  </>
+                ) : (
+                  <>
+                    <Play className="size-4 fill-current" />
+                    Executar Validação
+                  </>
+                )}
+              </Button>
+            </form>
+
+            {/* Lista Compacta de Personas do Censo IBGE 2022 */}
+            <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-3 shadow-sm">
+              <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
+                <span className="text-xs font-bold text-foreground flex items-center gap-2">
+                  <Users className="size-3.5 text-primary" />
+                  Bancada Amostral IBGE
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  {filteredPersonas.length} calibradas
+                </span>
+              </div>
+
+              <div className="space-y-2 max-h-64 overflow-y-auto no-scrollbar pr-1">
+                {filteredPersonas.map((p) => (
+                  <div
+                    key={p.id}
+                    className="flex items-center justify-between p-2.5 rounded-xl border border-border/60 bg-background text-xs hover:border-primary/40 transition-colors"
                   >
-                    {n.label}
-                  </button>
+                    <div className="min-w-0 pr-2">
+                      <p className="font-semibold text-foreground truncate">
+                        {p.display_name}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground truncate">
+                        {p.age} anos • {p.region} • R${" "}
+                        {p.median_income_brl.toLocaleString("pt-BR")}/mês
+                      </p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] rounded-md font-medium px-2 py-0.5 shrink-0 bg-muted/40"
+                    >
+                      Classe {p.abep_social_class}
+                    </Badge>
+                  </div>
                 ))}
               </div>
             </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="sim-title" className="text-xs font-semibold">
-                Título do Item / Evento
-              </Label>
-              <Input
-                id="sim-title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Ex: Show de Lançamento da Banda X"
-                className="h-11 text-xs rounded-xl"
-                required
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="sim-price" className="text-xs font-semibold">
-                Preço Pretendido (R$)
-              </Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold">
-                  R$
-                </span>
-                <Input
-                  id="sim-price"
-                  type="number"
-                  step="0.01"
-                  value={priceReais}
-                  onChange={(e) => setPriceReais(e.target.value)}
-                  placeholder="0,00"
-                  className="h-11 pl-9 text-xs rounded-xl font-mono font-semibold"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="sim-desc" className="text-xs font-semibold">
-                Descrição / Pitch da Oferta
-              </Label>
-              <textarea
-                id="sim-desc"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={4}
-                placeholder="Explique os diferenciais, materiais, horários e proposta..."
-                className="w-full text-xs rounded-xl border border-input bg-background p-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                required
-              />
-            </div>
-
-            <Button
-              type="submit"
-              disabled={isRunning}
-              className="w-full rounded-xl font-bold gap-2 mt-2 h-11 cursor-pointer"
-            >
-              {isRunning ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Simulando...
-                </>
-              ) : (
-                <>
-                  <Layers className="size-4" />
-                  Executar Simulação
-                </>
-              )}
-            </Button>
-          </form>
-
-          {/* Personas em Monitoramento */}
-          <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-3">
-            <h3 className="text-xs font-bold text-foreground flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <Users className="size-3.5 text-primary" />
-                Catálogo de Personas Disponíveis
-              </span>
-              <span className="text-[11px] text-muted-foreground font-normal">
-                {personas?.length || 0} calibradas
-              </span>
-            </h3>
-            <div className="space-y-2 max-h-72 overflow-y-auto no-scrollbar pr-1">
-              {(personas || []).map((p: any) => (
-                <div
-                  key={p.id}
-                  className="flex items-center justify-between p-2.5 rounded-xl border border-border/60 bg-background text-xs"
-                >
-                  <div className="min-w-0 pr-2">
-                    <p className="font-semibold text-foreground truncate">{p.name}</p>
-                    <p className="text-[10px] text-muted-foreground truncate">
-                      {p.demographic?.age || p.age_range || 35} anos • {p.demographic?.city || p.neighborhood || "Região"} •{" "}
-                      {p.demographic?.occupation || p.archetype || "Comércio"}
-                    </p>
-                  </div>
-                  <Badge variant="outline" className="text-[10px] rounded-md font-medium px-2 py-0.5 shrink-0">
-                    Classe {p.socioeconomic_class || p.demographic?.socioeconomic_class || p.income_level || "C1"}
-                  </Badge>
-                </div>
-              ))}
-            </div>
           </div>
-        </div>
 
-        {/* Painel Direito: Resultados da Simulação */}
-        <div className="lg:col-span-7 space-y-5">
-          {!result && !isRunning && (
-            <div className="rounded-2xl border border-border/80 bg-card p-8 sm:p-12 text-center flex flex-col items-center justify-center space-y-3 min-h-[400px]">
-              <div className="p-4 bg-primary/10 rounded-2xl text-primary">
-                <Layers className="size-8" />
-              </div>
-              <h3 className="text-base font-bold text-foreground">Aguardando Execução do Enxame</h3>
-              <p className="text-xs text-muted-foreground max-w-sm">
-                Preencha os dados da sua oferta à esquerda e clique em{" "}
-                <strong>"Executar Simulação"</strong> para obter previsão de conversão, elasticidade e
-                objeções reais de clientes.
-              </p>
-            </div>
-          )}
-
-          {isRunning && (
-            <div className="rounded-2xl border border-border/80 bg-card p-8 sm:p-12 text-center flex flex-col items-center justify-center space-y-4 min-h-[400px]">
-              <Loader2 className="size-10 text-primary animate-spin" />
-              <div className="space-y-1">
-                <h3 className="text-base font-bold text-foreground">
-                  Processando Enxame Estocástico...
+          {/* Coluna Direita: Resultados da Simulação / Veredito Científico */}
+          <div className="lg:col-span-7 space-y-5">
+            {!synthesis && !isRunning && (
+              <div className="rounded-2xl border border-border/80 bg-card p-8 sm:p-12 text-center flex flex-col items-center justify-center space-y-3 min-h-[440px] shadow-sm">
+                <div className="p-4 bg-primary/10 rounded-2xl text-primary">
+                  <BrainCircuit className="size-8" />
+                </div>
+                <h3 className="text-sm font-bold text-foreground">
+                  Pronto para Validar com População Sintética
                 </h3>
-                <p className="text-xs text-muted-foreground">
-                  Consultando vetores de decisão, elasticidade de renda e sensibilidade de preço nas
-                  personas calibradas.
+                <p className="text-xs text-muted-foreground max-w-sm leading-relaxed">
+                  Preencha os detalhes da sua hipótese à esquerda e acione{" "}
+                  <strong>"Executar Simulação"</strong> para mensurar intenção de
+                  compra, elasticidade de preço e objeções das personas.
                 </p>
               </div>
-            </div>
-          )}
+            )}
 
-          {result && !isRunning && (
-            <div className="space-y-5">
-              {/* Score Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                      Atratividade Geral
-                    </span>
-                    <Layers className="size-4 text-primary" />
-                  </div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {result.overallScore}
-                    <span className="text-xs font-normal text-muted-foreground">/100</span>
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                      Conversão Estimada
-                    </span>
-                    <TrendingUp className="size-4 text-primary" />
-                  </div>
-                  <p className="text-2xl font-bold text-primary">
-                    {result.estimatedConversionRate}%
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                      Percepção de Preço
-                    </span>
-                    <DollarSign className="size-4 text-primary" />
-                  </div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {result.priceElasticityIndex}
-                    <span className="text-xs font-normal text-muted-foreground">/100</span>
+            {isRunning && (
+              <div className="rounded-2xl border border-border/80 bg-card p-8 sm:p-12 text-center flex flex-col items-center justify-center space-y-4 min-h-[440px] shadow-sm">
+                <Loader2 className="size-10 text-primary animate-spin" />
+                <div className="space-y-1">
+                  <h3 className="text-sm font-bold text-foreground">
+                    Consultando Vetores do Censo IBGE 2022...
+                  </h3>
+                  <p className="text-xs text-muted-foreground max-w-md">
+                    Injetando estímulos nas personas, computando coeficientes de
+                    aversão à perda e extraindo reações em linguagem natural.
                   </p>
                 </div>
               </div>
+            )}
 
-              {/* Recomendações e Objeções */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-2">
-                  <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    <AlertTriangle className="size-3.5 text-amber-500" />
-                    Top Objeções Identificadas
-                  </h4>
-                  {result.topObjections.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">
-                      Nenhuma objeção crítica encontrada.
-                    </p>
-                  ) : (
-                    <ul className="space-y-1.5 text-xs text-muted-foreground">
-                      {result.topObjections.map((obj, i) => (
-                        <li key={i} className="flex items-start gap-1.5">
-                          <span className="text-amber-500 font-bold">•</span>
-                          <span>{obj}</span>
-                        </li>
-                      ))}
-                    </ul>
+            {synthesis && !isRunning && (
+              <div className="space-y-5 animate-in fade-in duration-200">
+                {/* Banner de Veredito Científico */}
+                <div
+                  className={cn(
+                    "p-4 rounded-2xl border flex items-center justify-between gap-4",
+                    synthesis.scientific_verdict === "aprovado_para_veiculacao"
+                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300"
+                      : synthesis.scientific_verdict === "revisar_com_ajustes"
+                        ? "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300"
+                        : "bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300",
                   )}
+                >
+                  <div className="flex items-center gap-3">
+                    <Award className="size-5 shrink-0" />
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider">
+                        {synthesis.scientific_verdict ===
+                        "aprovado_para_veiculacao"
+                          ? "Aprovado para Veiculação Comercial"
+                          : synthesis.scientific_verdict ===
+                              "revisar_com_ajustes"
+                            ? "Revisar com Ajustes Estratégicos"
+                            : "Bloqueado por Alto Risco de Mercado"}
+                      </p>
+                      <p className="text-[11px] opacity-90 mt-0.5">
+                        Aprovação: {synthesis.overall_approval_rate}% • NPS:{" "}
+                        {synthesis.synthetic_nps} • Conversão Estimada:{" "}
+                        {synthesis.estimated_conversion_range[0]}% a{" "}
+                        {synthesis.estimated_conversion_range[1]}%
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsMetricsOpen(true)}
+                    className="h-9 rounded-xl text-xs font-semibold shrink-0 cursor-pointer"
+                  >
+                    Ver DRE do Enxame
+                  </Button>
                 </div>
 
-                <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-2">
-                  <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    <CheckCircle2 className="size-3.5 text-emerald-500" />
-                    Ações Recomendadas
-                  </h4>
-                  {result.recommendations.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">
-                      Proposta com boa calibragem de mercado.
-                    </p>
-                  ) : (
+                {/* Gatilhos e Barreiras */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-2 shadow-sm">
+                    <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <CheckCircle2 className="size-3.5 text-emerald-500" />
+                      Gatilhos de Compra Principais
+                    </h4>
                     <ul className="space-y-1.5 text-xs text-muted-foreground">
-                      {result.recommendations.map((rec, i) => (
+                      {synthesis.top_3_buying_triggers.map((trigger, i) => (
                         <li key={i} className="flex items-start gap-1.5">
                           <span className="text-emerald-500 font-bold">•</span>
-                          <span>{rec}</span>
+                          <span>{trigger}</span>
                         </li>
                       ))}
                     </ul>
-                  )}
+                  </div>
+
+                  <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-2 shadow-sm">
+                    <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <AlertTriangle className="size-3.5 text-amber-500" />
+                      Fricções & Objeções Detectadas
+                    </h4>
+                    <ul className="space-y-1.5 text-xs text-muted-foreground">
+                      {synthesis.top_3_friction_barriers.map((barrier, i) => (
+                        <li key={i} className="flex items-start gap-1.5">
+                          <span className="text-amber-500 font-bold">•</span>
+                          <span>{barrier}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-              </div>
 
-              {/* Avaliações das Personas */}
-              <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-3">
-                <h4 className="text-xs font-bold text-foreground flex items-center justify-between">
-                  <span className="flex items-center gap-1.5">
-                    <Users className="size-3.5 text-primary" />
-                    Reações Individuais do Enxame
-                  </span>
-                  <span className="text-[11px] text-muted-foreground font-normal">
-                    {result.evaluations.length} respostas coletadas
-                  </span>
-                </h4>
+                {/* Reações Verbatim das Personas */}
+                <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-3 shadow-sm">
+                  <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
+                    <span className="text-xs font-bold text-foreground flex items-center gap-2">
+                      <MessageSquare className="size-3.5 text-primary" />
+                      Reações Individuais das Personas
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {evaluations.length} depoimentos
+                    </span>
+                  </div>
 
-                <div className="space-y-2.5 max-h-96 overflow-y-auto no-scrollbar pr-1">
-                  {result.evaluations.map((ev, idx) => (
-                    <div
-                      key={idx}
-                      className="p-3 rounded-xl border border-border/60 bg-background text-xs space-y-1.5"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-foreground">{ev.persona.name}</span>
-                          <span className="text-[10px] text-muted-foreground font-mono">
-                            Classe {ev.persona.demographic.socioeconomic_class}
-                          </span>
+                  <div className="space-y-2.5 max-h-[380px] overflow-y-auto no-scrollbar pr-1">
+                    {evaluations.map((ev, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3 rounded-xl border border-border/60 bg-background text-xs space-y-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-foreground">
+                              {ev.archetype?.display_name || "Consumidor"}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground font-mono">
+                              Classe {ev.archetype?.abep_social_class || "C"} •{" "}
+                              {ev.archetype?.region || "Brasil"}
+                            </span>
+                          </div>
+                          <Badge
+                            variant={
+                              ev.purchase_intent_percent >= 60
+                                ? "default"
+                                : "outline"
+                            }
+                            className="text-[10px] rounded-md font-medium px-2 py-0.5"
+                          >
+                            {ev.purchase_intent_percent}% Intenção
+                          </Badge>
                         </div>
-                        <Badge
-                          variant={ev.willConvert ? "default" : "outline"}
-                          className="text-[10px] rounded-md font-medium px-2 py-0.5"
-                        >
-                          {ev.willConvert ? "Converteria" : "Não Converteria"} (
-                          {ev.conversionProbability}%)
-                        </Badge>
-                      </div>
 
-                      <p className="text-[11px] text-muted-foreground italic bg-muted/30 p-2 rounded-lg border border-border/40">
-                        "{ev.quote}"
-                      </p>
+                        <p className="text-[11px] text-muted-foreground italic bg-muted/20 p-2.5 rounded-xl border border-border/40 leading-relaxed">
+                          "{ev.verbatim_reaction}"
+                        </p>
 
-                      <div className="flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground pt-0.5">
-                        <span>
-                          Percepção: <strong className="text-foreground">{ev.pricePerception}</strong>
-                        </span>
-                        <span>
-                          Sentimento: <strong className="text-foreground">{ev.sentiment}</strong>
-                        </span>
-                        {ev.keyObjection && (
-                          <span className="text-amber-500">
-                            Objeção: <strong>{ev.keyObjection}</strong>
+                        <div className="flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground">
+                          <span>
+                            Emoção:{" "}
+                            <strong className="text-foreground capitalize">
+                              {ev.system_1_emotion}
+                            </strong>
                           </span>
-                        )}
+                          <span>
+                            Preço:{" "}
+                            <strong className="text-foreground capitalize">
+                              {ev.price_perception.replace("_", " ")}
+                            </strong>
+                          </span>
+                          {ev.primary_barrier_objection && (
+                            <span className="text-amber-500">
+                              Objeção:{" "}
+                              <strong>{ev.primary_barrier_objection}</strong>
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
+
+      {/* ── 3. DASHBOARD SHEET DE MÉTRICAS SOB DEMANDA (APPLE HIG) ── */}
+      <WorkspaceDashboardSheet
+        title="Telemetria & Estatística do SimLab"
+        open={isMetricsOpen}
+        onOpenChange={setIsMetricsOpen}
+        items={metricsItems}
+      />
     </div>
   );
 }
+

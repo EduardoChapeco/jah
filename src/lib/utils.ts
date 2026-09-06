@@ -2,16 +2,16 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+ return twMerge(clsx(inputs));
 }
 
 export function formatBRL(value: number): string {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(value);
+ return new Intl.NumberFormat("pt-BR", {
+ style: "currency",
+ currency: "BRL",
+ }).format(value);
 }
 
 export function formatCents(cents: number): string {
-  return formatBRL((cents || 0) / 100);
+ return formatBRL((cents || 0) / 100);
 }

@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
+  Package,
   CheckCircle2,
   Camera,
   Layers,
@@ -31,7 +32,7 @@ export const Route = createFileRoute("/workspace/onboarding/revisao")({
   head: () => ({
     meta: [
       {
-        title: "Revisão de Onboarding Multimodal & Master Catalog | JAH Master OS",
+        title: "Revisão de Onboarding Multimodal & Master Catalog | Wider OS",
       },
     ],
   }),
@@ -233,7 +234,7 @@ export function OnboardingReviewPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-background text-foreground pb-20">
+    <div className="flex-1 flex flex-col w-full min-h-full bg-background text-foreground pb-20">
       {/* TopBar Operacional */}
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border/40 px-4 sm:px-8 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -476,11 +477,17 @@ export function OnboardingReviewPage() {
                   >
                     <div className="space-y-2">
                       <div className="aspect-square rounded-xl bg-muted/20 overflow-hidden flex items-center justify-center p-2">
-                        <img
-                          src={sku.image_urls[0] || "https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=600&auto=format&fit=crop&q=80"}
-                          alt={sku.name}
-                          className="size-full object-cover rounded-lg"
-                        />
+                        {sku.image_urls?.[0] ? (
+                          <img
+                            src={sku.image_urls[0]}
+                            alt={sku.name}
+                            className="size-full object-cover rounded-lg"
+                          />
+                        ) : (
+                          <div className="size-full flex items-center justify-center bg-muted/40 rounded-lg text-muted-foreground">
+                            <Package className="size-6 text-muted-foreground/60" />
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center justify-between gap-1">
                         <Badge variant="outline" className="text-[9px] px-1.5 py-0">

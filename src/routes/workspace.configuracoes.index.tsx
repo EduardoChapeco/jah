@@ -2,12 +2,12 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { Store, Save, Loader2, Building2, Phone, Mail, MapPin, Clock, ShieldCheck, CreditCard, FileText, Upload, Image as ImageIcon, Check, ExternalLink, ChevronRight, Layers, Plus, Trash2, HelpCircle, ListChecks } from 'lucide-react';
 import {
-  getStoreSettings,
-  saveStoreSettings,
-  getWorkingHours,
-  saveWorkingHours,
-  getPolicies,
-  savePolicies,
+ getStoreSettings,
+ saveStoreSettings,
+ getWorkingHours,
+ saveWorkingHours,
+ getPolicies,
+ savePolicies,
 } from "@/services/store.functions";
 import { uploadStoreMedia } from "@/services/storage.functions";
 import { PageHeader } from "@/components/commerce/page-header";
@@ -23,8 +23,8 @@ import { ThemeSelector } from "@/components/settings/theme-selector";
 import { BusinessHoursEditor } from "@/components/commerce/business-hours-editor";
 import { NeighborhoodsManager } from "@/components/commerce/neighborhoods-manager";
 import {
-  DeliveryTimeAndRadiusMatrix,
-  type DeliveryLogisticsConfig,
+ DeliveryTimeAndRadiusMatrix,
+ type DeliveryLogisticsConfig,
 } from "@/components/commerce/delivery-time-and-radius-matrix";
 import { CHAPECO_NEIGHBORHOODS, type NeighborhoodPreset } from "@/lib/constants/cities";
 import { Badge } from "@/components/ui/badge";
@@ -34,1203 +34,1349 @@ import { cn } from "@/lib/utils";
 import { getNicheSemantics } from "@/lib/niche-semantics";
 
 export const Route = createFileRoute("/workspace/configuracoes/")({
-  head: () => ({ meta: [{ title: "Configurações da Loja & Perfil Comercial | Workspace JAH Master OS" }] }),
-  loader: async () => {
-    try {
-      const [settingsRes, hoursRes, policiesRes] = await Promise.all([
-        getStoreSettings().catch(() => null),
-        getWorkingHours().catch(() => null),
-        getPolicies().catch(() => null),
-      ]);
-      return {
-        store: settingsRes,
-        workingHours: hoursRes,
-        policies: policiesRes?.policies || {},
-      };
-    } catch {
-      return {
-        store: null,
-        workingHours: null,
-        policies: {},
-      };
-    }
-  },
-  component: WorkspaceConfiguracoesPage,
+ head: () => ({ meta: [{ title: "Configurações da Loja & Perfil Comercial | Workspace Wider OS" }] }),
+ loader: async () => {
+ try {
+ const [settingsRes, hoursRes, policiesRes] = await Promise.all([
+ getStoreSettings().catch(() => null),
+ getWorkingHours().catch(() => null),
+ getPolicies().catch(() => null),
+ ]);
+ return {
+ store: settingsRes,
+ workingHours: hoursRes,
+ policies: policiesRes?.policies || {},
+ };
+ } catch {
+ return {
+ store: null,
+ workingHours: null,
+ policies: {},
+ };
+ }
+ },
+ component: WorkspaceConfiguracoesPage,
 });
 
 const DAYS_MAP = [
-  { key: "mon", label: "Segunda-feira" },
-  { key: "tue", label: "Terça-feira" },
-  { key: "wed", label: "Quarta-feira" },
-  { key: "thu", label: "Quinta-feira" },
-  { key: "fri", label: "Sexta-feira" },
-  { key: "sat", label: "Sábado" },
-  { key: "sun", label: "Domingo" },
+ { key: "mon", label: "Segunda-feira" },
+ { key: "tue", label: "Terça-feira" },
+ { key: "wed", label: "Quarta-feira" },
+ { key: "thu", label: "Quinta-feira" },
+ { key: "fri", label: "Sexta-feira" },
+ { key: "sat", label: "Sábado" },
+ { key: "sun", label: "Domingo" },
 ];
 
-export default function WorkspaceConfiguracoesPage() {
-  const { store, workingHours: initialHours, policies: initialPolicies } = Route.useLoaderData();
-  const router = useRouter();
+export function getDefaultModulesForNiche(nicheId: string): string[] {
+  const baseCorporate = [
+    "catalog",
+    "orders",
+    "pos",
+    "studio",
+    "biolink",
+    "pages",
+    "events",
+    "jobs",
+  ];
 
-  // Estados da Loja
-  const [name, setName] = useState(store?.name || "");
-  const [description, setDescription] = useState(store?.description || "");
-  const [logoUrl, setLogoUrl] = useState(store?.settings?.logoUrl || (store as any)?.logo_url || "");
-  const [bannerUrl, setBannerUrl] = useState(store?.settings?.bannerUrl || (store as any)?.banner_url || "");
-  const [faviconUrl, setFaviconUrl] = useState(store?.settings?.faviconUrl || "");
-  const [phone, setPhone] = useState(store?.phone || "");
-  const [email, setEmail] = useState(store?.email || "");
-  const [cnpj, setCnpj] = useState(store?.cnpj || "");
-  const [address, setAddress] = useState(store?.address || "");
-  const [segment, setSegment] = useState(
-    store?.settings?.segment || store?.settings?.type || store?.settings?.niche || "gastronomy"
-  );
-  const [enabledModules, setEnabledModules] = useState<string[]>(
-    store?.settings?.enabled_modules || [
-      "catalog",
-      "orders",
-      "pos",
+  const lower = (nicheId || "").toLowerCase();
+
+  if (lower.includes("tour") || lower.includes("viag") || lower.includes("travel")) {
+    return [
+      "tourism",
+      ...baseCorporate,
+      "delivery", // Embarques & Frota
+      "stock", // Vagas & Bloqueios
+      "classifieds",
+    ];
+  }
+
+  if (lower.includes("gastro") || lower.includes("restauran") || lower.includes("food")) {
+    return [
+      ...baseCorporate,
       "delivery",
       "stock",
-      "studio",
-      "biolink",
-      "pages",
-      "classifieds",
-    ]
-  );
-  const [city, setCity] = useState(store?.city || "");
-  const [state, setState] = useState(store?.state || "");
-  const [zipCode, setZipCode] = useState(store?.zip_code || "");
+    ];
+  }
 
-  // Horários
-  const [hours, setHours] = useState<any>(initialHours || {});
+  if (lower.includes("servi") || lower.includes("belez") || lower.includes("clinic")) {
+    return [
+      ...baseCorporate,
+      "stock",
+    ];
+  }
 
-  // Políticas
-  const [privacyPolicy, setPrivacyPolicy] = useState(initialPolicies?.privacy_policy || "");
-  const [returnPolicy, setReturnPolicy] = useState(initialPolicies?.return_policy || "");
-  const [terms, setTerms] = useState(initialPolicies?.terms || "");
+  return [
+    ...baseCorporate,
+    "delivery",
+    "stock",
+    "classifieds",
+  ];
+}
 
-  // Bairros & Taxas de Entrega
-  const [neighborhoods, setNeighborhoods] = useState<any[]>(
-    store?.settings?.delivery_zones && store.settings.delivery_zones.length > 0
-      ? store.settings.delivery_zones
-      : CHAPECO_NEIGHBORHOODS,
-  );
+export default function WorkspaceConfiguracoesPage() {
+ const { store, workingHours: initialHours, policies: initialPolicies } = Route.useLoaderData();
+ const router = useRouter();
 
-  // Modalidades de Atendimento (Delivery, Retirada, No Local)
-  const [orderTypes, setOrderTypes] = useState(
-    store?.settings?.order_types || { delivery: true, takeout: true, dine_in: true }
-  );
+ // Estados da Loja
+ const [name, setName] = useState(store?.name || "");
+ const [description, setDescription] = useState(store?.description || "");
+ const [logoUrl, setLogoUrl] = useState(store?.settings?.logoUrl || (store as any)?.logo_url || "");
+ const [bannerUrl, setBannerUrl] = useState(store?.settings?.bannerUrl || (store as any)?.banner_url || "");
+ const [faviconUrl, setFaviconUrl] = useState(store?.settings?.faviconUrl || "");
+ const [phone, setPhone] = useState(store?.phone || "");
+ const [email, setEmail] = useState(store?.email || "");
+ const [cnpj, setCnpj] = useState(store?.cnpj || "");
+ const [address, setAddress] = useState(store?.address || "");
+ const [segment, setSegment] = useState(
+   store?.settings?.segment || store?.settings?.type || store?.settings?.niche || (store?.name?.toLowerCase()?.includes("tour") ? "tourism" : "gastronomy")
+ );
 
-  // Perguntas Customizadas de Checkout
-  const [customFields, setCustomFields] = useState<any[]>(
-    store?.settings?.custom_checkout_fields || [],
-  );
+ const initialResolvedModules = (() => {
+   const existing = store?.settings?.enabled_modules;
+   const currentNicheKey = store?.settings?.segment || store?.settings?.type || store?.settings?.niche || (store?.name?.toLowerCase()?.includes("tour") ? "tourism" : "gastronomy");
+   const defaults = getDefaultModulesForNiche(currentNicheKey);
+   if (!existing || existing.length === 0) return defaults;
+   if (currentNicheKey === "tourism" || currentNicheKey.includes("tour")) {
+     return Array.from(new Set([...existing, "tourism", "events", "jobs"]));
+   }
+   return existing;
+ })();
 
-  // Matriz de Entrega, Tempo de Preparo & Faixas de Raio (Estilo iFood Merchant)
-  const [deliveryConfig, setDeliveryConfig] = useState<DeliveryLogisticsConfig>(
-    store?.settings?.delivery_matrix || {
-      manualPrepTimeEnabled: true,
-      basePrepTimeMin: store?.settings?.delivery_time_min ? parseInt(String(store.settings.delivery_time_min), 10) || 15 : 15,
-      radiusTiers: store?.settings?.radius_tiers || [],
-      minOrderCents: store?.settings?.min_order_cents || 0,
-      freeDeliveryThresholdCents: store?.settings?.free_delivery_threshold_cents || null,
-    }
-  );
+ const [enabledModules, setEnabledModules] = useState<string[]>(initialResolvedModules);
+ const [city, setCity] = useState(store?.city || "");
+ const [state, setState] = useState(store?.state || "");
+ const [zipCode, setZipCode] = useState(store?.zip_code || "");
 
-  // Feriados & Pausa de Emergência
-  const [holidayExceptions, setHolidayExceptions] = useState<any[]>(
-    store?.settings?.holiday_exceptions || [],
-  );
+ // Horários
+ const [hours, setHours] = useState<any>(initialHours || {});
 
-  const semantics = getNicheSemantics({ ...store, segment, name });
-  const [emergencyPauseUntil, setEmergencyPauseUntil] = useState<string | null>(
-    store?.settings?.emergency_pause_until || null,
-  );
+ // Políticas
+ const [privacyPolicy, setPrivacyPolicy] = useState(initialPolicies?.privacy_policy || "");
+ const [returnPolicy, setReturnPolicy] = useState(initialPolicies?.return_policy || "");
+ const [terms, setTerms] = useState(initialPolicies?.terms || "");
 
-  const [isSaving, setIsSaving] = useState(false);
-  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
-  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+ // Bairros & Taxas de Entrega
+ const [neighborhoods, setNeighborhoods] = useState<any[]>(
+ store?.settings?.delivery_zones && store.settings.delivery_zones.length > 0
+ ? store.settings.delivery_zones
+ : CHAPECO_NEIGHBORHOODS,
+ );
 
-  const handleToggleModule = (moduleId: string) => {
-    setEnabledModules((prev) =>
-      prev.includes(moduleId) ? prev.filter((m) => m !== moduleId) : [...prev, moduleId]
-    );
-  };
+ // Modalidades de Atendimento (Delivery, Retirada, No Local)
+ const [orderTypes, setOrderTypes] = useState(
+ store?.settings?.order_types || { delivery: true, takeout: true, dine_in: true }
+ );
 
-  const handleFileUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: "logo" | "banner",
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+ // Perguntas Customizadas de Checkout
+ const [customFields, setCustomFields] = useState<any[]>(
+ store?.settings?.custom_checkout_fields || [],
+ );
 
-    const setUploading = type === "logo" ? setIsUploadingLogo : setIsUploadingBanner;
-    setUploading(true);
+ // Matriz de Entrega, Tempo de Preparo & Faixas de Raio (Estilo iFood Merchant)
+ const [deliveryConfig, setDeliveryConfig] = useState<DeliveryLogisticsConfig>(
+ store?.settings?.delivery_matrix || {
+ manualPrepTimeEnabled: true,
+ basePrepTimeMin: store?.settings?.delivery_time_min ? parseInt(String(store.settings.delivery_time_min), 10) || 15 : 15,
+ radiusTiers: store?.settings?.radius_tiers || [],
+ minOrderCents: store?.settings?.min_order_cents || 0,
+ freeDeliveryThresholdCents: store?.settings?.free_delivery_threshold_cents || null,
+ }
+ );
 
-    try {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64Data = reader.result as string;
-        try {
-          const res = await uploadStoreMedia({
-            data: {
-              fileName: file.name,
-              fileType: file.type,
-              base64Data,
-              bucket: "cms-media",
-            },
-          });
-          if (res?.url) {
-            if (type === "logo") setLogoUrl(res.url);
-            else setBannerUrl(res.url);
-            toast.success("Imagem enviada com sucesso!");
-          }
-        } catch {
-          toast.error("Erro ao enviar imagem.");
-        } finally {
-          setUploading(false);
-        }
-      };
-      reader.readAsDataURL(file);
-    } catch {
-      setUploading(false);
-      toast.error("Falha ao ler arquivo.");
-    }
-  };
+ // Feriados & Pausa de Emergência
+ const [holidayExceptions, setHolidayExceptions] = useState<any[]>(
+ store?.settings?.holiday_exceptions || [],
+ );
 
-  const handleSaveAll = async () => {
-    if (!name.trim()) {
-      toast.error("O nome da loja é obrigatório.");
-      return;
-    }
+ const semantics = getNicheSemantics({ ...store, segment, name });
+ const [emergencyPauseUntil, setEmergencyPauseUntil] = useState<string | null>(
+ store?.settings?.emergency_pause_until || null,
+ );
 
-    setIsSaving(true);
-    try {
-      // 1. Salva Dados da Loja, Nicho, Módulos, Bairros e Matriz de Entrega
-      await saveStoreSettings({
-        data: {
-          name: name.trim(),
-          segment,
-          enabled_modules: enabledModules,
-          description: description.trim() || undefined,
-          logoUrl: logoUrl.trim() || undefined,
-          bannerUrl: bannerUrl.trim() || undefined,
-          faviconUrl: faviconUrl.trim() || undefined,
-          phone: phone.trim() || undefined,
-          email: email.trim() || undefined,
-          cnpj: cnpj.trim() || undefined,
-          address: address.trim() || undefined,
-          city: city.trim() || undefined,
-          state: state.trim().toUpperCase() || undefined,
-          zipCode: zipCode.trim() || undefined,
-          deliveryZones: neighborhoods,
-          customCheckoutFields: customFields,
-          holidayExceptions: holidayExceptions,
-          emergencyPauseUntil: emergencyPauseUntil,
-          delivery_matrix: deliveryConfig,
-          order_types: orderTypes,
-        } as any,
-      });
+ const [isSaving, setIsSaving] = useState(false);
+ const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+ const [isUploadingBanner, setIsUploadingBanner] = useState(false);
 
-      // 2. Salva Políticas
-      await savePolicies({
-        data: {
-          privacy_policy: privacyPolicy,
-          return_policy: returnPolicy,
-          terms,
-        },
-      }).catch(() => null);
+ const handleToggleModule = (moduleId: string) => {
+ setEnabledModules((prev) =>
+ prev.includes(moduleId) ? prev.filter((m) => m !== moduleId) : [...prev, moduleId]
+ );
+ };
 
-      // 3. Salva Horários se existirem
-      if (hours && Object.keys(hours).length > 0) {
-        await saveWorkingHours({ data: hours }).catch(() => null);
-      }
+ const handleFileUpload = async (
+ e: React.ChangeEvent<HTMLInputElement>,
+ type: "logo" | "banner",
+ ) => {
+ const file = e.target.files?.[0];
+ if (!file) return;
 
-      toast.success("Configurações da loja salvas com sucesso!");
-      router.invalidate();
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao salvar configurações.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+ const setUploading = type === "logo" ? setIsUploadingLogo : setIsUploadingBanner;
+ setUploading(true);
 
-  const currentNiche = getNicheSemantics(segment);
-  const isPhysicalDeliveryNiche = [
-    "gastronomy",
-    "gastronomia",
-    "market",
-    "mercado",
-    "retail",
-    "varejo",
-    "moda",
-    "fashion",
-    "pharmacy",
-    "farmacia",
-    "pet",
-  ].includes(segment?.toLowerCase());
+ try {
+ const reader = new FileReader();
+ reader.onload = async () => {
+ const base64Data = reader.result as string;
+ try {
+ const res = await uploadStoreMedia({
+ data: {
+ fileName: file.name,
+ fileType: file.type,
+ base64Data,
+ bucket: "cms-media",
+ },
+ });
+ if (res?.url) {
+ if (type === "logo") setLogoUrl(res.url);
+ else setBannerUrl(res.url);
+ toast.success("Imagem enviada com sucesso!");
+ }
+ } catch {
+ toast.error("Erro ao enviar imagem.");
+ } finally {
+ setUploading(false);
+ }
+ };
+ reader.readAsDataURL(file);
+ } catch {
+ setUploading(false);
+ toast.error("Falha ao ler arquivo.");
+ }
+ };
+
+ const handleSaveAll = async () => {
+ if (!name.trim()) {
+ toast.error("O nome da loja é obrigatório.");
+ return;
+ }
+
+ setIsSaving(true);
+ try {
+ // 1. Salva Dados da Loja, Nicho, Módulos, Bairros e Matriz de Entrega
+ await saveStoreSettings({
+ data: {
+ name: name.trim(),
+ segment,
+ enabled_modules: enabledModules,
+ description: description.trim() || undefined,
+ logoUrl: logoUrl.trim() || undefined,
+ bannerUrl: bannerUrl.trim() || undefined,
+ faviconUrl: faviconUrl.trim() || undefined,
+ phone: phone.trim() || undefined,
+ email: email.trim() || undefined,
+ cnpj: cnpj.trim() || undefined,
+ address: address.trim() || undefined,
+ city: city.trim() || undefined,
+ state: state.trim().toUpperCase() || undefined,
+ zipCode: zipCode.trim() || undefined,
+ deliveryZones: neighborhoods,
+ customCheckoutFields: customFields,
+ holidayExceptions: holidayExceptions,
+ emergencyPauseUntil: emergencyPauseUntil,
+ delivery_matrix: deliveryConfig,
+ order_types: orderTypes,
+ } as any,
+ });
+
+ // 2. Salva Políticas
+ await savePolicies({
+ data: {
+ privacy_policy: privacyPolicy,
+ return_policy: returnPolicy,
+ terms,
+ },
+ }).catch(() => null);
+
+ // 3. Salva Horários se existirem
+ if (hours && Object.keys(hours).length > 0) {
+ await saveWorkingHours({ data: hours }).catch(() => null);
+ }
+
+ toast.success("Configurações da loja salvas com sucesso!");
+ router.invalidate();
+ } catch (err: any) {
+ toast.error(err.message || "Erro ao salvar configurações.");
+ } finally {
+ setIsSaving(false);
+ }
+ };
+
+ const currentNiche = getNicheSemantics(segment);
+ const isPhysicalDeliveryNiche = [
+ "gastronomy",
+ "gastronomia",
+ "market",
+ "mercado",
+ "retail",
+ "varejo",
+ "moda",
+ "fashion",
+ "pharmacy",
+ "farmacia",
+ "pet",
+ ].includes(segment?.toLowerCase());
+  const isTourism =
+    [
+      "tourism",
+      "turismo",
+      "viagens",
+      "travel",
+    ].includes(segment?.toLowerCase()) ||
+    segment?.toLowerCase()?.includes("tour") ||
+    segment?.toLowerCase()?.includes("turis") ||
+    semantics?.nicheId === "tourism" ||
+    currentNiche?.nicheId === "tourism";
   const hasDeliveryModule = enabledModules.includes("delivery") && isPhysicalDeliveryNiche;
 
-  return (
-    <div className="space-y-6 animate-in fade-in duration-200 max-w-6xl mx-auto w-full pb-20">
-      {/* ── 1. Header Minimalista & Direto ── */}
-      <PageHeader
-        eyebrow={`Loja • ${currentNiche.name}`}
-        title="Configurações"
-        actions={
-          <div className="flex items-center gap-2">
-            <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
-              <Link to="/workspace/configuracoes/sessoes">
-                <ShieldCheck className="size-3.5 text-primary" />
-                <span>Sessões</span>
-              </Link>
-            </Button>
+ return (
+ <div className="space-y-6 animate-in fade-in duration-200 max-w-6xl mx-auto w-full pb-20">
+ {/* ── 1. Header Minimalista & Direto ── */}
+ <PageHeader
+ eyebrow={`Loja • ${currentNiche.name}`}
+ title="Configurações"
+ actions={
+ <div className="flex items-center gap-2">
+ <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
+ <Link to="/workspace/configuracoes/sessoes">
+ <ShieldCheck className="size-3.5 text-primary" />
+ <span>Sessões</span>
+ </Link>
+ </Button>
 
-            <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
-              <Link to="/workspace/configuracoes/equipe">
-                <Building2 className="size-3.5" />
-                <span>Equipe</span>
-              </Link>
-            </Button>
+ <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
+ <Link to="/workspace/configuracoes/equipe">
+ <Building2 className="size-3.5" />
+ <span>Equipe</span>
+ </Link>
+ </Button>
 
-            <Button
-              onClick={handleSaveAll}
-              disabled={isSaving}
-              size="sm"
-              className="rounded-xl text-xs font-bold gap-1.5 bg-foreground text-background hover:bg-foreground/90 h-9 cursor-pointer"
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="size-3.5 animate-spin" />
-                  <span>Salvando...</span>
-                </>
-              ) : (
-                <>
-                  <Save className="size-3.5" />
-                  <span>Salvar</span>
-                </>
-              )}
-            </Button>
-          </div>
-        }
-      />
+ <Button
+ onClick={handleSaveAll}
+ disabled={isSaving}
+ size="sm"
+ className="rounded-xl text-xs font-bold gap-1.5 bg-foreground text-background hover:bg-foreground/90 h-9 cursor-pointer"
+ >
+ {isSaving ? (
+ <>
+ <Loader2 className="size-3.5 animate-spin" />
+ <span>Salvando...</span>
+ </>
+ ) : (
+ <>
+ <Save className="size-3.5" />
+ <span>Salvar</span>
+ </>
+ )}
+ </Button>
+ </div>
+ }
+ />
 
-      {/* ── 2. Abas de Governança Nichadas ── */}
-      <Tabs defaultValue="geral" className="w-full space-y-6">
-        <TabsList className={cn("grid bg-muted/60 p-1 rounded-2xl", hasDeliveryModule ? "grid-cols-2 sm:grid-cols-7" : "grid-cols-2 sm:grid-cols-6")}>
-          <TabsTrigger value="geral" className="rounded-xl text-xs font-semibold">
-            Marca & Vitrine
-          </TabsTrigger>
-          <TabsTrigger value="nicho" className="rounded-xl text-xs font-semibold">
-            Nicho & Recursos
-          </TabsTrigger>
-          <TabsTrigger value="contato" className="rounded-xl text-xs font-semibold">
-            Contato & Endereço
-          </TabsTrigger>
-          {hasDeliveryModule && (
-            <TabsTrigger value="entrega" className="rounded-xl text-xs font-semibold">
-              Entrega & Bairros
-            </TabsTrigger>
-          )}
-          <TabsTrigger value="horarios" className="rounded-xl text-xs font-semibold">
-            Horários
-          </TabsTrigger>
-          <TabsTrigger value="politicas" className="rounded-xl text-xs font-semibold">
-            Políticas
-          </TabsTrigger>
-          <TabsTrigger value="checkout" className="rounded-xl text-xs font-semibold">
-            Checkout
-          </TabsTrigger>
-        </TabsList>
+ {/* ── 2. Abas de Governança Nichadas ── */}
+ <Tabs defaultValue="geral" className="w-full space-y-6">
+ <TabsList className={cn("grid bg-muted/60 p-1 rounded-2xl", hasDeliveryModule ? "grid-cols-2 sm:grid-cols-7" : "grid-cols-2 sm:grid-cols-6")}>
+ <TabsTrigger value="geral" className="rounded-xl text-xs font-semibold">
+ Marca & Vitrine
+ </TabsTrigger>
+ <TabsTrigger value="nicho" className="rounded-xl text-xs font-semibold">
+ Nicho & Recursos
+ </TabsTrigger>
+ <TabsTrigger value="contato" className="rounded-xl text-xs font-semibold">
+ Contato & Endereço
+ </TabsTrigger>
+ {hasDeliveryModule && (
+ <TabsTrigger value="entrega" className="rounded-xl text-xs font-semibold">
+ Entrega & Bairros
+ </TabsTrigger>
+ )}
+ <TabsTrigger value="horarios" className="rounded-xl text-xs font-semibold">
+ Horários
+ </TabsTrigger>
+ <TabsTrigger value="politicas" className="rounded-xl text-xs font-semibold">
+ Políticas
+ </TabsTrigger>
+ <TabsTrigger value="checkout" className="rounded-xl text-xs font-semibold">
+ Checkout
+ </TabsTrigger>
+ </TabsList>
 
-        {/* ABA 1: Marca & Vitrine */}
-        <TabsContent value="geral" className="space-y-6">
-          <Card className="p-6 rounded-2xl border-border bg-card space-y-6 ">
-            <div className=" pb-4">
-              <h2 className="text-base font-bold text-foreground">Identidade Visual da Loja</h2>
-              <p className="text-xs text-muted-foreground">
-                Estes elementos aparecem na vitrine pública, no cabeçalho e nas sacolas de compras.
-              </p>
-            </div>
+ {/* ABA 1: Marca & Vitrine */}
+ <TabsContent value="geral" className="space-y-6">
+ <Card className="p-6 rounded-2xl border-border bg-card space-y-6 ">
+ <div className=" pb-4">
+ <h2 className="text-base font-bold text-foreground">Identidade Visual da Loja</h2>
+ <p className="text-xs text-muted-foreground">
+ Estes elementos aparecem na vitrine pública, no cabeçalho e nas sacolas de compras.
+ </p>
+ </div>
 
-            {/* Banner / Capa */}
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-foreground">Capa de Cabeçalho (Banner)</Label>
-              <ImageUpload
-                value={bannerUrl}
-                onChange={(url) => setBannerUrl(url)}
-                onRemove={() => setBannerUrl("")}
-                bucket="cms-media"
-                aspectPreset="banner"
-                className="w-full"
-                helperText="Formato panorâmico (21:9 / 16:9). Arraste ou dê zoom para enquadrar perfeitamente a vitrine."
-              />
-            </div>
+ {/* Banner / Capa */}
+ <div className="space-y-2">
+ <Label className="text-xs font-bold text-foreground">Capa de Cabeçalho (Banner)</Label>
+ <ImageUpload
+ value={bannerUrl}
+ onChange={(url) => setBannerUrl(url)}
+ onRemove={() => setBannerUrl("")}
+ bucket="cms-media"
+ aspectPreset="banner"
+ className="w-full"
+ helperText="Formato panorâmico (21:9 / 16:9). Arraste ou dê zoom para enquadrar perfeitamente a vitrine."
+ />
+ </div>
 
-            {/* Grid de Identidade (Logotipo & Favicon) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-              {/* Logotipo */}
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-foreground">Logotipo Oficial</Label>
-                <div className="flex items-center gap-4">
-                  <ImageUpload
-                    value={logoUrl}
-                    onChange={(url) => setLogoUrl(url)}
-                    onRemove={() => setLogoUrl("")}
-                    bucket="cms-media"
-                    aspectPreset="square"
-                    variant="avatar"
-                    className="w-20 h-20 shrink-0"
-                  />
-                  <div className="flex-1 space-y-1">
-                    <p className="text-xs font-semibold text-foreground">Formato Quadrado (1:1)</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      Exibido no cabeçalho da loja, sacola de compras e recibos.
-                    </p>
-                  </div>
-                </div>
-              </div>
+ {/* Grid de Identidade (Logotipo & Favicon) */}
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+ {/* Logotipo */}
+ <div className="space-y-2">
+ <Label className="text-xs font-bold text-foreground">Logotipo Oficial</Label>
+ <div className="flex items-center gap-4">
+ <ImageUpload
+ value={logoUrl}
+ onChange={(url) => setLogoUrl(url)}
+ onRemove={() => setLogoUrl("")}
+ bucket="cms-media"
+ aspectPreset="square"
+ variant="avatar"
+ className="w-20 h-20 shrink-0"
+ />
+ <div className="flex-1 space-y-1">
+ <p className="text-xs font-semibold text-foreground">Formato Quadrado (1:1)</p>
+ <p className="text-[11px] text-muted-foreground">
+ Exibido no cabeçalho da loja, sacola de compras e recibos.
+ </p>
+ </div>
+ </div>
+ </div>
 
-              {/* Favicon */}
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-foreground">Favicon (Ícone de Aba)</Label>
-                <div className="flex items-center gap-4">
-                  <ImageUpload
-                    value={faviconUrl}
-                    onChange={(url) => setFaviconUrl(url)}
-                    onRemove={() => setFaviconUrl("")}
-                    bucket="cms-media"
-                    aspectPreset="square"
-                    variant="avatar"
-                    className="w-16 h-16 shrink-0"
-                  />
-                  <div className="flex-1 space-y-1">
-                    <p className="text-xs font-semibold text-foreground">Ícone da Aba (1:1)</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      Identifica sua loja na aba do navegador e no app móvel.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+ {/* Favicon */}
+ <div className="space-y-2">
+ <Label className="text-xs font-bold text-foreground">Favicon (Ícone de Aba)</Label>
+ <div className="flex items-center gap-4">
+ <ImageUpload
+ value={faviconUrl}
+ onChange={(url) => setFaviconUrl(url)}
+ onRemove={() => setFaviconUrl("")}
+ bucket="cms-media"
+ aspectPreset="square"
+ variant="avatar"
+ className="w-16 h-16 shrink-0"
+ />
+ <div className="flex-1 space-y-1">
+ <p className="text-xs font-semibold text-foreground">Ícone da Aba (1:1)</p>
+ <p className="text-[11px] text-muted-foreground">
+ Identifica sua loja na aba do navegador e no app móvel.
+ </p>
+ </div>
+ </div>
+ </div>
+ </div>
 
-            {/* Nome Comercial */}
-            <div className="space-y-1.5 pt-2">
-              <Label className="text-xs font-bold text-foreground">Nome Comercial da Loja *</Label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: Wider Store"
-                className="rounded-xl text-xs h-10 font-bold"
-                required
-              />
-            </div>
+ {/* Nome Comercial */}
+ <div className="space-y-1.5 pt-2">
+ <Label className="text-xs font-bold text-foreground">Nome Comercial da Loja *</Label>
+ <Input
+ value={name}
+ onChange={(e) => setName(e.target.value)}
+ placeholder="Ex: Wider Store"
+ className="rounded-xl text-xs h-10 font-bold"
+ required
+ />
+ </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-foreground">Slogan & Bio da Loja</Label>
-              <Textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Apresente sua proposta de valor e diferenciais..."
-                rows={3}
-                className="rounded-2xl text-xs resize-none"
-              />
-            </div>
+ <div className="space-y-1.5">
+ <Label className="text-xs font-bold text-foreground">Slogan & Bio da Loja</Label>
+ <Textarea
+ value={description}
+ onChange={(e) => setDescription(e.target.value)}
+ placeholder="Apresente sua proposta de valor e diferenciais..."
+ rows={3}
+ className="rounded-2xl text-xs resize-none"
+ />
+ </div>
 
-            {/* Modalidades de Atendimento Oferecidas */}
-            <div className="p-5 rounded-2xl bg-muted/20 border border-border/80 space-y-3">
-              <div className="space-y-0.5">
-                <Label className="text-xs font-bold text-foreground">Modalidades de Atendimento</Label>
-                <p className="text-[11px] text-muted-foreground">
-                  Selecione as formas que os clientes podem comprar e receber do seu estabelecimento.
-                </p>
-              </div>
+ {/* Modalidades de Atendimento / Prestação de Serviço Canônicas por Nicho */}
+ {isTourism ? (
+   <div className="p-5 rounded-2xl bg-muted/20 border border-border/80 space-y-3">
+     <div className="space-y-0.5">
+       <Label className="text-xs font-bold text-foreground">Canais & Modalidades de Atendimento (Turismo & Agência)</Label>
+       <p className="text-[11px] text-muted-foreground">
+         Defina as formas que os passageiros e viajantes podem ser atendidos e emitir roteiros com sua agência.
+       </p>
+     </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/70">
-                  <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-foreground">Delivery</span>
-                    <p className="text-[10px] text-muted-foreground">Entrega no endereço</p>
-                  </div>
-                  <Switch
-                    checked={orderTypes.delivery}
-                    onCheckedChange={(c) => setOrderTypes({ ...orderTypes, delivery: c })}
-                    className="scale-75"
-                  />
-                </div>
+     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+       <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/70">
+         <div className="space-y-0.5 pr-2">
+           <span className="text-xs font-bold text-foreground">Presencial na Agência</span>
+           <p className="text-[10px] text-muted-foreground">Balcão físico com ou sem agendamento</p>
+         </div>
+         <Switch
+           checked={orderTypes.in_person ?? orderTypes.dine_in ?? true}
+           onCheckedChange={(c) => setOrderTypes({ ...orderTypes, in_person: c, dine_in: c })}
+           className="scale-75"
+         />
+       </div>
 
-                <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/70">
-                  <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-foreground">Retirada</span>
-                    <p className="text-[10px] text-muted-foreground">Pegar no balcão</p>
-                  </div>
-                  <Switch
-                    checked={orderTypes.takeout}
-                    onCheckedChange={(c) => setOrderTypes({ ...orderTypes, takeout: c })}
-                    className="scale-75"
-                  />
-                </div>
+       <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/70">
+         <div className="space-y-0.5 pr-2">
+           <span className="text-xs font-bold text-foreground">Consultoria Online</span>
+           <p className="text-[10px] text-muted-foreground">Atendimento WhatsApp e Vídeo</p>
+         </div>
+         <Switch
+           checked={orderTypes.remote_online ?? true}
+           onCheckedChange={(c) => setOrderTypes({ ...orderTypes, remote_online: c })}
+           className="scale-75"
+         />
+       </div>
 
-                <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/70">
-                  <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-foreground">No Local / Mesas</span>
-                    <p className="text-[10px] text-muted-foreground">Consumo presencial</p>
-                  </div>
-                  <Switch
-                    checked={orderTypes.dine_in}
-                    onCheckedChange={(c) => setOrderTypes({ ...orderTypes, dine_in: c })}
-                    className="scale-75"
-                  />
-                </div>
-              </div>
-            </div>
-          </Card>
+       <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/70">
+         <div className="space-y-0.5 pr-2">
+           <span className="text-xs font-bold text-foreground">Emissão Autônoma</span>
+           <p className="text-[10px] text-muted-foreground">Reserva e compra direta no portal</p>
+         </div>
+         <Switch
+           checked={orderTypes.auto_checkout ?? orderTypes.delivery ?? true}
+           onCheckedChange={(c) => setOrderTypes({ ...orderTypes, auto_checkout: c, delivery: c })}
+           className="scale-75"
+         />
+       </div>
 
-          {/* Tema do Workspace */}
-          <Card className="p-6 rounded-2xl border-border bg-card space-y-4">
-            <div>
-              <h2 className="text-base font-bold text-foreground">Aparência do Painel & Tema</h2>
-              <p className="text-xs text-muted-foreground">
-                Escolha a preferência visual para a navegação do seu painel e vitrines.
-              </p>
-            </div>
-            <ThemeSelector />
-          </Card>
-        </TabsContent>
+       <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/70">
+         <div className="space-y-0.5 pr-2">
+           <span className="text-xs font-bold text-foreground">Corporativo / B2B</span>
+           <p className="text-[10px] text-muted-foreground">Faturamento para empresas e grupos</p>
+         </div>
+         <Switch
+           checked={orderTypes.corporate_b2b ?? false}
+           onCheckedChange={(c) => setOrderTypes({ ...orderTypes, corporate_b2b: c })}
+           className="scale-75"
+         />
+       </div>
+     </div>
+   </div>
+ ) : isPhysicalDeliveryNiche ? (
+   <div className="p-5 rounded-2xl bg-muted/20 border border-border/80 space-y-3">
+     <div className="space-y-0.5">
+       <Label className="text-xs font-bold text-foreground">Modalidades de Atendimento</Label>
+       <p className="text-[11px] text-muted-foreground">
+         Selecione as formas que os clientes podem comprar e receber do seu estabelecimento.
+       </p>
+     </div>
 
-        {/* ABA: Nicho & Recursos da Loja */}
-        <TabsContent value="nicho" className="space-y-6">
-          <Card className="p-6 rounded-2xl border-border bg-card space-y-5">
-            <div className="pb-2">
-              <h2 className="text-base font-bold text-foreground">Nicho & Modelo de Operação</h2>
-              <p className="text-xs text-muted-foreground">
-                Ajusta automaticamente os módulos, menus e ferramentas da barra lateral para a realidade do seu negócio.
-              </p>
-            </div>
+     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+       <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/70">
+         <div className="space-y-0.5">
+           <span className="text-xs font-bold text-foreground">Delivery</span>
+           <p className="text-[10px] text-muted-foreground">Entrega no endereço</p>
+         </div>
+         <Switch
+           checked={orderTypes.delivery}
+           onCheckedChange={(c) => setOrderTypes({ ...orderTypes, delivery: c })}
+           className="scale-75"
+         />
+       </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {[
-                {
-                  id: "gastronomy",
-                  title: "Gastronomia & Delivery",
-                  desc: "Restaurantes, pizzarias, hamburguerias e cafés. Inclui KDS, comandas e taxa de entrega.",
-                },
-                {
-                  id: "ecommerce",
-                  title: "Varejo & Moda",
-                  desc: "Roupas, calçados e comércio geral. Inclui variações de grade, estoque e fretes.",
-                },
-                {
-                  id: "services",
-                  title: "Serviços, Saúde & Beleza",
-                  desc: "Salões, barbearias, clínicas e estética. Inclui agenda de profissionais, salas e passes.",
-                },
-                {
-                  id: "jobs",
-                  title: "Empregos & Recrutamento",
-                  desc: "Agências de RH, consultorias e empresas. Inclui vagas, candidaturas e banco de talentos.",
-                },
-                {
-                  id: "events",
-                  title: "Eventos & Ingressos",
-                  desc: "Casas de show, baladas, festivais e teatro. Inclui lotes de ingressos, check-in e flyers.",
-                },
-                {
-                  id: "automotive",
-                  title: "Automóveis & Veículos",
-                  desc: "Lojas de carros, motos e garagens. Inclui estoque de veículos, propostas e financiamento.",
-                },
-                {
-                  id: "pet",
-                  title: "Pet Shop & Veterinária",
-                  desc: "Banho & tosa, clínicas e agropecuária. Inclui agenda de procedimentos, rações e vacinas.",
-                },
-                {
-                  id: "supermarket",
-                  title: "Supermercado & Hortifrúti",
-                  desc: "Mercados, empórios e açougues. Inclui itens por KG/unidade, validades e separação de pedidos.",
-                },
-                {
-                  id: "pharmacy",
-                  title: "Farmácia & Cosméticos",
-                  desc: "Drogarias, farmácias e suplementos. Inclui balcão de medicamentos e tele-entrega express.",
-                },
-                {
-                  id: "news",
-                  title: "Jornalismo & Notícias",
-                  desc: "Portais de notícias, jornais e revistas. Inclui redação de matérias e banners de anunciantes.",
-                },
-                {
-                  id: "rental_events",
-                  title: "Locação & Estruturas",
-                  desc: "Aluguel de som, luz, tendas e palcos. Inclui inventário de bens, agenda de locação e contratos.",
-                },
-                {
-                  id: "tech_repair",
-                  title: "Assistência & Mecânica",
-                  desc: "Conserto de celular, oficinas e informática. Inclui Ordens de Serviço (OS) e peças.",
-                },
-                {
-                  id: "legal",
-                  title: "Advocacia & Jurídico",
-                  desc: "Escritórios de advocacia. Inclui controle de processos, prazos, audiências e honorários.",
-                },
-                {
-                  id: "real_estate",
-                  title: "Imobiliária & Imóveis",
-                  desc: "Corretores e imobiliárias. Inclui catálogo de imóveis, vistorias e contratos de aluguel.",
-                },
-                {
-                  id: "tourism",
-                  title: "Turismo & Viagens",
-                  desc: "Agências de viagem, pousadas e guias. Inclui cotações de pacotes, passeios e reservas.",
-                },
-                {
-                  id: "education",
-                  title: "Cursos & Educação",
-                  desc: "Escolas, cursos e workshops. Inclui grade de aulas, matrículas e turmas de alunos.",
-                },
-                {
-                  id: "wholesale",
-                  title: "Atacado & B2B",
-                  desc: "Indústrias e distribuidoras. Inclui tabelas de preço PJ, orçamentos em lote e faturamento.",
-                },
-              ].map((n) => {
-                const activeSemantics = getNicheSemantics({ segment });
-                const isSelected =
-                  activeSemantics.nicheId === n.id ||
-                  (n.id === "ecommerce" && activeSemantics.nicheId === "retail") ||
-                  (n.id === "automotive" && activeSemantics.nicheId === "vehicles") ||
-                  (n.id === "rental_events" && activeSemantics.nicheId === "rental") ||
-                  segment === n.id;
+       <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/70">
+         <div className="space-y-0.5">
+           <span className="text-xs font-bold text-foreground">Retirada</span>
+           <p className="text-[10px] text-muted-foreground">Pegar no balcão</p>
+         </div>
+         <Switch
+           checked={orderTypes.takeout}
+           onCheckedChange={(c) => setOrderTypes({ ...orderTypes, takeout: c })}
+           className="scale-75"
+         />
+       </div>
 
-                return (
-                  <button
-                    key={n.id}
-                    type="button"
-                    onClick={() => setSegment(n.id)}
-                    className={cn(
-                      "flex flex-col text-left p-4 rounded-2xl border transition-all cursor-pointer relative",
-                      isSelected
-                        ? "border-primary bg-primary/5 ring-1 ring-primary/40"
-                        : "border-border/60 bg-muted/20 hover:bg-muted/50 text-muted-foreground"
-                    )}
-                  >
-                    <div className="flex items-center justify-between w-full mb-1.5">
-                      <span className={cn("text-xs font-bold", isSelected ? "text-primary" : "text-foreground")}>
-                        {n.title}
-                      </span>
-                      {isSelected && <Check className="size-3.5 text-primary shrink-0" />}
-                    </div>
-                    <p className="text-[11px] leading-relaxed text-muted-foreground">
-                      {n.desc}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </Card>
+       <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/70">
+         <div className="space-y-0.5">
+           <span className="text-xs font-bold text-foreground">No Local / Mesas</span>
+           <p className="text-[10px] text-muted-foreground">Consumo presencial</p>
+         </div>
+         <Switch
+           checked={orderTypes.dine_in}
+           onCheckedChange={(c) => setOrderTypes({ ...orderTypes, dine_in: c })}
+           className="scale-75"
+         />
+       </div>
+     </div>
+   </div>
+ ) : (
+   <div className="p-5 rounded-2xl bg-muted/20 border border-border/80 space-y-3">
+     <div className="space-y-0.5">
+       <Label className="text-xs font-bold text-foreground">Canais de Atendimento & Prestação de Serviço</Label>
+       <p className="text-[11px] text-muted-foreground">
+         Defina as formas de atendimento oferecidas pelo seu negócio.
+       </p>
+     </div>
 
-          {/* ── Gerenciador de Módulos Habilitados ── */}
-          <Card className="p-6 rounded-2xl border-border bg-card space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2">
-              <div>
-                <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-                  <ListChecks className="size-4 text-primary" />
-                  Módulos & Ferramentas Habilitadas
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  Ative somente os recursos que sua operação utiliza para manter o menu do Workspace limpo e focado.
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setEnabledModules(
-                      semantics.nicheId === "tourism"
-                        ? ["catalog", "orders", "pos", "studio", "biolink", "pages"]
-                        : [
-                            "catalog",
-                            "orders",
-                            "pos",
-                            "delivery",
-                            "stock",
-                            "studio",
-                            "biolink",
-                            "pages",
-                            "classifieds",
-                          ]
-                    )
-                  }
-                  className="text-xs h-7 rounded-xl"
-                >
-                  {semantics.nicheId === "tourism"
-                    ? "Padrão Turismo & Viagens"
-                    : semantics.nicheId === "services"
-                    ? "Padrão Serviços"
-                    : "Padrão Comercial & Loja"}
-                </Button>
-              </div>
-            </div>
+     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+       <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/70">
+         <div className="space-y-0.5">
+           <span className="text-xs font-bold text-foreground">Atendimento Presencial</span>
+           <p className="text-[10px] text-muted-foreground">No escritório ou estabelecimento físico</p>
+         </div>
+         <Switch
+           checked={orderTypes.in_person ?? orderTypes.dine_in ?? true}
+           onCheckedChange={(c) => setOrderTypes({ ...orderTypes, in_person: c, dine_in: c })}
+           className="scale-75"
+         />
+       </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {[
-                {
-                  id: "catalog",
-                  title: semantics.nicheId === "gastronomy" ? "Cardápio & Itens" : semantics.catalogTitle || "Catálogo & Itens",
-                  desc: semantics.nicheId === "tourism"
-                    ? "Cadastro de pacotes, roteiros, destinos e passeios."
-                    : semantics.nicheId === "gastronomy"
-                    ? "Cadastro de pratos, bebidas, adicionais e categorias."
-                    : "Cadastro de produtos, variações, categorias e fotos.",
-                  icon: semantics.nicheId === "tourism" ? "✈️" : semantics.nicheId === "gastronomy" ? "🍽️" : "📦",
-                },
-                {
-                  id: "orders",
-                  title: semantics.ordersLabel || "Gestor de Pedidos",
-                  desc: semantics.nicheId === "tourism"
-                    ? "Recepção de cotações, propostas e emissões."
-                    : semantics.nicheId === "gastronomy"
-                    ? "Recepção de pedidos em tempo real, telas de cozinha (KDS) e despacho."
-                    : "Recepção de pedidos, separação e expedição de compras.",
-                  icon: "📋",
-                },
-                {
-                  id: "delivery",
-                  title: semantics.nicheId === "tourism" ? "Embarque & Frota" : "Frota & Entregas",
-                  desc: semantics.nicheId === "tourism"
-                    ? "Gestão de veículos, ônibus, embarques e transfers."
-                    : "Gestão de entregadores, despacho e taxas por bairro.",
-                  icon: semantics.nicheId === "tourism" ? "🚌" : "🛵",
-                },
-                {
-                  id: "pos",
-                  title: semantics.nicheId === "tourism" ? "Balcão & Vendas Rápidas" : "Frente de Caixa (PDV)",
-                  desc: semantics.nicheId === "gastronomy"
-                    ? "Ponto de venda rápido para balcão, comandas e mesas."
-                    : "Ponto de venda rápido para recebimento e vendas presenciais.",
-                  icon: "🏪",
-                },
-                {
-                  id: "stock",
-                  title: semantics.stockLabel || "Controle de Estoque",
-                  desc: semantics.nicheId === "tourism"
-                    ? "Controle de vagas, bloqueios de quartos e assentos."
-                    : "Movimentações, baixa automática e alerta de insumos mínimos.",
-                  icon: "📦",
-                },
-                {
-                  id: "studio",
-                  title: "Estúdio Visual Studio 3.0",
-                  desc: "Criador de posts, encartes promocionais e banners para redes.",
-                  icon: "🎨",
-                },
-                {
-                  id: "biolink",
-                  title: "Link da Bio (Biolink)",
-                  desc: "Página móvel com botões rápidos de WhatsApp, PIX e redes.",
-                  icon: "🔗",
-                },
-                {
-                  id: "pages",
-                  title: "Páginas do Site (CMS)",
-                  desc: "Páginas institucionais como Sobre Nós, Políticas e Dúvidas.",
-                  icon: "📄",
-                },
-                {
-                  id: "classifieds",
-                  title: "Classificados Locais",
-                  desc: "Anúncios rápidos de desapegos e oportunidades na região.",
-                  icon: "📢",
-                },
-                {
-                  id: "news",
-                  title: "Notícias & Redação",
-                  desc: "Publicação de matérias jornalísticas e conteúdos editoriais.",
-                  icon: "📰",
-                },
-                {
-                  id: "events",
-                  title: "Eventos & Ingressos",
-                  desc: "Venda de ingressos com lotes, setores e validação QR Code.",
-                  icon: "🎟️",
-                },
-                {
-                  id: "jobs",
-                  title: "Empregos & Recrutamento",
-                  desc: "Abertura de vagas e recebimento de currículos de candidatos.",
-                  icon: "💼",
-                },
-                {
-                  id: "vehicles",
-                  title: "Veículos & Concessionária",
-                  desc: "Estoque de seminovos, propostas de financiamento e placas.",
-                  icon: "🚗",
-                },
-                {
-                  id: "real_estate",
-                  title: "Imóveis & Imobiliária",
-                  desc: "Catálogo de imóveis para venda/locação e vistorias.",
-                  icon: "🏠",
-                },
-                {
-                  id: "tourism",
-                  title: "Turismo & Passeios",
-                  desc: "Pacotes de viagem, pousadas e reservas de passeios locais.",
-                  icon: "✈️",
-                },
-                {
-                  id: "education",
-                  title: "Cursos & Workshops",
-                  desc: "Gestão de turmas, materiais didáticos e matrículas.",
-                  icon: "🎓",
-                },
-              ].map((mod) => {
-                const isEnabled = enabledModules.includes(mod.id);
-                return (
-                  <div
-                    key={mod.id}
-                    onClick={() => handleToggleModule(mod.id)}
-                    className={cn(
-                      "flex items-start justify-between p-3.5 rounded-2xl border transition-all cursor-pointer select-none",
-                      isEnabled
-                        ? "border-primary/40 bg-primary/5 dark:bg-primary/10"
-                        : "border-border/60 bg-muted/20 hover:bg-muted/40 opacity-70"
-                    )}
-                  >
-                    <div className="space-y-1 pr-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-base leading-none">{mod.icon}</span>
-                        <span className="text-xs font-bold text-foreground">
-                          {mod.title}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-muted-foreground leading-snug">
-                        {mod.desc}
-                      </p>
-                    </div>
-                    <Switch
-                      checked={isEnabled}
-                      onCheckedChange={() => handleToggleModule(mod.id)}
-                      className="shrink-0 mt-0.5"
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-        </TabsContent>
+       <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/70">
+         <div className="space-y-0.5">
+           <span className="text-xs font-bold text-foreground">Atendimento Remoto / Online</span>
+           <p className="text-[10px] text-muted-foreground">Via canais digitais e videoconferência</p>
+         </div>
+         <Switch
+           checked={orderTypes.remote_online ?? true}
+           onCheckedChange={(c) => setOrderTypes({ ...orderTypes, remote_online: c })}
+           className="scale-75"
+         />
+       </div>
+     </div>
+   </div>
+ )}
+ </Card>
 
-        {/* ABA 2: Contato & Endereço */}
-        <TabsContent value="contato" className="space-y-6">
-          <Card className="p-6 rounded-2xl border-border bg-card space-y-5 ">
-            <div className=" pb-4">
-              <h2 className="text-base font-bold text-foreground">Canais de Contato & Localização</h2>
-              <p className="text-xs text-muted-foreground">
-                Dados utilizados para emissão de pedidos, frete local e comunicação com o cliente.
-              </p>
-            </div>
+ {/* Tema do Workspace */}
+ <Card className="p-6 rounded-2xl border-border bg-card space-y-4">
+ <div>
+ <h2 className="text-base font-bold text-foreground">Aparência do Painel & Tema</h2>
+ <p className="text-xs text-muted-foreground">
+ Escolha a preferência visual para a navegação do seu painel e vitrines.
+ </p>
+ </div>
+ <ThemeSelector />
+ </Card>
+ </TabsContent>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-foreground flex items-center gap-1">
-                  <Phone className="size-3 text-primary" />
-                  WhatsApp Comercial
-                </Label>
-                <Input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="(49) 99999-9999"
-                  className="rounded-xl text-xs h-9"
-                />
-              </div>
+ {/* ABA: Nicho & Recursos da Loja */}
+ <TabsContent value="nicho" className="space-y-6">
+ <Card className="p-6 rounded-2xl border-border bg-card space-y-5">
+ <div className="pb-2">
+ <h2 className="text-base font-bold text-foreground">Nicho & Modelo de Operação</h2>
+ <p className="text-xs text-muted-foreground">
+ Ajusta automaticamente os módulos, menus e ferramentas da barra lateral para a realidade do seu negócio.
+ </p>
+ </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-foreground flex items-center gap-1">
-                  <Mail className="size-3 text-primary" />
-                  E-mail da Loja
-                </Label>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="contato@minhaloja.com.br"
-                  className="rounded-xl text-xs h-9"
-                />
-              </div>
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+ {[
+ {
+ id: "gastronomy",
+ title: "Gastronomia & Delivery",
+ desc: "Restaurantes, pizzarias, hamburguerias e cafés. Inclui KDS, comandas e taxa de entrega.",
+ },
+ {
+ id: "ecommerce",
+ title: "Varejo & Moda",
+ desc: "Roupas, calçados e comércio geral. Inclui variações de grade, estoque e fretes.",
+ },
+ {
+ id: "services",
+ title: "Serviços, Saúde & Beleza",
+ desc: "Salões, barbearias, clínicas e estética. Inclui agenda de profissionais, salas e passes.",
+ },
+ {
+ id: "jobs",
+ title: "Empregos & Recrutamento",
+ desc: "Agências de RH, consultorias e empresas. Inclui vagas, candidaturas e banco de talentos.",
+ },
+ {
+ id: "events",
+ title: "Eventos & Ingressos",
+ desc: "Casas de show, baladas, festivais e teatro. Inclui lotes de ingressos, check-in e flyers.",
+ },
+ {
+ id: "automotive",
+ title: "Automóveis & Veículos",
+ desc: "Lojas de carros, motos e garagens. Inclui estoque de veículos, propostas e financiamento.",
+ },
+ {
+ id: "pet",
+ title: "Pet Shop & Veterinária",
+ desc: "Banho & tosa, clínicas e agropecuária. Inclui agenda de procedimentos, rações e vacinas.",
+ },
+ {
+ id: "supermarket",
+ title: "Supermercado & Hortifrúti",
+ desc: "Mercados, empórios e açougues. Inclui itens por KG/unidade, validades e separação de pedidos.",
+ },
+ {
+ id: "pharmacy",
+ title: "Farmácia & Cosméticos",
+ desc: "Drogarias, farmácias e suplementos. Inclui balcão de medicamentos e tele-entrega express.",
+ },
+ {
+ id: "news",
+ title: "Jornalismo & Notícias",
+ desc: "Portais de notícias, jornais e revistas. Inclui redação de matérias e banners de anunciantes.",
+ },
+ {
+ id: "rental_events",
+ title: "Locação & Estruturas",
+ desc: "Aluguel de som, luz, tendas e palcos. Inclui inventário de bens, agenda de locação e contratos.",
+ },
+ {
+ id: "tech_repair",
+ title: "Assistência & Mecânica",
+ desc: "Conserto de celular, oficinas e informática. Inclui Ordens de Serviço (OS) e peças.",
+ },
+ {
+ id: "legal",
+ title: "Advocacia & Jurídico",
+ desc: "Escritórios de advocacia. Inclui controle de processos, prazos, audiências e honorários.",
+ },
+ {
+ id: "real_estate",
+ title: "Imobiliária & Imóveis",
+ desc: "Corretores e imobiliárias. Inclui catálogo de imóveis, vistorias e contratos de aluguel.",
+ },
+ {
+ id: "tourism",
+ title: "Turismo & Viagens",
+ desc: "Agências de viagem, pousadas e guias. Inclui cotações de pacotes, passeios e reservas.",
+ },
+ {
+ id: "education",
+ title: "Cursos & Educação",
+ desc: "Escolas, cursos e workshops. Inclui grade de aulas, matrículas e turmas de alunos.",
+ },
+ {
+ id: "wholesale",
+ title: "Atacado & B2B",
+ desc: "Indústrias e distribuidoras. Inclui tabelas de preço PJ, orçamentos em lote e faturamento.",
+ },
+ ].map((n) => {
+ const activeSemantics = getNicheSemantics({ segment });
+ const isSelected =
+ activeSemantics.nicheId === n.id ||
+ (n.id === "ecommerce" && activeSemantics.nicheId === "retail") ||
+ (n.id === "automotive" && activeSemantics.nicheId === "vehicles") ||
+ (n.id === "rental_events" && activeSemantics.nicheId === "rental") ||
+ segment === n.id;
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-foreground">CNPJ / CPF</Label>
-                <Input
-                  value={cnpj}
-                  onChange={(e) => setCnpj(e.target.value)}
-                  placeholder="00.000.000/0001-00"
-                  className="rounded-xl text-xs h-9"
-                />
-              </div>
-            </div>
+ return (
+ <button
+ key={n.id}
+ type="button"
+ onClick={() => {
+   setSegment(n.id);
+   setEnabledModules(getDefaultModulesForNiche(n.id));
+   toast.success(`Nicho alterado para ${n.title}. Módulos recomendados foram ativados.`);
+ }}
+ className={cn(
+ "flex flex-col text-left p-4 rounded-2xl border transition-all cursor-pointer relative",
+ isSelected
+ ? "border-primary bg-primary/5 ring-1 ring-primary/40"
+ : "border-border/60 bg-muted/20 hover:bg-muted/50 text-muted-foreground"
+ )}
+ >
+ <div className="flex items-center justify-between w-full mb-1.5">
+ <span className={cn("text-xs font-bold", isSelected ? "text-primary" : "text-foreground")}>
+ {n.title}
+ </span>
+ {isSelected && <Check className="size-3.5 text-primary shrink-0" />}
+ </div>
+ <p className="text-[11px] leading-relaxed text-muted-foreground">
+ {n.desc}
+ </p>
+ </button>
+ );
+ })}
+ </div>
+ </Card>
 
-            <div className="space-y-4">
-              <CitySelect
-                stateValue={state}
-                cityValue={city}
-                onStateChange={setState}
-                onCityChange={setCity}
-              />
+ {/* ── Gerenciador de Módulos Habilitados ── */}
+ <Card className="p-6 rounded-2xl border-border bg-card space-y-5">
+ <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2">
+ <div>
+ <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+ <ListChecks className="size-4 text-primary" />
+ Módulos & Ferramentas Habilitadas
+ </h2>
+ <p className="text-xs text-muted-foreground">
+ Ative somente os recursos que sua operação utiliza para manter o menu do Workspace limpo e focado.
+ </p>
+ </div>
+ <div className="flex items-center gap-2">
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ onClick={() => {
+   const newDefaults = getDefaultModulesForNiche(semantics.nicheId || segment);
+   setEnabledModules(newDefaults);
+   toast.success(`Módulos restaurados para o padrão ${semantics.name}.`);
+ }}
+ className="text-xs h-7 rounded-xl"
+ >
+ {semantics.nicheId === "tourism"
+ ? "Padrão Turismo & Viagens"
+ : semantics.nicheId === "services"
+ ? "Padrão Serviços"
+ : "Padrão Comercial & Loja"}
+ </Button>
+ </div>
+ </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-foreground">Endereço Físico / Balcão</Label>
-                <Input
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Rua, número, complemento e bairro"
-                  className="rounded-xl text-xs h-9"
-                />
-              </div>
-            </div>
-          </Card>
-        </TabsContent>
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+ {[
+ {
+ id: "catalog",
+ title: semantics.nicheId === "gastronomy" ? "Cardápio & Itens" : semantics.catalogTitle || "Catálogo & Itens",
+ desc: semantics.nicheId === "tourism"
+ ? "Cadastro de pacotes, roteiros, destinos e passeios."
+ : semantics.nicheId === "gastronomy"
+ ? "Cadastro de pratos, bebidas, adicionais e categorias."
+ : "Cadastro de produtos, variações, categorias e fotos.",
+ icon: semantics.nicheId === "tourism" ? "✈️" : semantics.nicheId === "gastronomy" ? "🍽️" : "📦",
+ },
+ {
+ id: "orders",
+ title: semantics.ordersLabel || "Gestor de Pedidos",
+ desc: semantics.nicheId === "tourism"
+ ? "Recepção de cotações, propostas e emissões."
+ : semantics.nicheId === "gastronomy"
+ ? "Recepção de pedidos em tempo real, telas de cozinha (KDS) e despacho."
+ : "Recepção de pedidos, separação e expedição de compras.",
+ icon: "📋",
+ },
+ {
+ id: "delivery",
+ title: semantics.nicheId === "tourism" ? "Embarque & Frota" : "Frota & Entregas",
+ desc: semantics.nicheId === "tourism"
+ ? "Gestão de veículos, ônibus, embarques e transfers."
+ : "Gestão de entregadores, despacho e taxas por bairro.",
+ icon: semantics.nicheId === "tourism" ? "🚌" : "🛵",
+ },
+ {
+ id: "pos",
+ title: semantics.nicheId === "tourism" ? "Balcão & Vendas Rápidas" : "Frente de Caixa (PDV)",
+ desc: semantics.nicheId === "gastronomy"
+ ? "Ponto de venda rápido para balcão, comandas e mesas."
+ : "Ponto de venda rápido para recebimento e vendas presenciais.",
+ icon: "🏪",
+ },
+ {
+ id: "stock",
+ title: semantics.stockLabel || "Controle de Estoque",
+ desc: semantics.nicheId === "tourism"
+ ? "Controle de vagas, bloqueios de quartos e assentos."
+ : "Movimentações, baixa automática e alerta de insumos mínimos.",
+ icon: "📦",
+ },
+ {
+ id: "studio",
+ title: "Estúdio Visual Studio 3.0",
+ desc: "Criador de posts, encartes promocionais e banners para redes.",
+ icon: "🎨",
+ },
+ {
+ id: "biolink",
+ title: "Link da Bio (Biolink)",
+ desc: "Página móvel com botões rápidos de WhatsApp, PIX e redes.",
+ icon: "🔗",
+ },
+ {
+ id: "pages",
+ title: "Páginas do Site (CMS)",
+ desc: "Páginas institucionais como Sobre Nós, Políticas e Dúvidas.",
+ icon: "📄",
+ },
+ {
+ id: "classifieds",
+ title: "Classificados Locais",
+ desc: "Anúncios rápidos de desapegos e oportunidades na região.",
+ icon: "📢",
+ },
+ {
+ id: "news",
+ title: "Notícias & Redação",
+ desc: "Publicação de matérias jornalísticas e conteúdos editoriais.",
+ icon: "📰",
+ },
+ {
+ id: "events",
+ title: "Eventos & Ingressos",
+ desc: "Venda de ingressos com lotes, setores e validação QR Code.",
+ icon: "🎟️",
+ },
+ {
+ id: "jobs",
+ title: "Empregos & Recrutamento",
+ desc: "Abertura de vagas e recebimento de currículos de candidatos.",
+ icon: "💼",
+ },
+ {
+ id: "vehicles",
+ title: "Veículos & Concessionária",
+ desc: "Estoque de seminovos, propostas de financiamento e placas.",
+ icon: "🚗",
+ },
+ {
+ id: "real_estate",
+ title: "Imóveis & Imobiliária",
+ desc: "Catálogo de imóveis para venda/locação e vistorias.",
+ icon: "🏠",
+ },
+ {
+ id: "tourism",
+ title: "Turismo & Passeios",
+ desc: "Pacotes de viagem, pousadas e reservas de passeios locais.",
+ icon: "✈️",
+ },
+ {
+ id: "education",
+ title: "Cursos & Workshops",
+ desc: "Gestão de turmas, materiais didáticos e matrículas.",
+ icon: "🎓",
+ },
+ ].map((mod) => {
+ const isEnabled = enabledModules.includes(mod.id);
+ return (
+ <div
+ key={mod.id}
+ onClick={() => handleToggleModule(mod.id)}
+ className={cn(
+ "flex items-start justify-between p-3.5 rounded-2xl border transition-all cursor-pointer select-none",
+ isEnabled
+ ? "border-primary/40 bg-primary/5 dark:bg-primary/10"
+ : "border-border/60 bg-muted/20 hover:bg-muted/40 opacity-70"
+ )}
+ >
+ <div className="space-y-1 pr-3">
+ <div className="flex items-center gap-2">
+ <span className="text-base leading-none">{mod.icon}</span>
+ <span className="text-xs font-bold text-foreground">
+ {mod.title}
+ </span>
+ </div>
+ <p className="text-[11px] text-muted-foreground leading-snug">
+ {mod.desc}
+ </p>
+ </div>
+ <Switch
+ checked={isEnabled}
+ onCheckedChange={() => handleToggleModule(mod.id)}
+ className="shrink-0 mt-0.5"
+ />
+ </div>
+ );
+ })}
+ </div>
+ </Card>
+ </TabsContent>
 
-        {/* ABA: Entrega, Tempo de Preparo & Bairros */}
-        <TabsContent value="entrega" className="space-y-6">
-          <Card className="p-6 rounded-2xl border-border bg-card space-y-6">
-            <DeliveryTimeAndRadiusMatrix
-              value={deliveryConfig}
-              onChange={setDeliveryConfig}
-              storeName={name || "Minha Cozinha & Loja"}
-              storeCategory={segment}
-              storeLogoUrl={logoUrl}
-              storeBannerUrl={bannerUrl}
-            />
-          </Card>
+ {/* ABA 2: Contato & Endereço */}
+ <TabsContent value="contato" className="space-y-6">
+ <Card className="p-6 rounded-2xl border-border bg-card space-y-5 ">
+ <div className=" pb-4">
+ <h2 className="text-base font-bold text-foreground">Canais de Contato & Localização</h2>
+ <p className="text-xs text-muted-foreground">
+ Dados utilizados para emissão de pedidos, frete local e comunicação com o cliente.
+ </p>
+ </div>
 
-          <Card className="p-6 rounded-2xl border-border bg-card space-y-5">
-            <div className="pb-2">
-              <h3 className="text-sm font-bold text-foreground">Taxas Personalizadas por Bairro</h3>
-              <p className="text-xs text-muted-foreground">
-                Complemente o raio de entrega definindo regras e exceções por bairros específicos da cidade.
-              </p>
-            </div>
-            <NeighborhoodsManager
-              cityName={city || "Sua Cidade"}
-              value={neighborhoods}
-              onChange={setNeighborhoods}
-            />
-          </Card>
-        </TabsContent>
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+ <div className="space-y-1.5">
+ <Label className="text-xs font-bold text-foreground flex items-center gap-1">
+ <Phone className="size-3 text-primary" />
+ WhatsApp Comercial
+ </Label>
+ <Input
+ value={phone}
+ onChange={(e) => setPhone(e.target.value)}
+ placeholder="(49) 99999-9999"
+ className="rounded-xl text-xs h-9"
+ />
+ </div>
 
-        {/* ABA 3: Horários de Atendimento */}
-        <TabsContent value="horarios" className="space-y-6">
-          <Card className="p-6 rounded-2xl border-border bg-card space-y-5">
-            <div className="pb-2">
-              <h2 className="text-base font-bold text-foreground">Grade de Horários de Funcionamento</h2>
-              <p className="text-xs text-muted-foreground">
-                Define os momentos em que a loja aceita pedidos imediatos para entrega, agendamentos ou retirada no balcão.
-              </p>
-            </div>
+ <div className="space-y-1.5">
+ <Label className="text-xs font-bold text-foreground flex items-center gap-1">
+ <Mail className="size-3 text-primary" />
+ E-mail da Loja
+ </Label>
+ <Input
+ type="email"
+ value={email}
+ onChange={(e) => setEmail(e.target.value)}
+ placeholder="contato@minhaloja.com.br"
+ className="rounded-xl text-xs h-9"
+ />
+ </div>
 
-            <BusinessHoursEditor
-              value={hours}
-              onChange={(newHours) => setHours(newHours)}
-              holidayExceptions={holidayExceptions}
-              onHolidayExceptionsChange={setHolidayExceptions}
-              emergencyPauseUntil={emergencyPauseUntil}
-              onEmergencyPauseChange={setEmergencyPauseUntil}
-              showPresets={true}
-              showStatusPreview={true}
-              showHolidays={true}
-              showEmergencyPause={true}
-            />
-          </Card>
-        </TabsContent>
+ <div className="space-y-1.5">
+ <Label className="text-xs font-bold text-foreground">CNPJ / CPF</Label>
+ <Input
+ value={cnpj}
+ onChange={(e) => setCnpj(e.target.value)}
+ placeholder="00.000.000/0001-00"
+ className="rounded-xl text-xs h-9"
+ />
+ </div>
+ </div>
 
-        {/* ABA 4: Políticas da Loja */}
-        <TabsContent value="politicas" className="space-y-6">
-          <Card className="p-6 rounded-2xl border-border bg-card space-y-5 ">
-            <div className=" pb-4">
-              <h2 className="text-base font-bold text-foreground">Políticas & Termos Comerciais</h2>
-              <p className="text-xs text-muted-foreground">
-                Exibidos no rodapé da loja e nas páginas de checkout para garantir conformidade jurídica.
-              </p>
-            </div>
+ <div className="space-y-4">
+ <CitySelect
+ stateValue={state}
+ cityValue={city}
+ onStateChange={setState}
+ onCityChange={setCity}
+ />
 
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-foreground">Termos de Compra & Uso</Label>
-                <Textarea
-                  value={terms}
-                  onChange={(e) => setTerms(e.target.value)}
-                  placeholder="Escreva os termos de uso aplicáveis à sua loja..."
-                  rows={4}
-                  className="rounded-2xl text-xs"
-                />
-              </div>
+ <div className="space-y-1.5">
+ <Label className="text-xs font-bold text-foreground">Endereço Físico / Balcão</Label>
+ <Input
+ value={address}
+ onChange={(e) => setAddress(e.target.value)}
+ placeholder="Rua, número, complemento e bairro"
+ className="rounded-xl text-xs h-9"
+ />
+ </div>
+ </div>
+ </Card>
+ </TabsContent>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-foreground">Política de Trocas e Devoluções</Label>
-                <Textarea
-                  value={returnPolicy}
-                  onChange={(e) => setReturnPolicy(e.target.value)}
-                  placeholder="Instruções sobre prazos de 7 dias, condições do produto e reembolso..."
-                  rows={4}
-                  className="rounded-2xl text-xs"
-                />
-              </div>
+ {/* ABA: Entrega, Tempo de Preparo & Bairros */}
+ <TabsContent value="entrega" className="space-y-6">
+ <Card className="p-6 rounded-2xl border-border bg-card space-y-6">
+ <DeliveryTimeAndRadiusMatrix
+ value={deliveryConfig}
+ onChange={setDeliveryConfig}
+ storeName={name || "Minha Cozinha & Loja"}
+ storeCategory={segment}
+ storeLogoUrl={logoUrl}
+ storeBannerUrl={bannerUrl}
+ />
+ </Card>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-foreground">Política de Privacidade</Label>
-                <Textarea
-                  value={privacyPolicy}
-                  onChange={(e) => setPrivacyPolicy(e.target.value)}
-                  placeholder="Como sua loja trata os dados dos clientes e LGPD..."
-                  rows={4}
-                  className="rounded-2xl text-xs"
-                />
-              </div>
-            </div>
-          </Card>
-        </TabsContent>
+ <Card className="p-6 rounded-2xl border-border bg-card space-y-5">
+ <div className="pb-2">
+ <h3 className="text-sm font-bold text-foreground">Taxas Personalizadas por Bairro</h3>
+ <p className="text-xs text-muted-foreground">
+ Complemente o raio de entrega definindo regras e exceções por bairros específicos da cidade.
+ </p>
+ </div>
+ <NeighborhoodsManager
+ cityName={city || "Sua Cidade"}
+ value={neighborhoods}
+ onChange={setNeighborhoods}
+ />
+ </Card>
+ </TabsContent>
 
-        {/* ABA 5: Perguntas de Checkout Personalizadas */}
-        <TabsContent value="checkout" className="space-y-6">
-          <Card className="p-6 rounded-2xl border-border bg-card space-y-6">
-            <div className="flex items-center justify-between gap-3 pb-3 border-b border-border/40">
-              <div>
-                <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <ListChecks className="size-4 text-primary" />
-                  <span>Campos do Checkout ({currentNiche.name})</span>
-                </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Perguntas adicionais que o cliente responde durante o fechamento do pedido.
-                </p>
-              </div>
+ {/* ABA 3: Horários de Atendimento */}
+ <TabsContent value="horarios" className="space-y-6">
+ <Card className="p-6 rounded-2xl border-border bg-card space-y-5">
+ <div className="pb-2">
+ <h2 className="text-base font-bold text-foreground">Grade de Horários de Funcionamento</h2>
+ <p className="text-xs text-muted-foreground">
+ Define os momentos em que a loja aceita pedidos imediatos para entrega, agendamentos ou retirada no balcão.
+ </p>
+ </div>
 
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => {
-                  setCustomFields((prev) => [
-                    ...prev,
-                    {
-                      id: `field_${Date.now()}`,
-                      label: "",
-                      placeholder: "",
-                      type: "text",
-                      required: true,
-                      help_text: "",
-                    },
-                  ]);
-                }}
-                className="rounded-xl text-xs font-bold gap-1.5 shrink-0 bg-primary text-primary-foreground cursor-pointer"
-              >
-                <Plus className="size-3.5" />
-                <span>Adicionar Campo</span>
-              </Button>
-            </div>
+ <BusinessHoursEditor
+ value={hours}
+ onChange={(newHours) => setHours(newHours)}
+ holidayExceptions={holidayExceptions}
+ onHolidayExceptionsChange={setHolidayExceptions}
+ emergencyPauseUntil={emergencyPauseUntil}
+ onEmergencyPauseChange={setEmergencyPauseUntil}
+ showPresets={true}
+ showStatusPreview={true}
+ showHolidays={true}
+ showEmergencyPause={true}
+ />
+ </Card>
+ </TabsContent>
 
-            {/* Presets Sugeridos do Nicho */}
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-muted-foreground">Sugestões Rápidas para {currentNiche.name}:</Label>
-              <div className="flex flex-wrap gap-2">
-                {segment === "tourism" ? (
-                  <>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="rounded-xl text-xs h-8"
-                      onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Documento / Passaporte do Titular", placeholder: "RG, CPF ou Passaporte", type: "text", required: true }])}
-                    >
-                      + Documento / Passaporte
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="rounded-xl text-xs h-8"
-                      onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Data de Nascimento dos Passageiros", placeholder: "Ex: Passageiro 1: 15/04/1990", type: "text", required: true }])}
-                    >
-                      + Data de Nascimento
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="rounded-xl text-xs h-8"
-                      onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Preferência de Assento / Acomodação", placeholder: "Ex: Janela, Quarto Casal", type: "text", required: false }])}
-                    >
-                      + Preferência de Assento
-                    </Button>
-                  </>
-                ) : isPhysicalDeliveryNiche ? (
-                  <>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="rounded-xl text-xs h-8"
-                      onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Observações / Alergias", placeholder: "Sem cebola, alergia a glúten...", type: "text", required: false }])}
-                    >
-                      + Observações / Alergias
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="rounded-xl text-xs h-8"
-                      onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Precisa de Troco?", placeholder: "Ex: Troco para R$ 50", type: "text", required: false }])}
-                    >
-                      + Troco em Dinheiro
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="rounded-xl text-xs h-8"
-                      onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Ponto de Referência", placeholder: "Próximo à praça central...", type: "text", required: false }])}
-                    >
-                      + Ponto de Referência
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="rounded-xl text-xs h-8"
-                      onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "CPF na Nota Fiscal", placeholder: "000.000.000-00", type: "text", required: false }])}
-                    >
-                      + CPF na Nota
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="rounded-xl text-xs h-8"
-                      onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Instruções Especiais", placeholder: "Digite aqui suas orientações...", type: "textarea", required: false }])}
-                    >
-                      + Instruções Especiais
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
+ {/* ABA 4: Políticas da Loja */}
+ <TabsContent value="politicas" className="space-y-6">
+ <Card className="p-6 rounded-2xl border-border bg-card space-y-5 ">
+ <div className=" pb-4">
+ <h2 className="text-base font-bold text-foreground">Políticas & Termos Comerciais</h2>
+ <p className="text-xs text-muted-foreground">
+ Exibidos no rodapé da loja e nas páginas de checkout para garantir conformidade jurídica.
+ </p>
+ </div>
 
-            {customFields.length === 0 ? (
-              <div className="py-8 text-center space-y-2 border border-dashed border-border/70 rounded-2xl bg-card/40">
-                <div className="size-10 rounded-2xl bg-muted text-muted-foreground flex items-center justify-center mx-auto">
-                  <ListChecks className="size-5" />
-                </div>
-                <h3 className="text-sm font-bold text-foreground">Nenhum campo personalizado ativo</h3>
-                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                  Clique em um dos botões acima ou crie um campo personalizado para o checkout da sua loja.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {customFields.map((field, idx) => (
-                  <div
-                    key={field.id || idx}
-                    className="p-4 rounded-2xl  bg-muted/20 space-y-4"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-mono font-bold text-foreground">
-                        Pergunta #{idx + 1}
-                      </span>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => {
-                          setCustomFields((prev) => prev.filter((_, i) => i !== idx));
-                        }}
-                        className="size-7 text-rose-500 hover:bg-rose-500/10 rounded-lg"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    </div>
+ <div className="space-y-4">
+ <div className="space-y-1.5">
+ <Label className="text-xs font-bold text-foreground">Termos de Compra & Uso</Label>
+ <Textarea
+ value={terms}
+ onChange={(e) => setTerms(e.target.value)}
+ placeholder="Escreva os termos de uso aplicáveis à sua loja..."
+ rows={4}
+ className="rounded-2xl text-xs"
+ />
+ </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div className="space-y-1 sm:col-span-2">
-                        <Label className="text-[11px] font-bold">Título da Pergunta / Label *</Label>
-                        <Input
-                          value={field.label || ""}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setCustomFields((prev) =>
-                              prev.map((f, i) => (i === idx ? { ...f, label: val } : f)),
-                            );
-                          }}
-                          placeholder="ex: Placa do Veículo, Nome para Gravação, etc."
-                          className="rounded-xl text-xs h-9"
-                        />
-                      </div>
+ <div className="space-y-1.5">
+ <Label className="text-xs font-bold text-foreground">Política de Trocas e Devoluções</Label>
+ <Textarea
+ value={returnPolicy}
+ onChange={(e) => setReturnPolicy(e.target.value)}
+ placeholder="Instruções sobre prazos de 7 dias, condições do produto e reembolso..."
+ rows={4}
+ className="rounded-2xl text-xs"
+ />
+ </div>
 
-                      <div className="space-y-1">
-                        <Label className="text-[11px] font-bold">Tipo de Resposta</Label>
-                        <select
-                          value={field.type || "text"}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setCustomFields((prev) =>
-                              prev.map((f, i) => (i === idx ? { ...f, type: val } : f)),
-                            );
-                          }}
-                          className="w-full h-9 px-2.5 rounded-xl  bg-card text-xs font-semibold"
-                        >
-                          <option value="text">Texto Curto</option>
-                          <option value="textarea">Texto Longo (Mensagem)</option>
-                          <option value="date">Data</option>
-                          <option value="number">Número</option>
-                        </select>
-                      </div>
-                    </div>
+ <div className="space-y-1.5">
+ <Label className="text-xs font-bold text-foreground">Política de Privacidade</Label>
+ <Textarea
+ value={privacyPolicy}
+ onChange={(e) => setPrivacyPolicy(e.target.value)}
+ placeholder="Como sua loja trata os dados dos clientes e LGPD..."
+ rows={4}
+ className="rounded-2xl text-xs"
+ />
+ </div>
+ </div>
+ </Card>
+ </TabsContent>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                      <div className="space-y-1">
-                        <Label className="text-[11px] font-bold">Texto de Exemplo (Placeholder)</Label>
-                        <Input
-                          value={field.placeholder || ""}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setCustomFields((prev) =>
-                              prev.map((f, i) => (i === idx ? { ...f, placeholder: val } : f)),
-                            );
-                          }}
-                          placeholder="ex: ABC-1234 ou Maria & João"
-                          className="rounded-xl text-xs h-9"
-                        />
-                      </div>
+ {/* ABA 5: Perguntas de Checkout Personalizadas */}
+ <TabsContent value="checkout" className="space-y-6">
+ <Card className="p-6 rounded-2xl border-border bg-card space-y-6">
+ <div className="flex items-center justify-between gap-3 pb-3 border-b border-border/40">
+ <div>
+ <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+ <ListChecks className="size-4 text-primary" />
+ <span>Campos do Checkout ({currentNiche.name})</span>
+ </h2>
+ <p className="text-xs text-muted-foreground mt-0.5">
+ Perguntas adicionais que o cliente responde durante o fechamento do pedido.
+ </p>
+ </div>
 
-                      <div className="flex items-center justify-between p-2 rounded-xl bg-card ">
-                        <div>
-                          <Label className="text-xs font-bold block">Resposta Obrigatória</Label>
-                          <span className="text-[10px] text-muted-foreground">
-                            Cliente não consegue pagar sem preencher
-                          </span>
-                        </div>
-                        <Switch
-                          checked={field.required ?? true}
-                          onCheckedChange={(checked) => {
-                            setCustomFields((prev) =>
-                              prev.map((f, i) => (i === idx ? { ...f, required: checked } : f)),
-                            );
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
+ <Button
+ type="button"
+ size="sm"
+ onClick={() => {
+ setCustomFields((prev) => [
+ ...prev,
+ {
+ id: `field_${Date.now()}`,
+ label: "",
+ placeholder: "",
+ type: "text",
+ required: true,
+ help_text: "",
+ },
+ ]);
+ }}
+ className="rounded-xl text-xs font-bold gap-1.5 shrink-0 bg-primary text-primary-foreground cursor-pointer"
+ >
+ <Plus className="size-3.5" />
+ <span>Adicionar Campo</span>
+ </Button>
+ </div>
+
+ {/* Presets Sugeridos do Nicho */}
+ <div className="space-y-2">
+ <Label className="text-xs font-bold text-muted-foreground">Sugestões Rápidas para {currentNiche.name}:</Label>
+ <div className="flex flex-wrap gap-2">
+ {segment === "tourism" ? (
+ <>
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ className="rounded-xl text-xs h-8"
+ onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Documento / Passaporte do Titular", placeholder: "RG, CPF ou Passaporte", type: "text", required: true }])}
+ >
+ + Documento / Passaporte
+ </Button>
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ className="rounded-xl text-xs h-8"
+ onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Data de Nascimento dos Passageiros", placeholder: "Ex: Passageiro 1: 15/04/1990", type: "text", required: true }])}
+ >
+ + Data de Nascimento
+ </Button>
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ className="rounded-xl text-xs h-8"
+ onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Preferência de Assento / Acomodação", placeholder: "Ex: Janela, Quarto Casal", type: "text", required: false }])}
+ >
+ + Preferência de Assento
+ </Button>
+ </>
+ ) : isPhysicalDeliveryNiche ? (
+ <>
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ className="rounded-xl text-xs h-8"
+ onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Observações / Alergias", placeholder: "Sem cebola, alergia a glúten...", type: "text", required: false }])}
+ >
+ + Observações / Alergias
+ </Button>
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ className="rounded-xl text-xs h-8"
+ onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Precisa de Troco?", placeholder: "Ex: Troco para R$ 50", type: "text", required: false }])}
+ >
+ + Troco em Dinheiro
+ </Button>
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ className="rounded-xl text-xs h-8"
+ onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Ponto de Referência", placeholder: "Próximo à praça central...", type: "text", required: false }])}
+ >
+ + Ponto de Referência
+ </Button>
+ </>
+ ) : (
+ <>
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ className="rounded-xl text-xs h-8"
+ onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "CPF na Nota Fiscal", placeholder: "000.000.000-00", type: "text", required: false }])}
+ >
+ + CPF na Nota
+ </Button>
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ className="rounded-xl text-xs h-8"
+ onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Instruções Especiais", placeholder: "Digite aqui suas orientações...", type: "textarea", required: false }])}
+ >
+ + Instruções Especiais
+ </Button>
+ </>
+ )}
+ </div>
+ </div>
+
+ {customFields.length === 0 ? (
+ <div className="py-8 text-center space-y-2 border border-dashed border-border/70 rounded-2xl bg-card/40">
+ <div className="size-10 rounded-2xl bg-muted text-muted-foreground flex items-center justify-center mx-auto">
+ <ListChecks className="size-5" />
+ </div>
+ <h3 className="text-sm font-bold text-foreground">Nenhum campo personalizado ativo</h3>
+ <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+ Clique em um dos botões acima ou crie um campo personalizado para o checkout da sua loja.
+ </p>
+ </div>
+ ) : (
+ <div className="space-y-4">
+ {customFields.map((field, idx) => (
+ <div
+ key={field.id || idx}
+ className="p-4 rounded-2xl bg-muted/20 space-y-4"
+ >
+ <div className="flex items-center justify-between">
+ <span className="text-xs font-mono font-bold text-foreground">
+ Pergunta #{idx + 1}
+ </span>
+ <Button
+ type="button"
+ size="icon"
+ variant="ghost"
+ onClick={() => {
+ setCustomFields((prev) => prev.filter((_, i) => i !== idx));
+ }}
+ className="size-7 text-rose-500 hover:bg-rose-500/10 rounded-lg"
+ >
+ <Trash2 className="size-3.5" />
+ </Button>
+ </div>
+
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+ <div className="space-y-1 sm:col-span-2">
+ <Label className="text-[11px] font-bold">Título da Pergunta / Label *</Label>
+ <Input
+ value={field.label || ""}
+ onChange={(e) => {
+ const val = e.target.value;
+ setCustomFields((prev) =>
+ prev.map((f, i) => (i === idx ? { ...f, label: val } : f)),
+ );
+ }}
+ placeholder="ex: Placa do Veículo, Nome para Gravação, etc."
+ className="rounded-xl text-xs h-9"
+ />
+ </div>
+
+ <div className="space-y-1">
+ <Label className="text-[11px] font-bold">Tipo de Resposta</Label>
+ <select
+ value={field.type || "text"}
+ onChange={(e) => {
+ const val = e.target.value;
+ setCustomFields((prev) =>
+ prev.map((f, i) => (i === idx ? { ...f, type: val } : f)),
+ );
+ }}
+ className="w-full h-9 px-2.5 rounded-xl bg-card text-xs font-semibold"
+ >
+ <option value="text">Texto Curto</option>
+ <option value="textarea">Texto Longo (Mensagem)</option>
+ <option value="date">Data</option>
+ <option value="number">Número</option>
+ </select>
+ </div>
+ </div>
+
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+ <div className="space-y-1">
+ <Label className="text-[11px] font-bold">Texto de Exemplo (Placeholder)</Label>
+ <Input
+ value={field.placeholder || ""}
+ onChange={(e) => {
+ const val = e.target.value;
+ setCustomFields((prev) =>
+ prev.map((f, i) => (i === idx ? { ...f, placeholder: val } : f)),
+ );
+ }}
+ placeholder="ex: ABC-1234 ou Maria & João"
+ className="rounded-xl text-xs h-9"
+ />
+ </div>
+
+ <div className="flex items-center justify-between p-2 rounded-xl bg-card ">
+ <div>
+ <Label className="text-xs font-bold block">Resposta Obrigatória</Label>
+ <span className="text-[10px] text-muted-foreground">
+ Cliente não consegue pagar sem preencher
+ </span>
+ </div>
+ <Switch
+ checked={field.required ?? true}
+ onCheckedChange={(checked) => {
+ setCustomFields((prev) =>
+ prev.map((f, i) => (i === idx ? { ...f, required: checked } : f)),
+ );
+ }}
+ />
+ </div>
+ </div>
+ </div>
+ ))}
+ </div>
+ )}
+ </Card>
+ </TabsContent>
+ </Tabs>
+ </div>
+ );
 }

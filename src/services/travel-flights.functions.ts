@@ -1,12 +1,13 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
-import { supabase } from '@/lib/supabase';
+import { getServerClient } from '@/lib/supabase';
 import type { TravelFlightItinerary, TravelFlightSegment } from '@/types/travel-flights';
 
 export const listFlightItineraries = createServerFn({ method: 'GET' })
   .validator((data: { storeId: string; tripId?: string }) => data)
   .handler(async ({ data }): Promise<TravelFlightItinerary[]> => {
-    let query = supabase
+    const db = getServerClient();
+    let query = db
       .from('travel_flight_itineraries')
       .select(`
         *,
@@ -53,8 +54,9 @@ export const createFlightItinerary = createServerFn({ method: 'POST' })
     })
   )
   .handler(async ({ data }): Promise<TravelFlightItinerary> => {
+    const db = getServerClient();
     // Buscar maior versão
-    const { data: existing } = await supabase
+    const { data: existing } = await db
       .from('travel_flight_itineraries')
       .select('version')
       .eq('store_id', data.store_id)
@@ -63,7 +65,7 @@ export const createFlightItinerary = createServerFn({ method: 'POST' })
 
     const nextVersion = existing && existing.length > 0 ? (existing[0].version || 0) + 1 : 1;
 
-    const { data: newItinerary, error: itError } = await supabase
+    const { data: newItinerary, error: itError } = await db
       .from('travel_flight_itineraries')
       .insert({
         store_id: data.store_id,
@@ -99,14 +101,14 @@ export const createFlightItinerary = createServerFn({ method: 'POST' })
         airport_terminal: seg.airport_terminal,
       }));
 
-      const { error: segError } = await supabase.from('travel_flight_segments').insert(segmentsToInsert);
+      const { error: segError } = await db.from('travel_flight_segments').insert(segmentsToInsert);
       if (segError) {
-        await supabase.from('travel_flight_itineraries').delete().eq('id', newItinerary.id);
+        await db.from('travel_flight_itineraries').delete().eq('id', newItinerary.id);
         throw new Error(`Erro ao cadastrar trechos de voo: ${segError.message}`);
       }
     }
 
-    const { data: full, error: fetchErr } = await supabase
+    const { data: full, error: fetchErr } = await db
       .from('travel_flight_itineraries')
       .select(`
         *,
@@ -122,7 +124,8 @@ export const createFlightItinerary = createServerFn({ method: 'POST' })
 export const deleteFlightItinerary = createServerFn({ method: 'POST' })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data }): Promise<{ success: boolean }> => {
-    const { error } = await supabase
+    const db = getServerClient();
+    const { error } = await db
       .from('travel_flight_itineraries')
       .delete()
       .eq('id', data.id);

@@ -14,10 +14,13 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/commerce/page-header";
+import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-canonical-toolbar";
+import {
+  WorkspaceDashboardSheet,
+  type MetricCardItem,
+} from "@/components/workspace/workspace-dashboard-sheet";
 import { toast } from "sonner";
 import {
   listAgencyTravelContracts,
@@ -31,7 +34,9 @@ import { NicheOperationalGuard } from "@/components/workspace/niche-operational-
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/turismo/contratos/")({
-  head: () => ({ meta: [{ title: "Contratos Turísticos & Assinatura Digital | Workspace" }] }),
+  head: () => ({
+    meta: [{ title: "Contratos Turísticos & Assinatura Digital | Workspace Wider OS" }],
+  }),
   loader: async () => {
     const [contracts, store] = await Promise.all([
       listAgencyTravelContracts().catch(() => []),
@@ -42,7 +47,7 @@ export const Route = createFileRoute("/workspace/turismo/contratos/")({
   component: WorkspaceContractsIndexPage,
 });
 
-function WorkspaceContractsIndexPage() {
+export default function WorkspaceContractsIndexPage() {
   const { contracts: initialContracts, store } = Route.useLoaderData();
   const queryClient = useQueryClient();
 
@@ -50,6 +55,7 @@ function WorkspaceContractsIndexPage() {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [isClausesModalOpen, setIsClausesModalOpen] = useState(false);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
 
   const { data: contracts = [], refetch } = useQuery({
     queryKey: ["agency-contracts", selectedStatus, search],
@@ -66,7 +72,7 @@ function WorkspaceContractsIndexPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteTravelContract({ data: { id } }),
     onSuccess: () => {
-      toast.success("Contrato excluído!");
+      toast.success("Contrato excluído com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["agency-contracts"] });
     },
     onError: (err: any) => toast.error(err?.message || "Erro ao excluir contrato."),
@@ -86,6 +92,35 @@ function WorkspaceContractsIndexPage() {
   const pendingCount = contractsList.filter((c) => c.status !== "signed" && c.status !== "cancelled").length;
   const totalValueCents = contractsList.reduce((acc, c) => acc + (c.total_value_cents || 0), 0);
 
+  const metricsItems: MetricCardItem[] = [
+    {
+      label: "Total de Contratos",
+      value: `${totalCount} minutas`,
+      description: "Contratos e termos cadastrados",
+    },
+    {
+      label: "Assinados Digitalmente",
+      value: `${signedCount} contratos`,
+      description: "Validados com hash SHA-256 e IP",
+    },
+    {
+      label: "Aguardando Assinatura",
+      value: `${pendingCount} pendentes`,
+      description: "Links ativos aguardando passageiro",
+    },
+    {
+      label: "Volume Contratado",
+      value: formatMoney(totalValueCents),
+      description: "Valor formalizado em reservas",
+    },
+  ];
+
+  const TABS = [
+    { id: "all", label: "Todos os Contratos", icon: FileText, count: totalCount },
+    { id: "signed", label: "Assinados", icon: CheckCircle2, count: signedCount },
+    { id: "sent", label: "Aguardando Assinatura", icon: Clock, count: pendingCount },
+  ];
+
   return (
     <NicheOperationalGuard
       targetNiche="tourism"
@@ -93,233 +128,155 @@ function WorkspaceContractsIndexPage() {
       toolDescription="Gestão de minutas, contratos com validade jurídica e link de assinatura digital para passageiros e contratantes de pacotes turísticos."
       store={store}
     >
-      <div className="space-y-6 animate-in fade-in duration-200">
-        {/* ── 1. HEADER DO WORKSPACE ── */}
-        <PageHeader
-          eyebrow="Turismo & Jurídico"
-          title="Contratos & Assinaturas"
-          actions={
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setIsClausesModalOpen(true)}
-                className="rounded-xl text-xs font-bold gap-1.5 cursor-pointer"
-              >
-                <Scale className="size-4 text-primary" />
-                <span>Minuta & Cláusulas Padrão</span>
-              </Button>
-
-              <Button
-                size="sm"
-                onClick={() => setIsNewModalOpen(true)}
-                className="rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5 cursor-pointer shadow-xs hover:bg-primary/90"
-              >
-                <Plus className="size-4" />
-                <span>Emitir Contrato</span>
-              </Button>
-            </div>
-          }
+      <div className="w-full space-y-6 animate-in fade-in duration-200">
+        {/* ── 1. TOOLBAR CANÔNICA PADRÃO WIDER OS ── */}
+        <WorkspaceCanonicalToolbar
+          tabs={TABS}
+          activeTab={selectedStatus}
+          onTabChange={(id) => setSelectedStatus(id)}
+          searchPlaceholder="Buscar contrato por título, cliente ou destino..."
+          searchValue={search}
+          onSearchChange={setSearch}
+          onOpenDashboard={() => setIsDashboardOpen(true)}
+          dashboardLabel="Métricas Jurídicas"
+          metricsBadge={`${signedCount} assinados`}
+          primaryAction={{
+            label: "Emitir Contrato",
+            icon: Plus,
+            onClick: () => setIsNewModalOpen(true),
+          }}
+          secondaryAction={{
+            label: "Minuta & Cláusulas Padrão",
+            icon: Scale,
+            onClick: () => setIsClausesModalOpen(true),
+          }}
         />
 
-        {/* ── 2. CARDS DE MÉTRICAS EXECUTIVAS ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <Card className="p-4 rounded-2xl border border-border/70 bg-card space-y-1 shadow-xs">
-            <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold">
-              <span>Total de Contratos</span>
-              <FileText className="size-4 text-primary" />
-            </div>
-            <p className="text-2xl font-black text-foreground tracking-tight">{totalCount}</p>
-            <p className="text-[11px] text-muted-foreground">Minutas emitidas</p>
-          </Card>
-
-          <Card className="p-4 rounded-2xl border border-border/70 bg-card space-y-1 shadow-xs">
-            <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold">
-              <span>Assinados Digitalmente</span>
-              <CheckCircle2 className="size-4 text-emerald-600" />
-            </div>
-            <p className="text-2xl font-black text-emerald-600 tracking-tight">{signedCount}</p>
-            <p className="text-[11px] text-muted-foreground">Comprovante e Hash SHA-256</p>
-          </Card>
-
-          <Card className="p-4 rounded-2xl border border-border/70 bg-card space-y-1 shadow-xs">
-            <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold">
-              <span>Aguardando Assinatura</span>
-              <Clock className="size-4 text-amber-500" />
-            </div>
-            <p className="text-2xl font-black text-foreground tracking-tight">{pendingCount}</p>
-            <p className="text-[11px] text-muted-foreground">Links enviados ao cliente</p>
-          </Card>
-
-          <Card className="p-4 rounded-2xl border border-border/70 bg-card space-y-1 shadow-xs">
-            <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold">
-              <span>Volume Contratado</span>
-              <TrendingUp className="size-4 text-primary" />
-            </div>
-            <p className="text-xl font-black text-foreground font-mono tracking-tight">
-              {formatMoney(totalValueCents)}
-            </p>
-            <p className="text-[11px] text-muted-foreground">Em reservas formalizadas</p>
-          </Card>
-        </div>
-
-        {/* ── 3. FILTROS & BUSCA ── */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {[
-              { id: "all", label: "Todos" },
-              { id: "signed", label: "Assinados" },
-              { id: "sent", label: "Aguardando Assinatura" },
-            ].map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => setSelectedStatus(f.id)}
-                className={`h-9 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  selectedStatus === f.id
-                    ? "bg-foreground text-background"
-                    : "bg-muted/50 text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="🔍 Buscar contrato por título, cliente ou destino..."
-            className="h-10 max-w-xs rounded-xl text-xs bg-card border-border/60"
-          />
-        </div>
-
-        {/* ── 4. LISTAGEM DE CONTRATOS ── */}
+        {/* ── 2. GRID DE CONTRATOS ── */}
         {contractsList.length === 0 ? (
-          <div className="py-20 text-center space-y-3 bg-card rounded-2xl border border-border/60 p-8">
-            <FileText className="size-10 mx-auto text-muted-foreground" />
+          <div className="py-20 text-center space-y-3 bg-card rounded-2xl border border-dashed border-border/70 p-8">
+            <FileText className="size-12 mx-auto text-muted-foreground/40" />
             <h3 className="text-sm font-bold text-foreground">Nenhum contrato encontrado</h3>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              Emita seu primeiro contrato turístico com validade jurídica, conformidade Cadastur e link de assinatura digital.
+              Emita minutas com cláusulas padrão, pacotes detalhados e link público com validade jurídica para assinatura na tela.
             </p>
-            <div className="pt-2">
-              <Button
-                onClick={() => setIsNewModalOpen(true)}
-                className="rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5"
-              >
-                <Plus className="size-4" />
-                Emitir Contrato Agora
-              </Button>
-            </div>
+            <Button
+              size="sm"
+              onClick={() => setIsNewModalOpen(true)}
+              className="rounded-xl text-xs font-bold gap-1.5 h-9 mt-2 cursor-pointer shadow-xs"
+            >
+              <Plus className="size-4" />
+              <span>Emitir Primeiro Contrato</span>
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {contractsList.map((c: TravelContractDTO) => {
-              const cleanWhatsapp = (c.client_phone || "").replace(/\D/g, "");
-              const signatureUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/contrato/${c.public_token}`;
-              const waContractMessage = encodeURIComponent(
-                `Olá ${c.client_name}! Segue o link para conferência e assinatura eletrônica do seu contrato de viagem para ${c.destination}:\n\n${signatureUrl}`
-              );
-
+              const isSigned = c.status === "signed";
               return (
                 <Card
                   key={c.id}
-                  className="p-5 rounded-2xl border border-border/60 bg-card space-y-4 hover:border-primary/40 transition-all flex flex-col justify-between shadow-xs group"
+                  className="rounded-2xl border border-border/70 bg-card p-5 space-y-4 hover:border-foreground/20 transition-all flex flex-col justify-between shadow-2xs"
                 >
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-primary/10 text-primary">
-                        {c.destination}
-                      </span>
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <span className="text-[10px] font-mono text-muted-foreground uppercase font-bold">
+                          Token: {c.public_token}
+                        </span>
+                        <h3 className="text-sm font-bold text-foreground line-clamp-1">
+                          {c.contract_title}
+                        </h3>
+                      </div>
                       <Badge
                         variant="outline"
-                        className={`text-[10px] font-mono uppercase font-bold ${
-                          c.status === "signed"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                            : ""
+                        className={`text-[10px] font-bold uppercase ${
+                          isSigned
+                            ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                            : "bg-amber-500/10 text-amber-600 border-amber-500/20"
                         }`}
                       >
-                        {c.status === "signed" ? "✓ Assinado (SHA-256)" : "Aguardando Assinatura"}
+                        {isSigned ? "Assinado" : "Pendente"}
                       </Badge>
                     </div>
 
-                    <h3 className="text-sm font-bold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-                      {c.contract_title}
-                    </h3>
-
                     <div className="space-y-1 text-xs text-muted-foreground">
                       <p>
-                        Contratante: <span className="font-bold text-foreground">{c.client_name}</span>
+                        <strong className="text-foreground">Contratante:</strong> {c.client_name}
                       </p>
-                      <p className="font-mono text-[11px]">CPF: {c.client_document}</p>
-                    </div>
-
-                    <div className="pt-2 border-t border-border/40 flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">Valor do Contrato:</span>
-                      <span className="text-sm font-black font-mono text-foreground">
-                        {formatMoney(c.total_value_cents)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 pt-2 border-t border-border/40">
-                    <div className="flex items-center gap-2">
-                      <Button
-                        asChild
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 rounded-xl text-xs font-bold h-9"
-                      >
-                        <Link to={`/contrato/${c.public_token}` as any} target="_blank">
-                          <ExternalLink className="mr-1.5 size-3" />
-                          Ver Minuta
-                        </Link>
-                      </Button>
-
-                      {cleanWhatsapp && (
-                        <Button
-                          asChild
-                          size="sm"
-                          className="rounded-xl text-xs font-bold h-9 bg-emerald-600 hover:bg-emerald-700 text-white px-3"
-                        >
-                          <a
-                            href={`https://wa.me/55${cleanWhatsapp}?text=${waContractMessage}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <Send className="size-3.5 mr-1" />
-                            <span>WhatsApp</span>
-                          </a>
-                        </Button>
+                      <p>
+                        <strong className="text-foreground">Destino:</strong> {c.destination}
+                      </p>
+                      {c.travel_start_date && (
+                        <p>
+                          <strong className="text-foreground">Período:</strong>{" "}
+                          {c.travel_start_date} {c.travel_end_date ? `a ${c.travel_end_date}` : ""}
+                        </p>
                       )}
                     </div>
 
-                    {/* Ações táteis secundárias */}
-                    <div className="flex items-center justify-between pt-1 text-[11px] text-muted-foreground">
-                      <button
-                        type="button"
-                        onClick={() => handleCopyLink(c.public_token)}
-                        className="hover:text-foreground flex items-center gap-1 cursor-pointer transition-colors"
-                      >
-                        <Copy className="size-3" />
-                        Copiar Link
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (confirm("Tem certeza que deseja excluir este contrato?")) {
-                            deleteMutation.mutate(c.id);
-                          }
-                        }}
-                        disabled={deleteMutation.isPending}
-                        className="hover:text-destructive flex items-center gap-1 cursor-pointer transition-colors"
-                      >
-                        <Trash2 className="size-3" />
-                        Excluir
-                      </button>
+                    <div className="pt-2 border-t border-border/50 flex items-center justify-between">
+                      <span className="text-[11px] text-muted-foreground">Valor:</span>
+                      <span className="text-sm font-black text-foreground font-mono">
+                        {formatMoney(c.total_value_cents)}
+                      </span>
                     </div>
+
+                    {isSigned && (c.signatures || []).length > 0 && (
+                      <div className="p-2.5 rounded-xl bg-muted/40 border border-border/40 text-[11px] space-y-1">
+                        <p className="font-bold text-foreground flex items-center gap-1">
+                          <CheckCircle2 className="size-3 text-emerald-600" />
+                          <span>Assinado por {c.signatures[0].signer_name}</span>
+                        </p>
+                        <p className="text-[10px] text-muted-foreground font-mono truncate">
+                          Hash: {c.signatures[0].signature_hash?.substring(0, 24)}...
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-1.5">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCopyLink(c.public_token)}
+                      className="rounded-xl text-xs font-bold gap-1 h-8 px-2.5 flex-1"
+                    >
+                      <Copy className="size-3" />
+                      <span>Copiar Link</span>
+                    </Button>
+
+                    <Button
+                      asChild
+                      variant="secondary"
+                      size="sm"
+                      className="rounded-xl text-xs font-bold gap-1 h-8 px-2.5"
+                    >
+                      <a
+                        href={`/contrato/${c.public_token}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink className="size-3" />
+                        <span>Abrir</span>
+                      </a>
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        if (confirm(`Deseja excluir este contrato?`)) {
+                          deleteMutation.mutate(c.id);
+                        }
+                      }}
+                      className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-destructive"
+                      title="Excluir contrato"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
                   </div>
                 </Card>
               );
@@ -327,18 +284,27 @@ function WorkspaceContractsIndexPage() {
           </div>
         )}
 
-        {/* ── 5. NOVO SHEET DE CRIAÇÃO AVANÇADA DE CONTRATO (TRAVELOS) ── */}
+        {/* ── 3. MODAIS & SHEETS CANÔNICOS ── */}
         <NewTravelContractSheet
-          isOpen={isNewModalOpen}
+          open={isNewModalOpen}
           onOpenChange={setIsNewModalOpen}
-          onCreated={() => refetch()}
+          storeId={store?.id || ""}
+          onSuccess={refetch}
         />
 
-        {/* Modal de Gestão de Minuta & Cláusulas Padrão da Agência */}
         <AgencyClausesEditorModal
           open={isClausesModalOpen}
           onOpenChange={setIsClausesModalOpen}
-          onSaved={refetch}
+          storeId={store?.id || ""}
+        />
+
+        {/* ── 4. DASHBOARD SHEET DE MÉTRICAS JURÍDICAS ── */}
+        <WorkspaceDashboardSheet
+          isOpen={isDashboardOpen}
+          onClose={() => setIsDashboardOpen(false)}
+          title="Painel Jurídico de Contratos"
+          subtitle="Status de assinatura eletrônica e conformidade legal"
+          metrics={metricsItems}
         />
       </div>
     </NicheOperationalGuard>

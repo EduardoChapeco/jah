@@ -13,12 +13,12 @@
  */
 
 export {
-  PUBLIC_ROUTES,
-  CUSTOMER_ROUTES,
-  WORKSPACE_ROUTES,
-  ALL_ROUTES,
-  getRoute,
-  toTanstackPath,
+ PUBLIC_ROUTES,
+ CUSTOMER_ROUTES,
+ WORKSPACE_ROUTES,
+ ALL_ROUTES,
+ getRoute,
+ toTanstackPath,
 } from "@/lib/routes";
 
 export type { RouteEntry } from "@/lib/routes";

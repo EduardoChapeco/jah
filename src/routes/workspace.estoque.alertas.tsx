@@ -8,127 +8,127 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+ Table,
+ TableBody,
+ TableCell,
+ TableHead,
+ TableHeader,
+ TableRow,
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/state/states";
 import { getStockLevels, adjustStock } from "@/services/stock.functions";
 import { getWaitlistDemandCounts } from "@/services/waitlist.functions";
 
 export const Route = createFileRoute("/workspace/estoque/alertas")({
-  head: () => ({ meta: [{ title: "Alertas de Estoque | Workspace JAH Master OS" }] }),
-  loader: async () => {
-    const res = await getStockLevels({ data: {} });
-    // Filter for low stock (on_hand <= 5) or out of stock
-    return (res || []).filter((v: any) => v.stock_on_hand <= 5);
-  },
-  component: StockAlertsPage,
+ head: () => ({ meta: [{ title: "Alertas de Estoque | Workspace Wider OS" }] }),
+ loader: async () => {
+ const res = await getStockLevels({ data: {} });
+ // Filter for low stock (on_hand <= 5) or out of stock
+ return (res || []).filter((v: any) => v.stock_on_hand <= 5);
+ },
+ component: StockAlertsPage,
 });
 
 function StockAlertsPage() {
-  const variants = Route.useLoaderData();
-  const router = useRouter();
-  const [adjustingId, setAdjustingId] = useState<string | null>(null);
+ const variants = Route.useLoaderData();
+ const router = useRouter();
+ const [adjustingId, setAdjustingId] = useState<string | null>(null);
 
-  const { data: waitlistCounts = {} } = useQuery({
-    queryKey: ["waitlist-demand-counts"],
-    queryFn: () => getWaitlistDemandCounts(),
-  });
+ const { data: waitlistCounts = {} } = useQuery({
+ queryKey: ["waitlist-demand-counts"],
+ queryFn: () => getWaitlistDemandCounts(),
+ });
 
-  const handleQuickRefill = async (variantId: string) => {
-    setAdjustingId(variantId);
-    try {
-      await adjustStock({
-        data: {
-          variantId,
-          qty: 10,
-          movementType: "purchase",
-          note: "Reposição rápida via alerta de estoque",
-        },
-      });
-      toast.success("10 unidades adicionadas ao estoque.");
-      router.invalidate();
-    } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao repor estoque");
-    } finally {
-      setAdjustingId(null);
-    }
-  };
+ const handleQuickRefill = async (variantId: string) => {
+ setAdjustingId(variantId);
+ try {
+ await adjustStock({
+ data: {
+ variantId,
+ qty: 10,
+ movementType: "purchase",
+ note: "Reposição rápida via alerta de estoque",
+ },
+ });
+ toast.success("10 unidades adicionadas ao estoque.");
+ router.invalidate();
+ } catch (e: unknown) {
+ toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao repor estoque");
+ } finally {
+ setAdjustingId(null);
+ }
+ };
 
-  return (
-    <div className="space-y-6">
-      <PageHeader title="Alertas de Estoque & Fila de Espera" />
+ return (
+ <div className="space-y-6">
+ <PageHeader title="Alertas de Estoque & Fila de Espera" />
 
-      {variants.length === 0 ? (
-        <EmptyState title="Nenhum alerta de estoque crítico" />
-      ) : (
-        <div className="rounded-2xl border border-border/60 bg-card overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Produto</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead className="text-center">Em Mãos (Disponível)</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-center">Fila de Espera</TableHead>
-                <TableHead className="text-right">Ação Rápida</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {variants.map((v: any) => {
-                const available = v.stock_on_hand;
-                const waitingCount = (waitlistCounts as any)[v.id] || (waitlistCounts as any)[v.product_id] || 0;
+ {variants.length === 0 ? (
+ <EmptyState title="Nenhum alerta de estoque crítico" />
+ ) : (
+ <div className="rounded-2xl border border-border/60 bg-card overflow-hidden">
+ <Table>
+ <TableHeader>
+ <TableRow>
+ <TableHead>Produto</TableHead>
+ <TableHead>SKU</TableHead>
+ <TableHead className="text-center">Em Mãos (Disponível)</TableHead>
+ <TableHead className="text-center">Status</TableHead>
+ <TableHead className="text-center">Fila de Espera</TableHead>
+ <TableHead className="text-right">Ação Rápida</TableHead>
+ </TableRow>
+ </TableHeader>
+ <TableBody>
+ {variants.map((v: any) => {
+ const available = v.stock_on_hand;
+ const waitingCount = (waitlistCounts as any)[v.id] || (waitlistCounts as any)[v.product_id] || 0;
 
-                return (
-                  <TableRow key={v.id}>
-                    <TableCell className="font-medium">{v.products?.title || "—"}</TableCell>
-                    <TableCell className="font-mono text-sm">{v.sku}</TableCell>
-                    <TableCell className="text-center font-semibold">{available}</TableCell>
-                    <TableCell className="text-center">
-                      {available <= 0 ? (
-                        <Badge variant="destructive" className="gap-1">
-                          <AlertTriangle className="h-3 w-3" />
-                          Esgotado
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="gap-1">
-                          <AlertTriangle className="h-3 w-3" />
-                          Crítico
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {waitingCount > 0 ? (
-                        <Badge variant="outline" className="gap-1 text-primary border-primary/40 font-bold">
-                          <BellRing className="size-3" />
-                          <span>{waitingCount} {waitingCount === 1 ? "cliente" : "clientes"}</span>
-                        </Badge>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleQuickRefill(v.id)}
-                        disabled={adjustingId === v.id}
-                      >
-                        +10 unidades
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-    </div>
-  );
+ return (
+ <TableRow key={v.id}>
+ <TableCell className="font-medium">{v.products?.title || "—"}</TableCell>
+ <TableCell className="font-mono text-sm">{v.sku}</TableCell>
+ <TableCell className="text-center font-semibold">{available}</TableCell>
+ <TableCell className="text-center">
+ {available <= 0 ? (
+ <Badge variant="destructive" className="gap-1">
+ <AlertTriangle className="h-3 w-3" />
+ Esgotado
+ </Badge>
+ ) : (
+ <Badge variant="secondary" className="gap-1">
+ <AlertTriangle className="h-3 w-3" />
+ Crítico
+ </Badge>
+ )}
+ </TableCell>
+ <TableCell className="text-center">
+ {waitingCount > 0 ? (
+ <Badge variant="outline" className="gap-1 text-primary border-primary/40 font-bold">
+ <BellRing className="size-3" />
+ <span>{waitingCount} {waitingCount === 1 ? "cliente" : "clientes"}</span>
+ </Badge>
+ ) : (
+ <span className="text-xs text-muted-foreground">—</span>
+ )}
+ </TableCell>
+ <TableCell className="text-right">
+ <Button
+ size="sm"
+ variant="outline"
+ onClick={() => handleQuickRefill(v.id)}
+ disabled={adjustingId === v.id}
+ >
+ +10 unidades
+ </Button>
+ </TableCell>
+ </TableRow>
+ );
+ })}
+ </TableBody>
+ </Table>
+ </div>
+ )}
+ </div>
+ );
 }
 

@@ -29,6 +29,16 @@ import {
   SheetDescription,
   SheetFooter,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { EmptyState } from "@/components/state/states";
 
 import { getStoreSettings } from "@/services/store.functions";
@@ -72,6 +82,8 @@ function VehicleLayoutsListPage() {
  const [cols, setCols] = useState(5);
  const [isDoubleDecker, setIsDoubleDecker] = useState(false);
  const [submitting, setSubmitting] = useState(false);
+ const [layoutToDelete, setLayoutToDelete] = useState<any | null>(null);
+ const [isDeleting, setIsDeleting] = useState(false);
 
  const reload = async () => {
  if (!storeId) return;
@@ -134,19 +146,26 @@ function VehicleLayoutsListPage() {
  }
  };
 
- const handleDelete = async (layout: any) => {
- if (!window.confirm(`Deseja realmente excluir o modelo "${layout.name}"?`)) return;
+  const handleDelete = (layout: any) => {
+    setLayoutToDelete(layout);
+  };
 
- try {
- await deleteVehicleLayout({
- data: { store_id: storeId, layout_id: layout.id },
- });
- toast.success("Modelo excluído");
- reload();
- } catch (err: any) {
- toast.error(err?.message || "Erro ao excluir modelo");
- }
- };
+  const confirmDelete = async () => {
+    if (!layoutToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteVehicleLayout({
+        data: { store_id: storeId, layout_id: layoutToDelete.id },
+      });
+      toast.success("Modelo de veículo excluído com sucesso");
+      setLayoutToDelete(null);
+      reload();
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao excluir modelo");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
  const [isMetricsOpen, setIsMetricsOpen] = useState(false);
 
@@ -412,12 +431,45 @@ function VehicleLayoutsListPage() {
     </SheetContent>
   </Sheet>
 
- <WorkspaceDashboardSheet
+    <WorkspaceDashboardSheet
       title="Telemetria da Frota"
       open={isMetricsOpen}
       onOpenChange={setIsMetricsOpen}
       items={metricsItems}
     />
+
+    {/* Diálogo de Confirmação de Exclusão */}
+    <AlertDialog open={Boolean(layoutToDelete)} onOpenChange={(open) => { if (!open) setLayoutToDelete(null); }}>
+      <AlertDialogContent className="max-w-md rounded-2xl p-6 border-border/80">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-base font-bold">
+            Excluir modelo de veículo?
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed">
+            Tem certeza que deseja excluir o modelo <strong className="text-foreground">{layoutToDelete?.name}</strong>?
+            Esta ação não poderá ser desfeita e removerá a configuração de assentos associada.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="mt-4 gap-2">
+          <AlertDialogCancel
+            disabled={isDeleting}
+            className="h-10 px-4 rounded-xl text-xs font-semibold"
+          >
+            Cancelar
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={(e) => {
+              e.preventDefault();
+              confirmDelete();
+            }}
+            disabled={isDeleting}
+            className="h-10 px-4 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white"
+          >
+            {isDeleting ? "Excluindo..." : "Excluir Definitivamente"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </div>
 </NicheOperationalGuard>

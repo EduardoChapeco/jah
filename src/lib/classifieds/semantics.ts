@@ -110,7 +110,7 @@ export const NICHE_DEFINITIONS: Record<ClassifiedNicheId, ClassifiedNicheDefinit
  icon: Tag,
  badge: "Desapego da Região",
  priceSuffix: "",
- primaryActionLabel: "Comprar com Garantia JAH",
+ primaryActionLabel: "Comprar com Garantia Wider",
  secondaryActionLabel: "Fazer Oferta ao Vendedor",
  showDeliveryBadges: true,
  showTechnicalSpecs: false,

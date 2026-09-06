@@ -17,58 +17,58 @@ import { getSSRClient } from "@/lib/server-access";
 import { mergeGuestCartLogic } from "@/services/cart-helpers";
 
 export const Route = createFileRoute("/api/auth/confirm")({
-  server: {
-    handlers: {
-      GET: async ({ request }) => {
-        const url = new URL(request.url);
-        const token_hash = url.searchParams.get("token_hash");
-        const type = url.searchParams.get("type") as "signup" | "recovery" | "email" | null;
-        const next = normalizeInternalReturnPath(url.searchParams.get("next"), "/");
+ server: {
+ handlers: {
+ GET: async ({ request }) => {
+ const url = new URL(request.url);
+ const token_hash = url.searchParams.get("token_hash");
+ const type = url.searchParams.get("type") as "signup" | "recovery" | "email" | null;
+ const next = normalizeInternalReturnPath(url.searchParams.get("next"), "/");
 
-        // Extract guest session token from headers BEFORE async bounds
-        const guestSessionToken = readCookieFromRequest(request, "wider_guest_session");
+ // Extract guest session token from headers BEFORE async bounds
+ const guestSessionToken = readCookieFromRequest(request, "wider_guest_session");
 
-        if (!token_hash || !type) {
-          return new Response(null, {
-            status: 302,
-            headers: { Location: "/entrar?error=link-invalido" },
-          }) as any;
-        }
+ if (!token_hash || !type) {
+ return new Response(null, {
+ status: 302,
+ headers: { Location: "/entrar?error=link-invalido" },
+ }) as any;
+ }
 
-        const supabase = await getSSRClient();
-        const { error } = await supabase.auth.verifyOtp({
-          token_hash,
-          type,
-        });
+ const supabase = await getSSRClient();
+ const { error } = await supabase.auth.verifyOtp({
+ token_hash,
+ type,
+ });
 
-        if (error) {
-          console.error("[auth/confirm] verifyOtp error:", error.message);
-          return new Response(null, {
-            status: 302,
-            headers: { Location: `/entrar?error=${encodeURIComponent(error.message)}` },
-          }) as any;
-        }
+ if (error) {
+ console.error("[auth/confirm] verifyOtp error:", error.message);
+ return new Response(null, {
+ status: 302,
+ headers: { Location: `/entrar?error=${encodeURIComponent(error.message)}` },
+ }) as any;
+ }
 
-        // Success — get the newly created session and merge guest cart
-        const { data: sessionData } = await supabase.auth.getSession();
-        if (sessionData.session) {
-          try {
-            await mergeGuestCartLogic(
-              sessionData.session.user.id,
-              sessionData.session.access_token,
-              guestSessionToken,
-            );
-          } catch (err) {
-            console.error("[auth/confirm] mergeGuestCart failed (non-fatal):", err);
-          }
-        }
+ // Success — get the newly created session and merge guest cart
+ const { data: sessionData } = await supabase.auth.getSession();
+ if (sessionData.session) {
+ try {
+ await mergeGuestCartLogic(
+ sessionData.session.user.id,
+ sessionData.session.access_token,
+ guestSessionToken,
+ );
+ } catch (err) {
+ console.error("[auth/confirm] mergeGuestCart failed (non-fatal):", err);
+ }
+ }
 
-        // Redirect the user to their intended destination.
-        return new Response(null, {
-          status: 302,
-          headers: { Location: next },
-        }) as any;
-      },
-    },
-  },
+ // Redirect the user to their intended destination.
+ return new Response(null, {
+ status: 302,
+ headers: { Location: next },
+ }) as any;
+ },
+ },
+ },
 });

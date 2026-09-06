@@ -1,31 +1,11 @@
+import { Tag } from "lucide-react";
 import React from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { DEFAULT_BRAND_NAME } from "@/lib/brand";
 import { LocationMasterPill } from "@/components/location/location-master-pill";
 import { MobilityQuickButton } from "@/components/mobility/mobility-quick-button";
 import { UtilityCluster } from "@/components/shell/utility-cluster";
-import {
- House,
- ChatCircleText,
- Newspaper,
- Flame,
- ForkKnife,
- Storefront,
- Heartbeat,
- Coffee,
- Tag,
- CalendarDots,
- Scissors,
- DeviceMobile,
- TShirt,
- Briefcase,
- CarProfile,
- AirplaneTilt,
- Key,
- Compass,
- MapPin,
-  MagnifyingGlass,
-} from "@phosphor-icons/react";
+import { House, ChatCircleText, Newspaper, Flame, ForkKnife, Storefront, Heartbeat, Coffee, CalendarDots, Scissors, DeviceMobile, TShirt, Briefcase, CarProfile, AirplaneTilt, Key, Compass, MapPin, MagnifyingGlass,  } from "@phosphor-icons/react";
 
 export interface MobileQuickChip {
  to: string;
@@ -34,29 +14,16 @@ export interface MobileQuickChip {
 }
 
 export const MOBILE_QUICK_CHIPS: MobileQuickChip[] = [
- { to: "/", label: "Início", icon: House },
- { to: "/mural", label: "Feed", icon: ChatCircleText },
- { to: "/mapa", label: "Moments", icon: Flame },
- { to: "/mobilidade", label: "Mobilidade", icon: CarProfile },
- { to: "/classificados", label: "Classificados", icon: Tag },
- { to: "/gastronomia", label: "Comida", icon: ForkKnife },
- { to: "/mercado", label: "Mercado", icon: Storefront },
- { to: "/farmacia", label: "Farmácia", icon: Heartbeat },
- { to: "/bebidas", label: "Bebidas", icon: Coffee },
- { to: "/acougue", label: "Carnes", icon: Flame },
- { to: "/moda", label: "Moda", icon: TShirt },
- { to: "/pet", label: "Pet", icon: Heartbeat },
- { to: "/eletronicos", label: "Tech", icon: DeviceMobile },
- { to: "/casa", label: "Casa", icon: Storefront },
- { to: "/servicos", label: "Serviços", icon: Briefcase },
- { to: "/imoveis", label: "Imóveis", icon: Key },
- { to: "/beleza", label: "Beleza", icon: Scissors },
- { to: "/agendar", label: "Agendar", icon: Scissors },
- { to: "/turismo", label: "Turismo", icon: AirplaneTilt },
- { to: "/empregos", label: "Empregos", icon: Briefcase },
- { to: "/diretorio", label: "Guia", icon: Compass },
- { to: "/agenda", label: "Agenda", icon: CalendarDots },
- { to: "/ofertas", label: "Ofertas", icon: Flame },
+  { to: "/noticias", label: "Notícias", icon: Newspaper },
+  { to: "/classificados", label: "Classificados", icon: Tag },
+  { to: "/ofertas", label: "Ofertas", icon: Flame },
+  { to: "/mercado", label: "Mercado", icon: Storefront },
+  { to: "/agenda", label: "Eventos", icon: CalendarDots },
+  { to: "/diretorio", label: "Guia & Lojas", icon: Compass },
+  { to: "/gastronomia", label: "Comida", icon: ForkKnife },
+  { to: "/turismo", label: "Turismo", icon: AirplaneTilt },
+  { to: "/mapa", label: "Mapa", icon: MapPin },
+  { to: "/convite", label: "Prêmios", icon: House },
 ];
 
 export interface TopBarProps {

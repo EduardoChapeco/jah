@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, redirect, Link, isRedirect } from "@tanstack/react-router";
 import { getProfile, getUserSession } from "@/services/auth.functions";
-import { Shield, ShieldAlert, LayoutDashboard, DollarSign, Store, AlertTriangle, Users, UserCheck, Scale, Image as ImageIcon, Palette, Plug, Layers, ArrowUpRight, ExternalLink, Menu, X, Truck, Server, Eye, Coins, Sliders, Globe, Cpu, FlaskConical, Layout, Fingerprint, Radio } from 'lucide-react';
+import { Shield, ShieldAlert, LayoutDashboard, DollarSign, Store, AlertTriangle, Users, UserCheck, Scale, Image as ImageIcon, Palette, Plug, Layers, ArrowUpRight, ExternalLink, Menu, X, Truck, Server, Eye, Coins, Sliders, Globe, Cpu, FlaskConical, Layout, Fingerprint, Radio, Gift } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -25,6 +25,7 @@ const NAV_SECTIONS = [
  title: "Governança & Motor",
  items: [
  { to: "/admin-master", label: "Dashboard Global", icon: LayoutDashboard, exact: true },
+ { to: "/admin-master/modulos", label: "Módulos da Plataforma", icon: Layers },
  { to: "/admin-master/algoritmo", label: "Motor Algorítmico", icon: Sliders },
  { to: "/admin-master/curadoria", label: "Curadoria & Auditoria", icon: Eye },
  { to: "/admin-master/hubs", label: "Hubs & Cidades", icon: Globe },
@@ -36,6 +37,7 @@ const NAV_SECTIONS = [
  { to: "/admin-master/vitrines", label: "Vitrines & Seções (CMS)", icon: Layout },
  { to: "/admin-master/banners", label: "Banners & Vitrines", icon: ImageIcon },
  { to: "/admin-master/botoes", label: "Hotpages & Capas 16:9", icon: Layers },
+ { to: "/admin-master/convite", label: "Convites & Sorteios", icon: Gift },
  { to: "/admin-master/marca", label: "Identidade & Marca", icon: Palette },
  { to: "/admin-master/tokens", label: "Economia de Tokens", icon: Coins },
  ],
@@ -80,7 +82,7 @@ function AdminMasterLayout() {
  <Shield className="size-4.5" />
  </div>
  <div>
- <span className="font-bold text-sm tracking-tight block leading-tight">JAH Master</span>
+ <span className="font-bold text-sm tracking-tight block leading-tight">Wider Master</span>
  <span className="text-[10px] text-muted-foreground font-medium">Administração Global</span>
  </div>
  </div>
@@ -160,7 +162,7 @@ function AdminMasterLayout() {
  <div className="h-14 px-4 border-b border-border/40 flex items-center justify-between shrink-0">
  <div className="flex items-center gap-2 text-primary font-bold text-sm">
  <Shield className="size-5" />
- <span>JAH Master</span>
+ <span>Wider Master</span>
  </div>
  <Button
  variant="ghost"

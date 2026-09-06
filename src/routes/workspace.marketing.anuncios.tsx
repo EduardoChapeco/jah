@@ -68,7 +68,7 @@ function AnunciosWorkspacePage() {
  eyebrow="Marketing"
  title="Anúncios"
  actions={
- <Button asChild size="sm" className="rounded-lg font-medium text-xs gap-2 bg-primary text-primary-foreground h-10 sm:h-9 px-4">
+ <Button asChild size="sm" className="rounded-lg font-medium text-xs gap-2 bg-primary text-primary-foreground min-h-[44px] h-11 px-4">
  <Link to="/workspace/marketing/anuncios/novo">
  <Plus className="size-3.5" />
  <span>Novo Anúncio</span>

@@ -98,7 +98,7 @@ export const getUserSession = createServerFn({ method: "GET" }).handler(async ()
  profile?.full_name ||
  user?.user_metadata?.full_name ||
  user?.email?.split("@")[0] ||
- "Membro JAH";
+ "Membro Wider";
 
  return {
  id: effectiveUserId,

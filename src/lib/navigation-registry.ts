@@ -1,4 +1,4 @@
-import { Home, MapPin, ShoppingBag, Tag, Calendar, Compass, User, LayoutDashboard, Bookmark, Handshake, Package, MessageSquare, Coins, Gift, CreditCard, RefreshCcw, Sliders, Flame, Clock, Heart, Plus, Search, SlidersHorizontal, Store, Layers, Utensils, Music, Shirt, HelpCircle, ShieldCheck, Building, Car, Truck, Laptop, Briefcase, Ticket, Mountain } from 'lucide-react';
+import { Home, MapPin, ShoppingBag, Tag, Calendar, Compass, User, LayoutDashboard, Bookmark, Handshake, Package, MessageSquare, Coins, Gift, CreditCard, RefreshCcw, Sliders, Flame, Clock, Heart, Plus, Search, SlidersHorizontal, Store, Layers, Utensils, Music, Shirt, HelpCircle, ShieldCheck, Building, Car, Truck, Laptop, Briefcase, Ticket, Mountain, Newspaper } from 'lucide-react';
 
 export type ContentWidthMode =
  "social-feed" | "catalog" | "reading" | "workspace" | "full" | "media-detail";
@@ -38,14 +38,16 @@ export interface ContextConfig {
 
 /**
  * ─── Destinos Globais da Global Rail ─────────────────────────────────────────
+ * Ordem MVP: Notícias > Classificados > Ofertas > Mercado > Eventos > Guia > Mapa
  */
 export const GLOBAL_DESTINATIONS: NavigationItem[] = [
- { to: "/mural", label: "Mural", icon: Home },
- { to: "/mercado", label: "Mercado", icon: ShoppingBag },
- { to: "/mapa", label: "Mapa", icon: MapPin },
- { to: "/mobilidade", label: "Mobilidade & Fretes", icon: Car },
- { to: "/agenda", label: "Eventos", icon: Calendar },
- { to: "/diretorio", label: "Diretório", icon: Compass },
+  { to: "/noticias", label: "Notícias", icon: Newspaper },
+  { to: "/classificados", label: "Classificados", icon: Tag },
+  { to: "/ofertas", label: "Ofertas", icon: Flame },
+  { to: "/mercado", label: "Mercado", icon: ShoppingBag },
+  { to: "/agenda", label: "Eventos", icon: Calendar },
+  { to: "/diretorio", label: "Guia & Empresas", icon: Compass },
+  { to: "/mapa", label: "Mapa", icon: MapPin },
 ];
 
 /**
@@ -58,6 +60,7 @@ export const PERSONAL_NAV_GROUPS: NavigationGroup[] = [
  items: [
  { to: "/conta", label: "Visão Geral", icon: User, exact: true },
  { to: "/conta/perfil", label: "Meu Perfil", icon: User },
+ { to: "/convite", label: "Programa de Convites", icon: Gift },
  { to: "/conta/salvos", label: "Itens Salvos", icon: Bookmark },
  ],
  },
@@ -76,7 +79,6 @@ export const PERSONAL_NAV_GROUPS: NavigationGroup[] = [
  items: [
  { to: "/conta/pedidos", label: "Minhas Compras", icon: Package },
  { to: "/conta/pacotes", label: "Pacotes & Aulas", icon: Ticket },
- { to: "/conta/mobilidade", label: "Corridas & Mudanças", icon: Car },
  { to: "/conta/pagamentos", label: "Pagamentos & Parcelas", icon: CreditCard },
  { to: "/conta/creditos", label: "Carteira & Créditos", icon: Coins },
  { to: "/conta/gift-cards", label: "Vales-Presente", icon: Gift },
@@ -200,7 +202,7 @@ export function resolveContextNavigation(pathname: string, session?: any): Conte
  if (pathname.startsWith("/mercado")) {
  return {
  moduleId: "market",
- title: "Mercado JAH",
+ title: "Mercado Wider",
  subtitle: "Marcas autorais e produtos da comunidade",
  groups: MARKET_NAV_GROUPS,
  action: {

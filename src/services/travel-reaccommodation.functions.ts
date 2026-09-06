@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
-import { supabase } from '@/lib/supabase';
+import { getServerClient } from '@/lib/supabase';
 import type {
   TravelFlightChangeCase,
   ChangeReason,
@@ -27,7 +27,8 @@ export function calculateAnacRights(reason: ChangeReason, delayHours: number = 0
 export const listFlightChangeCases = createServerFn({ method: 'GET' })
   .validator((data: { storeId: string; tripId?: string }) => data)
   .handler(async ({ data }): Promise<TravelFlightChangeCase[]> => {
-    let query = supabase
+    const db = getServerClient();
+    let query = db
       .from('travel_flight_change_cases')
       .select(`
         *,
@@ -65,9 +66,10 @@ export const createFlightChangeCase = createServerFn({ method: 'POST' })
     })
   )
   .handler(async ({ data }): Promise<TravelFlightChangeCase> => {
+    const db = getServerClient();
     const rights = calculateAnacRights(data.change_reason as ChangeReason, data.delay_hours);
 
-    const { data: row, error } = await supabase
+    const { data: row, error } = await db
       .from('travel_flight_change_cases')
       .insert({
         store_id: data.store_id,
@@ -104,7 +106,8 @@ export const updateChangeCaseWorkflow = createServerFn({ method: 'POST' })
     })
   )
   .handler(async ({ data }): Promise<{ success: boolean }> => {
-    const { error } = await supabase
+    const db = getServerClient();
+    const { error } = await db
       .from('travel_flight_change_cases')
       .update({
         workflow_status: data.workflow_status,

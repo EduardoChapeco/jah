@@ -21,7 +21,7 @@ import { listSimLabPersonas, listResearchSessions, createSimLabPersona, runSimLa
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin-master/simlabs")({
-  head: () => ({ meta: [{ title: "SimLabs & Personas Sintéticas | JAH Master OS" }] }),
+  head: () => ({ meta: [{ title: "SimLabs & Personas Sintéticas | Wider OS" }] }),
   loader: async () => {
     try {
       const [personas, sessions] = await Promise.all([

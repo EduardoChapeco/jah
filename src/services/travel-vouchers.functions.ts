@@ -8,7 +8,7 @@ export const listTravelVouchers = createServerFn({ method: 'GET' })
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  const storeId = data.store_id || identity.store_id;
- assertStoreAccess(identity, storeId);
+ assertStoreAccess(identity);
 
  const db = getServerClient();
  let q = db
@@ -41,10 +41,10 @@ export const createTravelVoucher = createServerFn({ method: 'POST' })
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  const storeId = data.store_id || identity.store_id;
- assertStoreAccess(identity, storeId);
+ assertStoreAccess(identity);
 
  const voucherNumber = 'VCH-' + Math.random().toString(36).substring(2, 7).toUpperCase() + '-' + Date.now().toString().slice(-4);
- const qrHash = 'JAH_VOUCHER_' + voucherNumber + '_' + Date.now();
+ const qrHash = 'WIDER_VOUCHER_' + voucherNumber + '_' + Date.now();
 
  const db = getServerClient();
  const { data: row, error } = await db

@@ -429,7 +429,7 @@ export const reportStoreHardshipOrDispute = createServerFn({ method: "POST" })
 
     return {
       success: true,
-      message: "Relato de dificuldade financeira recebido. A administração do JAH analisará com prioridade e solidariedade para apoiar o seu negócio!",
+      message: "Relato de dificuldade financeira recebido. A administração da Wider analisará com prioridade e solidariedade para apoiar o seu negócio!",
     };
   });
 

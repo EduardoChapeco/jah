@@ -270,7 +270,7 @@ export const calculateMobilityQuote = createServerFn({ method: "POST" })
 export const createMobilityRequest = createServerFn({ method: "POST" })
  .validator(
  z.object({
- customer_name: z.string().min(1).default("Cliente JAH"),
+ customer_name: z.string().min(1).default("Cliente Wider"),
  customer_phone: z.string().min(1).default("(49) 99999-9999"),
  service_type: mobilityServiceTypeEnum,
  origin_address: z.string().min(3),
@@ -310,7 +310,7 @@ export const createMobilityRequest = createServerFn({ method: "POST" })
 
  const payload = {
  customer_id: identity?.id || null,
- customer_name: data.customer_name || "Cliente JAH",
+ customer_name: data.customer_name || "Cliente Wider",
  customer_phone: data.customer_phone || "(49) 99999-9999",
  service_type: data.service_type,
  status: assignedCourierProfileId ? "accepted" : "searching",
@@ -344,7 +344,7 @@ export const createMobilityRequest = createServerFn({ method: "POST" })
  driver_id: assignedCourierProfileId || null,
  public_token: payload.magic_token,
  customer_snapshot: {
- name: data.customer_name || "Cliente JAH",
+ name: data.customer_name || "Cliente Wider",
  phone: data.customer_phone || "",
  },
  shipping_address: {

@@ -1,16 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  Plus,
-  Trash2,
-  Loader2,
-  Eye,
-  Pencil,
-  ArrowRight,
-  Shield,
-  Layers,
-  Image as ImageIcon,
-} from "lucide-react";
+import { Tag, Plus,
+ Trash2,
+ Loader2,
+ Eye,
+ Pencil,
+ ArrowRight,
+ Shield,
+ Layers,
+ Image as ImageIcon, } from "lucide-react";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,18 +17,18 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { SheetPage } from "@/components/ui/sheet-page";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+ Select,
+ SelectContent,
+ SelectItem,
+ SelectTrigger,
+ SelectValue,
 } from "@/components/ui/select";
 import {
-  listHotpages,
-  saveHotpage,
-  deleteHotpage,
-  type HotpageDTO,
-  type HotpageModule,
+ listHotpages,
+ saveHotpage,
+ deleteHotpage,
+ type HotpageDTO,
+ type HotpageModule,
 } from "@/services/hotpage.functions";
 import { getStoreSettings } from "@/services/store.functions";
 import { getUserSession } from "@/services/auth.functions";
@@ -40,409 +38,409 @@ import { DynamicMediaChip } from "@/components/commerce/dynamic-media-chip";
 import { DestinationPicker } from "@/components/ui/destination-picker";
 
 export const Route = createFileRoute("/workspace/marketing/hotpages")({
-  head: () => ({ meta: [{ title: "Destaques & Hotpages da Loja | Workspace" }] }),
-  loader: async () => {
-    const [store, session] = await Promise.all([
-      getStoreSettings().catch(() => null),
-      getUserSession().catch(() => null),
-    ]);
-    const initialModule = (store?.settings?.segment || store?.segment || store?.type || "home") as HotpageModule;
-    const hotpages = await listHotpages({ data: { module: initialModule } }).catch(() => []);
-    return { hotpages, session, store, initialModule };
-  },
-  component: WorkspaceStoreHotpagesPage,
+ head: () => ({ meta: [{ title: "Destaques & Hotpages da Loja | Workspace" }] }),
+ loader: async () => {
+ const [store, session] = await Promise.all([
+ getStoreSettings().catch(() => null),
+ getUserSession().catch(() => null),
+ ]);
+ const initialModule = (store?.settings?.segment || store?.segment || store?.type || "home") as HotpageModule;
+ const hotpages = await listHotpages({ data: { module: initialModule } }).catch(() => []);
+ return { hotpages, session, store, initialModule };
+ },
+ component: WorkspaceStoreHotpagesPage,
 });
 
 function WorkspaceStoreHotpagesPage() {
-  const { hotpages: initialHotpages, session, store, initialModule } = Route.useLoaderData();
-  const [hotpages, setHotpages] = useState<HotpageDTO[]>(initialHotpages || []);
-  const [selectedModuleFilter, setSelectedModuleFilter] = useState<HotpageModule>(initialModule || "home");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+ const { hotpages: initialHotpages, session, store, initialModule } = Route.useLoaderData();
+ const [hotpages, setHotpages] = useState<HotpageDTO[]>(initialHotpages || []);
+ const [selectedModuleFilter, setSelectedModuleFilter] = useState<HotpageModule>(initialModule || "home");
+ const [isModalOpen, setIsModalOpen] = useState(false);
+ const [editingId, setEditingId] = useState<string | null>(null);
+ const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
-  const [badgeLabel, setBadgeLabel] = useState("");
-  const [targetRoute, setTargetRoute] = useState("");
-  const [module, setModule] = useState<HotpageModule>(initialModule || "home");
-  const [bgMediaType, setBgMediaType] = useState<"none" | "image" | "video" | "gif">("none");
-  const [bgMediaUrl, setBgMediaUrl] = useState("");
-  const [bgTexture, setBgTexture] = useState<"none" | "noise" | "dots" | "grid" | "mesh" | "glass">("none");
-  const [bgOverlayOpacity, setBgOverlayOpacity] = useState(40);
-  const [showTitle, setShowTitle] = useState(true);
-  const [showBadge, setShowBadge] = useState(true);
+ const [title, setTitle] = useState("");
+ const [slug, setSlug] = useState("");
+ const [badgeLabel, setBadgeLabel] = useState("");
+ const [targetRoute, setTargetRoute] = useState("");
+ const [module, setModule] = useState<HotpageModule>(initialModule || "home");
+ const [bgMediaType, setBgMediaType] = useState<"none" | "image" | "video" | "gif">("none");
+ const [bgMediaUrl, setBgMediaUrl] = useState("");
+ const [bgTexture, setBgTexture] = useState<"none" | "noise" | "dots" | "grid" | "mesh" | "glass">("none");
+ const [bgOverlayOpacity, setBgOverlayOpacity] = useState(40);
+ const [showTitle, setShowTitle] = useState(true);
+ const [showBadge, setShowBadge] = useState(true);
 
-  const isPlatformAdmin = session?.role === "platform_admin";
+ const isPlatformAdmin = session?.role === "platform_admin";
 
-  const refreshList = async (mod: HotpageModule = selectedModuleFilter) => {
-    const updated = await listHotpages({ data: { module: mod } }).catch(() => []);
-    setHotpages(updated);
-  };
+ const refreshList = async (mod: HotpageModule = selectedModuleFilter) => {
+ const updated = await listHotpages({ data: { module: mod } }).catch(() => []);
+ setHotpages(updated);
+ };
 
-  const handleModuleFilterChange = async (mod: HotpageModule) => {
-    setSelectedModuleFilter(mod);
-    await refreshList(mod);
-  };
+ const handleModuleFilterChange = async (mod: HotpageModule) => {
+ setSelectedModuleFilter(mod);
+ await refreshList(mod);
+ };
 
-  const handleOpenCreate = () => {
-    setEditingId(null);
-    setTitle("");
-    setSlug(`destaque-${Date.now()}`);
-    setBadgeLabel("Novidade");
-    setTargetRoute("/perfil-da-loja");
-    setModule(selectedModuleFilter);
-    setBgMediaType("none");
-    setBgMediaUrl("");
-    setBgTexture("none");
-    setBgOverlayOpacity(40);
-    setShowTitle(true);
-    setShowBadge(true);
-    setIsModalOpen(true);
-  };
+ const handleOpenCreate = () => {
+ setEditingId(null);
+ setTitle("");
+ setSlug(`destaque-${Date.now()}`);
+ setBadgeLabel("Novidade");
+ setTargetRoute("/perfil-da-loja");
+ setModule(selectedModuleFilter);
+ setBgMediaType("none");
+ setBgMediaUrl("");
+ setBgTexture("none");
+ setBgOverlayOpacity(40);
+ setShowTitle(true);
+ setShowBadge(true);
+ setIsModalOpen(true);
+ };
 
-  const handleOpenEdit = (h: HotpageDTO) => {
-    setEditingId(h.id);
-    setTitle(h.title);
-    setSlug(h.slug);
-    setBadgeLabel(h.badge_label || "");
-    setTargetRoute(h.target_route || "");
-    setModule((h.module as HotpageModule) || selectedModuleFilter);
-    setBgMediaType(h.bg_media_type || "none");
-    setBgMediaUrl(h.bg_media_url || "");
-    setBgTexture(h.bg_texture || "none");
-    setBgOverlayOpacity(h.bg_overlay_opacity ?? 40);
-    setShowTitle(h.show_title !== false);
-    setShowBadge(h.show_badge !== false);
-    setIsModalOpen(true);
-  };
+ const handleOpenEdit = (h: HotpageDTO) => {
+ setEditingId(h.id);
+ setTitle(h.title);
+ setSlug(h.slug);
+ setBadgeLabel(h.badge_label || "");
+ setTargetRoute(h.target_route || "");
+ setModule((h.module as HotpageModule) || selectedModuleFilter);
+ setBgMediaType(h.bg_media_type || "none");
+ setBgMediaUrl(h.bg_media_url || "");
+ setBgTexture(h.bg_texture || "none");
+ setBgOverlayOpacity(h.bg_overlay_opacity ?? 40);
+ setShowTitle(h.show_title !== false);
+ setShowBadge(h.show_badge !== false);
+ setIsModalOpen(true);
+ };
 
-  const handleSave = async () => {
-    if (!title.trim()) {
-      toast.error("O título do destaque é obrigatório.");
-      return;
-    }
+ const handleSave = async () => {
+ if (!title.trim()) {
+ toast.error("O título do destaque é obrigatório.");
+ return;
+ }
 
-    setIsSubmitting(true);
-    try {
-      await saveHotpage({
-        data: {
-          id: editingId || undefined,
-          slug: slug.trim() || `hotpage-${Date.now()}`,
-          title: title.trim(),
-          badge_label: badgeLabel.trim() || undefined,
-          target_route: targetRoute.trim() || undefined,
-          bg_media_type: bgMediaType,
-          bg_media_url: bgMediaUrl || undefined,
-          bg_texture: bgTexture,
-          bg_overlay_opacity: bgOverlayOpacity,
-          show_title: showTitle,
-          show_badge: showBadge,
-          module,
-          is_active: true,
-          sort_order: 0,
-        },
-      });
+ setIsSubmitting(true);
+ try {
+ await saveHotpage({
+ data: {
+ id: editingId || undefined,
+ slug: slug.trim() || `hotpage-${Date.now()}`,
+ title: title.trim(),
+ badge_label: badgeLabel.trim() || undefined,
+ target_route: targetRoute.trim() || undefined,
+ bg_media_type: bgMediaType,
+ bg_media_url: bgMediaUrl || undefined,
+ bg_texture: bgTexture,
+ bg_overlay_opacity: bgOverlayOpacity,
+ show_title: showTitle,
+ show_badge: showBadge,
+ module,
+ is_active: true,
+ sort_order: 0,
+ },
+ });
 
-      toast.success(editingId ? "Destaque atualizado!" : "Destaque criado com sucesso!");
-      setIsModalOpen(false);
-      await refreshList();
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao salvar destaque.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+ toast.success(editingId ? "Destaque atualizado!" : "Destaque criado com sucesso!");
+ setIsModalOpen(false);
+ await refreshList();
+ } catch (err: any) {
+ toast.error(err?.message || "Erro ao salvar destaque.");
+ } finally {
+ setIsSubmitting(false);
+ }
+ };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Deseja realmente remover este destaque?")) return;
-    try {
-      await deleteHotpage({ data: { id } });
-      toast.success("Destaque removido.");
-      await refreshList();
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao excluir destaque.");
-    }
-  };
+ const handleDelete = async (id: string) => {
+ if (!confirm("Deseja realmente remover este destaque?")) return;
+ try {
+ await deleteHotpage({ data: { id } });
+ toast.success("Destaque removido.");
+ await refreshList();
+ } catch (err: any) {
+ toast.error(err?.message || "Erro ao excluir destaque.");
+ }
+ };
 
-  return (
-    <div className="w-full max-w-6xl mx-auto space-y-6 pb-20">
-      {/* ── PageHeader Canônico Clean ── */}
-      <PageHeader
-        eyebrow="Vitrine & Divulgação"
-        title="Destaques & Hotpages"
-        actions={
-          <div className="flex items-center gap-2">
-            <Select
-              value={selectedModuleFilter}
-              onValueChange={(val: any) => handleModuleFilterChange(val)}
-            >
-              <SelectTrigger className="w-[180px] rounded-xl text-xs h-9 bg-background">
-                <SelectValue placeholder="Filtrar por vitrine" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                <SelectItem value="home">Home / Perfil da Loja</SelectItem>
-                <SelectItem value="gastronomia">Gastronomia</SelectItem>
-                <SelectItem value="mercado">Supermercados</SelectItem>
-                <SelectItem value="moda">Moda & Vestuário</SelectItem>
-                <SelectItem value="turismo">Turismo</SelectItem>
-                <SelectItem value="pet">Pet Shop</SelectItem>
-                <SelectItem value="beleza">Beleza</SelectItem>
-                <SelectItem value="servicos">Serviços</SelectItem>
-                <SelectItem value="imoveis">Imóveis</SelectItem>
-                <SelectItem value="eventos">Eventos</SelectItem>
-                <SelectItem value="all">Todas as Vitrines</SelectItem>
-              </SelectContent>
-            </Select>
+ return (
+ <div className="w-full max-w-6xl mx-auto space-y-6 pb-20">
+ {/* ── PageHeader Canônico Clean ── */}
+ <PageHeader
+ eyebrow="Vitrine & Divulgação"
+ title="Destaques & Hotpages"
+ actions={
+ <div className="flex items-center gap-2">
+ <Select
+ value={selectedModuleFilter}
+ onValueChange={(val: any) => handleModuleFilterChange(val)}
+ >
+ <SelectTrigger className="w-[180px] rounded-xl text-xs h-9 bg-background">
+ <SelectValue placeholder="Filtrar por vitrine" />
+ </SelectTrigger>
+ <SelectContent className="rounded-xl">
+ <SelectItem value="home">Home / Perfil da Loja</SelectItem>
+ <SelectItem value="gastronomia">Gastronomia</SelectItem>
+ <SelectItem value="mercado">Supermercados</SelectItem>
+ <SelectItem value="moda">Moda & Vestuário</SelectItem>
+ <SelectItem value="turismo">Turismo</SelectItem>
+ <SelectItem value="pet">Pet Shop</SelectItem>
+ <SelectItem value="beleza">Beleza</SelectItem>
+ <SelectItem value="servicos">Serviços</SelectItem>
+ <SelectItem value="imoveis">Imóveis</SelectItem>
+ <SelectItem value="eventos">Eventos</SelectItem>
+ <SelectItem value="all">Todas as Vitrines</SelectItem>
+ </SelectContent>
+ </Select>
 
-            <Button
-              onClick={handleOpenCreate}
-              size="sm"
-              className="rounded-xl font-bold text-xs h-9 bg-primary text-primary-foreground gap-1.5 shadow-xs cursor-pointer"
-            >
-              <Plus className="size-3.5" />
-              <span>Novo Destaque</span>
-            </Button>
-          </div>
-        }
-      />
+ <Button
+ onClick={handleOpenCreate}
+ size="sm"
+ className="rounded-xl font-bold text-xs h-9 bg-primary text-primary-foreground gap-1.5 shadow-xs cursor-pointer"
+ >
+ <Plus className="size-3.5" />
+ <span>Novo Destaque</span>
+ </Button>
+ </div>
+ }
+ />
 
-      {/* ── Grade de Destaques ou Empty State ── */}
-      {hotpages.length === 0 ? (
-        <div className="py-12 text-center space-y-4 border border-dashed border-border/70 rounded-2xl bg-card/40">
-          <div className="size-12 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto text-muted-foreground">
-            <Layers className="size-6" />
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-sm font-bold text-foreground">Nenhum destaque cadastrado</h3>
-            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              Adicione cartões especiais para promover combos, lançamentos ou seções exclusivas no seu perfil.
-            </p>
-          </div>
-          <Button onClick={handleOpenCreate} size="sm" variant="outline" className="rounded-xl text-xs font-bold h-9">
-            <Plus className="size-3.5 mr-1" />
-            Criar Primeiro Destaque
-          </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {hotpages.map((h) => (
-            <div
-              key={h.id}
-              className="p-4 rounded-2xl bg-card border border-border/70 space-y-3 shadow-2xs flex flex-col justify-between"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Badge variant="outline" className="text-[10px] font-mono">
-                    {h.badge_label || "Card"}
-                  </Badge>
-                  <span className="text-[10px] text-muted-foreground font-mono">
-                    {h.bg_texture !== "none" ? `Textura: ${h.bg_texture}` : "Padrão"}
-                  </span>
-                </div>
+ {/* ── Grade de Destaques ou Empty State ── */}
+ {hotpages.length === 0 ? (
+ <div className="py-12 text-center space-y-4 border border-dashed border-border/70 rounded-2xl bg-card/40">
+ <div className="size-12 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto text-muted-foreground">
+ <Layers className="size-6" />
+ </div>
+ <div className="space-y-1">
+ <h3 className="text-sm font-bold text-foreground">Nenhum destaque cadastrado</h3>
+ <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+ Adicione cartões especiais para promover combos, lançamentos ou seções exclusivas no seu perfil.
+ </p>
+ </div>
+ <Button onClick={handleOpenCreate} size="sm" variant="outline" className="rounded-xl text-xs font-bold h-9">
+ <Plus className="size-3.5 mr-1" />
+ Criar Primeiro Destaque
+ </Button>
+ </div>
+ ) : (
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+ {hotpages.map((h) => (
+ <div
+ key={h.id}
+ className="p-4 rounded-2xl bg-card border border-border/70 space-y-3 shadow-2xs flex flex-col justify-between"
+ >
+ <div className="space-y-2">
+ <div className="flex items-center justify-between">
+ <Badge variant="outline" className="text-[10px] font-mono">
+ {h.badge_label || "Card"}
+ </Badge>
+ <span className="text-[10px] text-muted-foreground font-mono">
+ {h.bg_texture !== "none" ? `Textura: ${h.bg_texture}` : "Padrão"}
+ </span>
+ </div>
 
-                <h3 className="text-sm font-bold text-foreground line-clamp-1">{h.title}</h3>
-                <p className="text-xs text-muted-foreground truncate">{h.target_route || "/loja"}</p>
+ <h3 className="text-sm font-bold text-foreground line-clamp-1">{h.title}</h3>
+ <p className="text-xs text-muted-foreground truncate">{h.target_route || "/loja"}</p>
 
-                {/* Mini Preview do Chip */}
-                <div className="pt-2">
-                  <DynamicMediaChip
-                    label={h.title}
-                    badge={h.badge_label || undefined}
-                    bg_media_type={h.bg_media_type || undefined}
-                    bg_media_url={h.bg_media_url || undefined}
-                    bg_texture={h.bg_texture as any || undefined}
-                    bg_overlay_opacity={h.bg_overlay_opacity ?? undefined}
-                    to={h.target_route || undefined}
-                  />
-                </div>
-              </div>
+ {/* Mini Preview do Chip */}
+ <div className="pt-2">
+ <DynamicMediaChip
+ label={h.title}
+ badge={h.badge_label || undefined}
+ bg_media_type={h.bg_media_type || undefined}
+ bg_media_url={h.bg_media_url || undefined}
+ bg_texture={h.bg_texture as any || undefined}
+ bg_overlay_opacity={h.bg_overlay_opacity ?? undefined}
+ to={h.target_route || undefined}
+ />
+ </div>
+ </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/30">
-                <Button
-                  onClick={() => handleOpenEdit(h)}
-                  size="sm"
-                  variant="outline"
-                  className="h-8 px-2.5 rounded-xl text-xs font-semibold gap-1"
-                >
-                  <Pencil className="size-3" /> Editar
-                </Button>
-                <Button
-                  onClick={() => handleDelete(h.id)}
-                  size="sm"
-                  variant="ghost"
-                  className="h-8 px-2.5 rounded-xl text-xs text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="size-3" />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+ <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/30">
+ <Button
+ onClick={() => handleOpenEdit(h)}
+ size="sm"
+ variant="outline"
+ className="h-8 px-2.5 rounded-xl text-xs font-semibold gap-1"
+ >
+ <Pencil className="size-3" /> Editar
+ </Button>
+ <Button
+ onClick={() => handleDelete(h.id)}
+ size="sm"
+ variant="ghost"
+ className="h-8 px-2.5 rounded-xl text-xs text-destructive hover:bg-destructive/10"
+ >
+ <Trash2 className="size-3" />
+ </Button>
+ </div>
+ </div>
+ ))}
+ </div>
+ )}
 
-      {/* Drawer Lateral de Criação/Edição com Live Preview */}
-      <SheetPage
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        title={editingId ? "Editar Destaque" : "Novo Destaque da Loja"}
-        description="Personalize o texto, mídia de fundo e destino do card."
-      >
-        <div className="space-y-5 p-1 pb-16">
-          {/* Live Preview */}
-          <div className="space-y-1.5 p-3 rounded-2xl bg-muted/20 border border-border/50">
-            <span className="text-[11px] font-bold text-muted-foreground">Pré-Visualização em Tempo Real</span>
-            <DynamicMediaChip
-              label={title || "Nome do Destaque"}
-              badge={badgeLabel || undefined}
-              bg_media_type={bgMediaType}
-              bg_media_url={bgMediaUrl || undefined}
-              bg_texture={bgTexture as any}
-              bg_overlay_opacity={bgOverlayOpacity}
-            />
-          </div>
+ {/* Drawer Lateral de Criação/Edição com Live Preview */}
+ <SheetPage
+ open={isModalOpen}
+ onOpenChange={setIsModalOpen}
+ title={editingId ? "Editar Destaque" : "Novo Destaque da Loja"}
+ description="Personalize o texto, mídia de fundo e destino do card."
+ >
+ <div className="space-y-5 p-1 pb-16">
+ {/* Live Preview */}
+ <div className="space-y-1.5 p-3 rounded-2xl bg-muted/20 border border-border/50">
+ <span className="text-[11px] font-bold text-muted-foreground">Pré-Visualização em Tempo Real</span>
+ <DynamicMediaChip
+ label={title || "Nome do Destaque"}
+ badge={badgeLabel || undefined}
+ bg_media_type={bgMediaType}
+ bg_media_url={bgMediaUrl || undefined}
+ bg_texture={bgTexture as any}
+ bg_overlay_opacity={bgOverlayOpacity}
+ />
+ </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs font-bold">Título do Destaque *</Label>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ex: Combo Família ou Oferta do Dia"
-              className="rounded-xl text-xs h-9"
-            />
-          </div>
+ <div className="space-y-1.5">
+ <Label className="text-xs font-bold">Título do Destaque *</Label>
+ <Input
+ value={title}
+ onChange={(e) => setTitle(e.target.value)}
+ placeholder="Ex: Combo Família ou Oferta do Dia"
+ className="rounded-xl text-xs h-9"
+ />
+ </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs font-bold">Badge / Tag de Destaque</Label>
-            <Input
-              value={badgeLabel}
-              onChange={(e) => setBadgeLabel(e.target.value)}
-              placeholder="Ex: 20% OFF, Novo, Combo Especial"
-              className="rounded-xl text-xs h-9"
-            />
-          </div>
+ <div className="space-y-1.5">
+ <Label className="text-xs font-bold">Badge / Tag de Destaque</Label>
+ <Input
+ value={badgeLabel}
+ onChange={(e) => setBadgeLabel(e.target.value)}
+ placeholder="Ex: 20% OFF, Novo, Combo Especial"
+ className="rounded-xl text-xs h-9"
+ />
+ </div>
 
-          {/* Seletor Canônico de Destino da Página / Link */}
-          <DestinationPicker
-            value={targetRoute}
-            onChange={(url) => setTargetRoute(url)}
-            label="Página / Rota de Destino"
-            helperText="Escolha a página interna ou informe uma URL externa para este destaque."
-          />
+ {/* Seletor Canônico de Destino da Página / Link */}
+ <DestinationPicker
+ value={targetRoute}
+ onChange={(url) => setTargetRoute(url)}
+ label="Página / Rota de Destino"
+ helperText="Escolha a página interna ou informe uma URL externa para este destaque."
+ />
 
-          {/* Módulo / Vitrine de Exibição */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-bold">Vitrine / Módulo de Exibição</Label>
-            <Select value={module} onValueChange={(val: any) => setModule(val)}>
-              <SelectTrigger className="rounded-xl text-xs h-9">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                <SelectItem value="home">Página Inicial / Perfil da Loja (Home)</SelectItem>
-                <SelectItem value="gastronomia">Gastronomia / Restaurantes</SelectItem>
-                <SelectItem value="mercado">Supermercados & Empórios</SelectItem>
-                <SelectItem value="moda">Moda & Vestuário</SelectItem>
-                <SelectItem value="turismo">Turismo & Viagens</SelectItem>
-                <SelectItem value="pet">Pet Shop & Veterinária</SelectItem>
-                <SelectItem value="beleza">Beleza & Estética</SelectItem>
-                <SelectItem value="servicos">Serviços Profissionais</SelectItem>
-                <SelectItem value="casa">Casa & Decoração</SelectItem>
-                <SelectItem value="eletronicos">Eletrônicos & Tecnologia</SelectItem>
-                <SelectItem value="construcao">Construção & Reformas</SelectItem>
-                <SelectItem value="imoveis">Imóveis & Locação</SelectItem>
-                <SelectItem value="eventos">Eventos & Ingressos</SelectItem>
-                <SelectItem value="all">Todas as Vitrines (Global)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+ {/* Módulo / Vitrine de Exibição */}
+ <div className="space-y-1.5">
+ <Label className="text-xs font-bold">Vitrine / Módulo de Exibição</Label>
+ <Select value={module} onValueChange={(val: any) => setModule(val)}>
+ <SelectTrigger className="rounded-xl text-xs h-9">
+ <SelectValue />
+ </SelectTrigger>
+ <SelectContent className="rounded-xl">
+ <SelectItem value="home">Página Inicial / Perfil da Loja (Home)</SelectItem>
+ <SelectItem value="gastronomia">Gastronomia / Restaurantes</SelectItem>
+ <SelectItem value="mercado">Supermercados & Empórios</SelectItem>
+ <SelectItem value="moda">Moda & Vestuário</SelectItem>
+ <SelectItem value="turismo">Turismo & Viagens</SelectItem>
+ <SelectItem value="pet">Pet Shop & Veterinária</SelectItem>
+ <SelectItem value="beleza">Beleza & Estética</SelectItem>
+ <SelectItem value="servicos">Serviços Profissionais</SelectItem>
+ <SelectItem value="casa">Casa & Decoração</SelectItem>
+ <SelectItem value="eletronicos">Eletrônicos & Tecnologia</SelectItem>
+ <SelectItem value="construcao">Construção & Reformas</SelectItem>
+ <SelectItem value="imoveis">Imóveis & Locação</SelectItem>
+ <SelectItem value="eventos">Eventos & Ingressos</SelectItem>
+ <SelectItem value="all">Todas as Vitrines (Global)</SelectItem>
+ </SelectContent>
+ </Select>
+ </div>
 
-          {/* Mídia de Fundo */}
-          <div className="space-y-2 pt-2 border-t border-border/30">
-            <Label className="text-xs font-bold">Tipo de Mídia de Fundo</Label>
-            <Select
-              value={bgMediaType}
-              onValueChange={(val: any) => setBgMediaType(val)}
-            >
-              <SelectTrigger className="rounded-xl text-xs h-9">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                <SelectItem value="none">Nenhuma (Cor padrão)</SelectItem>
-                <SelectItem value="image">Imagem</SelectItem>
-                <SelectItem value="video">Vídeo MP4</SelectItem>
-                <SelectItem value="gif">GIF Animado</SelectItem>
-              </SelectContent>
-            </Select>
+ {/* Mídia de Fundo */}
+ <div className="space-y-2 pt-2 border-t border-border/30">
+ <Label className="text-xs font-bold">Tipo de Mídia de Fundo</Label>
+ <Select
+ value={bgMediaType}
+ onValueChange={(val: any) => setBgMediaType(val)}
+ >
+ <SelectTrigger className="rounded-xl text-xs h-9">
+ <SelectValue />
+ </SelectTrigger>
+ <SelectContent className="rounded-xl">
+ <SelectItem value="none">Nenhuma (Cor padrão)</SelectItem>
+ <SelectItem value="image">Imagem</SelectItem>
+ <SelectItem value="video">Vídeo MP4</SelectItem>
+ <SelectItem value="gif">GIF Animado</SelectItem>
+ </SelectContent>
+ </Select>
 
-            {bgMediaType !== "none" && (
-              <div className="space-y-1.5 pt-1">
-                <Label className="text-xs">Upload de Mídia ou URL</Label>
-                <MediaUploader
-                  value={bgMediaUrl ? [bgMediaUrl] : []}
-                  onChange={(urls) => setBgMediaUrl(urls[0] || "")}
-                  bucket="cms-media"
-                  folder="botoes"
-                  aspect={16 / 9}
-                  lockAspect={true}
-                  maxFiles={1}
-                />
-              </div>
-            )}
-          </div>
+ {bgMediaType !== "none" && (
+ <div className="space-y-1.5 pt-1">
+ <Label className="text-xs">Upload de Mídia ou URL</Label>
+ <MediaUploader
+ value={bgMediaUrl ? [bgMediaUrl] : []}
+ onChange={(urls) => setBgMediaUrl(urls[0] || "")}
+ bucket="cms-media"
+ folder="botoes"
+ aspect={16 / 9}
+ lockAspect={true}
+ maxFiles={1}
+ />
+ </div>
+ )}
+ </div>
 
-          {/* Textura */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-bold">Textura Visual</Label>
-            <Select
-              value={bgTexture}
-              onValueChange={(val: any) => setBgTexture(val)}
-            >
-              <SelectTrigger className="rounded-xl text-xs h-9">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                <SelectItem value="none">Sem Textura</SelectItem>
-                <SelectItem value="noise">Noise Gradiente Suave</SelectItem>
-                <SelectItem value="dots">Pontilhismo (Dots)</SelectItem>
-                <SelectItem value="grid">Grid Técnico</SelectItem>
-                <SelectItem value="mesh">Mesh Gradient</SelectItem>
-                <SelectItem value="glass">Glassmorphism</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+ {/* Textura */}
+ <div className="space-y-1.5">
+ <Label className="text-xs font-bold">Textura Visual</Label>
+ <Select
+ value={bgTexture}
+ onValueChange={(val: any) => setBgTexture(val)}
+ >
+ <SelectTrigger className="rounded-xl text-xs h-9">
+ <SelectValue />
+ </SelectTrigger>
+ <SelectContent className="rounded-xl">
+ <SelectItem value="none">Sem Textura</SelectItem>
+ <SelectItem value="noise">Noise Gradiente Suave</SelectItem>
+ <SelectItem value="dots">Pontilhismo (Dots)</SelectItem>
+ <SelectItem value="grid">Grid Técnico</SelectItem>
+ <SelectItem value="mesh">Mesh Gradient</SelectItem>
+ <SelectItem value="glass">Glassmorphism</SelectItem>
+ </SelectContent>
+ </Select>
+ </div>
 
-          {/* Switches de Exibição */}
-          <div className="space-y-3 pt-2 border-t border-border/30">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold">Exibir Título</Label>
-              <Switch checked={showTitle} onCheckedChange={setShowTitle} />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold">Exibir Badge</Label>
-              <Switch checked={showBadge} onCheckedChange={setShowBadge} />
-            </div>
-          </div>
+ {/* Switches de Exibição */}
+ <div className="space-y-3 pt-2 border-t border-border/30">
+ <div className="flex items-center justify-between">
+ <Label className="text-xs font-bold">Exibir Título</Label>
+ <Switch checked={showTitle} onCheckedChange={setShowTitle} />
+ </div>
+ <div className="flex items-center justify-between">
+ <Label className="text-xs font-bold">Exibir Badge</Label>
+ <Switch checked={showBadge} onCheckedChange={setShowBadge} />
+ </div>
+ </div>
 
-          <div className="pt-4 flex items-center justify-end gap-2">
-            <Button
-              onClick={() => setIsModalOpen(false)}
-              variant="outline"
-              size="sm"
-              className="rounded-xl text-xs"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={isSubmitting}
-              size="sm"
-              className="rounded-xl text-xs font-bold bg-primary text-primary-foreground min-w-[100px]"
-            >
-              {isSubmitting ? <Loader2 className="size-3.5 animate-spin" /> : "Salvar Destaque"}
-            </Button>
-          </div>
-        </div>
-      </SheetPage>
-    </div>
-  );
+ <div className="pt-4 flex items-center justify-end gap-2">
+ <Button
+ onClick={() => setIsModalOpen(false)}
+ variant="outline"
+ size="sm"
+ className="rounded-xl text-xs"
+ >
+ Cancelar
+ </Button>
+ <Button
+ onClick={handleSave}
+ disabled={isSubmitting}
+ size="sm"
+ className="rounded-xl text-xs font-bold bg-primary text-primary-foreground min-w-[100px]"
+ >
+ {isSubmitting ? <Loader2 className="size-3.5 animate-spin" /> : "Salvar Destaque"}
+ </Button>
+ </div>
+ </div>
+ </SheetPage>
+ </div>
+ );
 }

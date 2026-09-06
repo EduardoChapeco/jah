@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import {
   LifeBuoy,
@@ -9,20 +9,18 @@ import {
   CheckCircle2,
   AlertCircle,
   Send,
-  HelpCircle,
-  ShieldCheck,
-  ChevronRight,
-  Filter,
   Link as LinkIcon,
   Paperclip,
-  Copy,
+  ChevronRight,
+  ShieldCheck,
+  Headphones,
 } from "lucide-react";
 
-import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { FileAttachmentUpload } from "@/components/ui/file-attachment-upload";
+import { EmptyState } from "@/components/state/states";
 import {
   Sheet,
   SheetContent,
@@ -44,15 +42,18 @@ import {
   type TicketStatus,
 } from "@/services/support-tickets.functions";
 
+import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-canonical-toolbar";
+import { WorkspaceDashboardSheet } from "@/components/workspace/workspace-dashboard-sheet";
+
 export const Route = createFileRoute("/workspace/suporte")({
-  head: () => ({ meta: [{ title: "Central de Suporte | Workspace" }] }),
+  head: () => ({ meta: [{ title: "Suporte Técnico | Workspace Wider OS" }] }),
   loader: async () => {
     const store = await getStoreSettings().catch(() => null);
     const storeId = store?.id || "";
     const tickets = storeId
       ? await listSupportTickets({ data: { store_id: storeId } }).catch(() => [])
       : [];
-    return { store, initialTickets: tickets };
+    return { store, initialTickets: tickets as SupportTicketItem[] };
   },
   component: WorkspaceSupportPage,
 });
@@ -78,7 +79,10 @@ function WorkspaceSupportPage() {
   const storeId = store?.id || "";
 
   const [tickets, setTickets] = useState<SupportTicketItem[]>(initialTickets || []);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState<"all" | "open" | "in_progress" | "resolved">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
 
   // Novo Ticket Sheet
   const [newModalOpen, setNewModalOpen] = useState(false);
@@ -104,7 +108,7 @@ function WorkspaceSupportPage() {
     if (!storeId) return;
     try {
       const data = await listSupportTickets({
-        data: { store_id: storeId, status: statusFilter },
+        data: { store_id: storeId },
       });
       setTickets(data);
     } catch (err: any) {
@@ -203,154 +207,211 @@ function WorkspaceSupportPage() {
   };
 
   // Contadores
-  const openCount = tickets.filter((t) => t.status === "open").length;
-  const inProgressCount = tickets.filter((t) => t.status === "in_progress").length;
-  const resolvedCount = tickets.filter((t) => t.status === "resolved").length;
+  const openCount = useMemo(() => tickets.filter((t) => t.status === "open").length, [tickets]);
+  const inProgressCount = useMemo(() => tickets.filter((t) => t.status === "in_progress").length, [tickets]);
+  const resolvedCount = useMemo(() => tickets.filter((t) => t.status === "resolved").length, [tickets]);
+
+  // Filtro
+  const filteredTickets = useMemo(() => {
+    return tickets.filter((t) => {
+      if (activeTab !== "all" && t.status !== activeTab) return false;
+      if (categoryFilter !== "all" && t.category !== categoryFilter) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchesSubject = t.subject.toLowerCase().includes(q);
+        const matchesCode = t.ticket_code?.toLowerCase().includes(q) || String(t.ticket_number).includes(q);
+        const matchesCustomer = t.customer_name?.toLowerCase().includes(q);
+        if (!matchesSubject && !matchesCode && !matchesCustomer) return false;
+      }
+      return true;
+    });
+  }, [tickets, activeTab, categoryFilter, searchQuery]);
 
   return (
-    <div className="w-full space-y-6 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 pb-24">
-      {/* ── 1. Header & Ações ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/60">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-base sm:text-lg font-bold text-foreground tracking-tight">
-              Central de Ajuda & Suporte Técnico
-            </h1>
-            <Badge variant="outline" className="text-[10px] font-mono gap-1 text-primary">
-              <LifeBuoy className="size-3" /> SLA 24h
-            </Badge>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Abra chamados para suporte da equipe de engenharia, dúvidas fiscais e melhorias na plataforma.
-          </p>
-        </div>
+    <div className="flex flex-col gap-4 min-h-[calc(100vh-8.5rem)]">
+      {/* ── 1. Barra Canônica de Operação Silenciosa ── */}
+      <WorkspaceCanonicalToolbar
+        tabs={[
+          { id: "all", label: "Todos", icon: Headphones, count: tickets.length },
+          { id: "open", label: "Abertos", icon: Clock, count: openCount },
+          { id: "in_progress", label: "Em Análise", icon: MessageSquare, count: inProgressCount },
+          { id: "resolved", label: "Resolvidos", icon: CheckCircle2, count: resolvedCount },
+        ]}
+        activeTab={activeTab}
+        onTabChange={(id) => setActiveTab(id as any)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Buscar por assunto, protocolo ou cliente..."
+        filters={[
+          {
+            id: "category",
+            label: "Categoria",
+            value: categoryFilter,
+            options: [
+              { label: "Todas Categorias", value: "all" },
+              { label: "Módulo Turismo", value: "tourism" },
+              { label: "Financeiro & Taxas", value: "finance" },
+              { label: "Erro no Sistema", value: "system_bug" },
+              { label: "Integrações & Domínio", value: "integration" },
+              { label: "Conta & Acessos", value: "account" },
+              { label: "Outras Dúvidas", value: "other" },
+            ],
+            onChange: setCategoryFilter,
+          },
+        ]}
+        onMetricsClick={() => setIsDashboardOpen(true)}
+        metricsBadge={openCount > 0 ? `${openCount} abertos` : undefined}
+        primaryAction={{
+          label: "Novo Chamado",
+          icon: Plus,
+          onClick: () => setNewModalOpen(true),
+        }}
+      />
 
-        <Button
-          type="button"
-          onClick={() => setNewModalOpen(true)}
-          className="h-10 px-4 rounded-xl text-xs font-bold gap-2 cursor-pointer shadow-xs"
-        >
-          <Plus className="size-3.5" /> Abrir Novo Chamado
-        </Button>
-      </div>
-
-      {/* ── 2. Cards de Métricas ── */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1">
-          <span className="text-xs font-semibold text-amber-700">Aguardando Análise</span>
-          <p className="text-2xl font-extrabold text-amber-700 font-mono">{openCount}</p>
-          <p className="text-[10px] text-amber-600">Chamados recém-abertos</p>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-sky-500/10 border border-sky-500/30 space-y-1">
-          <span className="text-xs font-semibold text-sky-700">Em Atendimento</span>
-          <p className="text-2xl font-extrabold text-sky-700 font-mono">{inProgressCount}</p>
-          <p className="text-[10px] text-sky-600">Em resolução com a equipe</p>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-1">
-          <span className="text-xs font-semibold text-emerald-700">Resolvidos</span>
-          <p className="text-2xl font-extrabold text-emerald-700 font-mono">{resolvedCount}</p>
-          <p className="text-[10px] text-emerald-600">Finalizados com sucesso</p>
-        </div>
-      </div>
-
-      {/* ── 3. Lista de Tickets ── */}
-      <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-foreground">Meus Chamados</h2>
-
-          <div className="flex items-center gap-1.5">
-            <Button
-              type="button"
-              variant={statusFilter === "all" ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                setStatusFilter("all");
-                reloadTickets();
-              }}
-              className="h-8 px-2.5 rounded-lg text-xs cursor-pointer"
+      {/* ── 2. Lista de Chamados ── */}
+      <div className="space-y-2">
+        {filteredTickets.map((t) => {
+          const st = STATUS_LABELS[t.status] || STATUS_LABELS.open;
+          return (
+            <div
+              key={t.id}
+              onClick={() => handleOpenTicketDetails(t.id)}
+              className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl border border-border/70 bg-card hover:bg-muted/30 cursor-pointer transition-all shadow-2xs group"
             >
-              Todos
-            </Button>
-            <Button
-              type="button"
-              variant={statusFilter === "open" ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                setStatusFilter("open");
-                reloadTickets();
-              }}
-              className="h-8 px-2.5 rounded-lg text-xs cursor-pointer"
-            >
-              Abertos
-            </Button>
-            <Button
-              type="button"
-              variant={statusFilter === "resolved" ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                setStatusFilter("resolved");
-                reloadTickets();
-              }}
-              className="h-8 px-2.5 rounded-lg text-xs cursor-pointer"
-            >
-              Resolvidos
-            </Button>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          {tickets.map((t) => {
-            const st = STATUS_LABELS[t.status] || STATUS_LABELS.open;
-            return (
-              <div
-                key={t.id}
-                onClick={() => handleOpenTicketDetails(t.id)}
-                className="flex items-center justify-between p-3.5 rounded-2xl border border-border/60 bg-muted/10 hover:bg-muted/25 cursor-pointer transition-all group"
-              >
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                    <MessageSquare className="size-4" />
-                  </div>
-
-                  <div className="space-y-0.5 min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono font-bold text-muted-foreground">
-                        #{t.ticket_number}
-                      </span>
-                      <p className="text-xs sm:text-sm font-bold text-foreground truncate">
-                        {t.subject}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono">
-                      <span>{CATEGORY_LABELS[t.category]}</span>
-                      <span>•</span>
-                      <span>{new Date(t.created_at).toLocaleDateString()}</span>
-                    </div>
-                  </div>
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="size-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <MessageSquare className="size-4" />
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
-                  <Badge variant="outline" className={`text-[10px] border ${st.className}`}>
-                    {st.label}
-                  </Badge>
-                  <ChevronRight className="size-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                <div className="space-y-0.5 min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono font-bold text-muted-foreground">
+                      {t.ticket_code || `#${t.ticket_number}`}
+                    </span>
+                    <p className="text-xs sm:text-sm font-bold text-foreground truncate">
+                      {t.subject}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono">
+                    <span>{CATEGORY_LABELS[t.category]}</span>
+                    <span>•</span>
+                    <span>{new Date(t.created_at).toLocaleDateString()}</span>
+                    {t.customer_name && (
+                      <>
+                        <span>•</span>
+                        <span>{t.customer_name}</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            );
-          })}
 
-          {tickets.length === 0 && (
-            <div className="p-8 text-center rounded-2xl border border-dashed border-border/70 text-xs text-muted-foreground">
-              Nenhum chamado aberto. Caso precise de ajuda, clique em "Abrir Novo Chamado".
+              <div className="flex items-center gap-3 shrink-0">
+                <Badge variant="outline" className={`text-[10px] border font-semibold ${st.className}`}>
+                  {st.label}
+                </Badge>
+                <ChevronRight className="size-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+              </div>
             </div>
-          )}
-        </div>
+          );
+        })}
+
+        {filteredTickets.length === 0 && (
+          <EmptyState
+            title="Nenhum chamado encontrado"
+            description={
+              activeTab === "all"
+                ? "Sua loja ainda não abriu chamados técnicos. Quando precisar de suporte de engenharia ou fiscal, clique em Novo Chamado."
+                : "Não há chamados com este status no momento."
+            }
+          />
+        )}
       </div>
 
-      {/* ── 4. Sheet Lateral de Novo Chamado (Eliminando Dialog Popup) ── */}
+      {/* ── 3. Painel de Métricas / Dashboard Sob Demanda ── */}
+      <WorkspaceDashboardSheet
+        open={isDashboardOpen}
+        onOpenChange={setIsDashboardOpen}
+        title="Painel de Suporte & SLAs"
+        description="Indicadores de tempo de atendimento, fila de resolução e satisfação."
+        metrics={[
+          {
+            id: "open",
+            label: "Aguardando Análise",
+            value: openCount,
+            icon: Clock,
+            trend: openCount > 0 ? { value: "Abertos", direction: "neutral" } : undefined,
+            description: "Chamados recém-abertos aguardando triagem",
+          },
+          {
+            id: "in_progress",
+            label: "Em Atendimento",
+            value: inProgressCount,
+            icon: MessageSquare,
+            description: "Demandas em análise ativa pela equipe de suporte",
+          },
+          {
+            id: "resolved",
+            label: "Resolvidos",
+            value: resolvedCount,
+            icon: CheckCircle2,
+            trend: { value: "Finalizados", direction: "up" },
+            description: "Chamados com solução validada",
+          },
+          {
+            id: "total",
+            label: "Total de Chamados",
+            value: tickets.length,
+            icon: LifeBuoy,
+            description: "Histórico acumulado de chamados da loja",
+          },
+          {
+            id: "sla",
+            label: "SLA Médio de Atendimento",
+            value: "24h",
+            icon: ShieldCheck,
+            description: "Compromisso de nível de serviço garantido",
+          },
+        ]}
+        breakdown={{
+          title: "Chamados por Categoria",
+          items: [
+            {
+              label: "Módulo Turismo",
+              value: tickets.filter((t) => t.category === "tourism").length,
+              total: Math.max(tickets.length, 1),
+              color: "bg-sky-500",
+            },
+            {
+              label: "Financeiro & Taxas",
+              value: tickets.filter((t) => t.category === "finance").length,
+              total: Math.max(tickets.length, 1),
+              color: "bg-emerald-500",
+            },
+            {
+              label: "Erro no Sistema",
+              value: tickets.filter((t) => t.category === "system_bug").length,
+              total: Math.max(tickets.length, 1),
+              color: "bg-amber-500",
+            },
+            {
+              label: "Integrações",
+              value: tickets.filter((t) => t.category === "integration").length,
+              total: Math.max(tickets.length, 1),
+              color: "bg-indigo-500",
+            },
+            {
+              label: "Outras Dúvidas",
+              value: tickets.filter((t) => t.category === "other" || t.category === "account").length,
+              total: Math.max(tickets.length, 1),
+              color: "bg-slate-400",
+            },
+          ],
+        }}
+      />
+
+      {/* ── 4. Sheet Lateral de Novo Chamado ── */}
       <Sheet open={newModalOpen} onOpenChange={setNewModalOpen}>
         <SheetContent
           side="right"
@@ -365,7 +426,6 @@ function WorkspaceSupportPage() {
 
           <form onSubmit={handleCreateTicket} className="flex-1 flex flex-col justify-between p-0">
             <div className="flex-1 overflow-y-auto no-scrollbar px-6 py-5 space-y-4">
-              {/* Categoria e Prioridade */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-foreground">Categoria *</label>
@@ -398,7 +458,6 @@ function WorkspaceSupportPage() {
                 </div>
               </div>
 
-              {/* Assunto */}
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-foreground">Assunto *</label>
                 <Input
@@ -411,7 +470,6 @@ function WorkspaceSupportPage() {
                 />
               </div>
 
-              {/* Vínculo Polimórfico (Multi-Nicho / Contexto) */}
               <div className="p-4 rounded-xl border border-border/70 bg-muted/10 space-y-3">
                 <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
                   <LinkIcon className="size-3.5 text-primary" />
@@ -473,7 +531,6 @@ function WorkspaceSupportPage() {
                 </div>
               </div>
 
-              {/* Anexos / Evidência */}
               <FileAttachmentUpload
                 value={attachmentUrl}
                 onChange={setAttachmentUrl}
@@ -483,7 +540,6 @@ function WorkspaceSupportPage() {
                 bucket="cms-media"
               />
 
-              {/* Mensagem Detalhada */}
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-foreground">Mensagem Detalhada *</label>
                 <textarea
@@ -577,12 +633,11 @@ function WorkspaceSupportPage() {
             )}
           </SheetHeader>
 
-          {/* Histórico de Mensagens */}
           <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-3">
             {threadMessages.map((m) => (
               <div
                 key={m.id}
-                className={`p-3.5 rounded-2xl text-xs space-y-1 max-w-[85%] ${
+                className={`p-3.5 rounded-xl text-xs space-y-1 max-w-[85%] ${
                   m.is_staff_reply
                     ? "bg-primary/10 text-foreground border border-primary/20 ml-0 mr-auto"
                     : "bg-muted/40 text-foreground border border-border/60 ml-auto mr-0"
@@ -609,7 +664,6 @@ function WorkspaceSupportPage() {
             ))}
           </div>
 
-          {/* Input de Resposta */}
           <form onSubmit={handleSendReply} className="p-4 border-t border-border/60 bg-muted/10 flex items-center gap-2">
             <Input
               value={replyText}
@@ -630,4 +684,3 @@ function WorkspaceSupportPage() {
     </div>
   );
 }
-

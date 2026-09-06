@@ -1,4 +1,5 @@
-import { generateSyntheticCohort, BRAZILIAN_CITIES } from '@/lib/simlab/brazil-demographics';
+import { generateSyntheticCohort, BRAZILIAN_CITIES, CANONICAL_BRAZIL_ARCHETYPES } from '@/lib/simlab/brazil-demographics';
+import { decomposeOffer, evaluateMcFaddenDiscreteChoice } from '@/lib/simlab/econometric-engine';
 import { getNextActiveKey, markKeyError } from '@/services/api-orchestrator.functions';
 import { createServerFn } from '@tanstack/react-start';
 import { getServerClient } from '@/lib/supabase';
@@ -14,254 +15,15 @@ import type {
   PricePerception
 } from '@/types/simlab';
 
-// ─── 12 ARQUÉTIPOS CANÔNICOS CALIBRADOS PELO CENSO IBGE 2022 / CRITÉRIO ABEP ──
-export const CANONICAL_BRAZIL_ARCHETYPES: SyntheticArchetype[] = [
-  {
-    id: '7ecbbf4a-52b1-405f-9b16-f5be3c0f7740',
-    code: 'BR_F_34_CLASSE_C1_MAE',
-    display_name: 'Carla Silveira (Mãe Gerenciadora do Lar)',
-    gender: 'feminino',
-    age: 34,
-    age_range_label: '30-39 anos',
-    abep_social_class: 'C1',
-    region: 'Sul',
-    location_type: 'capital_metropole',
-    median_income_brl: 4800,
-    education_level: 'Superior Incompleto',
-    cynicism_index: 7.0,
-    price_sensitivity: 8.5,
-    impulsivity_index: 4.5,
-    primary_social_networks: ['WhatsApp', 'Instagram'],
-    decision_heuristics: { primary_driver: 'orcamento_e_filhos', seeks_combos: true },
-    bio: 'Mãe de dois filhos em Porto Alegre, equilibra orçamento rígido e preza pela família.',
-    is_active: true,
-  },
-  {
-    id: 'a412a880-f8cc-4394-8adf-e94bc400dc81',
-    code: 'BR_M_52_CLASSE_A1_DIRETOR',
-    display_name: 'Marcos Albuquerque (Diretor Financeiro)',
-    gender: 'masculino',
-    age: 52,
-    age_range_label: '50-59 anos',
-    abep_social_class: 'A1',
-    region: 'Sudeste',
-    location_type: 'capital_metropole',
-    median_income_brl: 32000,
-    education_level: 'Pós-graduação',
-    cynicism_index: 8.0,
-    price_sensitivity: 2.0,
-    impulsivity_index: 3.0,
-    primary_social_networks: ['LinkedIn', 'WhatsApp'],
-    decision_heuristics: { primary_driver: 'tempo_e_status', zero_tolerance_delays: true },
-    bio: 'Diretor financeiro em SP. Valoriza discrição, atendimento concierge e pontualidade.',
-    is_active: true,
-  },
-  {
-    id: '537d0432-cb30-4cba-ac13-fc56de1070ff',
-    code: 'BR_M_27_CLASSE_B2_DEV',
-    display_name: 'Gabriel Santos (Empreendedor & Dev)',
-    gender: 'masculino',
-    age: 27,
-    age_range_label: '25-29 anos',
-    abep_social_class: 'B2',
-    region: 'Sul',
-    location_type: 'capital_metropole',
-    median_income_brl: 9500,
-    education_level: 'Superior Completo',
-    cynicism_index: 4.5,
-    price_sensitivity: 5.5,
-    impulsivity_index: 6.0,
-    primary_social_networks: ['Twitter / X', 'YouTube', 'Discord'],
-    decision_heuristics: { primary_driver: 'eficiencia_e_inovacao', uses_apple_pay: true },
-    bio: 'Trabalha remoto em Floripa, focado em tecnologia, automação e autonomia.',
-    is_active: true,
-  },
-  {
-    id: '66174c09-496a-4be5-955e-2926b8fddfb1',
-    code: 'BR_F_48_CLASSE_C2_COMERCIANTE',
-    display_name: 'Vera Lúcia Gomes (Comerciante do Interior)',
-    gender: 'feminino',
-    age: 48,
-    age_range_label: '40-49 anos',
-    abep_social_class: 'C2',
-    region: 'Sudeste',
-    location_type: 'interior_polo',
-    median_income_brl: 3800,
-    education_level: 'Ensino Médio Completo',
-    cynicism_index: 6.5,
-    price_sensitivity: 8.0,
-    impulsivity_index: 4.0,
-    primary_social_networks: ['WhatsApp', 'Facebook'],
-    decision_heuristics: { primary_driver: 'confianca_local', pays_pix_if_discount: true },
-    bio: 'Dona de loja de armarinhos no interior de SP, preza por atendimento humano e clareza.',
-    is_active: true,
-  },
-  {
-    id: '9b62090a-b5fe-4d2d-812e-454a82c0de33',
-    code: 'BR_M_31_CLASSE_B1_GROWTH',
-    display_name: 'Lucas Novais (Consultor de Growth)',
-    gender: 'masculino',
-    age: 31,
-    age_range_label: '30-39 anos',
-    abep_social_class: 'B1',
-    region: 'Sudeste',
-    location_type: 'capital_metropole',
-    median_income_brl: 14200,
-    education_level: 'Superior Completo',
-    cynicism_index: 8.5,
-    price_sensitivity: 4.5,
-    impulsivity_index: 5.5,
-    primary_social_networks: ['Instagram', 'LinkedIn'],
-    decision_heuristics: { primary_driver: 'roi_e_dados', demands_social_proof: true },
-    bio: 'Consultor de marketing e dados em Belo Horizonte, hiper analítico e cético com promessas de anúncios.',
-    is_active: true,
-  },
-  {
-    id: 'f15fa9ef-34d7-4076-b106-373ddf7a56a8',
-    code: 'BR_F_66_CLASSE_D_APOSENTADA',
-    display_name: 'Dona Neide Aparecida (Aposentada & Cuidadora)',
-    gender: 'feminino',
-    age: 66,
-    age_range_label: '60+ anos',
-    abep_social_class: 'D_E',
-    region: 'Nordeste',
-    location_type: 'capital_metropole',
-    median_income_brl: 1950,
-    education_level: 'Ensino Fundamental Incompleto',
-    cynicism_index: 5.0,
-    price_sensitivity: 9.5,
-    impulsivity_index: 3.0,
-    primary_social_networks: ['WhatsApp', 'Facebook'],
-    decision_heuristics: { primary_driver: 'economia_extrema', avoids_credit: true },
-    bio: 'Aposentada em Salvador, ajuda na criação dos netos e gerencia orçamento centavo a centavo.',
-    is_active: true,
-  },
-  {
-    id: '3111a11d-5607-4746-a6ef-e3008b940485',
-    code: 'BR_F_39_CLASSE_A2_MEDICA',
-    display_name: 'Dra. Juliana Brandão (Médica Especialista)',
-    gender: 'feminino',
-    age: 39,
-    age_range_label: '30-39 anos',
-    abep_social_class: 'A2',
-    region: 'Sul',
-    location_type: 'capital_metropole',
-    median_income_brl: 26000,
-    education_level: 'Doutorado / Residência',
-    cynicism_index: 7.5,
-    price_sensitivity: 3.0,
-    impulsivity_index: 4.0,
-    primary_social_networks: ['Instagram', 'WhatsApp'],
-    decision_heuristics: { primary_driver: 'saude_e_qualidade_premium' },
-    bio: 'Cardiologista em Curitiba, agenda corrida e busca por soluções confiáveis de alto nível.',
-    is_active: true,
-  },
-  {
-    id: '9be172b3-5b39-4566-a4ad-aead340cea04',
-    code: 'BR_M_29_CLASSE_C1_MOTORISTA',
-    display_name: 'Rodrigo Motta (Motorista de App)',
-    gender: 'masculino',
-    age: 29,
-    age_range_label: '25-29 anos',
-    abep_social_class: 'C1',
-    region: 'Sudeste',
-    location_type: 'capital_metropole',
-    median_income_brl: 4200,
-    education_level: 'Ensino Médio Completo',
-    cynicism_index: 7.0,
-    price_sensitivity: 8.0,
-    impulsivity_index: 4.2,
-    primary_social_networks: ['WhatsApp', 'YouTube'],
-    decision_heuristics: { primary_driver: 'rapidez_e_custo_beneficio' },
-    bio: 'Motorista de aplicativo no Rio de Janeiro, trabalha 10 horas diárias e valoriza rapidez.',
-    is_active: true,
-  },
-  {
-    id: 'da702215-3927-46a7-99c4-352b9e949628',
-    code: 'BR_F_35_CLASSE_B2_ARQUITETA',
-    display_name: 'Camila Fontes (Arquiteta & Designer)',
-    gender: 'feminino',
-    age: 35,
-    age_range_label: '30-39 anos',
-    abep_social_class: 'B2',
-    region: 'Centro-Oeste',
-    location_type: 'capital_metropole',
-    median_income_brl: 11000,
-    education_level: 'Superior Completo',
-    cynicism_index: 6.0,
-    price_sensitivity: 5.0,
-    impulsivity_index: 6.5,
-    primary_social_networks: ['Instagram', 'Pinterest'],
-    decision_heuristics: { primary_driver: 'estetica_e_sustentabilidade' },
-    bio: 'Arquiteta em Brasília, muito atenta a acabamentos visuais, tipografia e curadoria de embalagem.',
-    is_active: true,
-  },
-  {
-    id: '78a93213-16bf-4241-8f52-5d5392e38cda',
-    code: 'BR_M_42_CLASSE_B1_AGRO',
-    display_name: 'Tiago Zanin (Produtor Rural & Agrônomo)',
-    gender: 'masculino',
-    age: 42,
-    age_range_label: '40-49 anos',
-    abep_social_class: 'B1',
-    region: 'Sul',
-    location_type: 'interior_polo',
-    median_income_brl: 18500,
-    education_level: 'Superior Completo',
-    cynicism_index: 7.0,
-    price_sensitivity: 4.0,
-    impulsivity_index: 5.0,
-    primary_social_networks: ['WhatsApp', 'Instagram'],
-    decision_heuristics: { primary_driver: 'durabilidade_e_procedencia' },
-    bio: 'Produtor rural no Oeste de Santa Catarina, valoriza produtos robustos e bom relacionamento comercial.',
-    is_active: true,
-  },
-  {
-    id: '99eee5eb-ba6e-4fbc-8991-299bf96b5389',
-    code: 'BR_F_21_CLASSE_C2_ESTUDANTE',
-    display_name: 'Brenda Letícia (Estudante & Estagiária)',
-    gender: 'feminino',
-    age: 21,
-    age_range_label: '18-24 anos',
-    abep_social_class: 'C2',
-    region: 'Nordeste',
-    location_type: 'capital_metropole',
-    median_income_brl: 1800,
-    education_level: 'Superior Incompleto',
-    cynicism_index: 5.5,
-    price_sensitivity: 9.0,
-    impulsivity_index: 7.5,
-    primary_social_networks: ['TikTok', 'Instagram'],
-    decision_heuristics: { primary_driver: 'tendencia_e_cupons' },
-    bio: 'Estudante de Administração em Recife, ativa nas redes sociais e busca ativa por promoções virais.',
-    is_active: true,
-  },
-  {
-    id: 'ade94803-5ef7-488e-89f4-d9236ffe66f9',
-    code: 'BR_M_56_CLASSE_C1_MESTRE_OBRAS',
-    display_name: 'Seu Moacir Bastos (Mestre de Obras Autônomo)',
-    gender: 'masculino',
-    age: 56,
-    age_range_label: '50-59 anos',
-    abep_social_class: 'C1',
-    region: 'Centro-Oeste',
-    location_type: 'interior_polo',
-    median_income_brl: 5400,
-    education_level: 'Ensino Médio Incompleto',
-    cynicism_index: 8.0,
-    price_sensitivity: 7.5,
-    impulsivity_index: 3.5,
-    primary_social_networks: ['WhatsApp', 'Facebook'],
-    decision_heuristics: { primary_driver: 'solidez_e_palavra' },
-    bio: 'Mestre de obras em Goiânia, trabalha com construção há 30 anos e valoriza transparência absoluta.',
-    is_active: true,
-  },
-];
+export { CANONICAL_BRAZIL_ARCHETYPES };
 
 // ─── 1. LISTAR ARQUÉTIPOS DEMOGRÁFICOS SINTÉTICOS ─────────────────────────────
 export async function fetchSyntheticArchetypes(data?: { socialClasses?: string[]; regions?: string[] }): Promise<SyntheticArchetype[]> {
+  const canonicalMap = new Map(CANONICAL_BRAZIL_ARCHETYPES.map(a => [a.code, a]));
+
   try {
-    let query = supabase
+    const serverClient = getServerClient();
+    let query = serverClient
       .from('synthetic_population_archetypes')
       .select('*')
       .eq('is_active', true)
@@ -276,7 +38,17 @@ export async function fetchSyntheticArchetypes(data?: { socialClasses?: string[]
 
     const { data: rows, error } = await query;
     if (error) throw error;
-    if (rows && rows.length > 0) return rows as SyntheticArchetype[];
+    if (rows && rows.length > 0) {
+      return rows.map((r: any) => {
+        const canonical = canonicalMap.get(r.code);
+        return {
+          ...r,
+          curriculum: canonical?.curriculum || r.curriculum,
+          financial_sheet: canonical?.financial_sheet || r.financial_sheet,
+          household_profile: canonical?.household_profile || r.household_profile,
+        } as SyntheticArchetype;
+      });
+    }
   } catch (err: any) {
     console.warn('[simlab] fetchSyntheticArchetypes fallback para arquétipos canônicos:', err.message);
   }
@@ -523,71 +295,28 @@ export async function executeSimLabBatchSimulation(data: {
   if (realAiResponses && realAiResponses.length > 0) {
     responses.push(...realAiResponses);
   } else {
-    // ── 2. Fallback Resiliente: Modelo Econométrico Calibrado pelo Censo IBGE 2022
-    const BATCH_SIZE = 10;
+    // ── 2. Motor Econométrico Calibrado pelo Censo IBGE 2022 & McFadden RUM
+    const rawPrompt = `${expRow?.title || 'Oferta'} ${expRow?.objective || ''} por R$ ${testPrice.toFixed(2)}`;
+    const offer = decomposeOffer(rawPrompt, testPrice);
 
-  // Processamento cognitivo realista em lotes de 10 personas (Structured Outputs)
-  for (let i = 0; i < archetypes.length; i += BATCH_SIZE) {
-    const batch = archetypes.slice(i, i + BATCH_SIZE);
-
-    for (const arch of batch) {
-      const dailyIncome = arch.median_income_brl / 30;
-      const priceRatio = testPrice / Math.max(dailyIncome, 1);
-      const priceWeightPercent = (testPrice / Math.max(arch.median_income_brl, 1)) * 100;
-      
-      // Coeficiente de elasticidade e valor percebido dinâmico
-      const elasticity = (arch.price_sensitivity / 10) * 1.5;
-      const affordabilityIndex = Math.max(1, Math.min(10, 10 - (priceRatio * elasticity * 3)));
-      const cynicismDiscount = (arch.cynicism_index / 10) * 2.5;
-      const impulsivityBonus = (arch.impulsivity_index / 10) * 2.0;
-
-      const rawInterest = Math.round((affordabilityIndex * 0.5) + ((10 - arch.cynicism_index) * 0.3) + impulsivityBonus);
-      const interest = Math.max(1, Math.min(10, rawInterest));
-      const intent = Math.max(5, Math.min(95, Math.round((interest * 9.5) - (cynicismDiscount * 3) + (impulsivityBonus * 5))));
-
-      let emotion: System1Emotion = 'desejo';
-      if (intent >= 75) emotion = 'entusiasmo';
-      else if (intent < 40 && priceRatio > 1.2) emotion = 'inseguranca';
-      else if (arch.cynicism_index >= 7.5) emotion = 'desconfianca';
-      else if (intent < 30) emotion = 'indiferenca';
-
-      let perception: PricePerception = 'justo';
-      if (priceRatio < 0.25) perception = 'barato';
-      else if (priceRatio <= 0.8) perception = 'justo';
-      else if (priceRatio <= 1.8) perception = 'caro_mas_vale';
-      else perception = 'inacessivel';
-
-      const driver = arch.decision_heuristics?.primary_driver?.replace(/_/g, ' ') || 'benefício imediato';
-      const firstName = arch.display_name.split(' ')[0];
-      const sentimentLabel = intent > 70 ? 'altamente atrativa' : intent > 45 ? 'viável porém dependente de garantia' : 'pouco prioritária para o meu momento';
-      const budgetAnalysis = priceWeightPercent > 3.0
-        ? `representa ${priceWeightPercent.toFixed(1)}% da minha renda mensal de R$ ${arch.median_income_brl}`
-        : `se encaixa no meu orçamento regular`;
-
-      const objection = intent < 50
-        ? `Sensibilidade a preço elevada (${arch.price_sensitivity}/10) e barreira de liquidez.`
-        : arch.cynicism_index > 6.0
-        ? `Ceticismo com promessas de campanha; exige prova social tangível.`
-        : `Exige entrega pontual e suporte ágil.`;
-
-      const verbatim = `${firstName} (${arch.abep_social_class}, ${arch.region}): "Considerando meu critério de ${driver}, vejo a oferta como ${sentimentLabel}. O valor de R$ ${testPrice.toFixed(2)} ${budgetAnalysis}."`;
+    for (const arch of archetypes) {
+      const econEval = evaluateMcFaddenDiscreteChoice(arch, offer);
 
       responses.push({
         id: 'resp-' + arch.id + '-' + Date.now(),
         experiment_id: data.experimentId,
         archetype_id: arch.id,
         archetype: arch,
-        interest_score: interest,
-        purchase_intent_percent: intent,
-        primary_hook_detected: 'Proposta de valor clara e benefício imediato',
-        primary_barrier_objection: objection,
-        verbatim_reaction: verbatim,
-        system_1_emotion: emotion,
-        price_perception: perception,
+        interest_score: Math.max(1, Math.min(10, Math.round(econEval.perceived_value_score))),
+        purchase_intent_percent: econEval.choice_probability_percent,
+        primary_hook_detected: offer.detected_hooks[0] || 'Relação de custo-benefício e utilidade percebida',
+        primary_barrier_objection: econEval.primary_objection,
+        verbatim_reaction: econEval.natural_speech_verbatim,
+        system_1_emotion: econEval.system_1_emotion,
+        price_perception: econEval.price_perception,
         simulated_at: new Date().toISOString(),
       });
     }
-  }
   }
 
   // 2. Cálculos Econométricos e Síntese Estatística (Aaru Engine)
@@ -874,40 +603,76 @@ export async function executeSendFocusGroupMessage(data: {
   };
   newMessages.push(modMsg);
 
-  // 2. Tentar geração viva com IA Real (Gemini / Groq) via API Key Pool
+  // 2. Decomposição Semântica e Matemática da Oferta
+  const offer = decomposeOffer(data.userMessage);
+
+  // Garantir que cada persona selecionada contenha seu dossiê completo de currículo e finanças
+  const canonicalMap = new Map(CANONICAL_BRAZIL_ARCHETYPES.map((a) => [a.code, a]));
+  const fullPersonas = data.selectedPersonas.map((p) => {
+    const can = canonicalMap.get(p.code);
+    return {
+      ...p,
+      curriculum: p.curriculum || can?.curriculum,
+      financial_sheet: p.financial_sheet || can?.financial_sheet,
+      household_profile: p.household_profile || can?.household_profile,
+    } as SyntheticArchetype;
+  });
+
+  // 3. Tentar Geração Cognitiva com IA Real (Gemini / Groq / OpenAI) com Dossiê Curricular
   let aiReplies: Record<string, { reply: string; score: number }> = {};
   try {
     const geminiKey = await getNextActiveKey("gemini");
     const groqKey = !geminiKey ? await getNextActiveKey("groq") : null;
+    const openaiKey = !geminiKey && !groqKey ? await getNextActiveKey("openai") : null;
 
-    if (geminiKey || groqKey) {
-      const systemInstruction = `Você é o simulador de grupos focais SimLab, calibrado pelo Censo IBGE 2022 e Critério ABEP.
-Sua missão é simular a resposta visceral, autêntica e em 1ª pessoa de cada persona consumidora brasileira diante da pergunta do moderador.
-Cada persona deve falar com o linguajar da sua região, considerando estritamente sua renda mensal, classe social e sensibilidade a preço.
-Retorne EXCLUSIVAMENTE um JSON com o formato:
+    if (geminiKey || groqKey || openaiKey) {
+      const systemInstruction = `Você é o SimLab V2, simulador de grupos focais e populações sintéticas brasileiras calibrado pelo Censo IBGE 2022, Pesquisa de Orçamentos Familiares (POF) e Critério Brasil (ABEP).
+Sua missão é simular a reação visceral, hiper-realista, autêntica e em 1ª pessoa de cada persona consumidora brasileira diante da pergunta ou oferta do moderador.
+
+DIRETRIZES ECONÔMICAS E COGNITIVAS MANDATÓRIAS:
+1. CADA PERSONA DEVE RACIOCINAR COM BASE NO SEU CURRÍCULO REAL, SUA PROFISSÃO, SUA FAMÍLIA E SEU BALANÇO FINANCEIRO.
+2. A OFERTA FOI ANALISADA PELO MOTOR ECONOMÉTRICO:
+   - Preço Unitário: R$ ${offer.unit_price_brl.toFixed(2)} (${offer.is_per_person ? "por pessoa" : "preço total"})
+   - Parcelamento: ${offer.installments_count}x de R$ ${offer.installment_value_brl.toFixed(2)} ${offer.interest_free ? "sem juros no cartão" : ""}
+   - Inclusões: ${offer.inclusions.length > 0 ? offer.inclusions.join(" + ") : "Não informadas"}
+   - Destino/Produto: ${offer.destination || offer.product_name}
+3. NUNCA confunda o preço unitário do produto com a renda mensal total da persona! Uma compra de R$ 290 para quem ganha R$ 4.800 representa menos de 7% da renda e apenas R$ 29/mês no cartão.
+4. Para mães ou pais de família em viagens a parques/lazer, calcule o total necessário para levar seus dependentes (ex: Carla Silveira tem 2 filhos, precisará de 3 lugares).
+5. Personas de alta renda (Classe A) não ligam para parcelamento de R$ 29, mas exigem conforto VIP, ônibus leito e ausência de filas.
+6. Personas com renda apertada (Classe C e D) avaliam estritamente se a parcela cabe na folga de lazer do mês e exigem clareza sobre alimentação e taxas extras.
+7. Retorne EXCLUSIVAMENTE um JSON com o formato:
 {
   "replies": [
     {
       "persona_id": "string",
-      "reply": "Fala da persona em primeira pessoa, autêntica, citando pontos do que foi perguntado",
-      "score": 0.8
+      "reply": "Fala da persona em 1ª pessoa, visceral, citando sua família/profissão e os valores reais da oferta (preço, parcelas de R$ X)",
+      "score": 0.85
     }
   ]
 }`;
 
       const userPrompt = `Pergunta/Hipótese do Moderador: "${data.userMessage}"
 
-Personas no Focus Group:
+Personas participantes do Focus Group (com Dossiê Curricular e Financeiro):
 ${JSON.stringify(
-  data.selectedPersonas.map((p) => ({
+  fullPersonas.map((p) => ({
     id: p.id,
     name: p.display_name,
     age: p.age,
     class: p.abep_social_class,
     city: (p.decision_heuristics as any)?.city || p.region,
-    income: p.median_income_brl,
-    cynicism: p.cynicism_index,
+    profession: p.curriculum?.profession_title || "Profissional autônomo",
+    education: p.curriculum?.education_degree || p.education_level,
+    household: p.household_profile ? `${p.household_profile.family_structure} (${p.household_profile.total_members} membros, ${p.household_profile.dependents_count} dependentes)` : "unipessoal",
+    gross_monthly_income_brl: p.financial_sheet?.gross_monthly_income_brl || p.median_income_brl,
+    net_monthly_income_brl: p.financial_sheet?.net_monthly_income_brl,
+    essential_fixed_expenses_brl: p.financial_sheet?.essential_fixed_expenses_brl,
+    discretionary_surplus_brl: p.financial_sheet?.discretionary_surplus_brl,
+    leisure_budget_monthly_brl: p.financial_sheet?.leisure_budget_monthly_brl,
+    credit_limit_available_brl: p.financial_sheet?.credit_limit_available_brl,
+    cynicism_index: p.cynicism_index,
     price_sensitivity: p.price_sensitivity,
+    preferred_payment: p.financial_sheet?.preferred_payment_method || (p.decision_heuristics as any)?.preferred_payment
   }))
 )}`;
 
@@ -922,7 +687,7 @@ ${JSON.stringify(
               contents: [{ parts: [{ text: userPrompt }] }],
               generationConfig: { temperature: 0.35, responseMimeType: "application/json" },
             }),
-            signal: AbortSignal.timeout(15000),
+            signal: AbortSignal.timeout(18000),
           }
         );
         if (gRes.ok) {
@@ -955,7 +720,7 @@ ${JSON.stringify(
             temperature: 0.35,
             response_format: { type: "json_object" },
           }),
-          signal: AbortSignal.timeout(15000),
+          signal: AbortSignal.timeout(18000),
         });
         if (grRes.ok) {
           const grJson = await grRes.json();
@@ -973,12 +738,14 @@ ${JSON.stringify(
         }
       }
     }
-  } catch (err) {
-    console.warn("[simlab] LLM Focus group fallback:", err);
+  } catch (err: any) {
+    console.warn("[simlab] LLM Focus group offline, executando Motor Econométrico McFadden:", err?.message);
   }
 
-  // 3. Montar respostas individuais de cada persona (com IA ou síntese econométrica calibrada)
-  for (const p of data.selectedPersonas) {
+  // 4. Montar respostas individuais de cada persona:
+  // Se a IA gerou resposta contextualizada, utilizamos.
+  // Caso contrário, executamos o Modelo de Escolha Discreta de McFadden (RUM) — ZERO strings estáticas!
+  for (const p of fullPersonas) {
     let reply = "";
     let score = 0.7;
 
@@ -986,40 +753,9 @@ ${JSON.stringify(
       reply = aiReplies[p.id].reply;
       score = aiReplies[p.id].score;
     } else {
-      // Síntese econométrica dinâmica contextualizada ao texto do moderador
-      const city = (p.decision_heuristics as any)?.city || p.region;
-      const cleanInput = data.userMessage.toLowerCase();
-      const mentionsPrice = cleanInput.includes("preço") || cleanInput.includes("valor") || cleanInput.includes("cust") || cleanInput.includes("r$");
-      const mentionsQuality = cleanInput.includes("qualidade") || cleanInput.includes("serviço") || cleanInput.includes("hotel") || cleanInput.includes("conforto");
-      const mentionsDelivery = cleanInput.includes("entrega") || cleanInput.includes("prazo") || cleanInput.includes("embarque") || cleanInput.includes("data");
-
-      if (p.abep_social_class === "A1" || p.abep_social_class === "A2") {
-        score = p.price_sensitivity < 0.4 ? 0.92 : 0.82;
-        reply = `Aqui em ${city}, tempo e tranquilidade valem mais do que qualquer desconto. ${
-          mentionsQuality
-            ? "Se o padrão de acabamento e atendimento for de excelência, fecho sem hesitar."
-            : mentionsDelivery
-            ? "A garantia de pontualidade e confirmação imediata é o que decide a minha escolha."
-            : "A proposta me atende muito bem, desde que a contratação seja sem atrito e com atendimento dedicado."
-        }`;
-      } else if (p.abep_social_class === "B1" || p.abep_social_class === "B2") {
-        score = 0.76;
-        reply = `Achei a proposta muito bem fundamentada para o mercado de ${city}. ${
-          mentionsPrice
-            ? "O valor parece equilibrado, mas faço questão de ver discriminado exatamente o que está incluso antes de passar o cartão."
-            : "Minha prioridade é transparência e suporte rápido pelo WhatsApp caso ocorra qualquer imprevisto."
-        }`;
-      } else if (p.abep_social_class === "C1" || p.abep_social_class === "C2") {
-        score = p.price_sensitivity > 0.7 ? 0.58 : 0.68;
-        reply = `Olha, gostei bastante da ideia para a nossa rotina aqui em ${city}, mas preciso planejar no orçamento de R$ ${p.median_income_brl.toLocaleString("pt-BR")}. ${
-          mentionsPrice
-            ? "Se tiver opção de parcelar no cartão sem juros ou entrada facilitada no Pix, fica perfeito pra fechar."
-            : "Achei bacana, mas preciso ter certeza de que o custo benefício compensa cada centavo."
-        }`;
-      } else {
-        score = 0.42;
-        reply = `Para o meu momento atual com renda em ${city}, esse valor fica pesado no mês. Só conseguiria aproveitar em caso de promoção especial, cupom exclusivo ou condição de feirão.`;
-      }
+      const econEval = evaluateMcFaddenDiscreteChoice(p, offer);
+      reply = econEval.natural_speech_verbatim;
+      score = econEval.choice_probability_percent / 100;
     }
 
     const pMsg: FocusGroupMessage = {
@@ -1030,13 +766,13 @@ ${JSON.stringify(
       sender_name: `${p.display_name} — Classe ${p.abep_social_class}`,
       sender_avatar_url: p.avatar_url || null,
       content: reply,
-      sentiment_score: score,
+      sentiment_score: Math.round(score * 100) / 100,
       created_at: new Date().toISOString(),
     };
     newMessages.push(pMsg);
   }
 
-  // 4. Persistência de memória episódica no Supabase
+  // 5. Persistência de memória episódica no Supabase
   try {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.sessionId);
     if (isUuid) {

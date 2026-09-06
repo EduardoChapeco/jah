@@ -9,33 +9,33 @@ import { cn } from "@/lib/utils";
  * without showing broken image icons or solid black boxes.
  */
 export function Logo({ src, className, ...props }: Omit<ComponentProps<"img">, "alt">) {
-  const [hasError, setHasError] = useState(false);
+ const [hasError, setHasError] = useState(false);
 
-  if (src && !hasError) {
-    return (
-      <img
-        src={src}
-        alt="Wider — Super App & Comunidade"
-        className={cn(
-          "h-8 w-auto max-w-[240px] select-none object-contain bg-transparent mix-blend-normal",
-          className,
-        )}
-        onError={() => setHasError(true)}
-        {...props}
-      />
-    );
-  }
+ if (src && !hasError) {
+ return (
+ <img
+ src={src}
+ alt="Wider — Super App & Comunidade"
+ className={cn(
+ "h-8 w-auto max-w-[240px] select-none object-contain bg-transparent mix-blend-normal",
+ className,
+ )}
+ onError={() => setHasError(true)}
+ {...props}
+ />
+ );
+ }
 
-  return (
-    <span
-      className={cn(
-        "font-bold text-lg tracking-tight text-foreground select-none flex items-center gap-2",
-        className,
-      )}
-    >
-      Wider
-    </span>
-  );
+ return (
+ <span
+ className={cn(
+ "font-bold text-lg tracking-tight text-foreground select-none flex items-center gap-2",
+ className,
+ )}
+ >
+ Wider
+ </span>
+ );
 }
 
 /** Canonical alias (see COMPONENT_CATALOG.md). */

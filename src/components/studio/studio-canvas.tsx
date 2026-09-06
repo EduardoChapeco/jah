@@ -4,186 +4,186 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export interface CanvasLayer {
-  id: string;
-  type: 'text' | 'shape' | 'image';
-  text?: string;
-  fontSize?: number;
-  color?: string;
-  x: number;
-  y: number;
-  width?: number;
-  height?: number;
-  imageUrl?: string;
+ id: string;
+ type: 'text' | 'shape' | 'image';
+ text?: string;
+ fontSize?: number;
+ color?: string;
+ x: number;
+ y: number;
+ width?: number;
+ height?: number;
+ imageUrl?: string;
 }
 
 interface StudioCanvasProps {
-  onExportToHero?: (imageUrl: string) => void;
-  className?: string;
+ onExportToHero?: (imageUrl: string) => void;
+ className?: string;
 }
 
 export function StudioCanvas({ onExportToHero, className = '' }: StudioCanvasProps) {
-  const [aspect, setAspect] = useState<'1:1' | '16:9' | '9:16'>('16:9');
-  const [bgColor, setBgColor] = useState('#0f172a');
-  const [layers, setLayers] = useState<CanvasLayer[]>([
-    {
-      id: 'l-1',
-      type: 'text',
-      text: 'OFERTA ESPECIAL DA SEMANA',
-      fontSize: 24,
-      color: '#38bdf8',
-      x: 30,
-      y: 40,
-    },
-    {
-      id: 'l-2',
-      type: 'text',
-      text: 'Até 40% OFF em toda a linha de produtos selecionados',
-      fontSize: 16,
-      color: '#ffffff',
-      x: 30,
-      y: 80,
-    },
-  ]);
-  const [selectedLayerId, setSelectedLayerId] = useState<string | null>('l-1');
+ const [aspect, setAspect] = useState<'1:1' | '16:9' | '9:16'>('16:9');
+ const [bgColor, setBgColor] = useState('#0f172a');
+ const [layers, setLayers] = useState<CanvasLayer[]>([
+ {
+ id: 'l-1',
+ type: 'text',
+ text: 'OFERTA ESPECIAL DA SEMANA',
+ fontSize: 24,
+ color: '#38bdf8',
+ x: 30,
+ y: 40,
+ },
+ {
+ id: 'l-2',
+ type: 'text',
+ text: 'Até 40% OFF em toda a linha de produtos selecionados',
+ fontSize: 16,
+ color: '#ffffff',
+ x: 30,
+ y: 80,
+ },
+ ]);
+ const [selectedLayerId, setSelectedLayerId] = useState<string | null>('l-1');
 
-  const selectedLayer = layers.find((l) => l.id === selectedLayerId);
+ const selectedLayer = layers.find((l) => l.id === selectedLayerId);
 
-  const addTextLayer = () => {
-    const newL: CanvasLayer = {
-      id: 'l-' + Date.now(),
-      type: 'text',
-      text: 'Novo Texto',
-      fontSize: 18,
-      color: '#ffffff',
-      x: 50,
-      y: 120,
-    };
-    setLayers((prev) => [...prev, newL]);
-    setSelectedLayerId(newL.id);
-  };
+ const addTextLayer = () => {
+ const newL: CanvasLayer = {
+ id: 'l-' + Date.now(),
+ type: 'text',
+ text: 'Novo Texto',
+ fontSize: 18,
+ color: '#ffffff',
+ x: 50,
+ y: 120,
+ };
+ setLayers((prev) => [...prev, newL]);
+ setSelectedLayerId(newL.id);
+ };
 
-  const handleExport = () => {
-    // In real app, creates canvas data URL. For now, emits svg / placeholder data url
-    const fakeUrl = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400"><rect width="800" height="400" fill="%230f172a"/><text x="40" y="100" fill="%2338bdf8" font-size="32" font-family="sans-serif">PROMOÇÃO JAH</text></svg>';
-    if (onExportToHero) onExportToHero(fakeUrl);
-  };
+ const handleExport = () => {
+ // In real app, creates canvas data URL. For now, emits svg / placeholder data url
+ const fakeUrl = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400"><rect width="800" height="400" fill="%230f172a"/><text x="40" y="100" fill="%2338bdf8" font-size="32" font-family="sans-serif">PROMOÇÃO WIDER</text></svg>';
+ if (onExportToHero) onExportToHero(fakeUrl);
+ };
 
-  return (
-    <div className={'p-6 rounded-2xl bg-card border border-border shadow-xl space-y-5 ' + className}>
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center bg-muted/60 p-1 rounded-xl gap-1">
-            {(['16:9', '1:1', '9:16'] as const).map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setAspect(r)}
-                className={'px-3 py-1.5 rounded-lg text-xs font-bold transition-all ' + (
-                  aspect === r ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
-                )}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
+ return (
+ <div className={'p-6 rounded-2xl bg-card border border-border shadow-xl space-y-5 ' + className}>
+ {/* Toolbar */}
+ <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+ <div className="flex items-center gap-2">
+ <div className="flex items-center bg-muted/60 p-1 rounded-xl gap-1">
+ {(['16:9', '1:1', '9:16'] as const).map((r) => (
+ <button
+ key={r}
+ type="button"
+ onClick={() => setAspect(r)}
+ className={'px-3 py-1.5 rounded-lg text-xs font-bold transition-all ' + (
+ aspect === r ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+ )}
+ >
+ {r}
+ </button>
+ ))}
+ </div>
 
-          <div className="flex items-center gap-1.5 pl-2">
-            <span className="text-xs text-muted-foreground">Fundo:</span>
-            <input
-              type="color"
-              value={bgColor}
-              onChange={(e) => setBgColor(e.target.value)}
-              className="w-7 h-7 rounded-lg border border-border cursor-pointer bg-transparent"
-            />
-          </div>
-        </div>
+ <div className="flex items-center gap-1.5 pl-2">
+ <span className="text-xs text-muted-foreground">Fundo:</span>
+ <input
+ type="color"
+ value={bgColor}
+ onChange={(e) => setBgColor(e.target.value)}
+ className="w-7 h-7 rounded-lg border border-border cursor-pointer bg-transparent"
+ />
+ </div>
+ </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addTextLayer}
-            className="min-h-[40px] px-3 rounded-xl text-xs flex items-center gap-1.5"
-          >
-            <Type className="w-4 h-4" />
-            Adicionar Texto
-          </Button>
+ <div className="flex items-center gap-2">
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ onClick={addTextLayer}
+ className="min-h-[40px] px-3 rounded-xl text-xs flex items-center gap-1.5"
+ >
+ <Type className="w-4 h-4" />
+ Adicionar Texto
+ </Button>
 
-          {onExportToHero && (
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleExport}
-              className="min-h-[40px] px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-xs flex items-center gap-1.5 shadow-md"
-            >
-              <Send className="w-3.5 h-3.5" />
-              Aplicar ao Hero Banner
-            </Button>
-          )}
-        </div>
-      </div>
+ {onExportToHero && (
+ <Button
+ type="button"
+ size="sm"
+ onClick={handleExport}
+ className="min-h-[40px] px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-xs flex items-center gap-1.5 shadow-md"
+ >
+ <Send className="w-3.5 h-3.5" />
+ Aplicar ao Hero Banner
+ </Button>
+ )}
+ </div>
+ </div>
 
-      {/* Canvas Area */}
-      <div className="flex justify-center items-center p-6 bg-muted/20 rounded-2xl overflow-hidden min-h-[300px]">
-        <div
-          style={{ backgroundColor: bgColor }}
-          className={'w-full max-w-2xl rounded-2xl relative shadow-2xl overflow-hidden border border-white/10 ' + (
-            aspect === '16:9' ? 'aspect-video' : aspect === '9:16' ? 'aspect-[9/16] max-w-xs' : 'aspect-square max-w-sm'
-          )}
-        >
-          {layers.map((l) => (
-            <div
-              key={l.id}
-              onClick={() => setSelectedLayerId(l.id)}
-              style={{
-                position: 'absolute',
-                left: l.x,
-                top: l.y,
-                color: l.color,
-                fontSize: l.fontSize,
-              }}
-              className={'cursor-pointer p-1 border rounded transition-all ' + (
-                selectedLayerId === l.id ? 'border-primary bg-primary/10' : 'border-transparent'
-              )}
-            >
-              {l.text}
-            </div>
-          ))}
-        </div>
-      </div>
+ {/* Canvas Area */}
+ <div className="flex justify-center items-center p-6 bg-muted/20 rounded-2xl overflow-hidden min-h-[300px]">
+ <div
+ style={{ backgroundColor: bgColor }}
+ className={'w-full max-w-2xl rounded-2xl relative shadow-2xl overflow-hidden border border-white/10 ' + (
+ aspect === '16:9' ? 'aspect-video' : aspect === '9:16' ? 'aspect-[9/16] max-w-xs' : 'aspect-square max-w-sm'
+ )}
+ >
+ {layers.map((l) => (
+ <div
+ key={l.id}
+ onClick={() => setSelectedLayerId(l.id)}
+ style={{
+ position: 'absolute',
+ left: l.x,
+ top: l.y,
+ color: l.color,
+ fontSize: l.fontSize,
+ }}
+ className={'cursor-pointer p-1 border rounded transition-all ' + (
+ selectedLayerId === l.id ? 'border-primary bg-primary/10' : 'border-transparent'
+ )}
+ >
+ {l.text}
+ </div>
+ ))}
+ </div>
+ </div>
 
-      {/* Selected Layer Properties */}
-      {selectedLayer && (
-        <div className="p-4 rounded-2xl bg-muted/30 border border-border flex flex-wrap items-center gap-4 text-xs">
-          <span className="font-bold text-foreground">Editar Camada:</span>
-          <Input
-            value={selectedLayer.text || ''}
-            onChange={(e) => {
-              const val = e.target.value;
-              setLayers((prev) =>
-                prev.map((l) => (l.id === selectedLayerId ? { ...l, text: val } : l))
-              );
-            }}
-            className="h-8 max-w-xs text-xs rounded-lg"
-          />
-          <div className="flex items-center gap-1.5">
-            <span className="text-muted-foreground">Cor:</span>
-            <input
-              type="color"
-              value={selectedLayer.color || '#ffffff'}
-              onChange={(e) => {
-                const val = e.target.value;
-                setLayers((prev) =>
-                  prev.map((l) => (l.id === selectedLayerId ? { ...l, color: val } : l))
-                );
-              }}
-              className="w-6 h-6 rounded cursor-pointer bg-transparent"
-            />
-          </div>
-        </div>
-      )}
-    </div>
-  );
+ {/* Selected Layer Properties */}
+ {selectedLayer && (
+ <div className="p-4 rounded-2xl bg-muted/30 border border-border flex flex-wrap items-center gap-4 text-xs">
+ <span className="font-bold text-foreground">Editar Camada:</span>
+ <Input
+ value={selectedLayer.text || ''}
+ onChange={(e) => {
+ const val = e.target.value;
+ setLayers((prev) =>
+ prev.map((l) => (l.id === selectedLayerId ? { ...l, text: val } : l))
+ );
+ }}
+ className="h-8 max-w-xs text-xs rounded-lg"
+ />
+ <div className="flex items-center gap-1.5">
+ <span className="text-muted-foreground">Cor:</span>
+ <input
+ type="color"
+ value={selectedLayer.color || '#ffffff'}
+ onChange={(e) => {
+ const val = e.target.value;
+ setLayers((prev) =>
+ prev.map((l) => (l.id === selectedLayerId ? { ...l, color: val } : l))
+ );
+ }}
+ className="w-6 h-6 rounded cursor-pointer bg-transparent"
+ />
+ </div>
+ </div>
+ )}
+ </div>
+ );
 }

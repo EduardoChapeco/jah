@@ -1,10 +1,10 @@
 export function normalizeInternalReturnPath(
-  value: string | null | undefined,
-  fallback: string,
+ value: string | null | undefined,
+ fallback: string,
 ): string {
-  if (!value?.startsWith("/") || value.startsWith("//") || value.includes("\\")) {
-    return fallback;
-  }
+ if (!value?.startsWith("/") || value.startsWith("//") || value.includes("\\")) {
+ return fallback;
+ }
 
-  return value;
+ return value;
 }

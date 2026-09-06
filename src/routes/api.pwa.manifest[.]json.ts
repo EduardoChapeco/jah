@@ -12,9 +12,9 @@ export const Route = createFileRoute("/api/pwa/manifest.json")({
 
  // Manifest Padrão do Super App Wider
  const defaultManifest = {
- name: "JAH — Master OS",
- short_name: "JAH",
- description: "JAH Master OS — Plataforma Empresarial Unificada",
+ name: "Wider — Master OS",
+ short_name: "Wider",
+ description: "Wider OS — Plataforma Empresarial Unificada",
  start_url: "/",
  scope: "/",
  display: "standalone",

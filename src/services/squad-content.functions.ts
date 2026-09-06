@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start';
-import { supabase } from '@/lib/supabase';
+import { getServerClient } from '@/lib/supabase';
 
 export type PostFormat = 'single' | 'carousel' | 'story_reels';
 export type VisualTemplate = 'minimal-dark' | 'bold-color' | 'editorial' | 'data-card' | 'testimonial' | 'clean-white';
@@ -262,7 +262,8 @@ export async function executeOrchestrateMarketingPost(data: {
   try {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.storeId);
     if (isUuid) {
-      await supabase
+      const db = getServerClient();
+      await db
         .from('squad_generated_posts')
         .insert({
           store_id: data.storeId,
@@ -307,7 +308,8 @@ export async function executeListSquadGeneratedPosts(data: { storeId: string }):
   try {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.storeId);
     if (isUuid) {
-      const { data: rows, error } = await supabase
+      const db = getServerClient();
+      const { data: rows, error } = await db
         .from('squad_generated_posts')
         .select('*')
         .eq('store_id', data.storeId)

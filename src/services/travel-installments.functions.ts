@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
-import { supabase } from '@/lib/supabase';
+import { getServerClient } from '@/lib/supabase';
 import type { TravelBookingInstallment, InstallmentStatus } from '@/types/travel-installments';
 
 export function calculateInstallmentPlan(
@@ -32,7 +32,8 @@ export function calculateInstallmentPlan(
 export const listBookingInstallments = createServerFn({ method: 'GET' })
   .validator((data: { storeId: string; tripId?: string }) => data)
   .handler(async ({ data }): Promise<TravelBookingInstallment[]> => {
-    let query = supabase
+    const db = getServerClient();
+    let query = db
       .from('travel_booking_installments')
       .select('*')
       .eq('store_id', data.storeId)
@@ -56,7 +57,8 @@ export const markInstallmentPaid = createServerFn({ method: 'POST' })
     })
   )
   .handler(async ({ data }): Promise<{ success: boolean }> => {
-    const { error } = await supabase
+    const db = getServerClient();
+    const { error } = await db
       .from('travel_booking_installments')
       .update({
         status: 'paid',

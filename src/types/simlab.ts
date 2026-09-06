@@ -10,6 +10,66 @@ export type VerdictStatus = 'aprovado_para_veiculacao' | 'revisar_com_ajustes' |
 export type System1Emotion = 'desejo' | 'desconfianca' | 'tedio' | 'entusiasmo' | 'inseguranca';
 export type PricePerception = 'muito_barato_duvidoso' | 'justo' | 'caro_mas_vale' | 'inacessivel';
 
+export interface PersonaCurriculum {
+  profession_title: string;
+  occupation_sector: string;
+  work_experience_years: number;
+  education_degree: string;
+  career_summary: string;
+  key_competencies: string[];
+}
+
+export interface PersonaHouseholdProfile {
+  family_structure: 'unipessoal' | 'casal_sem_filhos' | 'nuclear_com_filhos' | 'monoparental' | 'multigeracional';
+  total_members: number;
+  dependents_count: number;
+  dependents_ages?: number[];
+  decision_power_in_home: 'decisora_principal' | 'decisor_conjunto' | 'influenciador';
+}
+
+export interface PersonaFinancialSheet {
+  gross_monthly_income_brl: number;
+  net_monthly_income_brl: number;
+  essential_fixed_expenses_brl: number; // Moradia, alimentação, contas básicas (POF)
+  discretionary_surplus_brl: number;    // Sobra mensal após custos essenciais
+  leisure_budget_monthly_brl: number;   // Parcela média reservada para viagens/lazer
+  liquid_reserves_brl: number;          // Poupança / Reserva de emergência
+  credit_limit_available_brl: number;   // Limite rotativo somado dos cartões
+  debt_commitment_percent: number;      // % de renda já comprometida com parcelas ativas
+  preferred_payment_method: 'pix_a_vista' | 'cartao_parcelado_sem_juros' | 'boleto_carne' | 'cartao_black_a_vista';
+}
+
+export interface OfferDecomposition {
+  raw_text: string;
+  product_name: string;
+  destination: string | null;
+  unit_price_brl: number;
+  is_per_person: boolean;
+  installments_count: number;
+  installment_value_brl: number;
+  interest_free: boolean;
+  inclusions: string[];
+  category: 'turismo_pacote' | 'ingresso_evento' | 'gastronomia' | 'varejo_produto' | 'servico';
+  detected_hooks: string[];
+}
+
+export interface EconometricChoiceEvaluation {
+  persona_id: string;
+  family_tickets_multiplier: number;
+  total_outlay_brl: number;
+  monthly_family_installment_brl: number;
+  discretionary_burden_percent: number; // % que a parcela consome da folga mensal
+  affordability_score: number;          // 0 a 10
+  perceived_value_score: number;        // 0 a 10
+  net_utility_mcfadden: number;         // U = V + eps
+  choice_probability_percent: number;   // 0 a 100%
+  system_1_emotion: System1Emotion;
+  price_perception: PricePerception;
+  primary_objection: string;
+  natural_speech_verbatim: string;
+  scientific_rationale: string;
+}
+
 export interface SyntheticArchetype {
  id: string;
  code: string;
@@ -27,6 +87,9 @@ export interface SyntheticArchetype {
  impulsivity_index: number;
  primary_social_networks: string[];
  decision_heuristics: Record<string, any>;
+ curriculum?: PersonaCurriculum;
+ financial_sheet?: PersonaFinancialSheet;
+ household_profile?: PersonaHouseholdProfile;
  avatar_url?: string | null;
  bio?: string | null;
  is_active: boolean;

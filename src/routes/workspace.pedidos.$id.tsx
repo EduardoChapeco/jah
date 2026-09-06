@@ -6,28 +6,28 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
+ Sheet,
+ SheetContent,
+ SheetDescription,
+ SheetHeader,
+ SheetTitle,
+ SheetTrigger,
 } from "@/components/ui/sheet";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-  AlertDialogFooter,
+ AlertDialog,
+ AlertDialogContent,
+ AlertDialogDescription,
+ AlertDialogHeader,
+ AlertDialogTitle,
+ AlertDialogTrigger,
+ AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
 import { Printer, Banknote, Landmark, AlertTriangle, Truck, ExternalLink, Package, User, MapPin, Phone, Mail, MessageSquare, Layers } from 'lucide-react';
 import {
-  getOrderById,
-  updateOrderStatus,
-  updateOrderShipment,
-  updateOrderShippingQuote,
+ getOrderById,
+ updateOrderStatus,
+ updateOrderShipment,
+ updateOrderShippingQuote,
 } from "@/services/order.functions";
 import { approvePayment, rejectPayment } from "@/services/payment.functions";
 import { getDeliveryProofsByOrderId, type DeliveryProof } from "@/services/dispatch.functions";
@@ -37,678 +37,678 @@ import { OrderEditWizard } from "@/components/admin/orders/order-edit-wizard";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/pedidos/$id")({
-  head: ({ loaderData }) => ({
-    meta: [{ title: `Pedido #${loaderData?.order?.public_token?.slice(0, 8) || "Detalhes"} | Workspace JAH Master OS` }],
-  }),
-  loader: async ({ params }: { params: { id: string } }) => {
-    try {
-      const [order, proofs] = await Promise.all([
-        getOrderById({ data: { orderId: params.id } }),
-        getDeliveryProofsByOrderId({ data: { orderId: params.id } }).catch(() => []),
-      ]);
-      return { order, proofs: (proofs || []) as DeliveryProof[] };
-    } catch {
-      return { order: null, proofs: [] as DeliveryProof[] };
-    }
-  },
-  component: AdminOrderDetailPage,
+ head: ({ loaderData }) => ({
+ meta: [{ title: `Pedido #${loaderData?.order?.public_token?.slice(0, 8) || "Detalhes"} | Workspace Wider OS` }],
+ }),
+ loader: async ({ params }: { params: { id: string } }) => {
+ try {
+ const [order, proofs] = await Promise.all([
+ getOrderById({ data: { orderId: params.id } }),
+ getDeliveryProofsByOrderId({ data: { orderId: params.id } }).catch(() => []),
+ ]);
+ return { order, proofs: (proofs || []) as DeliveryProof[] };
+ } catch {
+ return { order: null, proofs: [] as DeliveryProof[] };
+ }
+ },
+ component: AdminOrderDetailPage,
 });
 
 function getStatusLabel(status: string) {
-  const map: Record<
-    string,
-    {
-      label: string;
-      variant: "default" | "secondary" | "destructive" | "outline" | "info" | "success" | "warning";
-    }
-  > = {
-    draft: { label: "Rascunho", variant: "secondary" },
-    awaiting_payment: { label: "Aguardando Pagamento", variant: "warning" },
-    payment_processing: { label: "Pagamento em Processamento", variant: "info" },
-    paid: { label: "Pago", variant: "success" },
-    processing: { label: "Em Separação", variant: "secondary" },
-    ready_for_pickup: { label: "Pronto para Retirada", variant: "success" },
-    shipped: { label: "Enviado", variant: "info" },
-    delivered: { label: "Entregue", variant: "success" },
-    completed: { label: "Concluído", variant: "success" },
-    cancelled: { label: "Cancelado", variant: "destructive" },
-    payment_failed: { label: "Falha no Pagamento", variant: "destructive" },
-    return_requested: { label: "Troca Solicitada", variant: "warning" },
-    returned: { label: "Devolvido", variant: "secondary" },
-    refunded: { label: "Estornado", variant: "secondary" },
-  };
-  return map[status] ?? { label: status, variant: "outline" };
+ const map: Record<
+ string,
+ {
+ label: string;
+ variant: "default" | "secondary" | "destructive" | "outline" | "info" | "success" | "warning";
+ }
+ > = {
+ draft: { label: "Rascunho", variant: "secondary" },
+ awaiting_payment: { label: "Aguardando Pagamento", variant: "warning" },
+ payment_processing: { label: "Pagamento em Processamento", variant: "info" },
+ paid: { label: "Pago", variant: "success" },
+ processing: { label: "Em Separação", variant: "secondary" },
+ ready_for_pickup: { label: "Pronto para Retirada", variant: "success" },
+ shipped: { label: "Enviado", variant: "info" },
+ delivered: { label: "Entregue", variant: "success" },
+ completed: { label: "Concluído", variant: "success" },
+ cancelled: { label: "Cancelado", variant: "destructive" },
+ payment_failed: { label: "Falha no Pagamento", variant: "destructive" },
+ return_requested: { label: "Troca Solicitada", variant: "warning" },
+ returned: { label: "Devolvido", variant: "secondary" },
+ refunded: { label: "Estornado", variant: "secondary" },
+ };
+ return map[status] ?? { label: status, variant: "outline" };
 }
 
 function AdminOrderDetailPage() {
-  const { order, proofs } = Route.useLoaderData() as { order: any; proofs: DeliveryProof[] };
-  const router = useRouter();
-  const [isConfirming, setIsConfirming] = useState(false);
-  const [isRejecting, setIsRejecting] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [shippingQuoteCents, setShippingQuoteCents] = useState<string>("");
-  const [isSavingQuote, setIsSavingQuote] = useState(false);
+ const { order, proofs } = Route.useLoaderData() as { order: any; proofs: DeliveryProof[] };
+ const router = useRouter();
+ const [isConfirming, setIsConfirming] = useState(false);
+ const [isRejecting, setIsRejecting] = useState(false);
+ const [isUpdating, setIsUpdating] = useState(false);
+ const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+ const [shippingQuoteCents, setShippingQuoteCents] = useState<string>("");
+ const [isSavingQuote, setIsSavingQuote] = useState(false);
 
-  const [pickingModalOpen, setPickingModalOpen] = useState(false);
-  const [trackingModalOpen, setTrackingModalOpen] = useState(false);
-  const [returnModalOpen, setReturnModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [trackingForm, setTrackingForm] = useState({
-    trackingCode: "",
-    carrierName: "Transportadora",
-    trackingUrl: "",
-  });
-  const [isSavingTracking, setIsSavingTracking] = useState(false);
+ const [pickingModalOpen, setPickingModalOpen] = useState(false);
+ const [trackingModalOpen, setTrackingModalOpen] = useState(false);
+ const [returnModalOpen, setReturnModalOpen] = useState(false);
+ const [editModalOpen, setEditModalOpen] = useState(false);
+ const [trackingForm, setTrackingForm] = useState({
+ trackingCode: "",
+ carrierName: "Transportadora",
+ trackingUrl: "",
+ });
+ const [isSavingTracking, setIsSavingTracking] = useState(false);
 
-  if (!order) {
-    return (
-      <div className="py-16 text-center text-muted-foreground space-y-3">
-        <p className="font-bold text-base text-foreground">Pedido não encontrado ou sem permissão de acesso.</p>
-        <Link to="/workspace/pedidos" className="text-primary text-xs font-bold underline inline-block">
-          ← Voltar para lista de pedidos
-        </Link>
-      </div>
-    );
-  }
+ if (!order) {
+ return (
+ <div className="py-16 text-center text-muted-foreground space-y-3">
+ <p className="font-bold text-base text-foreground">Pedido não encontrado ou sem permissão de acesso.</p>
+ <Link to="/workspace/pedidos" className="text-primary text-xs font-bold underline inline-block">
+ ← Voltar para lista de pedidos
+ </Link>
+ </div>
+ );
+ }
 
-  const date = formatDate(order.created_at);
-  const customer = order.customer_snapshot || {};
-  const customFields = order.custom_fields || {};
-  const hasCustomFields = Object.keys(customFields).length > 0;
+ const date = formatDate(order.created_at);
+ const customer = order.customer_snapshot || {};
+ const customFields = order.custom_fields || {};
+ const hasCustomFields = Object.keys(customFields).length > 0;
 
-  const handleSaveTracking = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSavingTracking(true);
-    try {
-      await updateOrderShipment({
-        data: {
-          orderId: order.id,
-          trackingCode: trackingForm.trackingCode,
-          carrierName: trackingForm.carrierName,
-          trackingUrl: trackingForm.trackingUrl || undefined,
-          newStatus: order.status === "processing" ? "shipped" : undefined,
-        },
-      });
-      toast.success("Rastreamento do pedido atualizado!");
-      setTrackingModalOpen(false);
-      router.invalidate();
-    } catch (err: unknown) {
-      toast.error(
-        (err instanceof Error ? err.message : String(err)) || "Erro ao salvar rastreamento",
-      );
-    } finally {
-      setIsSavingTracking(false);
-    }
-  };
+ const handleSaveTracking = async (e: React.FormEvent) => {
+ e.preventDefault();
+ setIsSavingTracking(true);
+ try {
+ await updateOrderShipment({
+ data: {
+ orderId: order.id,
+ trackingCode: trackingForm.trackingCode,
+ carrierName: trackingForm.carrierName,
+ trackingUrl: trackingForm.trackingUrl || undefined,
+ newStatus: order.status === "processing" ? "shipped" : undefined,
+ },
+ });
+ toast.success("Rastreamento do pedido atualizado!");
+ setTrackingModalOpen(false);
+ router.invalidate();
+ } catch (err: unknown) {
+ toast.error(
+ (err instanceof Error ? err.message : String(err)) || "Erro ao salvar rastreamento",
+ );
+ } finally {
+ setIsSavingTracking(false);
+ }
+ };
 
-  const handleSaveQuote = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cents = Math.round(parseFloat(shippingQuoteCents.replace(",", ".")) * 100);
-    if (isNaN(cents) || cents < 0) {
-      toast.error("Informe um valor válido");
-      return;
-    }
-    setIsSavingQuote(true);
-    try {
-      await updateOrderShippingQuote({
-        data: { orderId: order.id, shippingCents: cents },
-      });
-      toast.success("Cotação enviada para o cliente!");
-      router.invalidate();
-    } catch (err: unknown) {
-      toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao salvar cotação");
-    } finally {
-      setIsSavingQuote(false);
-    }
-  };
+ const handleSaveQuote = async (e: React.FormEvent) => {
+ e.preventDefault();
+ const cents = Math.round(parseFloat(shippingQuoteCents.replace(",", ".")) * 100);
+ if (isNaN(cents) || cents < 0) {
+ toast.error("Informe um valor válido");
+ return;
+ }
+ setIsSavingQuote(true);
+ try {
+ await updateOrderShippingQuote({
+ data: { orderId: order.id, shippingCents: cents },
+ });
+ toast.success("Cotação enviada para o cliente!");
+ router.invalidate();
+ } catch (err: unknown) {
+ toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao salvar cotação");
+ } finally {
+ setIsSavingQuote(false);
+ }
+ };
 
-  const handleStatusChange = async (newStatus: any) => {
-    setIsUpdating(true);
-    try {
-      await updateOrderStatus({
-        data: {
-          orderId: order.id,
-          status: newStatus,
-        },
-      });
-      toast.success("Status do pedido atualizado!");
-      router.invalidate();
-    } catch (err: unknown) {
-      toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao atualizar status");
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+ const handleStatusChange = async (newStatus: any) => {
+ setIsUpdating(true);
+ try {
+ await updateOrderStatus({
+ data: {
+ orderId: order.id,
+ status: newStatus,
+ },
+ });
+ toast.success("Status do pedido atualizado!");
+ router.invalidate();
+ } catch (err: unknown) {
+ toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao atualizar status");
+ } finally {
+ setIsUpdating(false);
+ }
+ };
 
-  const handleApprove = async (method: "cash" | "bank_transfer") => {
-    setIsConfirming(true);
-    try {
-      await approvePayment({
-        data: {
-          orderId: order.id,
-          receivedMethod: method,
-        },
-      });
-      toast.success("Pagamento aprovado!");
-      router.invalidate();
-    } catch (err: unknown) {
-      toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao aprovar pagamento");
-    } finally {
-      setIsConfirming(false);
-    }
-  };
+ const handleApprove = async (method: "cash" | "bank_transfer") => {
+ setIsConfirming(true);
+ try {
+ await approvePayment({
+ data: {
+ orderId: order.id,
+ receivedMethod: method,
+ },
+ });
+ toast.success("Pagamento aprovado!");
+ router.invalidate();
+ } catch (err: unknown) {
+ toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao aprovar pagamento");
+ } finally {
+ setIsConfirming(false);
+ }
+ };
 
-  const handleReject = async () => {
-    setShowCancelConfirm(false);
-    setIsRejecting(true);
-    try {
-      const res = await rejectPayment({
-        data: { orderId: order.id, reason: "Cancelado manualmente pela vendedora" },
-      });
-      if (res.status !== "success") throw new Error((res as any).message);
-      toast.success("Pedido cancelado e pagamento rejeitado.");
-      router.invalidate();
-    } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao cancelar");
-    } finally {
-      setIsRejecting(false);
-    }
-  };
+ const handleReject = async () => {
+ setShowCancelConfirm(false);
+ setIsRejecting(true);
+ try {
+ const res = await rejectPayment({
+ data: { orderId: order.id, reason: "Cancelado manualmente pela vendedora" },
+ });
+ if (res.status !== "success") throw new Error((res as any).message);
+ toast.success("Pedido cancelado e pagamento rejeitado.");
+ router.invalidate();
+ } catch (e: unknown) {
+ toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao cancelar");
+ } finally {
+ setIsRejecting(false);
+ }
+ };
 
-  return (
-    <div className="space-y-6 max-w-6xl mx-auto w-full pb-20">
-      <div className="flex justify-between items-start flex-wrap gap-3">
-        <PageHeader eyebrow="Vendas" title={`Pedido #${order.public_token}`} />
-        <div className="flex items-center gap-2">
-          {["draft", "awaiting_payment", "paid"].includes(order.status) && (
-            <Button variant="outline" size="sm" className="rounded-xl text-xs font-semibold" onClick={() => setEditModalOpen(true)}>
-              Editar Pedido
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-xl text-xs font-semibold"
-            onClick={() => window.open(`/workspace/pedidos/${order.id}/recibo`, "_blank")}
-          >
-            <Printer className="mr-1.5 h-3.5 w-3.5" /> Imprimir Recibo
-          </Button>
-        </div>
-      </div>
+ return (
+ <div className="space-y-6 max-w-6xl mx-auto w-full pb-20">
+ <div className="flex justify-between items-start flex-wrap gap-3">
+ <PageHeader eyebrow="Vendas" title={`Pedido #${order.public_token}`} />
+ <div className="flex items-center gap-2">
+ {["draft", "awaiting_payment", "paid"].includes(order.status) && (
+ <Button variant="outline" size="sm" className="rounded-xl text-xs font-semibold" onClick={() => setEditModalOpen(true)}>
+ Editar Pedido
+ </Button>
+ )}
+ <Button
+ variant="outline"
+ size="sm"
+ className="rounded-xl text-xs font-semibold"
+ onClick={() => window.open(`/workspace/pedidos/${order.id}/recibo`, "_blank")}
+ >
+ <Printer className="mr-1.5 h-3.5 w-3.5" /> Imprimir Recibo
+ </Button>
+ </div>
+ </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left Column: Items, Customer Info, Custom Fields, Notes */}
-        <div className="md:col-span-2 space-y-6">
-          {/* Itens do Pedido */}
-          <div className="p-6 bg-card text-card-foreground rounded-2xl border border-border/80">
-            <h3 className="font-bold text-base mb-4 text-foreground">Itens do Pedido</h3>
-            <div className="space-y-4">
-              {(order.order_items ?? []).map((item: any) => {
-                const options = item.selected_options ? Object.values(item.selected_options) : [];
-                const isBackorderItem = item.metadata?.is_backorder === true;
-                return (
-                  <div
-                    key={item.id}
-                    className="flex justify-between items-start pb-4 border-b border-border/40 last:border-0 last:pb-0"
-                  >
-                    <div>
-                      <p className="font-medium text-sm text-foreground flex items-center gap-2 flex-wrap">
-                        <span className="text-primary font-bold mr-1">{item.qty}x</span>
-                        {item.product_title}
-                        {isBackorderItem && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 bg-warning/15 text-warning border border-warning/30 rounded-md">
-                            ⏱ Encomenda
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-xs text-muted-foreground font-mono mt-0.5">
-                        SKU: {item.variant_sku || "N/A"}
-                      </p>
-                      {options.length > 0 && (
-                        <div className="mt-2 ml-2 pl-2 space-y-0.5 border-l-2 border-primary/30">
-                          {options.map((opt: any, idx: number) => (
-                            <div key={idx} className="text-xs text-muted-foreground flex gap-2">
-                              <span>+ {opt.label}</span>
-                              {opt.price_modifier_cents > 0 && (
-                                <span>({formatMoney(opt.price_modifier_cents)})</span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-sm text-foreground">{formatMoney(item.total_cents)}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {formatMoney(item.unit_price_cents)} / un
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+ <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+ {/* Left Column: Items, Customer Info, Custom Fields, Notes */}
+ <div className="md:col-span-2 space-y-6">
+ {/* Itens do Pedido */}
+ <div className="p-6 bg-card text-card-foreground rounded-2xl border border-border/80">
+ <h3 className="font-bold text-base mb-4 text-foreground">Itens do Pedido</h3>
+ <div className="space-y-4">
+ {(order.order_items ?? []).map((item: any) => {
+ const options = item.selected_options ? Object.values(item.selected_options) : [];
+ const isBackorderItem = item.metadata?.is_backorder === true;
+ return (
+ <div
+ key={item.id}
+ className="flex justify-between items-start pb-4 border-b border-border/40 last:border-0 last:pb-0"
+ >
+ <div>
+ <p className="font-medium text-sm text-foreground flex items-center gap-2 flex-wrap">
+ <span className="text-primary font-bold mr-1">{item.qty}x</span>
+ {item.product_title}
+ {isBackorderItem && (
+ <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 bg-warning/15 text-warning border border-warning/30 rounded-md">
+ ⏱ Encomenda
+ </span>
+ )}
+ </p>
+ <p className="text-xs text-muted-foreground font-mono mt-0.5">
+ SKU: {item.variant_sku || "N/A"}
+ </p>
+ {options.length > 0 && (
+ <div className="mt-2 ml-2 pl-2 space-y-0.5 border-l-2 border-primary/30">
+ {options.map((opt: any, idx: number) => (
+ <div key={idx} className="text-xs text-muted-foreground flex gap-2">
+ <span>+ {opt.label}</span>
+ {opt.price_modifier_cents > 0 && (
+ <span>({formatMoney(opt.price_modifier_cents)})</span>
+ )}
+ </div>
+ ))}
+ </div>
+ )}
+ </div>
+ <div className="text-right">
+ <p className="font-bold text-sm text-foreground">{formatMoney(item.total_cents)}</p>
+ <p className="text-xs text-muted-foreground mt-0.5">
+ {formatMoney(item.unit_price_cents)} / un
+ </p>
+ </div>
+ </div>
+ );
+ })}
+ </div>
+ </div>
 
-          {/* Dados do Cliente & Contato */}
-          <div className="p-6 bg-card text-card-foreground rounded-2xl border border-border/80 space-y-4">
-            <h3 className="font-bold text-base text-foreground flex items-center gap-2">
-              <User className="size-4 text-primary" />
-              <span>Dados do Cliente</span>
-            </h3>
+ {/* Dados do Cliente & Contato */}
+ <div className="p-6 bg-card text-card-foreground rounded-2xl border border-border/80 space-y-4">
+ <h3 className="font-bold text-base text-foreground flex items-center gap-2">
+ <User className="size-4 text-primary" />
+ <span>Dados do Cliente</span>
+ </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="space-y-1">
-                <span className="text-muted-foreground font-semibold">Nome Completo:</span>
-                <p className="font-bold text-foreground text-sm">{customer.name || customer.fullName || "Cliente Não Identificado"}</p>
-              </div>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+ <div className="space-y-1">
+ <span className="text-muted-foreground font-semibold">Nome Completo:</span>
+ <p className="font-bold text-foreground text-sm">{customer.name || customer.fullName || "Cliente Não Identificado"}</p>
+ </div>
 
-              <div className="space-y-1">
-                <span className="text-muted-foreground font-semibold">E-mail:</span>
-                <p className="font-medium text-foreground">{customer.email || "Não informado"}</p>
-              </div>
+ <div className="space-y-1">
+ <span className="text-muted-foreground font-semibold">E-mail:</span>
+ <p className="font-medium text-foreground">{customer.email || "Não informado"}</p>
+ </div>
 
-              <div className="space-y-1">
-                <span className="text-muted-foreground font-semibold">Telefone / WhatsApp:</span>
-                <p className="font-medium text-foreground">{customer.phone || "Não informado"}</p>
-              </div>
+ <div className="space-y-1">
+ <span className="text-muted-foreground font-semibold">Telefone / WhatsApp:</span>
+ <p className="font-medium text-foreground">{customer.phone || "Não informado"}</p>
+ </div>
 
-              {customer.document && (
-                <div className="space-y-1">
-                  <span className="text-muted-foreground font-semibold">CPF / CNPJ:</span>
-                  <p className="font-mono font-medium text-foreground">{customer.document}</p>
-                </div>
-              )}
-            </div>
-          </div>
+ {customer.document && (
+ <div className="space-y-1">
+ <span className="text-muted-foreground font-semibold">CPF / CNPJ:</span>
+ <p className="font-mono font-medium text-foreground">{customer.document}</p>
+ </div>
+ )}
+ </div>
+ </div>
 
-          {/* Informações Complementares / Campos de Nicho */}
-          {hasCustomFields && (
-            <div className="p-6 bg-card text-card-foreground rounded-2xl border border-border/80 space-y-4">
-              <h3 className="font-bold text-base text-foreground flex items-center gap-2">
-                <Layers className="size-4 text-primary" />
-                <span>Informações do Pedido / Nicho</span>
-              </h3>
+ {/* Informações Complementares / Campos de Nicho */}
+ {hasCustomFields && (
+ <div className="p-6 bg-card text-card-foreground rounded-2xl border border-border/80 space-y-4">
+ <h3 className="font-bold text-base text-foreground flex items-center gap-2">
+ <Layers className="size-4 text-primary" />
+ <span>Informações do Pedido / Nicho</span>
+ </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                {Object.entries(customFields).map(([label, value]: [string, any]) => (
-                  <div key={label} className="space-y-1 p-3 rounded-2xl bg-muted/20 border border-border/40">
-                    <span className="text-muted-foreground font-semibold block">{label}:</span>
-                    <p className="font-bold text-foreground">{String(value)}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+ {Object.entries(customFields).map(([label, value]: [string, any]) => (
+ <div key={label} className="space-y-1 p-3 rounded-2xl bg-muted/20 border border-border/40">
+ <span className="text-muted-foreground font-semibold block">{label}:</span>
+ <p className="font-bold text-foreground">{String(value)}</p>
+ </div>
+ ))}
+ </div>
+ </div>
+ )}
 
-          {/* Observações do Pedido */}
-          {order.notes && (
-            <div className="p-6 bg-card text-card-foreground rounded-2xl border border-border/80 space-y-2">
-              <h3 className="font-bold text-base text-foreground flex items-center gap-2">
-                <MessageSquare className="size-4 text-primary" />
-                <span>Observações do Pedido</span>
-              </h3>
-              <p className="text-xs text-muted-foreground bg-muted/20 p-3 rounded-2xl border border-border/40">
-                {order.notes}
-              </p>
-            </div>
-          )}
-        </div>
+ {/* Observações do Pedido */}
+ {order.notes && (
+ <div className="p-6 bg-card text-card-foreground rounded-2xl border border-border/80 space-y-2">
+ <h3 className="font-bold text-base text-foreground flex items-center gap-2">
+ <MessageSquare className="size-4 text-primary" />
+ <span>Observações do Pedido</span>
+ </h3>
+ <p className="text-xs text-muted-foreground bg-muted/20 p-3 rounded-2xl border border-border/40">
+ {order.notes}
+ </p>
+ </div>
+ )}
+ </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Summary */}
-          <div className=" p-6 bg-card text-card-foreground ">
-            <h3 className="font-semibold text-lg mb-4 text-foreground">Resumo</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span className="text-foreground">{formatMoney(order.subtotal_cents)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Frete</span>
-                <span className="text-foreground">{formatMoney(order.shipping_cents)}</span>
-              </div>
-              <div className="flex justify-between font-bold text-base  pt-3 mt-1 text-foreground">
-                <span>Total</span>
-                <span>{formatMoney(order.total_cents)}</span>
-              </div>
-            </div>
-          </div>
+ {/* Sidebar */}
+ <div className="space-y-6">
+ {/* Summary */}
+ <div className=" p-6 bg-card text-card-foreground ">
+ <h3 className="font-semibold text-lg mb-4 text-foreground">Resumo</h3>
+ <div className="space-y-3 text-sm">
+ <div className="flex justify-between">
+ <span className="text-muted-foreground">Subtotal</span>
+ <span className="text-foreground">{formatMoney(order.subtotal_cents)}</span>
+ </div>
+ <div className="flex justify-between">
+ <span className="text-muted-foreground">Frete</span>
+ <span className="text-foreground">{formatMoney(order.shipping_cents)}</span>
+ </div>
+ <div className="flex justify-between font-bold text-base pt-3 mt-1 text-foreground">
+ <span>Total</span>
+ <span>{formatMoney(order.total_cents)}</span>
+ </div>
+ </div>
+ </div>
 
-          {/* Status & Actions */}
-          <div className=" p-6 bg-card text-card-foreground ">
-            <h3 className="font-semibold text-lg mb-4 text-foreground">Status</h3>
-            <Badge
-              variant={getStatusLabel(order.status).variant}
-              className="text-[11px] py-1 mb-4 flex justify-center"
-            >
-              {getStatusLabel(order.status).label}
-            </Badge>
+ {/* Status & Actions */}
+ <div className=" p-6 bg-card text-card-foreground ">
+ <h3 className="font-semibold text-lg mb-4 text-foreground">Status</h3>
+ <Badge
+ variant={getStatusLabel(order.status).variant}
+ className="text-[11px] py-1 mb-4 flex justify-center"
+ >
+ {getStatusLabel(order.status).label}
+ </Badge>
 
-            {order.status === "awaiting_shipping_quote" && (
-              <div className="space-y-4 mb-4 p-4 border border-warning/50 bg-warning/10 rounded-xl">
-                <h4 className="font-semibold text-warning-foreground text-sm flex items-center gap-2">
-                  <AlertTriangle className="size-4" />
-                  Cotação de Frete Pendente
-                </h4>
-                <p className="text-xs text-muted-foreground">
-                  O cliente solicitou uma cotação de frete personalizada. Informe o valor do frete
-                  para liberar o pagamento.
-                </p>
-                <form onSubmit={handleSaveQuote} className="flex gap-2">
-                  <div className="relative flex-1">
-                    <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">
-                      R$
-                    </span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      required
-                      placeholder="0,00"
-                      value={shippingQuoteCents}
-                      onChange={(e) => setShippingQuoteCents(e.target.value)}
-                      className="w-full rounded-xl border px-3 py-2 pl-8 text-sm"
-                    />
-                  </div>
-                  <Button type="submit" disabled={isSavingQuote}>
-                    {isSavingQuote ? "Enviando..." : "Enviar Cotação"}
-                  </Button>
-                </form>
-              </div>
-            )}
+ {order.status === "awaiting_shipping_quote" && (
+ <div className="space-y-4 mb-4 p-4 border border-warning/50 bg-warning/10 rounded-xl">
+ <h4 className="font-semibold text-warning-foreground text-sm flex items-center gap-2">
+ <AlertTriangle className="size-4" />
+ Cotação de Frete Pendente
+ </h4>
+ <p className="text-xs text-muted-foreground">
+ O cliente solicitou uma cotação de frete personalizada. Informe o valor do frete
+ para liberar o pagamento.
+ </p>
+ <form onSubmit={handleSaveQuote} className="flex gap-2">
+ <div className="relative flex-1">
+ <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">
+ R$
+ </span>
+ <input
+ type="number"
+ step="0.01"
+ min="0"
+ required
+ placeholder="0,00"
+ value={shippingQuoteCents}
+ onChange={(e) => setShippingQuoteCents(e.target.value)}
+ className="w-full rounded-xl border px-3 py-2 pl-8 text-sm"
+ />
+ </div>
+ <Button type="submit" disabled={isSavingQuote}>
+ {isSavingQuote ? "Enviando..." : "Enviar Cotação"}
+ </Button>
+ </form>
+ </div>
+ )}
 
-            {order.status === "awaiting_payment" && (
-              <div className="space-y-3">
-                {/* Approve payment — choose method */}
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button className="w-full font-bold" disabled={isConfirming || isRejecting}>
-                      {isConfirming ? "Confirmando..." : "Marcar como Pago"}
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent>
-                    <SheetHeader>
-                      <SheetTitle>Como o pagamento foi recebido?</SheetTitle>
-                      <SheetDescription>
-                        Selecione a forma real que o dinheiro entrou. Se foi em dinheiro físico, o
-                        valor será somado ao Frente de Caixa atual.
-                      </SheetDescription>
-                    </SheetHeader>
-                    <div className="grid grid-cols-2 gap-4 py-4">
-                      <Button
-                        variant="outline"
-                        className="h-24 flex flex-col gap-2"
-                        onClick={() => handleApprove("cash")}
-                      >
-                        <Banknote className="h-8 w-8 text-primary" />
-                        <span>Dinheiro (Frente de Caixa)</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-24 flex flex-col gap-2"
-                        onClick={() => handleApprove("bank_transfer")}
-                      >
-                        <Landmark className="h-8 w-8 text-primary" />
-                        <span>Pix / Transferência / Cartão</span>
-                      </Button>
-                    </div>
-                  </SheetContent>
-                </Sheet>
+ {order.status === "awaiting_payment" && (
+ <div className="space-y-3">
+ {/* Approve payment — choose method */}
+ <Sheet>
+ <SheetTrigger asChild>
+ <Button className="w-full font-bold" disabled={isConfirming || isRejecting}>
+ {isConfirming ? "Confirmando..." : "Marcar como Pago"}
+ </Button>
+ </SheetTrigger>
+ <SheetContent>
+ <SheetHeader>
+ <SheetTitle>Como o pagamento foi recebido?</SheetTitle>
+ <SheetDescription>
+ Selecione a forma real que o dinheiro entrou. Se foi em dinheiro físico, o
+ valor será somado ao Frente de Caixa atual.
+ </SheetDescription>
+ </SheetHeader>
+ <div className="grid grid-cols-2 gap-4 py-4">
+ <Button
+ variant="outline"
+ className="h-24 flex flex-col gap-2"
+ onClick={() => handleApprove("cash")}
+ >
+ <Banknote className="h-8 w-8 text-primary" />
+ <span>Dinheiro (Frente de Caixa)</span>
+ </Button>
+ <Button
+ variant="outline"
+ className="h-24 flex flex-col gap-2"
+ onClick={() => handleApprove("bank_transfer")}
+ >
+ <Landmark className="h-8 w-8 text-primary" />
+ <span>Pix / Transferência / Cartão</span>
+ </Button>
+ </div>
+ </SheetContent>
+ </Sheet>
 
-                {/* Cancel — confirmation dialog (replaces window.confirm) */}
-                <AlertDialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full text-destructive"
-                      disabled={isConfirming || isRejecting}
-                    >
-                      {isRejecting ? "Cancelando..." : "Cancelar Venda"}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle className="flex items-center gap-2">
-                        <AlertTriangle className="h-5 w-5 text-destructive" />
-                        Cancelar esta venda?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        O pedido será marcado como cancelado. Esta ação não pode ser desfeita.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter className="gap-2 mt-4">
-                      <Button variant="outline" onClick={() => setShowCancelConfirm(false)}>
-                        Voltar
-                      </Button>
-                      <Button variant="destructive" onClick={handleReject} disabled={isRejecting}>
-                        Confirmar Cancelamento
-                      </Button>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+ {/* Cancel — confirmation dialog (replaces window.confirm) */}
+ <AlertDialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
+ <AlertDialogTrigger asChild>
+ <Button
+ variant="outline"
+ className="w-full text-destructive"
+ disabled={isConfirming || isRejecting}
+ >
+ {isRejecting ? "Cancelando..." : "Cancelar Venda"}
+ </Button>
+ </AlertDialogTrigger>
+ <AlertDialogContent>
+ <AlertDialogHeader>
+ <AlertDialogTitle className="flex items-center gap-2">
+ <AlertTriangle className="h-5 w-5 text-destructive" />
+ Cancelar esta venda?
+ </AlertDialogTitle>
+ <AlertDialogDescription>
+ O pedido será marcado como cancelado. Esta ação não pode ser desfeita.
+ </AlertDialogDescription>
+ </AlertDialogHeader>
+ <AlertDialogFooter className="gap-2 mt-4">
+ <Button variant="outline" onClick={() => setShowCancelConfirm(false)}>
+ Voltar
+ </Button>
+ <Button variant="destructive" onClick={handleReject} disabled={isRejecting}>
+ Confirmar Cancelamento
+ </Button>
+ </AlertDialogFooter>
+ </AlertDialogContent>
+ </AlertDialog>
 
-                <p className="text-xs text-muted-foreground text-center mt-2">
-                  Você enviou o link ou chave PIX para o cliente? Assim que ele pagar, clique em
-                  Marcar como Pago para liberar a separação.
-                </p>
-              </div>
-            )}
+ <p className="text-xs text-muted-foreground text-center mt-2">
+ Você enviou o link ou chave PIX para o cliente? Assim que ele pagar, clique em
+ Marcar como Pago para liberar a separação.
+ </p>
+ </div>
+ )}
 
-            {order.status === "processing" && (
-              <div className="space-y-3 mt-4">
-                <Button
-                  className="w-full font-bold"
-                  onClick={() => setPickingModalOpen(true)}
-                  disabled={isUpdating}
-                >
-                  <Package className="mr-2 h-4 w-4" />
-                  Iniciar Separação (Picking)
-                </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  Faça a conferência física dos itens antes de faturar o pedido.
-                </p>
-              </div>
-            )}
+ {order.status === "processing" && (
+ <div className="space-y-3 mt-4">
+ <Button
+ className="w-full font-bold"
+ onClick={() => setPickingModalOpen(true)}
+ disabled={isUpdating}
+ >
+ <Package className="mr-2 h-4 w-4" />
+ Iniciar Separação (Picking)
+ </Button>
+ <p className="text-xs text-muted-foreground text-center">
+ Faça a conferência física dos itens antes de faturar o pedido.
+ </p>
+ </div>
+ )}
 
-            {(order.status === "shipped" || order.status === "ready_for_pickup") && (
-              <div className="space-y-3 mt-4">
-                <Button
-                  className="w-full font-bold"
-                  onClick={() => handleStatusChange("delivered")}
-                  disabled={isUpdating}
-                >
-                  {order.status === "shipped" ? "Confirmar Entrega" : "Entregar ao Cliente"}
-                </Button>
-              </div>
-            )}
+ {(order.status === "shipped" || order.status === "ready_for_pickup") && (
+ <div className="space-y-3 mt-4">
+ <Button
+ className="w-full font-bold"
+ onClick={() => handleStatusChange("delivered")}
+ disabled={isUpdating}
+ >
+ {order.status === "shipped" ? "Confirmar Entrega" : "Entregar ao Cliente"}
+ </Button>
+ </div>
+ )}
 
-            {(order.status === "delivered" || order.status === "completed") && (
-              <div className="space-y-3 mt-4">
-                <RmaRequestWizard
-                  order={order}
-                  isOpen={returnModalOpen}
-                  onOpenChange={setReturnModalOpen}
-                  onComplete={async () => {
-                    await router.invalidate();
-                  }}
-                />
-                <Button
-                  variant="outline"
-                  className="w-full text-destructive mt-2"
-                  onClick={() => setReturnModalOpen(true)}
-                >
-                  Solicitar Devolução Parcial (RMA)
-                </Button>
-              </div>
-            )}
+ {(order.status === "delivered" || order.status === "completed") && (
+ <div className="space-y-3 mt-4">
+ <RmaRequestWizard
+ order={order}
+ isOpen={returnModalOpen}
+ onOpenChange={setReturnModalOpen}
+ onComplete={async () => {
+ await router.invalidate();
+ }}
+ />
+ <Button
+ variant="outline"
+ className="w-full text-destructive mt-2"
+ onClick={() => setReturnModalOpen(true)}
+ >
+ Solicitar Devolução Parcial (RMA)
+ </Button>
+ </div>
+ )}
 
-            {/* Rastreamento & Logística */}
-            <div className="border-t pt-4 mt-6 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-sm flex items-center gap-1.5">
-                  <Truck className="h-4 w-4 text-primary" /> Logística e Rastreio
-                </span>
-                <Sheet open={trackingModalOpen} onOpenChange={setTrackingModalOpen}>
-                  <SheetTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setTrackingForm({
-                          trackingCode: "",
-                          carrierName: "Transportadora",
-                          trackingUrl: "",
-                        })
-                      }
-                    >
-                      Novo Envio (Pacote)
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent>
-                    <SheetHeader>
-                      <SheetTitle>Informar Código de Rastreio</SheetTitle>
-                      <SheetDescription>
-                        Insira os dados da transportadora para enviar ao cliente.
-                      </SheetDescription>
-                    </SheetHeader>
-                    <form onSubmit={handleSaveTracking} className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Transportadora</label>
-                        <input
-                          type="text"
-                          required
-                          value={trackingForm.carrierName}
-                          onChange={(e) =>
-                            setTrackingForm((p) => ({ ...p, carrierName: e.target.value }))
-                          }
-                          className="w-full rounded-xl border px-3 py-2 text-sm"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Código de Rastreio</label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="Ex: BR123456789BR"
-                          value={trackingForm.trackingCode}
-                          onChange={(e) =>
-                            setTrackingForm((p) => ({ ...p, trackingCode: e.target.value }))
-                          }
-                          className="w-full rounded-xl border px-3 py-2 text-sm"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Link de Rastreio (Opcional)</label>
-                        <input
-                          type="url"
-                          placeholder="https://..."
-                          value={trackingForm.trackingUrl}
-                          onChange={(e) =>
-                            setTrackingForm((p) => ({ ...p, trackingUrl: e.target.value }))
-                          }
-                          className="w-full rounded-xl border px-3 py-2 text-sm"
-                        />
-                      </div>
-                      <Button type="submit" className="w-full" disabled={isSavingTracking}>
-                        {isSavingTracking ? "Salvando..." : "Confirmar Envio"}
-                      </Button>
-                    </form>
-                  </SheetContent>
-                </Sheet>
-              </div>
+ {/* Rastreamento & Logística */}
+ <div className="border-t pt-4 mt-6 space-y-3">
+ <div className="flex items-center justify-between">
+ <span className="font-semibold text-sm flex items-center gap-1.5">
+ <Truck className="h-4 w-4 text-primary" /> Logística e Rastreio
+ </span>
+ <Sheet open={trackingModalOpen} onOpenChange={setTrackingModalOpen}>
+ <SheetTrigger asChild>
+ <Button
+ variant="outline"
+ size="sm"
+ onClick={() =>
+ setTrackingForm({
+ trackingCode: "",
+ carrierName: "Transportadora",
+ trackingUrl: "",
+ })
+ }
+ >
+ Novo Envio (Pacote)
+ </Button>
+ </SheetTrigger>
+ <SheetContent>
+ <SheetHeader>
+ <SheetTitle>Informar Código de Rastreio</SheetTitle>
+ <SheetDescription>
+ Insira os dados da transportadora para enviar ao cliente.
+ </SheetDescription>
+ </SheetHeader>
+ <form onSubmit={handleSaveTracking} className="space-y-4 py-4">
+ <div className="space-y-2">
+ <label className="text-sm font-medium">Transportadora</label>
+ <input
+ type="text"
+ required
+ value={trackingForm.carrierName}
+ onChange={(e) =>
+ setTrackingForm((p) => ({ ...p, carrierName: e.target.value }))
+ }
+ className="w-full rounded-xl border px-3 py-2 text-sm"
+ />
+ </div>
+ <div className="space-y-2">
+ <label className="text-sm font-medium">Código de Rastreio</label>
+ <input
+ type="text"
+ required
+ placeholder="Ex: BR123456789BR"
+ value={trackingForm.trackingCode}
+ onChange={(e) =>
+ setTrackingForm((p) => ({ ...p, trackingCode: e.target.value }))
+ }
+ className="w-full rounded-xl border px-3 py-2 text-sm"
+ />
+ </div>
+ <div className="space-y-2">
+ <label className="text-sm font-medium">Link de Rastreio (Opcional)</label>
+ <input
+ type="url"
+ placeholder="https://..."
+ value={trackingForm.trackingUrl}
+ onChange={(e) =>
+ setTrackingForm((p) => ({ ...p, trackingUrl: e.target.value }))
+ }
+ className="w-full rounded-xl border px-3 py-2 text-sm"
+ />
+ </div>
+ <Button type="submit" className="w-full" disabled={isSavingTracking}>
+ {isSavingTracking ? "Salvando..." : "Confirmar Envio"}
+ </Button>
+ </form>
+ </SheetContent>
+ </Sheet>
+ </div>
 
-              {order.shipments && order.shipments.length > 0 ? (
-                <div className="space-y-2">
-                  {order.shipments.map((shipment: any) => (
-                    <div key={shipment.id} className="text-sm p-3 border rounded bg-muted/20">
-                      <p className="font-semibold">{shipment.carrier_name}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="font-mono text-muted-foreground">
-                          {shipment.tracking_code}
-                        </span>
-                        {shipment.tracking_url && (
-                          <a
-                            href={shipment.tracking_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-primary hover:underline flex items-center gap-1"
-                          >
-                            <ExternalLink className="h-3 w-3" /> Acompanhar
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Nenhum pacote enviado ainda.</p>
-              )}
+ {order.shipments && order.shipments.length > 0 ? (
+ <div className="space-y-2">
+ {order.shipments.map((shipment: any) => (
+ <div key={shipment.id} className="text-sm p-3 border rounded bg-muted/20">
+ <p className="font-semibold">{shipment.carrier_name}</p>
+ <div className="flex items-center gap-2 mt-1">
+ <span className="font-mono text-muted-foreground">
+ {shipment.tracking_code}
+ </span>
+ {shipment.tracking_url && (
+ <a
+ href={shipment.tracking_url}
+ target="_blank"
+ rel="noreferrer"
+ className="text-primary hover:underline flex items-center gap-1"
+ >
+ <ExternalLink className="h-3 w-3" /> Acompanhar
+ </a>
+ )}
+ </div>
+ </div>
+ ))}
+ </div>
+ ) : (
+ <p className="text-sm text-muted-foreground">Nenhum pacote enviado ainda.</p>
+ )}
 
-              {/* Comprovantes de Entrega com Foto & GPS */}
-              {proofs && proofs.length > 0 && (
-                <div className="pt-4 border-t border-border/40 space-y-3">
-                  <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    <Package className="size-3.5 text-emerald-600" /> Evidência Fotográfica de Entrega
-                  </span>
-                  <div className="grid grid-cols-1 gap-2.5">
-                    {proofs.map((pr: any) => (
-                      <div
-                        key={pr.id}
-                        className="rounded-xl overflow-hidden border border-border/60 bg-muted/20 p-2 space-y-2"
-                      >
-                        <a href={pr.storage_path} target="_blank" rel="noopener noreferrer">
-                          <img
-                            src={pr.storage_path}
-                            alt="Comprovante de Entrega"
-                            className="w-full aspect-video object-cover rounded-lg hover:opacity-90 transition-opacity"
-                          />
-                        </a>
-                        <div className="text-[10px] text-muted-foreground flex items-center justify-between">
-                          <span>Foto do pacote/destinatário</span>
-                          {pr.latitude && pr.longitude && (
-                            <a
-                              href={`https://www.google.com/maps/search/?api=1&query=${pr.latitude},${pr.longitude}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary hover:underline font-mono"
-                            >
-                              Ver Localização ↗
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+ {/* Comprovantes de Entrega com Foto & GPS */}
+ {proofs && proofs.length > 0 && (
+ <div className="pt-4 border-t border-border/40 space-y-3">
+ <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+ <Package className="size-3.5 text-emerald-600" /> Evidência Fotográfica de Entrega
+ </span>
+ <div className="grid grid-cols-1 gap-2.5">
+ {proofs.map((pr: any) => (
+ <div
+ key={pr.id}
+ className="rounded-xl overflow-hidden border border-border/60 bg-muted/20 p-2 space-y-2"
+ >
+ <a href={pr.storage_path} target="_blank" rel="noopener noreferrer">
+ <img
+ src={pr.storage_path}
+ alt="Comprovante de Entrega"
+ className="w-full aspect-video object-cover rounded-lg hover:opacity-90 transition-opacity"
+ />
+ </a>
+ <div className="text-[10px] text-muted-foreground flex items-center justify-between">
+ <span>Foto do pacote/destinatário</span>
+ {pr.latitude && pr.longitude && (
+ <a
+ href={`https://www.google.com/maps/search/?api=1&query=${pr.latitude},${pr.longitude}`}
+ target="_blank"
+ rel="noopener noreferrer"
+ className="text-primary hover:underline font-mono"
+ >
+ Ver Localização ↗
+ </a>
+ )}
+ </div>
+ </div>
+ ))}
+ </div>
+ </div>
+ )}
+ </div>
+ </div>
+ </div>
+ </div>
 
-      {editModalOpen && (
-        <OrderEditWizard
-          order={order}
-          isOpen={editModalOpen}
-          onOpenChange={setEditModalOpen}
-          onComplete={async () => {
-            await router.invalidate();
-          }}
-        />
-      )}
+ {editModalOpen && (
+ <OrderEditWizard
+ order={order}
+ isOpen={editModalOpen}
+ onOpenChange={setEditModalOpen}
+ onComplete={async () => {
+ await router.invalidate();
+ }}
+ />
+ )}
 
-      <PickingWizard
-        order={order}
-        isOpen={pickingModalOpen}
-        onOpenChange={setPickingModalOpen}
-        onComplete={async () => {
-          await handleStatusChange(
-            order.shipping_method === "pickup" ? "ready_for_pickup" : "shipped",
-          );
-        }}
-      />
-    </div>
-  );
+ <PickingWizard
+ order={order}
+ isOpen={pickingModalOpen}
+ onOpenChange={setPickingModalOpen}
+ onComplete={async () => {
+ await handleStatusChange(
+ order.shipping_method === "pickup" ? "ready_for_pickup" : "shipped",
+ );
+ }}
+ />
+ </div>
+ );
 }

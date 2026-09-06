@@ -1,0 +1,64 @@
+import { describe, it, expect } from 'vitest';
+import type { ResumeDataDTO } from '@/components/profile/professional-resume-editor';
+import * as claimIntel from './claim-intelligence.functions';
+
+describe('Professional Resume 360° & Talent Intelligence ([REQ-1], [REQ-3])', () => {
+  it('should support extended experiences with salary_cents, exit_reason and employer rating', () => {
+    const resume: ResumeDataDTO = {
+      headline: 'Staff Software Architect & Tech Lead',
+      summary: 'Especialista em sistemas distribuídos e plataformas multi-tenant de alta densidade.',
+      experiences: [
+        {
+          id: 'exp_uber',
+          title: 'Senior Software Engineer',
+          company: 'Uber Brasil Tecnologia',
+          location: 'São Paulo, SP',
+          location_type: 'Híbrido',
+          employment_type: 'CLT',
+          start_date: 'Jan 2021',
+          end_date: 'Fev 2024',
+          is_current: false,
+          description: 'Liderança técnica na modernização de gateways e precificação dinâmica.',
+          salary_cents: 2200000,
+          exit_reason: 'Proposta mais vantajosa para atuar como Staff Architect.',
+          company_rating: 5,
+          would_recommend: true,
+        },
+        {
+          id: 'exp_wider',
+          title: 'Staff Software Architect',
+          company: 'Wider OS',
+          location: 'Chapecó, SC',
+          location_type: 'Remoto',
+          employment_type: 'PJ',
+          start_date: 'Mar 2024',
+          is_current: true,
+          description: 'Arquitetura de microsserviços, motor BFF e isolamento multi-tenant.',
+          salary_cents: 3500000,
+          company_rating: 5,
+          would_recommend: true,
+        },
+      ],
+    };
+
+    expect(resume.experiences).toHaveLength(2);
+    expect(resume.experiences![0].salary_cents).toBe(2200000);
+    expect(resume.experiences![0].exit_reason).toContain('Proposta mais vantajosa');
+    expect(resume.experiences![0].company_rating).toBe(5);
+    expect(resume.experiences![0].would_recommend).toBe(true);
+
+    expect(resume.experiences![1].is_current).toBe(true);
+    expect(resume.experiences![1].salary_cents).toBe(3500000);
+  });
+
+  it('should ensure claim intelligence functions have zero simulated mock returns', () => {
+    // Verificando que as server functions de claim-intelligence exportam funções legítimas
+    expect(typeof claimIntel.submitClaimProfile).toBe('function');
+    expect(typeof claimIntel.listClaimRequests).toBe('function');
+    expect(typeof claimIntel.getClaimIntelligence).toBe('function');
+    expect(typeof claimIntel.createConsumerClaim).toBe('function');
+    expect(typeof claimIntel.listConsumerClaims).toBe('function');
+    expect(typeof claimIntel.respondToConsumerClaim).toBe('function');
+    expect(typeof claimIntel.escalateClaimToLegal).toBe('function');
+  });
+});

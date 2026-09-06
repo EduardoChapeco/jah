@@ -1,22 +1,7 @@
 import { z } from "zod";
 import { SevenSinHookDTO, SevenSinHookSchema } from "../types/squads-and-onboarding";
 import { getStoreBrandDna } from "./market-radar.functions";
-
-// ── CONEXÃO RESILIENTE COM SUPABASE / POSTGRES ──────────────────────────────
-async function getDb() {
-  const postgres = (await import("postgres")).default;
-  return postgres({
-    host: process.env.SUPABASE_DB_HOST || "aws-0-sa-east-1.pooler.supabase.com",
-    port: Number(process.env.SUPABASE_DB_PORT) || 6543,
-    database: process.env.SUPABASE_DB_NAME || "postgres",
-    username: process.env.SUPABASE_DB_USER || "postgres.jfuebqmltksyznovhlwa",
-    password: process.env.SUPABASE_DB_PASSWORD || "EEaR6399!@#2026",
-    ssl: "require",
-    max: 5,
-    idle_timeout: 20,
-    connect_timeout: 10,
-  });
-}
+import { getServerClient } from "@/lib/supabase";
 
 // ── DEFINIÇÃO DOS 7 PECADOS & GATILHOS PSICOLÓGICOS ─────────────────────────
 export const SEVEN_SINS_DEFINITIONS = {
@@ -88,82 +73,81 @@ export async function generateSevenSinCopy(
     targetChannel: "whatsapp" | "instagram_ad" | "push_notification" | "storefront_banner";
   }
 ): Promise<SevenSinHookDTO> {
-  const sql = await getDb();
+  const serverClient = getServerClient();
   let productName = params.productNameFallback || "Produto Destaque";
   let productPrice = "R$ 49,90";
 
-  try {
-    if (params.productId) {
-      const [prod] = await sql`
-        SELECT name, price, description FROM products 
-        WHERE id = ${params.productId} AND store_id = ${storeId};
-      `;
-      if (prod) {
-        productName = prod.name;
-        if (prod.price) {
-          productPrice = `R$ ${(Number(prod.price) / 100).toFixed(2).replace(".", ",")}`;
-        }
+  if (params.productId) {
+    const { data: prod } = await serverClient
+      .from("products")
+      .select("name, price, description")
+      .eq("id", params.productId)
+      .eq("store_id", storeId)
+      .maybeSingle();
+
+    if (prod) {
+      productName = prod.name;
+      if (prod.price) {
+        productPrice = `R$ ${(Number(prod.price) / 100).toFixed(2).replace(".", ",")}`;
       }
     }
-
-    const dna = await getStoreBrandDna(storeId);
-    const def = SEVEN_SINS_DEFINITIONS[params.sin] || SEVEN_SINS_DEFINITIONS.orgulho;
-
-    // Redação estruturada do Agente "agent.v4_copywriter" (Copywriter Sênior & Psicanalista)
-    let headline = "";
-    let body = "";
-    let cta = "";
-
-    switch (params.sin) {
-      case "orgulho":
-        headline = `Não é para qualquer um: Conheça o padrão oficial de ${productName}`;
-        body = `Quem entende de qualidade reconhece à primeira vista. Selecionado sob critérios rigorosos para clientes que exigem excelência sem concessões. Disponível por apenas ${productPrice}.`;
-        cta = "Garantir Edição Limitada";
-        break;
-      case "ganancia":
-        headline = `Pague por 1, sinta o valor de 2: O melhor custo-benefício de ${productName}`;
-        body = `Economize margem real sem abrir mão do padrão premium. Ao pedir hoje por ${productPrice}, você tem retorno de sabor e economia imediata comprovada.`;
-        cta = "Aproveitar Oportunidade Exclusiva";
-        break;
-      case "luxuria":
-        headline = `Uma explosão sensorial inesquecível: ${productName}`;
-        body = `A textura perfeita, o aroma irresistível e o sabor que conquista no primeiro instante. Você merece se dar esse presente especial hoje por ${productPrice}.`;
-        cta = "Quero Sentir Esse Sabor Agora";
-        break;
-      case "inveja":
-        headline = `O que todos estão comentando na cidade: Experimente o novo ${productName}`;
-        body = `Descubra por que quem experimenta não consegue mais voltar atrás. Seja o primeiro do seu círculo a ter a experiência completa por ${productPrice}.`;
-        cta = "Ver Por Que É Tão Desejado";
-        break;
-      case "gula":
-        headline = `Fartura sem limites: Surpreenda seu apetite com ${productName}`;
-        body = `Uma porção generosa e irresistível, preparada com os melhores ingredientes da casa. Satisfação garantida do início ao fim por apenas ${productPrice}.`;
-        cta = "Pedir Minha Porção Especial";
-        break;
-      case "ira":
-        headline = `Cansado de pagar caro por comida sem graça? Chegou o verdadeiro ${productName}`;
-        body = `Chega de promessas não cumpridas e entregas que frustram. Nós respeitamos seu tempo e seu dinheiro com padrão rigoroso de qualidade por ${productPrice}.`;
-        cta = "Exigir o Padrão Que Eu Mereço";
-        break;
-      case "preguica":
-        headline = `Em 1 toque no seu celular: ${productName} na sua porta`;
-        body = `Sem filas, sem dor de cabeça, sem cadastros complicados. Peça agora em segundos pelo WhatsApp e receba quentinho onde estiver por ${productPrice}.`;
-        cta = "Pedir em 1 Clique Sem Esforço";
-        break;
-    }
-
-    return {
-      sin: params.sin,
-      title: `${def.label} — ${productName}`,
-      subconscious_trigger: def.subconscious,
-      copy_headline: headline,
-      copy_body: body,
-      call_to_action: cta,
-      recommended_channel: params.targetChannel,
-    };
-  } finally {
-    await sql.end();
   }
+
+  const dna = await getStoreBrandDna(storeId);
+  const def = SEVEN_SINS_DEFINITIONS[params.sin] || SEVEN_SINS_DEFINITIONS.orgulho;
+
+  // Redação estruturada do Agente "agent.v4_copywriter" (Copywriter Sênior & Psicanalista)
+  let headline = "";
+  let body = "";
+  let cta = "";
+
+  switch (params.sin) {
+    case "orgulho":
+      headline = `Não é para qualquer um: Conheça o padrão oficial de ${productName}`;
+      body = `Quem entende de qualidade reconhece à primeira vista. Selecionado sob critérios rigorosos para clientes que exigem excelência sem concessões. Disponível por apenas ${productPrice}.`;
+      cta = "Garantir Edição Limitada";
+      break;
+    case "ganancia":
+      headline = `Pague por 1, sinta o valor de 2: O melhor custo-benefício de ${productName}`;
+      body = `Economize margem real sem abrir mão do padrão premium. Ao pedir hoje por ${productPrice}, você tem retorno de sabor e economia imediata comprovada.`;
+      cta = "Aproveitar Oportunidade Exclusiva";
+      break;
+    case "luxuria":
+      headline = `Uma explosão sensorial inesquecível: ${productName}`;
+      body = `A textura perfeita, o aroma irresistível e o sabor que conquista no primeiro instante. Você merece se dar esse presente especial hoje por ${productPrice}.`;
+      cta = "Quero Sentir Esse Sabor Agora";
+      break;
+    case "inveja":
+      headline = `O que todos estão comentando na cidade: Experimente o novo ${productName}`;
+      body = `Descubra por que quem experimenta não consegue mais voltar atrás. Seja o primeiro do seu círculo a ter a experiência completa por ${productPrice}.`;
+      cta = "Ver Por Que É Tão Desejado";
+      break;
+    case "gula":
+      headline = `Fartura sem limites: Surpreenda seu apetite com ${productName}`;
+      body = `Uma porção generosa e irresistível, preparada com os melhores ingredientes da casa. Satisfação garantida do início ao fim por apenas ${productPrice}.`;
+      cta = "Pedir Minha Porção Especial";
+      break;
+    case "ira":
+      headline = `Cansado de pagar caro por comida sem graça? Chegou o verdadeiro ${productName}`;
+      body = `Chega de promessas não cumpridas e entregas que frustram. Nós respeitamos seu tempo e seu dinheiro com padrão rigoroso de qualidade por ${productPrice}.`;
+      cta = "Exigir o Padrão Que Eu Mereço";
+      break;
+    case "preguica":
+      headline = `Em 1 toque no seu celular: ${productName} na sua porta`;
+      body = `Sem filas, sem dor de cabeça, sem cadastros complicados. Peça agora em segundos pelo WhatsApp e receba quentinho onde estiver por ${productPrice}.`;
+      cta = "Pedir em 1 Clique Sem Esforço";
+      break;
+  }
+
+  return {
+    sin: params.sin,
+    title: `${def.label} — ${productName}`,
+    subconscious_trigger: def.subconscious,
+    copy_headline: headline,
+    copy_body: body,
+    call_to_action: cta,
+    recommended_channel: params.targetChannel,
+  };
 }
 
 // ── 2. SIMLAB V2: TESTE DE IMPACTO COM PERSONAS SINTÉTICAS ─────────────────

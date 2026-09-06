@@ -8,7 +8,7 @@ export const listTravelVisas = createServerFn({ method: 'GET' })
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  const storeId = data.store_id || identity.store_id;
- assertStoreAccess(identity, storeId);
+ assertStoreAccess(identity);
 
  const db = getServerClient();
  let q = db
@@ -40,7 +40,7 @@ export const createTravelVisa = createServerFn({ method: 'POST' })
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  const storeId = data.store_id || identity.store_id;
- assertStoreAccess(identity, storeId);
+ assertStoreAccess(identity);
 
  const defaultDocs = [
  { id: 'd-1', title: 'Passaporte Original (Validade mínima 6 meses)', status: 'pendente' },

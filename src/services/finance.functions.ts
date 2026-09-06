@@ -22,14 +22,14 @@ import { getServerIdentity } from "@/lib/server-access";
 // ---------------------------------------------------------------------------
 
 export const FINANCIAL_TX_TYPES = [
-  "revenue_sale",
-  "revenue_pos_sale",
-  "refund",
-  "expense_shipping",
-  "expense_fee",
-  "expense_other",
-  "withdrawal",
-  "adjustment",
+ "revenue_sale",
+ "revenue_pos_sale",
+ "refund",
+ "expense_shipping",
+ "expense_fee",
+ "expense_other",
+ "withdrawal",
+ "adjustment",
 ] as const;
 
 export type FinancialTxType = (typeof FINANCIAL_TX_TYPES)[number];
@@ -39,24 +39,24 @@ export type FinancialTxType = (typeof FINANCIAL_TX_TYPES)[number];
 // ---------------------------------------------------------------------------
 
 export interface FinancialTransactionDTO {
-  id: string;
-  type: FinancialTxType;
-  amount_cents: number;
-  description: string;
-  category: string | null;
-  reference_date: string;
-  order_id: string | null;
-  created_at: string;
+ id: string;
+ type: FinancialTxType;
+ amount_cents: number;
+ description: string;
+ category: string | null;
+ reference_date: string;
+ order_id: string | null;
+ created_at: string;
 }
 
 export interface FinancialSummaryDTO {
-  total_revenue_cents: number;
-  total_expense_cents: number;
-  total_refund_cents: number;
-  net_cents: number;
-  transaction_count: number;
-  period_start: string;
-  period_end: string;
+ total_revenue_cents: number;
+ total_expense_cents: number;
+ total_refund_cents: number;
+ net_cents: number;
+ transaction_count: number;
+ period_start: string;
+ period_end: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -64,136 +64,136 @@ export interface FinancialSummaryDTO {
 // ---------------------------------------------------------------------------
 
 export async function _listFinancialTransactions(filters: {
-  startDate?: string;
-  endDate?: string;
-  type?: FinancialTxType;
-  limit?: number;
-  offset?: number;
+ startDate?: string;
+ endDate?: string;
+ type?: FinancialTxType;
+ limit?: number;
+ offset?: number;
 }) {
-  const db = getServerClient();
-  const { store_id } = await getServerIdentity();
-  if (!store_id) throw new Error("Acesso não autorizado.");
+ const db = getServerClient();
+ const { store_id } = await getServerIdentity();
+ if (!store_id) throw new Error("Acesso não autorizado.");
 
-  let query = db
-    .from("financial_transactions")
-    .select("id, type, amount_cents, description, category, reference_date, order_id, created_at")
-    .eq("store_id", store_id)
-    .order("reference_date", { ascending: false })
-    .order("created_at", { ascending: false });
+ let query = db
+ .from("financial_transactions")
+ .select("id, type, amount_cents, description, category, reference_date, order_id, created_at")
+ .eq("store_id", store_id)
+ .order("reference_date", { ascending: false })
+ .order("created_at", { ascending: false });
 
-  if (filters.startDate) {
-    query = query.gte("reference_date", filters.startDate);
-  }
-  if (filters.endDate) {
-    query = query.lte("reference_date", filters.endDate);
-  }
-  if (filters.type) {
-    query = query.eq("type", filters.type);
-  }
-  if (filters.limit) {
-    query = query.limit(filters.limit);
-  }
-  if (filters.offset) {
-    query = query.range(filters.offset, filters.offset + (filters.limit ?? 50) - 1);
-  }
+ if (filters.startDate) {
+ query = query.gte("reference_date", filters.startDate);
+ }
+ if (filters.endDate) {
+ query = query.lte("reference_date", filters.endDate);
+ }
+ if (filters.type) {
+ query = query.eq("type", filters.type);
+ }
+ if (filters.limit) {
+ query = query.limit(filters.limit);
+ }
+ if (filters.offset) {
+ query = query.range(filters.offset, filters.offset + (filters.limit ?? 50) - 1);
+ }
 
-  const { data, error } = await query;
-  if (error) throw error;
-  return (data || []) as FinancialTransactionDTO[];
+ const { data, error } = await query;
+ if (error) throw error;
+ return (data || []) as FinancialTransactionDTO[];
 }
 
 export async function _getFinancialSummary(filters: {
-  startDate: string;
-  endDate: string;
+ startDate: string;
+ endDate: string;
 }): Promise<FinancialSummaryDTO> {
-  const db = getServerClient();
-  const { store_id } = await getServerIdentity();
-  if (!store_id) throw new Error("Acesso não autorizado.");
+ const db = getServerClient();
+ const { store_id } = await getServerIdentity();
+ if (!store_id) throw new Error("Acesso não autorizado.");
 
-  const { data, error } = await db
-    .from("financial_transactions")
-    .select("type, amount_cents")
-    .eq("store_id", store_id)
-    .gte("reference_date", filters.startDate)
-    .lte("reference_date", filters.endDate);
+ const { data, error } = await db
+ .from("financial_transactions")
+ .select("type, amount_cents")
+ .eq("store_id", store_id)
+ .gte("reference_date", filters.startDate)
+ .lte("reference_date", filters.endDate);
 
-  if (error) throw error;
+ if (error) throw error;
 
-  const rows = (data || []) as { type: FinancialTxType; amount_cents: number }[];
+ const rows = (data || []) as { type: FinancialTxType; amount_cents: number }[];
 
-  let totalRevenueCents = 0;
-  let totalExpenseCents = 0;
-  let totalRefundCents = 0;
+ let totalRevenueCents = 0;
+ let totalExpenseCents = 0;
+ let totalRefundCents = 0;
 
-  for (const row of rows) {
-    if (row.type === "revenue_sale" || row.type === "revenue_pos_sale") {
-      totalRevenueCents += row.amount_cents;
-    } else if (row.type === "refund") {
-      totalRefundCents += Math.abs(row.amount_cents);
-    } else if (row.type.startsWith("expense_") || row.type === "withdrawal") {
-      totalExpenseCents += Math.abs(row.amount_cents);
-    }
-  }
+ for (const row of rows) {
+ if (row.type === "revenue_sale" || row.type === "revenue_pos_sale") {
+ totalRevenueCents += row.amount_cents;
+ } else if (row.type === "refund") {
+ totalRefundCents += Math.abs(row.amount_cents);
+ } else if (row.type.startsWith("expense_") || row.type === "withdrawal") {
+ totalExpenseCents += Math.abs(row.amount_cents);
+ }
+ }
 
-  const netCents = totalRevenueCents - totalRefundCents - totalExpenseCents;
+ const netCents = totalRevenueCents - totalRefundCents - totalExpenseCents;
 
-  return {
-    total_revenue_cents: totalRevenueCents,
-    total_expense_cents: totalExpenseCents,
-    total_refund_cents: totalRefundCents,
-    net_cents: netCents,
-    transaction_count: rows.length,
-    period_start: filters.startDate,
-    period_end: filters.endDate,
-  };
+ return {
+ total_revenue_cents: totalRevenueCents,
+ total_expense_cents: totalExpenseCents,
+ total_refund_cents: totalRefundCents,
+ net_cents: netCents,
+ transaction_count: rows.length,
+ period_start: filters.startDate,
+ period_end: filters.endDate,
+ };
 }
 
 export async function _createManualTransaction(input: {
-  type: FinancialTxType;
-  amount_cents: number;
-  description: string;
-  category?: string;
-  reference_date?: string;
+ type: FinancialTxType;
+ amount_cents: number;
+ description: string;
+ category?: string;
+ reference_date?: string;
 }) {
-  // Revenue types cannot be created manually — only via DB triggers
-  const manualAllowed: FinancialTxType[] = [
-    "expense_shipping",
-    "expense_fee",
-    "expense_other",
-    "withdrawal",
-    "adjustment",
-  ];
+ // Revenue types cannot be created manually — only via DB triggers
+ const manualAllowed: FinancialTxType[] = [
+ "expense_shipping",
+ "expense_fee",
+ "expense_other",
+ "withdrawal",
+ "adjustment",
+ ];
 
-  if (!manualAllowed.includes(input.type)) {
-    throw new Error(
-      `O tipo '${input.type}' não pode ser lançado manualmente. Receitas são registradas automaticamente pelas vendas.`,
-    );
-  }
+ if (!manualAllowed.includes(input.type)) {
+ throw new Error(
+ `O tipo '${input.type}' não pode ser lançado manualmente. Receitas são registradas automaticamente pelas vendas.`,
+ );
+ }
 
-  const db = getServerClient();
-  const { id: userId, store_id } = await getServerIdentity();
-  if (!store_id) throw new Error("Acesso não autorizado.");
+ const db = getServerClient();
+ const { id: userId, store_id } = await getServerIdentity();
+ if (!store_id) throw new Error("Acesso não autorizado.");
 
-  // For expenses and withdrawals, ensure amount is stored as negative
-  const amountCents =
-    input.type === "adjustment" ? input.amount_cents : -Math.abs(input.amount_cents);
+ // For expenses and withdrawals, ensure amount is stored as negative
+ const amountCents =
+ input.type === "adjustment" ? input.amount_cents : -Math.abs(input.amount_cents);
 
-  const { data, error } = await db
-    .from("financial_transactions")
-    .insert({
-      store_id,
-      type: input.type,
-      amount_cents: amountCents,
-      description: input.description,
-      category: input.category,
-      reference_date: input.reference_date ?? new Date().toISOString().split("T")[0],
-      created_by: userId ?? null,
-    })
-    .select()
-    .single();
+ const { data, error } = await db
+ .from("financial_transactions")
+ .insert({
+ store_id,
+ type: input.type,
+ amount_cents: amountCents,
+ description: input.description,
+ category: input.category,
+ reference_date: input.reference_date ?? new Date().toISOString().split("T")[0],
+ created_by: userId ?? null,
+ })
+ .select()
+ .single();
 
-  if (error) throw error;
-  return data as FinancialTransactionDTO;
+ if (error) throw error;
+ return data as FinancialTransactionDTO;
 }
 
 // ---------------------------------------------------------------------------
@@ -201,66 +201,66 @@ export async function _createManualTransaction(input: {
 // ---------------------------------------------------------------------------
 
 export const listFinancialTransactions = createServerFn({ method: "GET" })
-  .validator(
-    z.object({
-      startDate: z.string().optional(),
-      endDate: z.string().optional(),
-      type: z.enum(FINANCIAL_TX_TYPES).optional(),
-      limit: z.number().int().min(1).max(200).optional(),
-      offset: z.number().int().min(0).optional(),
-    }),
-  )
-  .handler(async ({ data: filters }) => {
-    try {
-      return await _listFinancialTransactions(filters);
-    } catch (e: unknown) {
-      if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error(
-        "[finance] listFinancialTransactions:",
-        e instanceof Error ? e.message : String(e),
-      );
-      throw new Error("Erro ao buscar lançamentos financeiros.");
-    }
-  });
+ .validator(
+ z.object({
+ startDate: z.string().optional(),
+ endDate: z.string().optional(),
+ type: z.enum(FINANCIAL_TX_TYPES).optional(),
+ limit: z.number().int().min(1).max(200).optional(),
+ offset: z.number().int().min(0).optional(),
+ }),
+ )
+ .handler(async ({ data: filters }) => {
+ try {
+ return await _listFinancialTransactions(filters);
+ } catch (e: unknown) {
+ if (e instanceof SupabaseUnconfiguredError) throw e;
+ console.error(
+ "[finance] listFinancialTransactions:",
+ e instanceof Error ? e.message : String(e),
+ );
+ throw new Error("Erro ao buscar lançamentos financeiros.");
+ }
+ });
 
 export const getFinancialSummary = createServerFn({ method: "GET" })
-  .validator(
-    z.object({
-      startDate: z.string(),
-      endDate: z.string(),
-    }),
-  )
-  .handler(async ({ data: filters }) => {
-    try {
-      return await _getFinancialSummary(filters);
-    } catch (e: unknown) {
-      if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[finance] getFinancialSummary:", e instanceof Error ? e.message : String(e));
-      throw new Error("Erro ao calcular resumo financeiro.");
-    }
-  });
+ .validator(
+ z.object({
+ startDate: z.string(),
+ endDate: z.string(),
+ }),
+ )
+ .handler(async ({ data: filters }) => {
+ try {
+ return await _getFinancialSummary(filters);
+ } catch (e: unknown) {
+ if (e instanceof SupabaseUnconfiguredError) throw e;
+ console.error("[finance] getFinancialSummary:", e instanceof Error ? e.message : String(e));
+ throw new Error("Erro ao calcular resumo financeiro.");
+ }
+ });
 
 export const createManualTransaction = createServerFn({ method: "POST" })
-  .validator(
-    z.object({
-      type: z.enum(FINANCIAL_TX_TYPES),
-      amount_cents: z.number().int().min(1, "Valor deve ser maior que zero"),
-      description: z.string().min(3, "Descrição obrigatória"),
-      category: z.string().optional(),
-      reference_date: z.string().optional(),
-    }),
-  )
-  .handler(async ({ data: input }) => {
-    try {
-      return await _createManualTransaction(input);
-    } catch (e: unknown) {
-      if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error(
-        "[finance] createManualTransaction:",
-        e instanceof Error ? e.message : String(e),
-      );
-      throw new Error(
-        (e instanceof Error ? e.message : String(e)) || "Erro ao registrar lançamento.",
-      );
-    }
-  });
+ .validator(
+ z.object({
+ type: z.enum(FINANCIAL_TX_TYPES),
+ amount_cents: z.number().int().min(1, "Valor deve ser maior que zero"),
+ description: z.string().min(3, "Descrição obrigatória"),
+ category: z.string().optional(),
+ reference_date: z.string().optional(),
+ }),
+ )
+ .handler(async ({ data: input }) => {
+ try {
+ return await _createManualTransaction(input);
+ } catch (e: unknown) {
+ if (e instanceof SupabaseUnconfiguredError) throw e;
+ console.error(
+ "[finance] createManualTransaction:",
+ e instanceof Error ? e.message : String(e),
+ );
+ throw new Error(
+ (e instanceof Error ? e.message : String(e)) || "Erro ao registrar lançamento.",
+ );
+ }
+ });

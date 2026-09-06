@@ -92,7 +92,7 @@ export const getPublicClassifiedById = createServerFn({ method: "GET" })
 
  classifiedData.profiles = profile || {
  id: classifiedData.author_profile_id,
- full_name: "Morador Verificado JAH",
+ full_name: "Morador Verificado Wider",
  avatar_url: null,
  phone: classifiedData.contact_whatsapp || classifiedData.whatsapp,
  };
@@ -248,6 +248,22 @@ const upsertClassifiedInput = z.object({
  max_guests: z.number().int().optional(),
  cleaning_fee_cents: z.number().int().optional(),
  rental_period: z.string().optional(),
+ digital_file_url: z.string().nullable().optional(),
+ is_digital: z.boolean().optional(),
+ digital_file_name: z.string().nullable().optional(),
+ digital_file_size_bytes: z.number().int().nullable().optional(),
+ digital_preview_url: z.string().nullable().optional(),
+ download_limit: z.number().int().optional(),
+ access_duration_days: z.number().int().optional(),
+ booking_enabled: z.boolean().optional(),
+ available_slots: z.number().int().optional(),
+ service_duration_minutes: z.number().int().optional(),
+ property_tags: z.array(z.string()).optional(),
+ is_boosted: z.boolean().optional(),
+ delivery_mode: z.enum(["pickup", "local_delivery", "national_shipping", "both"]).optional(),
+ accepts_trade: z.boolean().optional(),
+ accepts_card: z.boolean().optional(),
+ max_installments: z.number().int().optional(),
  content: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
  price_cents: z.number().int().min(0).nullable().optional(),
  images: z.array(z.string()).optional().default([]),
@@ -292,6 +308,22 @@ export const upsertClassified = createServerFn({ method: "POST" })
  max_guests: rest.max_guests ?? rest.attributes?.max_guests ?? 1,
  cleaning_fee_cents: rest.cleaning_fee_cents ?? rest.attributes?.cleaning_fee_cents ?? 0,
  rental_period: rest.rental_period || rest.attributes?.rental_period || (rest.deal_type === "temporada" ? "diaria" : "mensal"),
+ is_digital: rest.is_digital ?? (!!rest.digital_file_url),
+ digital_file_url: rest.digital_file_url || rest.attributes?.digital_file_url || null,
+ digital_file_name: rest.digital_file_name || rest.attributes?.digital_file_name || null,
+ digital_file_size_bytes: rest.digital_file_size_bytes ?? rest.attributes?.digital_file_size_bytes ?? null,
+ digital_preview_url: rest.digital_preview_url || rest.attributes?.digital_preview_url || null,
+ download_limit: rest.download_limit ?? rest.attributes?.download_limit ?? 5,
+ access_duration_days: rest.access_duration_days ?? rest.attributes?.access_duration_days ?? null,
+ booking_enabled: rest.booking_enabled ?? rest.attributes?.booking_enabled ?? false,
+ available_slots: rest.available_slots ?? rest.attributes?.available_slots ?? null,
+ service_duration_minutes: rest.service_duration_minutes ?? rest.attributes?.service_duration_minutes ?? null,
+ property_tags: Array.isArray(rest.property_tags) ? rest.property_tags : Array.isArray(rest.attributes?.property_tags) ? rest.attributes.property_tags : [],
+ is_boosted: rest.is_boosted ?? rest.attributes?.is_boosted ?? false,
+ delivery_mode: rest.delivery_mode || rest.attributes?.delivery_mode || "pickup",
+ accepts_trade: rest.accepts_trade ?? rest.attributes?.accepts_trade ?? false,
+ accepts_card: rest.accepts_card ?? rest.attributes?.accepts_card ?? false,
+ max_installments: rest.max_installments ?? rest.attributes?.max_installments ?? 1,
  price_cents: rest.price_cents ?? null,
  contact_whatsapp: rest.contact_whatsapp || rest.whatsapp || null,
  location_name: rest.location_name || null,
@@ -389,7 +421,7 @@ export const applyToClassifiedJob = createServerFn({ method: "POST" })
  classified_id: input.classified_id,
  candidate_profile_id: identity?.id || null,
  candidate_name: input.candidate_name,
- candidate_email: input.candidate_email || identity?.email || null,
+ candidate_email: input.candidate_email || null,
  candidate_phone: input.candidate_phone || null,
  education_level: input.education_level || null,
  experience_years: input.experience_years || null,
@@ -415,6 +447,7 @@ export const applyToClassifiedJob = createServerFn({ method: "POST" })
  .maybeSingle();
 
  if (item?.store_id) {
+ try {
  await supabase
  .from("leads_crm")
  .insert({
@@ -429,10 +462,10 @@ export const applyToClassifiedJob = createServerFn({ method: "POST" })
  status: "new",
  tags: ["Classificados", "Candidato", input.candidate_role || item.title],
  notes: `Candidatura a vaga via classificados. Cargo pretendido: ${input.candidate_role || "Não informado"}. Experiência: ${input.experience_years || "Não informada"}. Escolaridade: ${input.education_level || "Não informada"}. Nota: ${input.cover_note || "Nenhuma"}.`,
- })
- .catch((err) => {
- console.warn("[classifieds] Failed to sync to leads_crm:", err);
  });
+ } catch (err: any) {
+ console.warn("[classifieds] Failed to sync to leads_crm:", err);
+ }
  }
 
  return data;
@@ -458,3 +491,49 @@ export const listClassifiedJobApplications = createServerFn({ method: "GET" })
 
  return apps || [];
  });
+
+export const getDigitalDownloadSignedUrl = createServerFn({ method: "POST" })
+  .validator(z.object({ classifiedId: z.string().uuid() }))
+  .handler(async ({ data: { classifiedId } }) => {
+    const supabase = getServerClient();
+    const { data: ad, error } = await supabase
+      .from("classifieds")
+      .select("id, title, digital_file_url, digital_file_name, is_digital, status")
+      .eq("id", classifiedId)
+      .single();
+
+    if (error || !ad) throw new Error("Anúncio não encontrado.");
+    if (!ad.digital_file_url) throw new Error("Este anúncio não possui arquivo digital anexado.");
+
+    let storagePath = ad.digital_file_url;
+    if (storagePath.includes("/classifieds/")) {
+      storagePath = storagePath.split("/classifieds/")[1];
+    }
+
+    // Se já é uma URL pública direta com https, retorna ela
+    if (storagePath.startsWith("http://") || storagePath.startsWith("https://")) {
+      return {
+        downloadUrl: storagePath,
+        fileName: ad.digital_file_name || `${ad.title || "arquivo"}.zip`,
+      };
+    }
+
+    const { data: signedData, error: signErr } = await supabase
+      .storage
+      .from("classifieds")
+      .createSignedUrl(storagePath, 3600);
+
+    if (signErr) {
+      console.warn("[classifieds] createSignedUrl falhou, tentando URL pública:", signErr);
+      const { data: pubData } = supabase.storage.from("classifieds").getPublicUrl(storagePath);
+      return {
+        downloadUrl: pubData.publicUrl,
+        fileName: ad.digital_file_name || `${ad.title || "arquivo"}.zip`,
+      };
+    }
+
+    return {
+      downloadUrl: signedData?.signedUrl || ad.digital_file_url,
+      fileName: ad.digital_file_name || `${ad.title || "arquivo"}.zip`,
+    };
+  });

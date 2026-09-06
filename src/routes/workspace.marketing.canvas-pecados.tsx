@@ -25,15 +25,21 @@ import {
   runSimLabPersonaTest,
   SimLabPersonaResult,
 } from "@/services/seven-sins-simlab.functions";
+import { getStoreSettings } from "@/services/store.functions";
 import { SevenSinHookDTO } from "@/types/squads-and-onboarding";
 
 export const Route = createFileRoute("/workspace/marketing/canvas-pecados")({
-  head: () => ({ meta: [{ title: "Canvas dos 7 Pecados Capitais | JAH Master OS" }] }),
+  head: () => ({ meta: [{ title: "Canvas dos 7 Pecados Capitais | Wider OS" }] }),
+  loader: async () => {
+    const store = await getStoreSettings().catch(() => null);
+    return { store };
+  },
   component: SevenSinsCanvasPage,
 });
 
 export function SevenSinsCanvasPage() {
-  const [storeId] = useState("c6ccd3b2-aa54-42a2-b0fe-251daa5b97f7");
+  const { store } = (Route.useLoaderData() as any) || {};
+  const storeId = store?.id || "";
 
   const [selectedSin, setSelectedSin] = useState<SinType>("orgulho");
   const [productName, setProductName] = useState("Combo Executivo Especial");
@@ -94,7 +100,7 @@ export function SevenSinsCanvasPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-24">
+    <div className="w-full min-h-full bg-background text-foreground pb-24">
       {/* ── HEADER EXECUTIVO COM SELO SILENCIOSO APPLE HIG ── */}
       <div className="border-b border-border/40 bg-card/50 backdrop-blur-xl sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">

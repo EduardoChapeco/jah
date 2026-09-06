@@ -28,6 +28,7 @@ import {
   getStoreBrandDna,
   updateStoreBrandDna,
 } from "@/services/market-radar.functions";
+import { getStoreSettings } from "@/services/store.functions";
 import {
   MarketCompetitorDTO,
   CompetitorSnapshotDTO,
@@ -35,12 +36,17 @@ import {
 } from "@/types/squads-and-onboarding";
 
 export const Route = createFileRoute("/workspace/inteligencia/radar")({
-  head: () => ({ meta: [{ title: "Radar de Mercado & Brand DNA | JAH Master OS" }] }),
+  head: () => ({ meta: [{ title: "Radar de Mercado & Brand DNA | Wider OS" }] }),
+  loader: async () => {
+    const store = await getStoreSettings().catch(() => null);
+    return { store };
+  },
   component: MarketRadarPage,
 });
 
 export function MarketRadarPage() {
-  const [storeId] = useState("c6ccd3b2-aa54-42a2-b0fe-251daa5b97f7");
+  const { store } = Route.useLoaderData() as any;
+  const storeId = store?.id || "";
 
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -65,6 +71,10 @@ export function MarketRadarPage() {
 
   // ── CARREGAMENTO INICIAL DOS DADOS REAIS ─────────────────────────────────
   async function loadData() {
+    if (!storeId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const [comps, dna] = await Promise.all([
@@ -150,7 +160,7 @@ export function MarketRadarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-24">
+    <div className="w-full min-h-full bg-background text-foreground pb-24">
       {/* ── HEADER EXECUTIVO COM SELO SILENCIOSO APPLE HIG ── */}
       <div className="border-b border-border/40 bg-card/50 backdrop-blur-xl sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">

@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_store/motorista/$slug")({
  head: ({ loaderData }: any) => ({
  meta: [
  {
- title: `${loaderData?.courier?.full_name || "Motorista Parceiro"} | JAH Master OS`,
+ title: `${loaderData?.courier?.full_name || "Motorista Parceiro"} | Wider OS`,
  },
  ],
  }),

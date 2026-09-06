@@ -7,203 +7,203 @@ import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
 // Generate a random 12-char code like ABCD-1234-WXYZ using standard Web Crypto
 // Exclude ambiguous characters (I, O, 0, 1) to prevent user typing mistakes
 function generateGiftCardCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const bytes = new Uint8Array(12);
-  crypto.getRandomValues(bytes);
-  let code = "";
-  for (let i = 0; i < 12; i++) {
-    if (i > 0 && i % 4 === 0) code += "-";
-    code += chars[bytes[i] % chars.length];
-  }
-  return code;
+ const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+ const bytes = new Uint8Array(12);
+ crypto.getRandomValues(bytes);
+ let code = "";
+ for (let i = 0; i < 12; i++) {
+ if (i > 0 && i % 4 === 0) code += "-";
+ code += chars[bytes[i] % chars.length];
+ }
+ return code;
 }
 
 export const createGiftCard = createServerFn({ method: "POST" })
-  .validator(
-    z.object({
-      initialBalanceCents: z.number().int().min(100), // Min 1 BRL
-      recipientEmail: z.string().email().optional(),
-    }),
-  )
-  .handler(async ({ data: { initialBalanceCents, recipientEmail } }) => {
-    const supabase = getServerClient();
-    const identity = await getServerIdentity();
-    assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
+ .validator(
+ z.object({
+ initialBalanceCents: z.number().int().min(100), // Min 1 BRL
+ recipientEmail: z.string().email().optional(),
+ }),
+ )
+ .handler(async ({ data: { initialBalanceCents, recipientEmail } }) => {
+ const supabase = getServerClient();
+ const identity = await getServerIdentity();
+ assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
 
-    const code = generateGiftCardCode();
+ const code = generateGiftCardCode();
 
-    const { error } = await supabase.from("gift_cards").insert({
-      store_id: identity.store_id,
-      code,
-      initial_balance_cents: initialBalanceCents,
-      balance_cents: initialBalanceCents,
-      purchaser_id: identity.id, // Admin created
-      recipient_email: recipientEmail || null,
-      status: "active",
-    });
+ const { error } = await supabase.from("gift_cards").insert({
+ store_id: identity.store_id,
+ code,
+ initial_balance_cents: initialBalanceCents,
+ balance_cents: initialBalanceCents,
+ purchaser_id: identity.id, // Admin created
+ recipient_email: recipientEmail || null,
+ status: "active",
+ });
 
-    if (error) throw new Error("Erro ao gerar cartão presente");
+ if (error) throw new Error("Erro ao gerar cartão presente");
 
-    return { status: "success", code };
-  });
+ return { status: "success", code };
+ });
 
 export const listGiftCards = createServerFn({ method: "GET" }).handler(async () => {
-  const supabase = getServerClient();
-  const identity = await getServerIdentity();
-  assertStoreAccess(identity, ["owner", "admin", "manager", "finance", "seller"]);
+ const supabase = getServerClient();
+ const identity = await getServerIdentity();
+ assertStoreAccess(identity, ["owner", "admin", "manager", "finance", "seller"]);
 
-  const { data: cards, error } = await supabase
-    .from("gift_cards")
-    .select(
-      "id, code, initial_balance_cents, balance_cents, status, created_at, purchaser_profile:profiles!gift_cards_purchaser_id_fkey(full_name)",
-    )
-    .eq("store_id", identity.store_id)
-    .order("created_at", { ascending: false });
+ const { data: cards, error } = await supabase
+ .from("gift_cards")
+ .select(
+ "id, code, initial_balance_cents, balance_cents, status, created_at, purchaser_profile:profiles!gift_cards_purchaser_id_fkey(full_name)",
+ )
+ .eq("store_id", identity.store_id)
+ .order("created_at", { ascending: false });
 
-  if (error) throw new Error("Erro ao buscar cartões presente");
+ if (error) throw new Error("Erro ao buscar cartões presente");
 
-  return cards.map((c: any) => ({
-    id: c.id,
-    code: c.code,
-    initialBalance: c.initial_balance_cents,
-    currentBalance: c.balance_cents,
-    status: c.status,
-    createdAt: c.created_at,
-    purchaserName: c.purchaser_profile?.full_name || "Sistema",
-  }));
+ return cards.map((c: any) => ({
+ id: c.id,
+ code: c.code,
+ initialBalance: c.initial_balance_cents,
+ currentBalance: c.balance_cents,
+ status: c.status,
+ createdAt: c.created_at,
+ purchaserName: c.purchaser_profile?.full_name || "Sistema",
+ }));
 });
 
 export const checkGiftCardBalance = createServerFn({ method: "POST" })
-  .validator(
-    z.object({
-      code: z.string().min(5),
-    }),
-  )
-  .handler(async ({ data: { code } }) => {
-    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
-    const storeId = await resolveTenantStoreId();
-    if (!storeId) throw new Error("Loja não identificada.");
+ .validator(
+ z.object({
+ code: z.string().min(5),
+ }),
+ )
+ .handler(async ({ data: { code } }) => {
+ const { resolveTenantStoreId } = await import("@/lib/tenant.server");
+ const storeId = await resolveTenantStoreId();
+ if (!storeId) throw new Error("Loja não identificada.");
 
-    const supabase = getServerClient();
+ const supabase = getServerClient();
 
-    const { data: card, error } = await supabase
-      .from("gift_cards")
-      .select("id, balance_cents, status, expires_at")
-      .eq("code", code)
-      .eq("store_id", storeId)
-      .limit(1)
-      .maybeSingle();
+ const { data: card, error } = await supabase
+ .from("gift_cards")
+ .select("id, balance_cents, status, expires_at")
+ .eq("code", code)
+ .eq("store_id", storeId)
+ .limit(1)
+ .maybeSingle();
 
-    if (error || !card) throw new Error("Cartão não encontrado");
-    if (card.status !== "active") throw new Error("Cartão inativo ou exaurido");
+ if (error || !card) throw new Error("Cartão não encontrado");
+ if (card.status !== "active") throw new Error("Cartão inativo ou exaurido");
 
-    if (card.expires_at && new Date(card.expires_at) < new Date()) {
-      throw new Error("Cartão expirado");
-    }
+ if (card.expires_at && new Date(card.expires_at) < new Date()) {
+ throw new Error("Cartão expirado");
+ }
 
-    return {
-      id: card.id,
-      balanceCents: card.balance_cents,
-    };
-  });
+ return {
+ id: card.id,
+ balanceCents: card.balance_cents,
+ };
+ });
 
 export const cancelGiftCard = createServerFn({ method: "POST" })
-  .validator(
-    z.object({
-      id: z.string().uuid(),
-    }),
-  )
-  .handler(async ({ data: { id } }) => {
-    const supabase = getServerClient();
-    const identity = await getServerIdentity();
-    assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
+ .validator(
+ z.object({
+ id: z.string().uuid(),
+ }),
+ )
+ .handler(async ({ data: { id } }) => {
+ const supabase = getServerClient();
+ const identity = await getServerIdentity();
+ assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
 
-    const { error } = await supabase
-      .from("gift_cards")
-      .update({ status: "cancelled" })
-      .eq("id", id)
-      .eq("store_id", identity.store_id);
+ const { error } = await supabase
+ .from("gift_cards")
+ .update({ status: "cancelled" })
+ .eq("id", id)
+ .eq("store_id", identity.store_id);
 
-    if (error) throw new Error("Erro ao cancelar cartão presente");
+ if (error) throw new Error("Erro ao cancelar cartão presente");
 
-    return { status: "success" };
-  });
+ return { status: "success" };
+ });
 
 export const claimGiftCard = createServerFn({ method: "POST" })
-  .validator(
-    z.object({
-      code: z.string().min(5),
-    }),
-  )
-  .handler(async ({ data: { code } }) => {
-    const supabase = getServerClient();
-    const ssrClient = await getSSRClient();
-    const {
-      data: { user },
-    } = await ssrClient.auth.getUser();
+ .validator(
+ z.object({
+ code: z.string().min(5),
+ }),
+ )
+ .handler(async ({ data: { code } }) => {
+ const supabase = getServerClient();
+ const ssrClient = await getSSRClient();
+ const {
+ data: { user },
+ } = await ssrClient.auth.getUser();
 
-    if (!user) throw new Error("Você precisa estar logado para resgatar um vale-presente.");
+ if (!user) throw new Error("Você precisa estar logado para resgatar um vale-presente.");
 
-    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
-    const storeId = await resolveTenantStoreId().catch(() => null);
+ const { resolveTenantStoreId } = await import("@/lib/tenant.server");
+ const storeId = await resolveTenantStoreId().catch(() => null);
 
-    let query = supabase
-      .from("gift_cards")
-      .select("id, purchaser_id, status, balance_cents")
-      .eq("code", code);
+ let query = supabase
+ .from("gift_cards")
+ .select("id, purchaser_id, status, balance_cents")
+ .eq("code", code);
 
-    if (storeId) {
-      query = query.eq("store_id", storeId);
-    }
+ if (storeId) {
+ query = query.eq("store_id", storeId);
+ }
 
-    const { data: card, error: findError } = await query.limit(1).maybeSingle();
+ const { data: card, error: findError } = await query.limit(1).maybeSingle();
 
-    if (findError || !card) throw new Error("Vale-presente inválido ou não encontrado.");
-    if (card.status !== "active")
-      throw new Error("Este vale-presente já foi utilizado ou está inativo.");
-    if (card.balance_cents <= 0) throw new Error("Este vale-presente não possui saldo.");
+ if (findError || !card) throw new Error("Vale-presente inválido ou não encontrado.");
+ if (card.status !== "active")
+ throw new Error("Este vale-presente já foi utilizado ou está inativo.");
+ if (card.balance_cents <= 0) throw new Error("Este vale-presente não possui saldo.");
 
-    const { error: updateError } = await supabase
-      .from("gift_cards")
-      .update({ purchaser_id: user.id })
-      .eq("id", card.id);
+ const { error: updateError } = await supabase
+ .from("gift_cards")
+ .update({ purchaser_id: user.id })
+ .eq("id", card.id);
 
-    if (updateError) throw new Error("Erro ao vincular vale-presente à sua conta.");
+ if (updateError) throw new Error("Erro ao vincular vale-presente à sua conta.");
 
-    return { status: "success" as const };
-  });
+ return { status: "success" as const };
+ });
 
 export const listCustomerGiftCards = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const ssrClient = await getSSRClient();
-    const {
-      data: { user },
-    } = await ssrClient.auth.getUser().catch(() => ({ data: { user: null } }));
-    if (!user) return [];
+ try {
+ const ssrClient = await getSSRClient();
+ const {
+ data: { user },
+ } = await ssrClient.auth.getUser().catch(() => ({ data: { user: null } }));
+ if (!user) return [];
 
-    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
-    const storeId = await resolveTenantStoreId().catch(() => null);
+ const { resolveTenantStoreId } = await import("@/lib/tenant.server");
+ const storeId = await resolveTenantStoreId().catch(() => null);
 
-    const supabase = getServerClient();
-    let query = supabase
-      .from("gift_cards")
-      .select("id, code, initial_balance_cents, balance_cents, status, expires_at, created_at")
-      .eq("purchaser_id", user.id);
+ const supabase = getServerClient();
+ let query = supabase
+ .from("gift_cards")
+ .select("id, code, initial_balance_cents, balance_cents, status, expires_at, created_at")
+ .eq("purchaser_id", user.id);
 
-    if (storeId) {
-      query = query.eq("store_id", storeId);
-    }
+ if (storeId) {
+ query = query.eq("store_id", storeId);
+ }
 
-    const { data: cards, error } = await query.order("created_at", { ascending: false });
+ const { data: cards, error } = await query.order("created_at", { ascending: false });
 
-    if (error) {
-      console.warn("[giftcard.functions] listCustomerGiftCards warning:", error);
-      return [];
-    }
+ if (error) {
+ console.warn("[giftcard.functions] listCustomerGiftCards warning:", error);
+ return [];
+ }
 
-    return cards || [];
-  } catch (err) {
-    console.warn("[giftcard.functions] listCustomerGiftCards error:", err);
-    return [];
-  }
+ return cards || [];
+ } catch (err) {
+ console.warn("[giftcard.functions] listCustomerGiftCards error:", err);
+ return [];
+ }
 });

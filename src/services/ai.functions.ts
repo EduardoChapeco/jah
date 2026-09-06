@@ -286,7 +286,7 @@ async function invokeOpenRouter(
  "Content-Type": "application/json",
  Authorization: `Bearer ${apiKey}`,
  "HTTP-Referer": "https://wider.pages.dev",
- "X-Title": "JAH AI Assistant",
+ "X-Title": "Wider AI Assistant",
  },
  body: JSON.stringify(payload),
  });

@@ -17,14 +17,14 @@
 
 @theme inline {
   /* ── Radius scale — Apple HIG Contained Squircle System ── */
-  --radius-xs: 4px;
-  --radius-sm: 6px;   /* chips, tags e badges compactos */
-  --radius-md: 8px;   /* inputs, selects, segmented controls */
-  --radius-lg: 12px;  /* cards de conteúdo, botões principais */
-  --radius-xl: 14px;  /* modais, popovers e floating bars */
+  --radius-xs: 2px;
+  --radius-sm: 4px;   /* micro-chips, tags e badges compactos */
+  --radius-md: 6px;   /* selects compactos, segmented controls */
+  --radius-lg: 8px;   /* botões standard, inputs principais */
+  --radius-xl: 12px;  /* cards de conteúdo, produtos, notícias, tiles */
   --radius-2xl: 16px; /* containers mestres, sheets e painéis */
-  --radius-3xl: 20px; /* superfícies de destaque */
-  --radius-full: 9999px; /* pill puro */
+  --radius-3xl: 20px; /* superfícies de destaque, modais */
+  --radius-full: 9999px; /* pill puro para chips e badges */
 
   /* ── Shadows — Reduzidas, design flat focado em linhas ─── */
   --shadow-sm: none;
@@ -55,14 +55,14 @@
   --content-media-max: 1200px;
 
   /* ── Organic Geometry & Squircle Family Tokens ────────── */
-  --shape-soft: 12px;
-  --shape-squircle: 16px;
-  --shape-organic-tl: 16px;
-  --shape-organic-tr: 16px;
-  --shape-organic-br: 16px;
-  --shape-organic-bl: 16px;
-  --shape-media: 14px;
-  --shape-action: 12px;
+  --shape-soft: 8px;
+  --shape-squircle: 12px;
+  --shape-organic-tl: 12px;
+  --shape-organic-tr: 12px;
+  --shape-organic-br: 12px;
+  --shape-organic-bl: 12px;
+  --shape-media: 12px;
+  --shape-action: 8px;
 
   --radius-shape-soft: var(--shape-soft);
   --radius-shape-squircle: var(--shape-squircle);
@@ -531,6 +531,15 @@
 .shadow-md,
 .shadow-lg {
   box-shadow: none !important;
+}
+
+/* ── PREVENÇÃO DE ZOOM AUTOMÁTICO NO SAFARI IOS (Inputs < 16px acionam zoom indesejado) ── */
+@media (max-width: 639px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
 /* ── MOBILE ADAPTIVE RESPONSIVENESS (Apple HIG, Material 3, iFood, Threads) ──── */

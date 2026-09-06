@@ -1,10 +1,9 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   FileText,
   Plus,
-  Search,
   ChevronRight,
   Clock,
   CheckCircle2,
@@ -16,22 +15,23 @@ import {
   List,
   ArrowRight,
   TrendingUp,
+  DollarSign,
 } from "lucide-react";
-import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { listQuotes, updateQuoteStatus, type QuoteSummaryDTO } from "@/services/quotes.functions";
 import { formatMoney } from "@/lib/money";
 import { formatRelativeTime } from "@/lib/datetime";
 import { toast } from "sonner";
 
+import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-canonical-toolbar";
+import { WorkspaceDashboardSheet } from "@/components/workspace/workspace-dashboard-sheet";
+
 export const Route = createFileRoute("/workspace/orcamentos/")({
-  head: () => ({ meta: [{ title: "Orçamentos & Pipeline de Vendas | Workspace JAH Master OS" }] }),
+  head: () => ({ meta: [{ title: "Orçamentos | Workspace Wider OS" }] }),
   loader: async () => {
-    const res = await listQuotes({ data: { limit: 50 } });
+    const res = await listQuotes({ data: { limit: 50 } }).catch(() => ({ items: [], total: 0 }));
     return { initialData: res };
   },
   component: QuotesListPage,
@@ -62,15 +62,6 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-const STATUS_TABS = [
-  { key: undefined, label: "Todos" },
-  { key: "draft", label: "Rascunhos" },
-  { key: "sent", label: "Enviados" },
-  { key: "negotiating", label: "Negociando" },
-  { key: "approved", label: "Aprovados" },
-  { key: "rejected", label: "Recusados" },
-] as const;
-
 const KANBAN_COLUMNS = [
   { id: "draft", title: "Rascunhos & Leads", statuses: ["draft"] },
   { id: "sent", title: "Enviados", statuses: ["sent"] },
@@ -80,9 +71,11 @@ const KANBAN_COLUMNS = [
 
 function QuotesListPage() {
   const { initialData } = Route.useLoaderData();
-  const [viewMode, setViewMode] = useState<"list" | "kanban">("kanban");
+  const router = useRouter();
+  const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
   const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
   const [search, setSearch] = useState("");
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError } = useQuery({
@@ -107,76 +100,67 @@ function QuotesListPage() {
 
   const quotes = data?.items ?? [];
 
+  // Métricas
+  const totalVolumeCents = useMemo(
+    () => quotes.reduce((acc: number, q: QuoteSummaryDTO) => acc + (q.total_cents || 0), 0),
+    [quotes]
+  );
+  const negotiatingCount = useMemo(
+    () => quotes.filter((q: QuoteSummaryDTO) => q.status === "negotiating").length,
+    [quotes]
+  );
+  const approvedCount = useMemo(
+    () => quotes.filter((q: QuoteSummaryDTO) => q.status === "approved" || q.status === "converted").length,
+    [quotes]
+  );
+  const sentCount = useMemo(
+    () => quotes.filter((q: QuoteSummaryDTO) => q.status === "sent").length,
+    [quotes]
+  );
+  const draftCount = useMemo(
+    () => quotes.filter((q: QuoteSummaryDTO) => q.status === "draft").length,
+    [quotes]
+  );
+
   return (
-    <div className="space-y-6">
-      {/* ── PageHeader Canônico ── */}
-      <PageHeader
-        eyebrow="Vendas"
-        title="Orçamentos"
-        actions={
-          <div className="flex items-center gap-2">
-            <div className="bg-muted/60 p-1 rounded-xl flex items-center gap-1">
-              <Button
-                variant={viewMode === "kanban" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("kanban")}
-                className="h-8 px-2.5 rounded-lg text-xs font-bold gap-1.5"
-              >
-                <Kanban className="size-3.5" />
-                <span>Kanban</span>
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("list")}
-                className="h-8 px-2.5 rounded-lg text-xs font-bold gap-1.5"
-              >
-                <List className="size-3.5" />
-                <span>Lista</span>
-              </Button>
-            </div>
-            <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground">
-              <Link to="/workspace/orcamentos/novo">
-                <Plus className="size-3.5" />
-                <span>Novo Orçamento</span>
-              </Link>
-            </Button>
-          </div>
-        }
+    <div className="flex flex-col gap-4 min-h-[calc(100vh-8.5rem)]">
+      {/* ── 1. Barra Canônica de Operação Silenciosa ── */}
+      <WorkspaceCanonicalToolbar
+        tabs={[
+          { id: "kanban", label: "Kanban", icon: Kanban, count: quotes.length },
+          { id: "list", label: "Lista", icon: List, count: quotes.length },
+        ]}
+        activeTab={viewMode}
+        onTabChange={(id) => setViewMode(id as any)}
+        searchQuery={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Buscar por código, cliente ou anotações..."
+        filters={[
+          {
+            id: "status",
+            label: "Status",
+            value: statusFilter || "all",
+            options: [
+              { label: "Todos os Status", value: "all" },
+              { label: "Rascunhos", value: "draft" },
+              { label: "Enviados", value: "sent" },
+              { label: "Em Negociação", value: "negotiating" },
+              { label: "Aprovados", value: "approved" },
+              { label: "Recusados", value: "rejected" },
+            ],
+            onChange: (val) => setStatusFilter(val === "all" ? undefined : val),
+          },
+        ]}
+        onMetricsClick={() => setIsDashboardOpen(true)}
+        metricsBadge={totalVolumeCents > 0 ? formatMoney(totalVolumeCents) : undefined}
+        primaryAction={{
+          label: "Novo Orçamento",
+          icon: Plus,
+          onClick: () => router.navigate({ to: "/workspace/orcamentos/novo" }),
+        }}
       />
 
-      {/* ── Toolbar Unificada de Filtros & Busca ── */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-card border border-border rounded-2xl px-4 py-3">
-        <Tabs
-          value={statusFilter || "all"}
-          onValueChange={(val) => setStatusFilter(val === "all" ? undefined : val)}
-        >
-          <TabsList className="flex overflow-x-auto no-scrollbar h-8">
-            {STATUS_TABS.map((tab) => (
-              <TabsTrigger
-                key={String(tab.key || "all")}
-                value={tab.key || "all"}
-                className="text-xs shrink-0"
-              >
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Buscar por número, cliente..."
-            className="pl-8 text-xs w-full rounded-xl h-8 bg-background"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* ── Conteúdo Principal ── */}
+      {/* ── 2. Conteúdo Principal (Kanban ou Lista) ── */}
       {isLoading && (
         <div className="flex justify-center py-16">
           <Loader2 className="size-6 animate-spin text-muted-foreground" />
@@ -219,18 +203,18 @@ function QuotesListPage() {
       )}
 
       {!isLoading && !isError && quotes.length > 0 && viewMode === "kanban" && (
-        <div className="flex gap-4 items-stretch pb-8 overflow-x-auto no-scrollbar [scrollbar-width:thin] scrollbar-thumb-border/60 scrollbar-track-transparent">
+        <div className="flex gap-4 items-stretch pb-2 overflow-x-auto no-scrollbar h-[calc(100vh-10.5rem)] sm:h-[calc(100vh-9.5rem)] select-none">
           {KANBAN_COLUMNS.map((col) => {
-            const colQuotes = quotes.filter((q) => col.statuses.includes(q.status));
-            const colTotalCents = colQuotes.reduce((acc, q) => acc + q.total_cents, 0);
+            const colQuotes = quotes.filter((q: QuoteSummaryDTO) => col.statuses.includes(q.status));
+            const colTotalCents = colQuotes.reduce((acc: number, q: QuoteSummaryDTO) => acc + q.total_cents, 0);
 
             return (
               <div
                 key={col.id}
-                className="bg-card/60 border border-border/70 rounded-2xl p-3.5 space-y-3 flex flex-col w-[320px] min-w-[320px] shrink-0 min-h-[500px] shadow-2xs"
+                className="bg-card/60 border border-border/70 rounded-xl p-3.5 flex flex-col w-[310px] min-w-[310px] sm:w-[330px] sm:min-w-[330px] shrink-0 h-full shadow-2xs overflow-hidden"
               >
                 {/* Header da Coluna */}
-                <div className="flex items-center justify-between pb-2 border-b border-border/40">
+                <div className="flex items-center justify-between pb-2 border-b border-border/50 shrink-0">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-foreground">{col.title}</span>
                     <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0 h-4">
@@ -242,55 +226,51 @@ function QuotesListPage() {
                   </span>
                 </div>
 
-                {/* Cards da Coluna */}
-                <div className="space-y-2.5 flex-1 overflow-y-auto no-scrollbar">
+                {/* Cards com scroll interno */}
+                <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar space-y-2.5 pt-1">
                   {colQuotes.length === 0 ? (
-                    <div className="h-32 border border-dashed border-border/40 rounded-xl flex items-center justify-center text-center p-3">
-                      <span className="text-[11px] text-muted-foreground font-medium">Nenhum orçamento</span>
+                    <div className="h-28 flex items-center justify-center text-xs text-muted-foreground border border-dashed border-border/50 rounded-xl">
+                      Nenhum orçamento
                     </div>
                   ) : (
-                    colQuotes.map((q) => (
+                    colQuotes.map((q: QuoteSummaryDTO) => (
                       <div
                         key={q.id}
-                        className="bg-card border border-border/70 rounded-xl p-3 shadow-2xs hover:border-primary/40 transition-all space-y-2 group"
+                        className="bg-card border border-border/60 hover:border-border rounded-xl p-3 space-y-2 transition-shadow shadow-2xs group"
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-start justify-between gap-2">
                           <Link
                             to="/workspace/orcamentos/$id"
                             params={{ id: q.id }}
-                            className="font-mono text-xs font-bold text-primary hover:underline"
+                            className="text-xs font-mono font-bold text-foreground hover:text-primary transition-colors"
                           >
                             {q.quote_number}
                           </Link>
                           <StatusBadge status={q.status} />
                         </div>
 
-                        <Link
-                          to="/workspace/orcamentos/$id"
-                          params={{ id: q.id }}
-                          className="block"
-                        >
-                          <p className="text-xs font-semibold text-foreground truncate">
-                            {q.customer_name || q.customer_email || "Cliente avulso"}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                            {q.item_count} {q.item_count === 1 ? "item" : "itens"} • {formatRelativeTime(q.updated_at)}
-                          </p>
-                        </Link>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {q.customer_name ?? q.customer_email ?? "Cliente não informado"}
+                        </p>
 
-                        <div className="pt-2 border-t border-border/40 flex items-center justify-between">
-                          <span className="text-xs font-bold font-mono text-foreground">
+                        <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[11px]">
+                          <span className="font-bold text-foreground font-mono">
                             {formatMoney(q.total_cents)}
                           </span>
+                          <span className="text-muted-foreground text-[10px]">
+                            {formatRelativeTime(q.updated_at)}
+                          </span>
+                        </div>
 
-                          {/* Ações de Avanço Rápido de Estágio */}
+                        {/* Ações Rápidas de Estágio */}
+                        <div className="flex items-center justify-end gap-1.5 pt-1">
                           {q.status === "draft" && (
                             <Button
                               variant="ghost"
                               size="sm"
                               disabled={updateStatusMutation.isPending}
                               onClick={() => updateStatusMutation.mutate({ quote_id: q.id, status: "sent" })}
-                              className="h-6 px-2 text-[10px] font-bold rounded-lg gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-500/10"
+                              className="h-6 px-2 text-[10px] font-bold rounded-lg gap-1 text-primary hover:text-primary hover:bg-primary/10"
                             >
                               <span>Enviar</span>
                               <ArrowRight className="size-2.5" />
@@ -318,6 +298,82 @@ function QuotesListPage() {
           })}
         </div>
       )}
+
+      {/* ── 3. Painel de Métricas / Dashboard Sob Demanda ── */}
+      <WorkspaceDashboardSheet
+        open={isDashboardOpen}
+        onOpenChange={setIsDashboardOpen}
+        title="Painel de Orçamentos & Pipeline"
+        description="Indicadores de volume orçado, conversão em pedidos e estágios das propostas comerciais."
+        metrics={[
+          {
+            id: "total_vol",
+            label: "Volume Total Orçado",
+            value: formatMoney(totalVolumeCents),
+            icon: DollarSign,
+            trend: { value: "Ativo", direction: "up" },
+            description: "Somatório de todos os orçamentos em aberto",
+          },
+          {
+            id: "total_quotes",
+            label: "Total de Orçamentos",
+            value: quotes.length,
+            icon: FileText,
+            description: "Contagem de orçamentos registrados",
+          },
+          {
+            id: "negotiating",
+            label: "Em Negociação",
+            value: negotiatingCount,
+            icon: Clock,
+            description: "Propostas com contato e negociação ativos",
+          },
+          {
+            id: "approved",
+            label: "Aprovados / Ganhos",
+            value: approvedCount,
+            icon: CheckCircle2,
+            trend: { value: "Fechados", direction: "up" },
+            description: "Orçamentos aprovados ou convertidos em pedidos",
+          },
+          {
+            id: "sent",
+            label: "Aguardando Resposta",
+            value: sentCount,
+            icon: Send,
+            description: "Enviados ao cliente aguardando análise",
+          },
+        ]}
+        breakdown={{
+          title: "Distribuição por Estágio",
+          items: [
+            {
+              label: "Aprovados / Convertidos",
+              value: approvedCount,
+              total: Math.max(quotes.length, 1),
+              color: "bg-emerald-500",
+            },
+            {
+              label: "Em Negociação",
+              value: negotiatingCount,
+              total: Math.max(quotes.length, 1),
+              color: "bg-amber-500",
+            },
+            {
+              label: "Enviados",
+              value: sentCount,
+              total: Math.max(quotes.length, 1),
+              color: "bg-sky-500",
+            },
+            {
+              label: "Rascunhos",
+              value: draftCount,
+              total: Math.max(quotes.length, 1),
+              color: "bg-slate-400",
+            },
+          ],
+        }}
+      />
     </div>
   );
 }
@@ -334,13 +390,12 @@ function QuoteRow({ quote }: { quote: QuoteSummaryDTO }) {
       params={{ id: quote.id }}
       className="flex items-center gap-4 px-4 py-3.5 bg-card hover:bg-muted/30 transition-colors group"
     >
-      {/* Número e cliente */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-xs font-mono font-bold text-foreground">{quote.quote_number}</span>
           <StatusBadge status={quote.status} />
           {isExpiring && (
-            <span className="text-[10px] text-warning font-medium flex items-center gap-1">
+            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1">
               <AlertTriangle className="size-3" />
               Vence em breve
             </span>
@@ -353,7 +408,6 @@ function QuoteRow({ quote }: { quote: QuoteSummaryDTO }) {
         </p>
       </div>
 
-      {/* Valor */}
       <div className="text-right shrink-0">
         <p className="text-xs font-bold text-foreground font-mono">{formatMoney(quote.total_cents)}</p>
         <p className="text-[10px] text-muted-foreground">{formatRelativeTime(quote.updated_at)}</p>

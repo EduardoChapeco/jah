@@ -2,365 +2,365 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
-  Clock, 
-  MapPin, 
-  FileText, 
-  Send, 
-  CheckCircle2, 
-  Calendar, 
-  CreditCard, 
-  Briefcase,
-  Download,
-  AlertCircle,
-  HelpCircle,
-  Camera
+ Clock, 
+ MapPin, 
+ FileText, 
+ Send, 
+ CheckCircle2, 
+ Calendar, 
+ CreditCard, 
+ Briefcase,
+ Download,
+ AlertCircle,
+ HelpCircle,
+ Camera
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
-  recordTimeClock, 
-  listEmployeeTimeEntries, 
-  listEmployeePayslips, 
-  acknowledgePayslip,
-  createEmployeeRequest 
+ recordTimeClock, 
+ listEmployeeTimeEntries, 
+ listEmployeePayslips, 
+ acknowledgePayslip,
+ createEmployeeRequest 
 } from "@/services/hr.functions";
 import { formatDateTime, formatTimeOnly } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/colaborador")({
-  head: () => ({ meta: [{ title: "Espaço do Colaborador | JAH Hub" }] }),
-  component: ColaboradorPortalPage,
+ head: () => ({ meta: [{ title: "Espaço do Colaborador | Wider Hub" }] }),
+ component: ColaboradorPortalPage,
 });
 
 function ColaboradorPortalPage() {
-  const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"ponto" | "holerites" | "solicitacoes">("ponto");
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [geoCoords, setGeoCoords] = useState<{ latitude?: number; longitude?: number } | null>(null);
+ const queryClient = useQueryClient();
+ const [activeTab, setActiveTab] = useState<"ponto" | "holerites" | "solicitacoes">("ponto");
+ const [currentTime, setCurrentTime] = useState(new Date());
+ const [geoCoords, setGeoCoords] = useState<{ latitude?: number; longitude?: number } | null>(null);
 
-  // Solicitação form
-  const [requestType, setRequestType] = useState<any>("salary_advance");
-  const [requestTitle, setRequestTitle] = useState("");
-  const [requestDesc, setRequestDesc] = useState("");
-  const [requestAmount, setRequestAmount] = useState("");
+ // Solicitação form
+ const [requestType, setRequestType] = useState<any>("salary_advance");
+ const [requestTitle, setRequestTitle] = useState("");
+ const [requestDesc, setRequestDesc] = useState("");
+ const [requestAmount, setRequestAmount] = useState("");
 
-  // Relógio em tempo real
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+ // Relógio em tempo real
+ useEffect(() => {
+ const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+ return () => clearInterval(timer);
+ }, []);
 
-  // Obter localização GPS do dispositivo
-  useEffect(() => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setGeoCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-        (err) => console.warn("GPS não autorizado:", err.message),
-        { enableHighAccuracy: true }
-      );
-    }
-  }, []);
+ // Obter localização GPS do dispositivo
+ useEffect(() => {
+ if ("geolocation" in navigator) {
+ navigator.geolocation.getCurrentPosition(
+ (pos) => setGeoCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+ (err) => console.warn("GPS não autorizado:", err.message),
+ { enableHighAccuracy: true }
+ );
+ }
+ }, []);
 
-  // Mock employeeId do usuário logado (em prod vem da session)
-  const employeeId = "00000000-0000-0000-0000-000000000000";
+ // Mock employeeId do usuário logado (em prod vem da session)
+ const employeeId = "00000000-0000-0000-0000-000000000000";
 
-  const { data: timeEntries = [], isLoading: loadingEntries } = useQuery({
-    queryKey: ["my-time-entries"],
-    queryFn: () => listEmployeeTimeEntries({ data: { employeeId } }),
-  });
+ const { data: timeEntries = [], isLoading: loadingEntries } = useQuery({
+ queryKey: ["my-time-entries"],
+ queryFn: () => listEmployeeTimeEntries({ data: { employeeId } }),
+ });
 
-  const { data: payslips = [], isLoading: loadingPayslips } = useQuery({
-    queryKey: ["my-payslips"],
-    queryFn: () => listEmployeePayslips({ data: { employeeId } }),
-  });
+ const { data: payslips = [], isLoading: loadingPayslips } = useQuery({
+ queryKey: ["my-payslips"],
+ queryFn: () => listEmployeePayslips({ data: { employeeId } }),
+ });
 
-  const clockMutation = useMutation({
-    mutationFn: (entryType: any) =>
-      recordTimeClock({
-        data: {
-          employeeId,
-          entryType,
-          source: "mobile_pwa",
-          geolocation: geoCoords || {},
-        },
-      }),
-    onSuccess: (_, entryType) => {
-      toast.success(`Batida de ponto (${entryType}) registrada com sucesso!`);
-      queryClient.invalidateQueries({ queryKey: ["my-time-entries"] });
-    },
-    onError: (err: Error) => {
-      toast.error(err.message || "Erro ao registrar ponto.");
-    },
-  });
+ const clockMutation = useMutation({
+ mutationFn: (entryType: any) =>
+ recordTimeClock({
+ data: {
+ employeeId,
+ entryType,
+ source: "mobile_pwa",
+ geolocation: geoCoords || {},
+ },
+ }),
+ onSuccess: (_, entryType) => {
+ toast.success(`Batida de ponto (${entryType}) registrada com sucesso!`);
+ queryClient.invalidateQueries({ queryKey: ["my-time-entries"] });
+ },
+ onError: (err: Error) => {
+ toast.error(err.message || "Erro ao registrar ponto.");
+ },
+ });
 
-  const requestMutation = useMutation({
-    mutationFn: () =>
-      createEmployeeRequest({
-        data: {
-          employeeId,
-          requestType,
-          title: requestTitle,
-          description: requestDesc,
-          amountCents: requestAmount ? Math.round(parseFloat(requestAmount) * 100) : undefined,
-        },
-      }),
-    onSuccess: () => {
-      toast.success("Solicitação enviada para o gestor com sucesso!");
-      setRequestTitle("");
-      setRequestDesc("");
-      setRequestAmount("");
-    },
-    onError: (err: Error) => {
-      toast.error(err.message || "Erro ao enviar solicitação.");
-    },
-  });
+ const requestMutation = useMutation({
+ mutationFn: () =>
+ createEmployeeRequest({
+ data: {
+ employeeId,
+ requestType,
+ title: requestTitle,
+ description: requestDesc,
+ amountCents: requestAmount ? Math.round(parseFloat(requestAmount) * 100) : undefined,
+ },
+ }),
+ onSuccess: () => {
+ toast.success("Solicitação enviada para o gestor com sucesso!");
+ setRequestTitle("");
+ setRequestDesc("");
+ setRequestAmount("");
+ },
+ onError: (err: Error) => {
+ toast.error(err.message || "Erro ao enviar solicitação.");
+ },
+ });
 
-  const acknowledgeMutation = useMutation({
-    mutationFn: (payslipId: string) =>
-      acknowledgePayslip({ data: { payslipId } }),
-    onSuccess: () => {
-      toast.success("Recebimento de holerite confirmado digitalmente!");
-      queryClient.invalidateQueries({ queryKey: ["my-payslips"] });
-    },
-  });
+ const acknowledgeMutation = useMutation({
+ mutationFn: (payslipId: string) =>
+ acknowledgePayslip({ data: { payslipId } }),
+ onSuccess: () => {
+ toast.success("Recebimento de holerite confirmado digitalmente!");
+ queryClient.invalidateQueries({ queryKey: ["my-payslips"] });
+ },
+ });
 
-  return (
-    <div className="min-h-screen bg-background text-foreground pb-16">
-      {/* Header Estilo Apple HIG com Blur e Elevação */}
-      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-md">
-              JH
-            </div>
-            <div>
-              <h1 className="font-bold text-base leading-tight">Hub do Colaborador</h1>
-              <p className="text-xs text-muted-foreground">Portal do Funcionário JAH</p>
-            </div>
-          </div>
+ return (
+ <div className="min-h-screen bg-background text-foreground pb-16">
+ {/* Header Estilo Apple HIG com Blur e Elevação */}
+ <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border px-6 py-4">
+ <div className="max-w-4xl mx-auto flex items-center justify-between">
+ <div className="flex items-center gap-3">
+ <div className="h-10 w-10 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-md">
+ JH
+ </div>
+ <div>
+ <h1 className="font-bold text-base leading-tight">Hub do Colaborador</h1>
+ <p className="text-xs text-muted-foreground">Portal do Funcionário Wider</p>
+ </div>
+ </div>
 
-          {/* Navegação por Abas com Touch Targets de 44px */}
-          <div className="flex gap-1 bg-muted/60 p-1 rounded-2xl border border-border">
-            <button
-              onClick={() => setActiveTab("ponto")}
-              className={`min-h-[44px] px-3.5 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === "ponto" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Ponto Digital
-            </button>
-            <button
-              onClick={() => setActiveTab("holerites")}
-              className={`min-h-[44px] px-3.5 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === "holerites" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Holerites
-            </button>
-            <button
-              onClick={() => setActiveTab("solicitacoes")}
-              className={`min-h-[44px] px-3.5 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === "solicitacoes" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Vales & Férias
-            </button>
-          </div>
-        </div>
-      </div>
+ {/* Navegação por Abas com Touch Targets de 44px */}
+ <div className="flex gap-1 bg-muted/60 p-1 rounded-2xl border border-border">
+ <button
+ onClick={() => setActiveTab("ponto")}
+ className={`min-h-[44px] px-3.5 rounded-xl text-xs font-semibold transition-all ${
+ activeTab === "ponto" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+ }`}
+ >
+ Ponto Digital
+ </button>
+ <button
+ onClick={() => setActiveTab("holerites")}
+ className={`min-h-[44px] px-3.5 rounded-xl text-xs font-semibold transition-all ${
+ activeTab === "holerites" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+ }`}
+ >
+ Holerites
+ </button>
+ <button
+ onClick={() => setActiveTab("solicitacoes")}
+ className={`min-h-[44px] px-3.5 rounded-xl text-xs font-semibold transition-all ${
+ activeTab === "solicitacoes" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+ }`}
+ >
+ Vales & Férias
+ </button>
+ </div>
+ </div>
+ </div>
 
-      <div className="max-w-4xl mx-auto px-6 pt-6 space-y-6">
-        {activeTab === "ponto" && (
-          <div className="space-y-6">
-            {/* Relógio Digital Flutuante */}
-            <div className="bg-card/70 backdrop-blur-xl border border-border rounded-2xl p-8 text-center shadow-sm relative overflow-hidden">
-              <div className="absolute top-4 right-4 flex items-center gap-1.5 text-xs text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                <MapPin className="h-3.5 w-3.5" /> GPS Ativo
-              </div>
+ <div className="max-w-4xl mx-auto px-6 pt-6 space-y-6">
+ {activeTab === "ponto" && (
+ <div className="space-y-6">
+ {/* Relógio Digital Flutuante */}
+ <div className="bg-card/70 backdrop-blur-xl border border-border rounded-2xl p-8 text-center shadow-sm relative overflow-hidden">
+ <div className="absolute top-4 right-4 flex items-center gap-1.5 text-xs text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+ <MapPin className="h-3.5 w-3.5" /> GPS Ativo
+ </div>
 
-              <div className="font-mono text-5xl sm:text-6xl font-black tracking-tight text-foreground">
-                {currentTime.toLocaleTimeString("pt-BR")}
-              </div>
-              <p className="text-sm text-muted-foreground mt-2 capitalize">
-                {currentTime.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-              </p>
+ <div className="font-mono text-5xl sm:text-6xl font-black tracking-tight text-foreground">
+ {currentTime.toLocaleTimeString("pt-BR")}
+ </div>
+ <p className="text-sm text-muted-foreground mt-2 capitalize">
+ {currentTime.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+ </p>
 
-              {/* Grid de Botões de Batida de Ponto com 44px+ touch target */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8">
-                <Button
-                  onClick={() => clockMutation.mutate("clock_in")}
-                  disabled={clockMutation.isPending}
-                  className="min-h-[52px] rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex flex-col gap-0.5 shadow-lg shadow-emerald-600/20"
-                >
-                  <span>Entrada</span>
-                  <span className="text-[10px] opacity-80 font-normal">Início da jornada</span>
-                </Button>
-                <Button
-                  onClick={() => clockMutation.mutate("lunch_out")}
-                  disabled={clockMutation.isPending}
-                  variant="outline"
-                  className="min-h-[52px] rounded-2xl border-border font-bold flex flex-col gap-0.5"
-                >
-                  <span>Saída Almoço</span>
-                  <span className="text-[10px] text-muted-foreground font-normal">Pausa refeição</span>
-                </Button>
-                <Button
-                  onClick={() => clockMutation.mutate("lunch_in")}
-                  disabled={clockMutation.isPending}
-                  variant="outline"
-                  className="min-h-[52px] rounded-2xl border-border font-bold flex flex-col gap-0.5"
-                >
-                  <span>Volta Almoço</span>
-                  <span className="text-[10px] text-muted-foreground font-normal">Retorno da pausa</span>
-                </Button>
-                <Button
-                  onClick={() => clockMutation.mutate("clock_out")}
-                  disabled={clockMutation.isPending}
-                  className="min-h-[52px] rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold flex flex-col gap-0.5 shadow-lg shadow-rose-600/20"
-                >
-                  <span>Saída</span>
-                  <span className="text-[10px] opacity-80 font-normal">Fim do expediente</span>
-                </Button>
-              </div>
-            </div>
+ {/* Grid de Botões de Batida de Ponto com 44px+ touch target */}
+ <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8">
+ <Button
+ onClick={() => clockMutation.mutate("clock_in")}
+ disabled={clockMutation.isPending}
+ className="min-h-[52px] rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex flex-col gap-0.5 shadow-lg shadow-emerald-600/20"
+ >
+ <span>Entrada</span>
+ <span className="text-[10px] opacity-80 font-normal">Início da jornada</span>
+ </Button>
+ <Button
+ onClick={() => clockMutation.mutate("lunch_out")}
+ disabled={clockMutation.isPending}
+ variant="outline"
+ className="min-h-[52px] rounded-2xl border-border font-bold flex flex-col gap-0.5"
+ >
+ <span>Saída Almoço</span>
+ <span className="text-[10px] text-muted-foreground font-normal">Pausa refeição</span>
+ </Button>
+ <Button
+ onClick={() => clockMutation.mutate("lunch_in")}
+ disabled={clockMutation.isPending}
+ variant="outline"
+ className="min-h-[52px] rounded-2xl border-border font-bold flex flex-col gap-0.5"
+ >
+ <span>Volta Almoço</span>
+ <span className="text-[10px] text-muted-foreground font-normal">Retorno da pausa</span>
+ </Button>
+ <Button
+ onClick={() => clockMutation.mutate("clock_out")}
+ disabled={clockMutation.isPending}
+ className="min-h-[52px] rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold flex flex-col gap-0.5 shadow-lg shadow-rose-600/20"
+ >
+ <span>Saída</span>
+ <span className="text-[10px] opacity-80 font-normal">Fim do expediente</span>
+ </Button>
+ </div>
+ </div>
 
-            {/* Histórico Recente de Marcações */}
-            <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
-              <h3 className="font-bold text-sm text-foreground mb-4 flex items-center gap-2">
-                <Clock className="h-4 w-4 text-primary" /> Batidas Registradas Hoje
-              </h3>
-              <div className="space-y-2">
-                {timeEntries.length === 0 ? (
-                  <p className="text-xs text-muted-foreground py-4 text-center">
-                    Nenhuma marcação registrada hoje até o momento.
-                  </p>
-                ) : (
-                  timeEntries.slice(0, 5).map((entry: any) => (
-                    <div key={entry.id} className="flex items-center justify-between p-3 rounded-2xl bg-muted/40 border border-border">
-                      <div className="flex items-center gap-2.5">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                        <span className="text-xs font-semibold capitalize">{entry.entry_type.replace("_", " ")}</span>
-                      </div>
-                      <span className="font-mono text-xs text-foreground font-bold">
-                        {formatTimeOnly(entry.recorded_at)}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+ {/* Histórico Recente de Marcações */}
+ <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+ <h3 className="font-bold text-sm text-foreground mb-4 flex items-center gap-2">
+ <Clock className="h-4 w-4 text-primary" /> Batidas Registradas Hoje
+ </h3>
+ <div className="space-y-2">
+ {timeEntries.length === 0 ? (
+ <p className="text-xs text-muted-foreground py-4 text-center">
+ Nenhuma marcação registrada hoje até o momento.
+ </p>
+ ) : (
+ timeEntries.slice(0, 5).map((entry: any) => (
+ <div key={entry.id} className="flex items-center justify-between p-3 rounded-2xl bg-muted/40 border border-border">
+ <div className="flex items-center gap-2.5">
+ <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+ <span className="text-xs font-semibold capitalize">{entry.entry_type.replace("_", " ")}</span>
+ </div>
+ <span className="font-mono text-xs text-foreground font-bold">
+ {formatTimeOnly(entry.recorded_at)}
+ </span>
+ </div>
+ ))
+ )}
+ </div>
+ </div>
+ </div>
+ )}
 
-        {activeTab === "holerites" && (
-          <div className="space-y-4">
-            <h3 className="font-bold text-base text-foreground">Meus Holerites & Demonstrativos de Pagamento</h3>
-            {payslips.length === 0 ? (
-              <div className="bg-card p-12 text-center rounded-2xl border border-border text-muted-foreground text-sm">
-                Nenhum holerite emitido até o momento.
-              </div>
-            ) : (
-              payslips.map((slip: any) => (
-                <div key={slip.id} className="bg-card p-5 rounded-2xl border border-border flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-8 w-8 text-primary shrink-0" />
-                    <div>
-                      <div className="font-bold text-sm text-foreground">Competência {slip.reference_period}</div>
-                      <div className="text-xs text-muted-foreground">
-                        Líquido: {(slip.net_salary_cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                      </div>
-                    </div>
-                  </div>
+ {activeTab === "holerites" && (
+ <div className="space-y-4">
+ <h3 className="font-bold text-base text-foreground">Meus Holerites & Demonstrativos de Pagamento</h3>
+ {payslips.length === 0 ? (
+ <div className="bg-card p-12 text-center rounded-2xl border border-border text-muted-foreground text-sm">
+ Nenhum holerite emitido até o momento.
+ </div>
+ ) : (
+ payslips.map((slip: any) => (
+ <div key={slip.id} className="bg-card p-5 rounded-2xl border border-border flex items-center justify-between gap-4">
+ <div className="flex items-center gap-3">
+ <FileText className="h-8 w-8 text-primary shrink-0" />
+ <div>
+ <div className="font-bold text-sm text-foreground">Competência {slip.reference_period}</div>
+ <div className="text-xs text-muted-foreground">
+ Líquido: {(slip.net_salary_cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+ </div>
+ </div>
+ </div>
 
-                  <div className="flex items-center gap-2">
-                    {slip.status !== "acknowledged" ? (
-                      <Button
-                        size="sm"
-                        onClick={() => acknowledgeMutation.mutate(slip.id)}
-                        className="rounded-xl min-h-[44px] text-xs font-semibold"
-                      >
-                        Assinar Recebimento
-                      </Button>
-                    ) : (
-                      <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-xs py-1 px-2.5 rounded-lg">
-                        Assinado Digitalmente
-                      </Badge>
-                    )}
-                    {slip.pdf_document_url && (
-                      <Button variant="outline" size="sm" asChild className="rounded-xl min-h-[44px] min-w-[44px]">
-                        <a href={slip.pdf_document_url} target="_blank" rel="noopener noreferrer">
-                          <Download className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        )}
+ <div className="flex items-center gap-2">
+ {slip.status !== "acknowledged" ? (
+ <Button
+ size="sm"
+ onClick={() => acknowledgeMutation.mutate(slip.id)}
+ className="rounded-xl min-h-[44px] text-xs font-semibold"
+ >
+ Assinar Recebimento
+ </Button>
+ ) : (
+ <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-xs py-1 px-2.5 rounded-lg">
+ Assinado Digitalmente
+ </Badge>
+ )}
+ {slip.pdf_document_url && (
+ <Button variant="outline" size="sm" asChild className="rounded-xl min-h-[44px] min-w-[44px]">
+ <a href={slip.pdf_document_url} target="_blank" rel="noopener noreferrer">
+ <Download className="h-4 w-4" />
+ </a>
+ </Button>
+ )}
+ </div>
+ </div>
+ ))
+ )}
+ </div>
+ )}
 
-        {activeTab === "solicitacoes" && (
-          <div className="bg-card p-6 rounded-2xl border border-border space-y-4">
-            <h3 className="font-bold text-base text-foreground">Solicitar Vale, Adiantamento ou Férias</h3>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Tipo de Pedido</label>
-                <select
-                  value={requestType}
-                  onChange={(e) => setRequestType(e.target.value)}
-                  className="w-full h-11 min-h-[44px] rounded-xl bg-background border border-border px-3 text-sm"
-                >
-                  <option value="salary_advance">Adiantamento Salarial / Vale</option>
-                  <option value="vacation">Agendamento de Férias</option>
-                  <option value="leave_absence">Atestado Médico / Licença</option>
-                  <option value="reimbursement">Reembolso de Despesa</option>
-                </select>
-              </div>
+ {activeTab === "solicitacoes" && (
+ <div className="bg-card p-6 rounded-2xl border border-border space-y-4">
+ <h3 className="font-bold text-base text-foreground">Solicitar Vale, Adiantamento ou Férias</h3>
+ 
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+ <div className="space-y-1.5">
+ <label className="text-xs font-semibold text-muted-foreground">Tipo de Pedido</label>
+ <select
+ value={requestType}
+ onChange={(e) => setRequestType(e.target.value)}
+ className="w-full h-11 min-h-[44px] rounded-xl bg-background border border-border px-3 text-sm"
+ >
+ <option value="salary_advance">Adiantamento Salarial / Vale</option>
+ <option value="vacation">Agendamento de Férias</option>
+ <option value="leave_absence">Atestado Médico / Licença</option>
+ <option value="reimbursement">Reembolso de Despesa</option>
+ </select>
+ </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Valor Estimado (R$)</label>
-                <Input
-                  placeholder="0,00"
-                  value={requestAmount}
-                  onChange={(e) => setRequestAmount(e.target.value)}
-                  className="min-h-[44px] rounded-xl"
-                />
-              </div>
-            </div>
+ <div className="space-y-1.5">
+ <label className="text-xs font-semibold text-muted-foreground">Valor Estimado (R$)</label>
+ <Input
+ placeholder="0,00"
+ value={requestAmount}
+ onChange={(e) => setRequestAmount(e.target.value)}
+ className="min-h-[44px] rounded-xl"
+ />
+ </div>
+ </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">Título Resumido</label>
-              <Input
-                placeholder="Ex: Adiantamento para despesa emergencial"
-                value={requestTitle}
-                onChange={(e) => setRequestTitle(e.target.value)}
-                className="min-h-[44px] rounded-xl"
-              />
-            </div>
+ <div className="space-y-1.5">
+ <label className="text-xs font-semibold text-muted-foreground">Título Resumido</label>
+ <Input
+ placeholder="Ex: Adiantamento para despesa emergencial"
+ value={requestTitle}
+ onChange={(e) => setRequestTitle(e.target.value)}
+ className="min-h-[44px] rounded-xl"
+ />
+ </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">Justificativa Detalhada</label>
-              <textarea
-                placeholder="Descreva a razão do pedido para análise do RH..."
-                value={requestDesc}
-                onChange={(e) => setRequestDesc(e.target.value)}
-                className="w-full min-h-[100px] p-3 rounded-xl bg-background border border-border text-sm"
-              />
-            </div>
+ <div className="space-y-1.5">
+ <label className="text-xs font-semibold text-muted-foreground">Justificativa Detalhada</label>
+ <textarea
+ placeholder="Descreva a razão do pedido para análise do RH..."
+ value={requestDesc}
+ onChange={(e) => setRequestDesc(e.target.value)}
+ className="w-full min-h-[100px] p-3 rounded-xl bg-background border border-border text-sm"
+ />
+ </div>
 
-            <Button
-              onClick={() => requestMutation.mutate()}
-              disabled={!requestTitle.trim() || !requestDesc.trim() || requestMutation.isPending}
-              className="w-full min-h-[48px] rounded-2xl font-bold"
-            >
-              <Send className="h-4 w-4 mr-2" /> Enviar Solicitação ao RH
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+ <Button
+ onClick={() => requestMutation.mutate()}
+ disabled={!requestTitle.trim() || !requestDesc.trim() || requestMutation.isPending}
+ className="w-full min-h-[48px] rounded-2xl font-bold"
+ >
+ <Send className="h-4 w-4 mr-2" /> Enviar Solicitação ao RH
+ </Button>
+ </div>
+ )}
+ </div>
+ </div>
+ );
 }

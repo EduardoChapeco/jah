@@ -1,12 +1,13 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
-import { supabase } from '@/lib/supabase';
+import { getServerClient } from '@/lib/supabase';
 import type { ClientWalletPass, TripMemory, PassType } from '@/types/client-wallet';
 
 export const listClientWalletPasses = createServerFn({ method: 'GET' })
   .validator((data: { storeId?: string; clientId?: string; tripId?: string }) => data)
   .handler(async ({ data }): Promise<ClientWalletPass[]> => {
-    let query = supabase
+    const db = getServerClient();
+    let query = db
       .from('client_wallet_passes')
       .select('*')
       .eq('status', 'active')
@@ -43,7 +44,8 @@ export const createWalletPass = createServerFn({ method: 'POST' })
     })
   )
   .handler(async ({ data }): Promise<ClientWalletPass> => {
-    const { data: row, error } = await supabase
+    const db = getServerClient();
+    const { data: row, error } = await db
       .from('client_wallet_passes')
       .insert({
         store_id: data.store_id,
@@ -68,7 +70,8 @@ export const createWalletPass = createServerFn({ method: 'POST' })
 export const listTripMemories = createServerFn({ method: 'GET' })
   .validator((data: { tripId: string }) => data)
   .handler(async ({ data }): Promise<TripMemory[]> => {
-    const { data: rows, error } = await supabase
+    const db = getServerClient();
+    const { data: rows, error } = await db
       .from('trip_memories')
       .select('*')
       .eq('trip_id', data.tripId)
@@ -91,7 +94,8 @@ export const addTripMemory = createServerFn({ method: 'POST' })
     })
   )
   .handler(async ({ data }): Promise<TripMemory> => {
-    const { data: row, error } = await supabase
+    const db = getServerClient();
+    const { data: row, error } = await db
       .from('trip_memories')
       .insert({
         store_id: data.store_id,

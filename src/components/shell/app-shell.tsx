@@ -9,95 +9,95 @@ import { InterestPickerModal } from "@/components/onboarding/interest-picker-mod
 import { GeolocationPermissionSheet } from "@/components/location/geolocation-permission-sheet";
 
 export interface AppShellProps {
-  children: ReactNode;
-  session?: any;
-  brandSettings?: {
-    logo_url?: string | null;
-    favicon_url?: string | null;
-    show_logo?: boolean;
-    show_name?: boolean;
-    platform_name?: string;
-  } | null;
+ children: ReactNode;
+ session?: any;
+ brandSettings?: {
+ logo_url?: string | null;
+ favicon_url?: string | null;
+ show_logo?: boolean;
+ show_name?: boolean;
+ platform_name?: string;
+ } | null;
 }
 
 export function AppShell({ children, session, brandSettings }: AppShellProps) {
-  const location = useLocation();
-  const mainRef = useRef<HTMLElement>(null);
+ const location = useLocation();
+ const mainRef = useRef<HTMLElement>(null);
 
-  // Check if current page is full-screen standalone auth page
-  const isAuthPage =
-    location.pathname.startsWith("/entrar") ||
-    location.pathname.startsWith("/cadastro") ||
-    location.pathname.startsWith("/recuperar-senha");
+ // Check if current page is full-screen standalone auth page
+ const isAuthPage =
+ location.pathname.startsWith("/entrar") ||
+ location.pathname.startsWith("/cadastro") ||
+ location.pathname.startsWith("/recuperar-senha");
 
-  if (isAuthPage) {
-    return (
-      <div className="min-h-screen w-full bg-background text-foreground flex flex-col overflow-x-hidden">
-        {children}
-      </div>
-    );
-  }
+ if (isAuthPage) {
+ return (
+ <div className="min-h-screen w-full bg-background text-foreground flex flex-col overflow-x-hidden">
+ {children}
+ </div>
+ );
+ }
 
-  const contextConfig = resolveContextNavigation(location.pathname, session);
-  const isFullBleedPage =
-    location.pathname.startsWith("/mapa") ||
-    location.pathname.startsWith("/mobilidade");
+ const contextConfig = resolveContextNavigation(location.pathname, session);
+ const isFullBleedPage =
+ location.pathname.startsWith("/mapa") ||
+ location.pathname.startsWith("/mobilidade");
 
-  const isProfilePage =
-    location.pathname.startsWith("/membro/") ||
-    location.pathname.startsWith("/conta/perfil");
+ const isProfilePage =
+ location.pathname.startsWith("/membro/") ||
+ location.pathname.startsWith("/conta/perfil");
 
-  // Em páginas imersivas de mapa, o mapa ocupa 100dvh sem header/footer interferindo
-  if (isFullBleedPage) {
-    return (
-      <div className="h-[100dvh] w-full max-w-full bg-background text-foreground font-sans antialiased relative overflow-hidden flex flex-col">
-        <main ref={mainRef} className="flex-1 size-full relative overflow-hidden p-0 m-0">
-          {children}
-        </main>
-        <CartSheet />
-      </div>
-    );
-  }
+ // Em páginas imersivas de mapa, o mapa ocupa 100dvh sem header/footer interferindo
+ if (isFullBleedPage) {
+ return (
+ <div className="h-[100dvh] w-full max-w-full bg-background text-foreground font-sans antialiased relative overflow-hidden flex flex-col">
+ <main ref={mainRef} className="flex-1 size-full relative overflow-hidden p-0 m-0">
+ {children}
+ </main>
+ <CartSheet />
+ </div>
+ );
+ }
 
-  return (
-    <div className="h-screen w-full max-w-full bg-background text-foreground selection:bg-primary selection:text-primary-foreground font-sans antialiased relative flex flex-col overflow-hidden">
-      {/* ── Barra de Topo Horizontal (Invariável no Desktop, Ocultada no Mobile em Perfil Imersivo) ── */}
-      <div className={isProfilePage ? "hidden sm:block" : ""}>
-        <TopBar
-          session={session}
-          brandSettings={brandSettings}
-        />
-      </div>
+ return (
+ <div className="h-screen w-full max-w-full bg-background text-foreground selection:bg-primary selection:text-primary-foreground font-sans antialiased relative flex flex-col overflow-hidden">
+ {/* ── Barra de Topo Horizontal (Invariável no Desktop, Ocultada no Mobile em Perfil Imersivo) ── */}
+ <div className={isProfilePage ? "hidden sm:block" : ""}>
+ <TopBar
+ session={session}
+ brandSettings={brandSettings}
+ />
+ </div>
 
-      {/* ── Corpo Principal com Scrolls Independentes (Sidebar fixa + Main independente) ── */}
-      <div className="flex-1 flex min-w-0 w-full max-w-full relative overflow-hidden">
-        {/* Coluna Contextual Fixa com Scroll Próprio (Desktop apenas) */}
-        {contextConfig.showContextSidebar !== false && (
-          <ContextSidebar config={contextConfig} session={session} />
-        )}
+ {/* ── Corpo Principal com Scrolls Independentes (Sidebar fixa + Main independente) ── */}
+ <div className="flex-1 flex min-w-0 w-full max-w-full relative overflow-hidden">
+ {/* Coluna Contextual Fixa com Scroll Próprio (Desktop apenas) */}
+ {contextConfig.showContextSidebar !== false && (
+ <ContextSidebar config={contextConfig} session={session} />
+ )}
 
-        {/* Viewport Central com Container Canônico Único (DESIGN.md Seção 4) */}
-        <main
-          ref={mainRef}
-          className="flex-1 flex flex-col min-w-0 h-full w-full max-w-full overflow-y-auto no-scrollbar overflow-x-hidden px-4 sm:px-6 py-4 sm:py-6 pb-24 md:pb-8"
-        >
-          <div className="w-full max-w-6xl mx-auto flex flex-col items-stretch min-w-0 flex-1">
-            {children}
-          </div>
-        </main>
-      </div>
+ {/* Viewport Central com Container Canônico Único (DESIGN.md Seção 4) */}
+ <main
+ ref={mainRef}
+ className="flex-1 flex flex-col min-w-0 h-full w-full max-w-full overflow-y-auto no-scrollbar overflow-x-hidden px-4 sm:px-6 py-4 sm:py-6 pb-24 md:pb-8"
+ >
+ <div className="w-full max-w-6xl mx-auto flex flex-col items-stretch min-w-0 flex-1">
+ {children}
+ </div>
+ </main>
+ </div>
 
-      {/* Mobile Bottom Navigation com Botão Criar Flutuante & Action Sheet */}
-      <MobileNav session={session} />
+ {/* Mobile Bottom Navigation com Botão Criar Flutuante & Action Sheet */}
+ <MobileNav session={session} />
 
-      {/* Global Cart Slide-over */}
-      <CartSheet />
+ {/* Global Cart Slide-over */}
+ <CartSheet />
 
-      {/* Onboarding de Interesses da Comunidade */}
-      <InterestPickerModal />
+ {/* Onboarding de Interesses da Comunidade */}
+ <InterestPickerModal />
 
-      {/* Solicitação Canônica de Localização (GPS Geolocation Sheet) */}
-      <GeolocationPermissionSheet />
-    </div>
-  );
+ {/* Solicitação Canônica de Localização (GPS Geolocation Sheet) */}
+ <GeolocationPermissionSheet />
+ </div>
+ );
 }

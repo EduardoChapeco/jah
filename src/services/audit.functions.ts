@@ -9,44 +9,44 @@ import { z } from "zod";
  * Used for financial, HR, and RMA operations.
  */
 export async function logAuditAction(
-  identity: ServerIdentity,
-  action: string,
-  entityType: string,
-  entityId: string | null = null,
-  payloadSnapshot: any = {},
+ identity: ServerIdentity,
+ action: string,
+ entityType: string,
+ entityId: string | null = null,
+ payloadSnapshot: any = {},
 ) {
-  if (!identity.store_id || !identity.id) return;
+ if (!identity.store_id || !identity.id) return;
 
-  const supabase = getServerClient();
+ const supabase = getServerClient();
 
-  await supabase.from("audit_logs").insert({
-    store_id: identity.store_id,
-    user_id: identity.id,
-    action,
-    entity_type: entityType,
-    entity_id: entityId,
-    payload_snapshot: payloadSnapshot,
-  });
+ await supabase.from("audit_logs").insert({
+ store_id: identity.store_id,
+ user_id: identity.id,
+ action,
+ entity_type: entityType,
+ entity_id: entityId,
+ payload_snapshot: payloadSnapshot,
+ });
 }
 
 /**
  * Gets audit logs for admins - testable handler
  */
 export async function _getAuditLog() {
-  const supabase = getServerClient();
-  const identity = await getServerIdentity();
-  assertStoreAccess(identity, ["owner", "admin", "manager"]);
+ const supabase = getServerClient();
+ const identity = await getServerIdentity();
+ assertStoreAccess(identity, ["owner", "admin", "manager"]);
 
-  const { data: logs, error } = await supabase
-    .from("audit_logs")
-    .select("*, profiles!audit_logs_user_id_fkey(full_name)")
-    .eq("store_id", identity.store_id)
-    .order("created_at", { ascending: false })
-    .limit(100);
+ const { data: logs, error } = await supabase
+ .from("audit_logs")
+ .select("*, profiles!audit_logs_user_id_fkey(full_name)")
+ .eq("store_id", identity.store_id)
+ .order("created_at", { ascending: false })
+ .limit(100);
 
-  if (error || !logs) return [];
+ if (error || !logs) return [];
 
-  return logs;
+ return logs;
 }
 
 /**
