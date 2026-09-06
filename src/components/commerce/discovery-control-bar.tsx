@@ -1,21 +1,11 @@
+import * as React from "react";
+import { Tag } from "lucide-react";
 /**
  * discovery-control-bar.tsx — Componente Canônico Universal de Filtro, Busca e Visualização (3 Modos)
  * Padrão BigTech: Grade (Grid), Lista (iFood / 99) e Feed (Carrosséis por Loja/Departamento)
  */
 
-import React from "react";
-import {
- MagnifyingGlass,
- X,
- SquaresFour,
- ListDashes,
- Rows,
- Sparkle,
- SlidersHorizontal,
- Tag,
- Truck,
- Flame,
-} from "@phosphor-icons/react";
+import { MagnifyingGlass, X, SquaresFour, ListDashes, Rows, SlidersHorizontal, Truck, Flame } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {

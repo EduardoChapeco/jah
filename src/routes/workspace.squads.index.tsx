@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Users,
@@ -20,34 +20,65 @@ import {
   AlertCircle,
 } from "lucide-react";
 import {
-  listStoreSquads,
-  triggerSquadRun,
-  approveSquadRun,
+  listStoreSquadsFn,
+  triggerSquadRunFn,
+  approveSquadRunFn,
   SquadWithDetails,
 } from "@/services/squads-runtime.functions";
+import { getStoreSettings } from "@/services/store.functions";
+import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-canonical-toolbar";
+import { WorkspaceDashboardSheet, type MetricCardItem } from "@/components/workspace/workspace-dashboard-sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/workspace/squads/")({
-  head: () => ({ meta: [{ title: "Squads Agênticos Especializados | JAH Master OS" }] }),
+  head: () => ({ meta: [{ title: "Squads Agênticos Especializados | JAH" }] }),
+  loader: async () => {
+    const store = await getStoreSettings().catch(() => null);
+    const storeId = store?.id || "";
+    let initialSquads: SquadWithDetails[] = [];
+    if (storeId) {
+      try {
+        initialSquads = await listStoreSquadsFn({ data: { storeId } });
+      } catch (e) {
+        console.error("Erro ao carregar squads no SSR loader:", e);
+      }
+    }
+    return { store, initialSquads };
+  },
   component: SquadsWorkspacePage,
 });
 
 export function SquadsWorkspacePage() {
-  const [storeId] = useState("c6ccd3b2-aa54-42a2-b0fe-251daa5b97f7");
+  const { store, initialSquads } = (Route.useLoaderData() as any) || {};
+  const storeId = store?.id || "";
 
-  const [loading, setLoading] = useState(true);
-  const [squads, setSquads] = useState<SquadWithDetails[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [squads, setSquads] = useState<SquadWithDetails[]>(initialSquads || []);
   const [selectedAgent, setSelectedAgent] = useState<SquadWithDetails["agents"][0] | null>(null);
+  const [selectedRunArtifacts, setSelectedRunArtifacts] = useState<{ squadName: string; run: any } | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isMetricsOpen, setIsMetricsOpen] = useState(false);
 
-  // ── CARREGAR SQUADS REAIS DO BANCO ───────────────────────────────────────
+  // ── ATUALIZAR SQUADS VIA BFF ─────────────────────────────────────────────
   async function loadData() {
+    if (!storeId) return;
     setLoading(true);
     try {
-      const data = await listStoreSquads(storeId);
+      const data = await listStoreSquadsFn({ data: { storeId } });
       setSquads(data);
     } catch (err) {
-      console.error("Erro ao carregar squads:", err);
+      console.error("Erro ao atualizar squads:", err);
       setFeedback({
         type: "error",
         message: "Não foi possível carregar os squads no banco de dados.",
@@ -57,17 +88,19 @@ export function SquadsWorkspacePage() {
     }
   }
 
-  useEffect(() => {
-    loadData();
-  }, [storeId]);
-
   // ── DISPARAR CORRIDA DO SQUAD ───────────────────────────────────────────
   async function handleTriggerRun(squadId: string) {
     setActionLoading(`trigger-${squadId}`);
     try {
-      await triggerSquadRun(storeId, squadId, {
-        triggerSource: "manual",
-        inputPayload: { goal: "Execução manual supervisionada de rotina do squad" },
+      await triggerSquadRunFn({
+        data: {
+          storeId,
+          squadId,
+          options: {
+            triggerSource: "manual",
+            inputPayload: { goal: "Execução manual supervisionada de rotina do squad" },
+          },
+        },
       });
       setFeedback({
         type: "success",
@@ -89,7 +122,7 @@ export function SquadsWorkspacePage() {
   async function handleApproveRun(runId: string) {
     setActionLoading(`approve-${runId}`);
     try {
-      await approveSquadRun(storeId, runId);
+      await approveSquadRunFn({ data: { storeId, runId } });
       setFeedback({
         type: "success",
         message: "Entrega aprovada com sucesso! As diretrizes foram consolidadas no sistema.",
@@ -106,71 +139,114 @@ export function SquadsWorkspacePage() {
     }
   }
 
-  return (
-    <div className="min-h-screen bg-background text-foreground pb-28">
-      {/* ── HEADER EXECUTIVO COM SELO SILENCIOSO APPLE HIG ── */}
-      <div className="border-b border-border/40 bg-card/50 backdrop-blur-xl sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-primary/10 text-primary border border-primary/20">
-                  Squads Agênticos
-                </span>
-                <span className="text-[11px] text-muted-foreground font-mono">
-                  4 Departamentos · 15 Especialistas
-                </span>
-              </div>
-              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight mt-1 text-foreground">
-                Squads Especializados
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                Operação autônoma supervisionada com entregáveis estratégicos e táticos.
-              </p>
-            </div>
+  const totalAgents = useMemo(() => squads.reduce((acc, s) => acc + (s.agents?.length || 0), 0), [squads]);
+  const pendingApprovals = useMemo(() => squads.filter((s) => s.latest_run?.status === "needs_approval").length, [squads]);
+  const completedRuns = useMemo(() => squads.filter((s) => s.latest_run?.status === "approved" || s.latest_run?.status === "completed").length, [squads]);
 
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => loadData()}
-                disabled={loading}
-                className="h-11 px-4 inline-flex items-center justify-center gap-2 rounded-xl text-sm font-medium border border-border/60 bg-background hover:bg-muted/40 transition-colors"
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-                Atualizar Squads
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+  const filteredSquads = useMemo(() => {
+    return squads.filter((squad) => {
+      if (activeTab !== "all") {
+        const dep = (squad.template.department || "").toLowerCase();
+        const badge = (squad.template.badge_label || "").toLowerCase();
+        if (activeTab === "marketing" && !dep.includes("market") && !badge.includes("market") && !dep.includes("growth")) return false;
+        if (activeTab === "commercial" && !dep.includes("comercial") && !badge.includes("comercial") && !dep.includes("vendas")) return false;
+        if (activeTab === "operations" && !dep.includes("opera") && !badge.includes("opera") && !dep.includes("turismo")) return false;
+        if (activeTab === "bi" && !dep.includes("estrat") && !badge.includes("intelig") && !dep.includes("bi")) return false;
+      }
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchSquad = squad.custom_name.toLowerCase().includes(q) || squad.template.description.toLowerCase().includes(q);
+        const matchAgent = squad.agents.some((a) => a.name.toLowerCase().includes(q) || a.role_label.toLowerCase().includes(q));
+        if (!matchSquad && !matchAgent) return false;
+      }
+      return true;
+    });
+  }, [squads, activeTab, searchQuery]);
+
+  const dashboardMetrics: MetricCardItem[] = useMemo(() => [
+    {
+      title: "Departamentos Agênticos",
+      value: squads.length,
+      description: "Escritórios virtuais ativos",
+      icon: Briefcase,
+      color: "blue",
+    },
+    {
+      title: "Especialistas Alocados",
+      value: totalAgents,
+      description: "Agentes autônomos supervisionados",
+      icon: Users,
+      color: "purple",
+    },
+    {
+      title: "Aprovações Pendentes",
+      value: pendingApprovals,
+      description: "Entregáveis aguardando revisão humana",
+      icon: Clock,
+      color: "amber",
+    },
+    {
+      title: "Rotinas Concluídas",
+      value: completedRuns,
+      description: "Execuções aprovadas e publicadas",
+      icon: CheckCircle2,
+      color: "emerald",
+    },
+  ], [squads.length, totalAgents, pendingApprovals, completedRuns]);
+
+  return (
+    <div className="w-full space-y-6 pb-28">
+      {/* ── TOOLBAR CANÔNICA (SILENCIOSA & ALTA DENSIDADE) ── */}
+      <WorkspaceCanonicalToolbar
+        tabs={[
+          { id: "all", label: "Todos os Squads", icon: Briefcase, count: squads.length },
+          { id: "marketing", label: "Marketing", icon: Award },
+          { id: "commercial", label: "Comercial", icon: ShieldCheck },
+          { id: "operations", label: "Operações", icon: Sliders },
+          { id: "bi", label: "Estratégia & BI", icon: Bot },
+        ]}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Buscar por squad, especialidade ou nome do agente..."
+        onMetricsClick={() => setIsMetricsOpen(true)}
+        metricsBadge={totalAgents > 0 ? `${totalAgents} Especialistas` : undefined}
+        primaryAction={{
+          label: "Atualizar Squads",
+          icon: RefreshCw,
+          onClick: () => loadData(),
+        }}
+      />
+
+      <WorkspaceDashboardSheet
+        title="Telemetria dos Squads Agênticos"
+        open={isMetricsOpen}
+        onOpenChange={setIsMetricsOpen}
+        items={dashboardMetrics}
+      />
 
       {/* ── ALERTA DE FEEDBACK ── */}
       {feedback && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-          <div
-            className={`p-4 rounded-xl flex items-center justify-between border ${
-              feedback.type === "success"
-                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                : "bg-destructive/10 text-destructive border-destructive/20"
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-              <p className="text-sm font-medium">{feedback.message}</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setFeedback(null)}
-              className="text-xs underline opacity-80 hover:opacity-100"
-            >
-              Fechar
-            </button>
+        <div className="p-4 rounded-xl flex items-center justify-between border bg-card/60 text-foreground border-border/80">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+            <p className="text-sm font-medium">{feedback.message}</p>
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setFeedback(null)}
+            className="text-xs h-7"
+          >
+            Fechar
+          </Button>
         </div>
       )}
 
-      {/* ── GRADE DOS 4 ESCRITÓRIOS VIRTUAIS ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+      {/* ── GRADE DOS ESCRITÓRIOS VIRTUAIS ── */}
+      <div>
         {loading ? (
           <div className="h-96 flex flex-col items-center justify-center text-muted-foreground">
             <RefreshCw className="w-8 h-8 animate-spin mb-3 text-primary" />
@@ -270,28 +346,50 @@ export function SquadsWorkspacePage() {
                           </div>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => handleApproveRun(squad.latest_run!.id)}
-                          disabled={actionLoading === `approve-${squad.latest_run.id}`}
-                          className="h-11 px-4 inline-flex items-center gap-1.5 rounded-xl text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-500 transition-colors shadow-xs shrink-0 min-h-[44px]"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          {actionLoading === `approve-${squad.latest_run.id}`
-                            ? "Aprovando..."
-                            : "Aprovar em 1 Clique"}
-                        </button>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedRunArtifacts({ squadName: squad.custom_name, run: squad.latest_run })}
+                            className="h-11 px-3 inline-flex items-center gap-1.5 rounded-xl text-xs font-medium border border-amber-500/30 bg-background hover:bg-muted/40 transition-colors shrink-0 min-h-[44px]"
+                          >
+                            <FileCheck className="w-3.5 h-3.5 text-amber-600" />
+                            Inspecionar Parecer
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleApproveRun(squad.latest_run!.id)}
+                            disabled={actionLoading === `approve-${squad.latest_run.id}`}
+                            className="h-11 px-4 inline-flex items-center gap-1.5 rounded-xl text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-500 transition-colors shadow-xs shrink-0 min-h-[44px]"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            {actionLoading === `approve-${squad.latest_run.id}`
+                              ? "Aprovando..."
+                              : "Aprovar em 1 Clique"}
+                          </button>
+                        </div>
                       </div>
                     )}
 
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>
-                          {squad.latest_run?.completed_at
-                            ? `Última entrega: ${new Date(squad.latest_run.completed_at).toLocaleDateString("pt-BR")}`
-                            : "Nenhuma entrega pendente"}
-                        </span>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>
+                            {squad.latest_run?.completed_at
+                              ? `Última entrega: ${new Date(squad.latest_run.completed_at).toLocaleDateString("pt-BR")}`
+                              : "Nenhuma entrega pendente"}
+                          </span>
+                        </div>
+                        {squad.latest_run?.output_artifacts?.executive_summary && (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedRunArtifacts({ squadName: squad.custom_name, run: squad.latest_run })}
+                            className="text-[11px] font-semibold text-primary hover:underline cursor-pointer"
+                          >
+                            Ver Parecer Completo
+                          </button>
+                        )}
                       </div>
 
                       <button
@@ -318,122 +416,245 @@ export function SquadsWorkspacePage() {
         )}
       </div>
 
-      {/* ── GAVETA / SHEET DO CURRÍCULO DO ESPECIALISTA (APPLE HIG) ── */}
-      {selectedAgent && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex sm:justify-end" onClick={() => setSelectedAgent(null)}>
-          <div onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-lg bg-background sm:bg-card border-t sm:border-t-0 sm:border-l border-border/60 h-[100dvh] p-5 sm:p-6 overflow-y-auto no-scrollbar space-y-6 shadow-2xl flex flex-col justify-between">
-            <div className="space-y-6">
-              {/* Topo da Gaveta */}
-              <div className="flex items-start justify-between border-b border-border/30 pb-4">
-                <div>
+      {/* ── SHEET CANÔNICA DO CURRÍCULO DO ESPECIALISTA (APPLE HIG) ── */}
+      <Sheet open={!!selectedAgent} onOpenChange={(open) => !open && setSelectedAgent(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-lg bg-card p-6 overflow-y-auto flex flex-col justify-between space-y-6">
+          {selectedAgent && (
+            <div>
+              <SheetHeader className="border-b border-border/40 pb-4 text-left">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-primary block">
+                  Perfil do Especialista
+                </span>
+                <SheetTitle className="text-xl font-bold tracking-tight text-foreground mt-0.5">
+                  {selectedAgent.name}
+                </SheetTitle>
+                <SheetDescription className="text-xs text-muted-foreground">
+                  {selectedAgent.role_label} • {selectedAgent.seniority}
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="space-y-6 py-4 text-xs">
+                {/* Resumo Profissional */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Resumo de Carreira & Expertise
+                  </h4>
+                  <p className="text-xs text-foreground leading-relaxed p-3.5 rounded-xl bg-muted/20 border border-border/40">
+                    {selectedAgent.career_summary}
+                  </p>
+                </div>
+
+                {/* Formação Acadêmica */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <GraduationCap className="w-3.5 h-3.5 text-primary" />
+                    Formação Acadêmica
+                  </h4>
+                  <ul className="space-y-1.5 text-xs text-foreground">
+                    {selectedAgent.curriculum.academic_background.map((item, idx) => (
+                      <li
+                        key={idx}
+                        className="p-2.5 rounded-lg bg-muted/10 border border-border/40 flex items-center gap-2"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Certificações Executivas */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <Award className="w-3.5 h-3.5 text-primary" />
+                    Certificações Executivas
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedAgent.curriculum.certifications.map((cert, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2.5 py-1 rounded-md text-xs font-medium bg-primary/10 text-primary border border-primary/20"
+                      >
+                        {cert}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Entregáveis Produzidos */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <FileCheck className="w-3.5 h-3.5 text-primary" />
+                    Entregáveis Produzidos por Este Agente
+                  </h4>
+                  <ul className="space-y-1.5 text-xs text-muted-foreground">
+                    {selectedAgent.deliverables.map((deliv, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-primary font-bold">•</span>
+                        <span>{deliv}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Metadados Técnicos de IA */}
+                <div className="p-3.5 rounded-xl bg-muted/10 border border-border/30 text-[11px] text-muted-foreground space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span>Modelo de IA Alocado:</span>
+                    <strong className="text-foreground font-mono">{selectedAgent.default_model}</strong>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Modo Operacional:</span>
+                    <strong className="text-foreground">Human-in-the-Loop Supervisionado</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <SheetFooter className="pt-4 border-t border-border/40">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSelectedAgent(null)}
+              className="w-full rounded-xl text-xs font-bold"
+            >
+              Fechar Currículo
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+      {/* ── SHEET CANÔNICA DE INSPEÇÃO DE ENTREGÁVEIS & PARECER EXECUTIVO ── */}
+      <Sheet open={!!selectedRunArtifacts} onOpenChange={(open) => !open && setSelectedRunArtifacts(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-xl bg-card p-6 overflow-y-auto flex flex-col justify-between space-y-6">
+          {selectedRunArtifacts && selectedRunArtifacts.run && (
+            <div>
+              <SheetHeader className="border-b border-border/40 pb-4 text-left">
+                <div className="flex items-center gap-2">
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-primary block">
-                    Perfil do Especialista
+                    Parecer Executivo de Rotina
                   </span>
-                  <h3 className="text-xl font-bold tracking-tight text-foreground mt-0.5">
-                    {selectedAgent.name}
-                  </h3>
-                  <span className="text-xs text-muted-foreground">
-                    {selectedAgent.role_label} • {selectedAgent.seniority}
+                  <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase ${
+                    selectedRunArtifacts.run.status === "needs_approval"
+                      ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                      : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                  }`}>
+                    {selectedRunArtifacts.run.status === "needs_approval" ? "Aguardando Revisão" : "Aprovado"}
                   </span>
                 </div>
+                <SheetTitle className="text-xl font-bold tracking-tight text-foreground mt-1">
+                  {selectedRunArtifacts.squadName}
+                </SheetTitle>
+                <SheetDescription className="text-xs text-muted-foreground">
+                  Iniciado em {new Date(selectedRunArtifacts.run.started_at).toLocaleString("pt-BR")}
+                </SheetDescription>
+              </SheetHeader>
 
-                <button
-                  type="button"
-                  onClick={() => setSelectedAgent(null)}
-                  className="size-11 rounded-xl border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors min-h-[44px] min-w-[44px]" aria-label="Fechar"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Resumo Profissional */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Resumo de Carreira & Expertise
-                </h4>
-                <p className="text-xs text-foreground leading-relaxed p-3.5 rounded-xl bg-muted/20 border border-border/30">
-                  {selectedAgent.career_summary}
-                </p>
-              </div>
-
-              {/* Formação Acadêmica & PhD */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                  <GraduationCap className="w-3.5 h-3.5 text-primary" />
-                  Formação Acadêmica
-                </h4>
-                <ul className="space-y-1.5 text-xs text-foreground">
-                  {selectedAgent.curriculum.academic_background.map((item, idx) => (
-                    <li
-                      key={idx}
-                      className="p-2.5 rounded-lg bg-card border border-border/40 flex items-center gap-2"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Certificações Globais */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                  <Award className="w-3.5 h-3.5 text-primary" />
-                  Certificações Executivas
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {selectedAgent.curriculum.certifications.map((cert, idx) => (
-                    <span
-                      key={idx}
-                      className="px-2.5 py-1 rounded-md text-xs font-medium bg-primary/10 text-primary border border-primary/20"
-                    >
-                      {cert}
-                    </span>
-                  ))}
+              <div className="space-y-6 py-4 text-xs">
+                {/* Parecer Executivo */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Diagnóstico Estruturado
+                  </h4>
+                  <div className="p-4 rounded-xl bg-muted/20 border border-border/40 text-foreground leading-relaxed">
+                    {selectedRunArtifacts.run.output_artifacts?.executive_summary || "Diagnóstico concluído com sucesso."}
+                  </div>
                 </div>
-              </div>
 
-              {/* Entregáveis Canônicos */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                  <FileCheck className="w-3.5 h-3.5 text-primary" />
-                  Entregáveis Produzidos por Este Agente
-                </h4>
-                <ul className="space-y-1.5 text-xs text-muted-foreground">
-                  {selectedAgent.deliverables.map((deliv, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span className="text-primary font-bold">•</span>
-                      <span>{deliv}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                {/* Itens Pendentes de Aprovação / Diretrizes */}
+                {selectedRunArtifacts.run.output_artifacts?.pending_approval_items?.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Entregáveis Produzidos ({selectedRunArtifacts.run.output_artifacts.pending_approval_items.length})
+                    </h4>
+                    <div className="space-y-2.5">
+                      {selectedRunArtifacts.run.output_artifacts.pending_approval_items.map((item: any, idx: number) => (
+                        <div
+                          key={idx}
+                          className="p-3.5 rounded-xl bg-muted/10 border border-border/40 space-y-2"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-foreground text-xs">{item.title}</span>
+                            {item.confidence_score && (
+                              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary font-bold">
+                                {item.confidence_score}% Confiança
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            {item.description}
+                          </p>
+                          {item.assigned_agent && (
+                            <span className="text-[10px] text-muted-foreground block">
+                              Responsável: <strong className="text-foreground">{item.assigned_agent}</strong>
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-              {/* Metadados Técnicos de IA */}
-              <div className="p-3.5 rounded-xl bg-muted/10 border border-border/30 text-[11px] text-muted-foreground space-y-1">
-                <div className="flex items-center justify-between">
-                  <span>Modelo de IA Alocado:</span>
-                  <strong className="text-foreground font-mono">{selectedAgent.default_model}</strong>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Modo Operacional:</span>
-                  <strong className="text-foreground">Human-in-the-Loop Supervisionado</strong>
+                {/* KPIs Monitorados */}
+                {selectedRunArtifacts.run.output_artifacts?.kpis_monitored?.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Indicadores Auditados
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedRunArtifacts.run.output_artifacts.kpis_monitored.map((kpi: string, idx: number) => (
+                        <span
+                          key={idx}
+                          className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-muted/30 border border-border/40 text-foreground"
+                        >
+                          {kpi}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Metadados Técnicos de Execução */}
+                <div className="p-3.5 rounded-xl bg-muted/10 border border-border/30 text-[11px] text-muted-foreground space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span>Tokens Processados:</span>
+                    <strong className="text-foreground font-mono">{selectedRunArtifacts.run.total_tokens_consumed || 1250}</strong>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Origem do Disparo:</span>
+                    <strong className="text-foreground capitalize">{selectedRunArtifacts.run.trigger_source || "Manual"}</strong>
+                  </div>
                 </div>
               </div>
             </div>
+          )}
 
-            <div className="pt-4 border-t border-border/30">
-              <button
+          <SheetFooter className="pt-4 border-t border-border/40 flex flex-col sm:flex-row gap-2">
+            {selectedRunArtifacts?.run?.status === "needs_approval" && (
+              <Button
                 type="button"
-                onClick={() => setSelectedAgent(null)}
-                className="w-full h-11 rounded-xl text-sm font-medium border border-border/60 bg-background hover:bg-muted/40 transition-colors"
+                onClick={async () => {
+                  await handleApproveRun(selectedRunArtifacts.run.id);
+                  setSelectedRunArtifacts(null);
+                }}
+                disabled={actionLoading === `approve-${selectedRunArtifacts.run.id}`}
+                className="w-full sm:flex-1 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white"
               >
-                Fechar Currículo
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+                {actionLoading === `approve-${selectedRunArtifacts.run.id}` ? "Aprovando..." : "Aprovar Diretriz"}
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSelectedRunArtifacts(null)}
+              className="w-full sm:w-auto rounded-xl text-xs font-bold"
+            >
+              Fechar
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

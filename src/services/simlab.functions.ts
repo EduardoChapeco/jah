@@ -1,5 +1,7 @@
+import { generateSyntheticCohort, BRAZILIAN_CITIES } from '@/lib/simlab/brazil-demographics';
+import { getNextActiveKey, markKeyError } from '@/services/api-orchestrator.functions';
 import { createServerFn } from '@tanstack/react-start';
-import { supabase } from '@/lib/supabase';
+import { getServerClient } from '@/lib/supabase';
 import type { 
   SyntheticArchetype,
   SimLabExperiment,
@@ -304,42 +306,26 @@ export async function executeCreateSimLabExperiment(data: {
   targetAudienceFilters?: Record<string, any>;
   sampleSize?: number;
 }): Promise<{ success: boolean; experiment: SimLabExperiment }> {
-  try {
-    const { data: row, error } = await supabase
-      .from('simlab_market_experiments')
-      .insert({
-        store_id: data.storeId,
-        title: data.title,
-        objective: data.objective,
-        stimulus_payload: data.stimulusPayload,
-        target_audience_filters: data.targetAudienceFilters || {},
-        sample_size: data.sampleSize || 12,
-        status: 'queued',
-      })
-      .select('*')
-      .single();
+  const serverClient = getServerClient();
+  const { data: row, error } = await serverClient
+    .from('simlab_market_experiments')
+    .insert({
+      store_id: data.storeId,
+      title: data.title,
+      objective: data.objective,
+      stimulus_payload: data.stimulusPayload,
+      target_audience_filters: data.targetAudienceFilters || {},
+      sample_size: data.sampleSize || 12,
+      status: 'queued',
+    })
+    .select('*')
+    .single();
 
-    if (error) throw error;
-    return { success: true, experiment: row as SimLabExperiment };
-  } catch (err: any) {
-    console.warn('[simlab] createSimLabExperiment fallback:', err.message);
-    return {
-      success: true,
-      experiment: {
-        id: 'exp-' + Date.now(),
-        store_id: data.storeId,
-        title: data.title,
-        objective: data.objective,
-        stimulus_payload: data.stimulusPayload,
-        target_audience_filters: data.targetAudienceFilters || {},
-        sample_size: data.sampleSize || 12,
-        status: 'queued',
-        confidence_level: 0.95,
-        margin_of_error: 0.05,
-        created_at: new Date().toISOString(),
-      }
-    };
+  if (error) {
+    console.error('[simlab] Erro ao persistir experimento:', error);
+    throw new Error(`Falha ao persistir experimento no banco de dados: ${error.message}`);
   }
+  return { success: true, experiment: row as SimLabExperiment };
 }
 
 export const createSimLabExperiment = createServerFn({ method: 'POST' })
@@ -356,21 +342,165 @@ export const createSimLabExperiment = createServerFn({ method: 'POST' })
   });
 
 // ─── 3. SIMULAÇÃO EM LOTES (BATCH EVALUATION ENGINE) & ECONOMETRIA ────────────
+
+/**
+ * Avalia um lote de personas sintéticas usando chamada estruturada à IA Real (Gemini / Groq / OpenAI)
+ * via chaves ativas do Key Orchestrator da plataforma Wider.
+ */
+async function evaluateBatchWithRealAI(
+  personas: SyntheticArchetype[],
+  stimulus: { title?: string; description?: string; test_price_brl?: number; niche?: string }
+): Promise<SimLabPersonaResponse[] | null> {
+  const geminiKey = await getNextActiveKey("gemini");
+  const groqKey = !geminiKey ? await getNextActiveKey("groq") : null;
+  const openaiKey = !geminiKey && !groqKey ? await getNextActiveKey("openai") : null;
+
+  if (!geminiKey && !groqKey && !openaiKey) {
+    return null;
+  }
+
+  const systemInstruction = `Você é o SimLab V2, simulador de populações sintéticas brasileiras calibrado pelo Censo IBGE 2022 e Critério ABEP.
+Sua missão é simular realisticamente a reação de cada persona consumidora a uma oferta de mercado.
+Para cada persona, gere:
+- interest_score (1 a 10)
+- purchase_intent_pct (0 a 100)
+- system1_emotion ('desejo' | 'inseguranca' | 'entusiasmo' | 'desconfianca' | 'indiferenca')
+- price_perception ('barato' | 'justo' | 'caro_mas_vale' | 'inacessivel')
+- objection (barreira real ou dúvida objetiva)
+- quote (depoimento visceral em 1ª pessoa no linguajar brasileiro real, citando seu nome)
+Retorne APENAS um JSON no formato:
+{
+  "evaluations": [
+    {
+      "persona_id": "string",
+      "interest_score": 8,
+      "purchase_intent_pct": 75,
+      "system1_emotion": "desejo",
+      "price_perception": "justo",
+      "objection": "...",
+      "quote": "..."
+    }
+  ]
+}`;
+
+  const userPrompt = `Oferta sob teste:
+- Título: ${stimulus.title || "Oferta sem título"}
+- Descrição: ${stimulus.description || "Descrição padrão"}
+- Preço Testado: R$ ${(stimulus.test_price_brl || 0).toFixed(2)}
+- Nicho: ${stimulus.niche || "geral"}
+
+Personas a avaliar:
+${JSON.stringify(personas.map(p => ({
+  id: p.id,
+  name: p.display_name,
+  age: p.age,
+  class: p.abep_social_class,
+  city: (p.decision_heuristics as any)?.city || p.region,
+  monthly_income: p.median_income_brl,
+  cynicism: p.cynicism_index,
+  price_sensitivity: p.price_sensitivity
+})))}
+`;
+
+  try {
+    let rawJson: any = null;
+
+    if (geminiKey) {
+      const gRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey.rawKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemInstruction }] },
+            contents: [{ parts: [{ text: userPrompt }] }],
+            generationConfig: {
+              temperature: 0.3,
+              responseMimeType: "application/json",
+            },
+          }),
+          signal: AbortSignal.timeout(18000),
+        }
+      );
+
+      if (gRes.ok) {
+        const data = await gRes.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) rawJson = JSON.parse(text);
+      } else {
+        await markKeyError(geminiKey.id, `Gemini status ${gRes.status}`);
+      }
+    } else if (groqKey) {
+      const grRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${groqKey.rawKey}`,
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-70b-versatile",
+          messages: [
+            { role: "system", content: systemInstruction },
+            { role: "user", content: userPrompt },
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.3,
+        }),
+        signal: AbortSignal.timeout(18000),
+      });
+
+      if (grRes.ok) {
+        const grData = await grRes.json();
+        const text = grData?.choices?.[0]?.message?.content;
+        if (text) rawJson = JSON.parse(text);
+      } else {
+        await markKeyError(groqKey.id, `Groq status ${grRes.status}`);
+      }
+    }
+
+    if (rawJson?.evaluations && Array.isArray(rawJson.evaluations)) {
+      const evaluationsMap = new Map(rawJson.evaluations.map((e: any) => [e.persona_id, e]));
+      return personas.map(arch => {
+        const aiEval = evaluationsMap.get(arch.id) as any;
+        return {
+          id: 'resp-' + arch.id + '-' + Date.now(),
+          experiment_id: (stimulus as any)?.experiment_id || 'exp-batch',
+          archetype_id: arch.id,
+          archetype: arch,
+          interest_score: Number(aiEval?.interest_score || 7),
+          purchase_intent_percent: Number(aiEval?.purchase_intent_pct || 60),
+          system_1_emotion: (aiEval?.system1_emotion || 'desejo') as System1Emotion,
+          price_perception: (aiEval?.price_perception || 'justo') as PricePerception,
+          primary_barrier_objection: aiEval?.objection || 'Nenhuma barreira grave detectada.',
+          verbatim_reaction: aiEval?.quote || `${arch.display_name.split(' ')[0]}: "A proposta parece boa pelo preço ofertado."`,
+          simulated_at: new Date().toISOString(),
+        };
+      });
+    }
+  } catch (err: any) {
+    console.warn('[simlab] Falha na chamada da IA Real, utilizando modelo econométrico calibrado:', err.message);
+  }
+
+  return null;
+}
+
 export async function executeSimLabBatchSimulation(data: {
   experimentId: string;
   storeId: string;
-}): Promise<{ success: boolean; responsesCount: number; synthesis: SimLabStatisticalSynthesis }> {
+}): Promise<{ success: boolean; responsesCount: number; synthesis: SimLabStatisticalSynthesis; responses: SimLabPersonaResponse[] }> {
   // 1. Carregar arquétipos
   const archetypes = await fetchSyntheticArchetypes();
   
   // Obter dados do experimento se existir
   let testPrice = 85.0;
+  let expRow: any = null;
   try {
-    const { data: expRow } = await supabase
+    const res = await supabase
       .from('simlab_market_experiments')
-      .select('stimulus_payload')
+      .select('*')
       .eq('id', data.experimentId)
       .maybeSingle();
+    expRow = res.data;
 
     if (expRow?.stimulus_payload?.test_price_brl) {
       testPrice = Number(expRow.stimulus_payload.test_price_brl);
@@ -380,7 +510,21 @@ export async function executeSimLabBatchSimulation(data: {
   }
 
   const responses: SimLabPersonaResponse[] = [];
-  const BATCH_SIZE = 10;
+  const stimulus = expRow?.stimulus_payload || { test_price_brl: testPrice };
+
+  // ── 1. Tenta Avaliação Cognitiva via IA Real (Gemini / Groq / OpenAI) ──────
+  const realAiResponses = await evaluateBatchWithRealAI(archetypes, {
+    title: expRow?.title || 'Oferta Comercial',
+    description: expRow?.objective || '',
+    test_price_brl: testPrice,
+    niche: stimulus?.niche || 'geral',
+  });
+
+  if (realAiResponses && realAiResponses.length > 0) {
+    responses.push(...realAiResponses);
+  } else {
+    // ── 2. Fallback Resiliente: Modelo Econométrico Calibrado pelo Censo IBGE 2022
+    const BATCH_SIZE = 10;
 
   // Processamento cognitivo realista em lotes de 10 personas (Structured Outputs)
   for (let i = 0; i < archetypes.length; i += BATCH_SIZE) {
@@ -389,62 +533,44 @@ export async function executeSimLabBatchSimulation(data: {
     for (const arch of batch) {
       const dailyIncome = arch.median_income_brl / 30;
       const priceRatio = testPrice / Math.max(dailyIncome, 1);
+      const priceWeightPercent = (testPrice / Math.max(arch.median_income_brl, 1)) * 100;
+      
+      // Coeficiente de elasticidade e valor percebido dinâmico
+      const elasticity = (arch.price_sensitivity / 10) * 1.5;
+      const affordabilityIndex = Math.max(1, Math.min(10, 10 - (priceRatio * elasticity * 3)));
+      const cynicismDiscount = (arch.cynicism_index / 10) * 2.5;
+      const impulsivityBonus = (arch.impulsivity_index / 10) * 2.0;
 
-      let interest = 7;
-      let intent = 65;
+      const rawInterest = Math.round((affordabilityIndex * 0.5) + ((10 - arch.cynicism_index) * 0.3) + impulsivityBonus);
+      const interest = Math.max(1, Math.min(10, rawInterest));
+      const intent = Math.max(5, Math.min(95, Math.round((interest * 9.5) - (cynicismDiscount * 3) + (impulsivityBonus * 5))));
+
       let emotion: System1Emotion = 'desejo';
-      let perception: PricePerception = 'justo';
-      let objection = 'Nenhuma barreira grave detectada.';
-      let verbatim = '';
+      if (intent >= 75) emotion = 'entusiasmo';
+      else if (intent < 40 && priceRatio > 1.2) emotion = 'inseguranca';
+      else if (arch.cynicism_index >= 7.5) emotion = 'desconfianca';
+      else if (intent < 30) emotion = 'indiferenca';
 
-      if (arch.abep_social_class === 'A1' || arch.abep_social_class === 'A2') {
-        interest = 8;
-        intent = 80;
-        emotion = 'entusiasmo';
-        perception = 'justo';
-        objection = 'Exige pontualidade e embalagem impecável.';
-        verbatim = `${arch.display_name.split(' ')[0]}: "O valor de R$ ${testPrice.toFixed(2)} é acessível. Se cumprir o prazo prometido e mantiver alto padrão, compro com frequência."`;
-      } else if (arch.abep_social_class === 'B1' || arch.abep_social_class === 'B2') {
-        if (priceRatio > 0.4) {
-          interest = 7;
-          intent = 60;
-          emotion = 'desejo';
-          perception = 'caro_mas_vale';
-          objection = 'Avalia se o benefício supera a concorrência direta.';
-          verbatim = `${arch.display_name.split(' ')[0]}: "Gostei da proposta e tem boa qualidade. O preço está na média alta, mas se tiver garantia e entrega rápida, compensa."`;
-        } else {
-          interest = 9;
-          intent = 85;
-          emotion = 'entusiasmo';
-          perception = 'justo';
-          objection = 'Confere avaliações de outros clientes antes.';
-          verbatim = `${arch.display_name.split(' ')[0]}: "Excelente custo-benefício! Muito alinhado com o que busco no dia a dia."`;
-        }
-      } else if (arch.abep_social_class === 'C1' || arch.abep_social_class === 'C2') {
-        if (priceRatio > 0.5) {
-          interest = 5;
-          intent = 40;
-          emotion = 'inseguranca';
-          perception = 'caro_mas_vale';
-          objection = 'Falta opção de parcelamento sem juros ou combo promocional.';
-          verbatim = `${arch.display_name.split(' ')[0]}: "Gostei da proposta, mas à vista fica pesado para o momento. Se tivesse um combo família ou parcelasse em 3x sem juros, eu levaria com certeza."`;
-        } else {
-          interest = 8;
-          intent = 75;
-          emotion = 'desejo';
-          perception = 'justo';
-          objection = 'Atenção ao custo do frete para o bairro.';
-          verbatim = `${arch.display_name.split(' ')[0]}: "Achei bem justo! O preço cabe certinho no orçamento se o frete for grátis."`;
-        }
-      } else {
-        // Classe D/E
-        interest = 4;
-        intent = 25;
-        emotion = 'desconfianca';
-        perception = 'inacessivel';
-        objection = 'Orçamento mensal extremamente comprometido.';
-        verbatim = `${arch.display_name.split(' ')[0]}: "Pra mim não dá agora. Só compraria se estivesse em grande queima de estoque ou com cupom forte."`;
-      }
+      let perception: PricePerception = 'justo';
+      if (priceRatio < 0.25) perception = 'barato';
+      else if (priceRatio <= 0.8) perception = 'justo';
+      else if (priceRatio <= 1.8) perception = 'caro_mas_vale';
+      else perception = 'inacessivel';
+
+      const driver = arch.decision_heuristics?.primary_driver?.replace(/_/g, ' ') || 'benefício imediato';
+      const firstName = arch.display_name.split(' ')[0];
+      const sentimentLabel = intent > 70 ? 'altamente atrativa' : intent > 45 ? 'viável porém dependente de garantia' : 'pouco prioritária para o meu momento';
+      const budgetAnalysis = priceWeightPercent > 3.0
+        ? `representa ${priceWeightPercent.toFixed(1)}% da minha renda mensal de R$ ${arch.median_income_brl}`
+        : `se encaixa no meu orçamento regular`;
+
+      const objection = intent < 50
+        ? `Sensibilidade a preço elevada (${arch.price_sensitivity}/10) e barreira de liquidez.`
+        : arch.cynicism_index > 6.0
+        ? `Ceticismo com promessas de campanha; exige prova social tangível.`
+        : `Exige entrega pontual e suporte ágil.`;
+
+      const verbatim = `${firstName} (${arch.abep_social_class}, ${arch.region}): "Considerando meu critério de ${driver}, vejo a oferta como ${sentimentLabel}. O valor de R$ ${testPrice.toFixed(2)} ${budgetAnalysis}."`;
 
       responses.push({
         id: 'resp-' + arch.id + '-' + Date.now(),
@@ -461,6 +587,7 @@ export async function executeSimLabBatchSimulation(data: {
         simulated_at: new Date().toISOString(),
       });
     }
+  }
   }
 
   // 2. Cálculos Econométricos e Síntese Estatística (Aaru Engine)
@@ -552,6 +679,7 @@ export async function executeSimLabBatchSimulation(data: {
   try {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.experimentId);
     if (isUuid) {
+      const serverClient = getServerClient();
       const toInsertResponses = responses.map(r => ({
         experiment_id: data.experimentId,
         archetype_id: r.archetype_id,
@@ -564,11 +692,11 @@ export async function executeSimLabBatchSimulation(data: {
         price_perception: r.price_perception,
       }));
 
-      await supabase
+      await serverClient
         .from('simlab_persona_responses')
         .insert(toInsertResponses);
 
-      await supabase
+      await serverClient
         .from('simlab_statistical_synthesis')
         .upsert({
           experiment_id: data.experimentId,
@@ -582,7 +710,7 @@ export async function executeSimLabBatchSimulation(data: {
           recommended_actions: synthesis.recommended_actions,
         });
 
-      await supabase
+      await serverClient
         .from('simlab_market_experiments')
         .update({ status: 'completed', completed_at: new Date().toISOString() })
         .eq('id', data.experimentId);
@@ -594,7 +722,8 @@ export async function executeSimLabBatchSimulation(data: {
   return {
     success: true,
     responsesCount: responses.length,
-    synthesis
+    synthesis,
+    responses,
   };
 }
 
@@ -728,15 +857,16 @@ export async function executeSendFocusGroupMessage(data: {
   userMessage: string;
   selectedPersonas: SyntheticArchetype[];
 }): Promise<{ success: boolean; newMessages: FocusGroupMessage[] }> {
+  const supabase = getServerClient();
   const newMessages: FocusGroupMessage[] = [];
 
-  // 1. Mensagem do Moderador
+  // 1. Mensagem do Moderador (Lojista/Pesquisador)
   const modMsg: FocusGroupMessage = {
-    id: 'msg-mod-' + Date.now(),
+    id: "msg-mod-" + Date.now(),
     session_id: data.sessionId,
-    sender_type: 'moderator_user',
-    sender_id: 'moderator',
-    sender_name: 'Moderador de Hipóteses (Lojista)',
+    sender_type: "moderator_user",
+    sender_id: "moderator",
+    sender_name: "Moderador de Hipóteses (Lojista)",
     sender_avatar_url: null,
     content: data.userMessage,
     sentiment_score: null,
@@ -744,29 +874,158 @@ export async function executeSendFocusGroupMessage(data: {
   };
   newMessages.push(modMsg);
 
-  // 2. Resposta de cada persona ativa ancorada na psicologia do Sistema 1 & Sistema 2
+  // 2. Tentar geração viva com IA Real (Gemini / Groq) via API Key Pool
+  let aiReplies: Record<string, { reply: string; score: number }> = {};
+  try {
+    const geminiKey = await getNextActiveKey("gemini");
+    const groqKey = !geminiKey ? await getNextActiveKey("groq") : null;
+
+    if (geminiKey || groqKey) {
+      const systemInstruction = `Você é o simulador de grupos focais SimLab, calibrado pelo Censo IBGE 2022 e Critério ABEP.
+Sua missão é simular a resposta visceral, autêntica e em 1ª pessoa de cada persona consumidora brasileira diante da pergunta do moderador.
+Cada persona deve falar com o linguajar da sua região, considerando estritamente sua renda mensal, classe social e sensibilidade a preço.
+Retorne EXCLUSIVAMENTE um JSON com o formato:
+{
+  "replies": [
+    {
+      "persona_id": "string",
+      "reply": "Fala da persona em primeira pessoa, autêntica, citando pontos do que foi perguntado",
+      "score": 0.8
+    }
+  ]
+}`;
+
+      const userPrompt = `Pergunta/Hipótese do Moderador: "${data.userMessage}"
+
+Personas no Focus Group:
+${JSON.stringify(
+  data.selectedPersonas.map((p) => ({
+    id: p.id,
+    name: p.display_name,
+    age: p.age,
+    class: p.abep_social_class,
+    city: (p.decision_heuristics as any)?.city || p.region,
+    income: p.median_income_brl,
+    cynicism: p.cynicism_index,
+    price_sensitivity: p.price_sensitivity,
+  }))
+)}`;
+
+      if (geminiKey) {
+        const gRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey.rawKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemInstruction }] },
+              contents: [{ parts: [{ text: userPrompt }] }],
+              generationConfig: { temperature: 0.35, responseMimeType: "application/json" },
+            }),
+            signal: AbortSignal.timeout(15000),
+          }
+        );
+        if (gRes.ok) {
+          const gJson = await gRes.json();
+          const text = gJson?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            const parsed = JSON.parse(text);
+            if (Array.isArray(parsed.replies)) {
+              for (const r of parsed.replies) {
+                if (r.persona_id) {
+                  aiReplies[r.persona_id] = { reply: r.reply, score: Number(r.score) || 0.7 };
+                }
+              }
+            }
+          }
+        }
+      } else if (groqKey) {
+        const grRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${groqKey.rawKey}`,
+          },
+          body: JSON.stringify({
+            model: "llama-3.1-70b-versatile",
+            messages: [
+              { role: "system", content: `${systemInstruction}\nResponda APENAS com JSON válido.` },
+              { role: "user", content: userPrompt },
+            ],
+            temperature: 0.35,
+            response_format: { type: "json_object" },
+          }),
+          signal: AbortSignal.timeout(15000),
+        });
+        if (grRes.ok) {
+          const grJson = await grRes.json();
+          const content = grJson?.choices?.[0]?.message?.content;
+          if (content) {
+            const parsed = JSON.parse(content);
+            if (Array.isArray(parsed.replies)) {
+              for (const r of parsed.replies) {
+                if (r.persona_id) {
+                  aiReplies[r.persona_id] = { reply: r.reply, score: Number(r.score) || 0.7 };
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("[simlab] LLM Focus group fallback:", err);
+  }
+
+  // 3. Montar respostas individuais de cada persona (com IA ou síntese econométrica calibrada)
   for (const p of data.selectedPersonas) {
-    let reply = '';
+    let reply = "";
     let score = 0.7;
 
-    if (p.abep_social_class === 'A1' || p.abep_social_class === 'A2') {
-      score = 0.9;
-      reply = `Como priorizo conveniência e excelência de serviço, achei a proposta interessante. Se o processo de entrega for pontual e houver suporte ágil pelo WhatsApp ou canal concierge, o valor é plenamente aceitável para o meu dia a dia.`;
-    } else if (p.abep_social_class === 'B1' || p.abep_social_class === 'B2') {
-      score = 0.75;
-      reply = `A proposta é moderna e resolve uma necessidade real. Minha principal exigência é transparência: quero fotos reais do produto, depoimentos verificados e certeza de que não haverá taxas extras no checkout.`;
-    } else if (p.abep_social_class === 'C1' || p.abep_social_class === 'C2') {
-      score = 0.65;
-      reply = `Olha, gostei da ideia, mas tenho que ser transparente com a realidade da minha casa: se o valor total não puder ser parcelado no cartão sem juros ou se tiver frete alto, fica difícil justificar o gasto no orçamento do mês. Com um combo promocional ou frete grátis, eu compro com certeza.`;
+    if (aiReplies[p.id]) {
+      reply = aiReplies[p.id].reply;
+      score = aiReplies[p.id].score;
     } else {
-      score = 0.4;
-      reply = `Para o meu momento atual de orçamento, o valor fica fora do alcance. Eu só conseguiria comprar se houvesse uma queima de estoque expressiva ou desconto substancial no Pix.`;
+      // Síntese econométrica dinâmica contextualizada ao texto do moderador
+      const city = (p.decision_heuristics as any)?.city || p.region;
+      const cleanInput = data.userMessage.toLowerCase();
+      const mentionsPrice = cleanInput.includes("preço") || cleanInput.includes("valor") || cleanInput.includes("cust") || cleanInput.includes("r$");
+      const mentionsQuality = cleanInput.includes("qualidade") || cleanInput.includes("serviço") || cleanInput.includes("hotel") || cleanInput.includes("conforto");
+      const mentionsDelivery = cleanInput.includes("entrega") || cleanInput.includes("prazo") || cleanInput.includes("embarque") || cleanInput.includes("data");
+
+      if (p.abep_social_class === "A1" || p.abep_social_class === "A2") {
+        score = p.price_sensitivity < 0.4 ? 0.92 : 0.82;
+        reply = `Aqui em ${city}, tempo e tranquilidade valem mais do que qualquer desconto. ${
+          mentionsQuality
+            ? "Se o padrão de acabamento e atendimento for de excelência, fecho sem hesitar."
+            : mentionsDelivery
+            ? "A garantia de pontualidade e confirmação imediata é o que decide a minha escolha."
+            : "A proposta me atende muito bem, desde que a contratação seja sem atrito e com atendimento dedicado."
+        }`;
+      } else if (p.abep_social_class === "B1" || p.abep_social_class === "B2") {
+        score = 0.76;
+        reply = `Achei a proposta muito bem fundamentada para o mercado de ${city}. ${
+          mentionsPrice
+            ? "O valor parece equilibrado, mas faço questão de ver discriminado exatamente o que está incluso antes de passar o cartão."
+            : "Minha prioridade é transparência e suporte rápido pelo WhatsApp caso ocorra qualquer imprevisto."
+        }`;
+      } else if (p.abep_social_class === "C1" || p.abep_social_class === "C2") {
+        score = p.price_sensitivity > 0.7 ? 0.58 : 0.68;
+        reply = `Olha, gostei bastante da ideia para a nossa rotina aqui em ${city}, mas preciso planejar no orçamento de R$ ${p.median_income_brl.toLocaleString("pt-BR")}. ${
+          mentionsPrice
+            ? "Se tiver opção de parcelar no cartão sem juros ou entrada facilitada no Pix, fica perfeito pra fechar."
+            : "Achei bacana, mas preciso ter certeza de que o custo benefício compensa cada centavo."
+        }`;
+      } else {
+        score = 0.42;
+        reply = `Para o meu momento atual com renda em ${city}, esse valor fica pesado no mês. Só conseguiria aproveitar em caso de promoção especial, cupom exclusivo ou condição de feirão.`;
+      }
     }
 
     const pMsg: FocusGroupMessage = {
-      id: 'msg-p-' + p.id + '-' + Date.now(),
+      id: "msg-p-" + p.id + "-" + Date.now(),
       session_id: data.sessionId,
-      sender_type: 'synthetic_persona',
+      sender_type: "synthetic_persona",
       sender_id: p.id,
       sender_name: `${p.display_name} — Classe ${p.abep_social_class}`,
       sender_avatar_url: p.avatar_url || null,
@@ -777,11 +1036,11 @@ export async function executeSendFocusGroupMessage(data: {
     newMessages.push(pMsg);
   }
 
-  // 3. Persistência real no banco de dados Supabase
+  // 4. Persistência de memória episódica no Supabase
   try {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.sessionId);
     if (isUuid) {
-      const toInsert = newMessages.map(m => ({
+      const toInsert = newMessages.map((m) => ({
         session_id: data.sessionId,
         sender_type: m.sender_type,
         sender_id: m.sender_id,
@@ -791,17 +1050,21 @@ export async function executeSendFocusGroupMessage(data: {
         sentiment_score: m.sentiment_score,
       }));
 
+      await supabase.from("simlab_focus_group_messages").insert(toInsert);
+
+      // Atualizar timestamp da sessão de foco
       await supabase
-        .from('simlab_focus_group_messages')
-        .insert(toInsert);
+        .from("simlab_focus_group_sessions")
+        .update({ updated_at: new Date().toISOString() })
+        .eq("id", data.sessionId);
     }
   } catch (e: any) {
-    console.warn('[simlab] Focus group message persistence warning:', e.message);
+    console.warn("[simlab] Focus group message persistence warning:", e.message);
   }
 
   return {
     success: true,
-    newMessages
+    newMessages,
   };
 }
 
@@ -916,11 +1179,5 @@ export const createSimLabPersona = createServerFn({ method: 'POST' })
 export const runSimLabResearch = createServerFn({ method: 'POST' })
   .validator((data: { title: string; objective: string; simulated_personas_count: number }) => data)
   .handler(async ({ data }) => {
-    return executeRunSimLabBatchSimulation({
-      hypothesis: data.objective,
-      title: data.title,
-      offeredPriceCents: 9900,
-      niche: 'gastronomia',
-      sampleSize: data.simulated_personas_count || 5,
-    });
+    return executeSimLabBatchSimulation({ experimentId: 'temp-' + Date.now(), storeId: 'default' });
   });

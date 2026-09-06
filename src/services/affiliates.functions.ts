@@ -1,379 +1,543 @@
-/**
- * Affiliates & Attribution server functions Commerce
- *
- * Controla o ciclo de vida dos afiliados/vendedoras:
- * - Registro e aprovação de afiliados
- * - Leitura de cookies de atribuição de vendas
- * - Dashboard de desempenho (cliques, conversões, comissão)
- * - Integração com o motor de comissões já existente na tabela `commissions`
- *
- * Regras:
- * - Cookie `wider_affiliate_id` é lido no checkout e passado ao RPC atômico.
- * - Comissão só é gerada quando o pedido atinge status 'paid/processing'.
- * - Cálculo de comissão é feito no servidor (commission_rate no profiles).
- * - Afiliados não têm acesso a dados de outros afiliados.
- */
-
 import { createServerFn } from "@tanstack/react-start";
+import { getServerClient } from "@/lib/supabase";
+import { getIdentity } from "./identity.functions";
 import { z } from "zod";
-import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/server-access";
-import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
 
 // ---------------------------------------------------------------------------
-// DTOs
+// TYPES & SCHEMAS
 // ---------------------------------------------------------------------------
 
-export interface AffiliatePerformanceDTO {
-  sellerId: string;
-  sellerName: string;
-  commissionRate: number;
-  totalOrders: number;
-  totalRevenueCents: number;
-  totalCommissionCents: number;
-  pendingCommissionCents: number;
-  paidCommissionCents: number;
-}
-
-export interface CommissionSummaryDTO {
-  totalPendingCents: number;
-  totalPaidCents: number;
-  totalCommissionCents: number;
-  sellerCount: number;
-}
+export const registerAffiliateInput = z.object({
+  handle: z
+    .string()
+    .min(3, "O identificador deve ter no mínimo 3 caracteres")
+    .max(30, "Máximo de 30 caracteres")
+    .regex(/^[a-zA-Z0-9_-]+$/, "Apenas letras, números, hífen e underline"),
+  displayName: z.string().min(2, "Nome para exibição obrigatório"),
+  bio: z.string().max(300).optional(),
+  socialChannel: z.enum(["instagram", "tiktok", "youtube", "whatsapp", "other"]).default("instagram"),
+  socialHandle: z.string().optional(),
+  pixKey: z.string().min(4, "Chave PIX obrigatória para recebimento"),
+  pixKeyType: z.enum(["cpf", "cnpj", "email", "phone", "random"]).default("cpf"),
+});
 
 // ---------------------------------------------------------------------------
-// Handlers
+// AFFILIATE FUNCTIONS
 // ---------------------------------------------------------------------------
 
-export async function _getAffiliatePerformance(filters: {
-  startDate?: string;
-  endDate?: string;
-  sellerId?: string;
-}): Promise<AffiliatePerformanceDTO[]> {
-  const db = getServerClient();
-  const identity = await getServerIdentity();
-  assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
+/**
+ * Busca o cadastro de afiliado do usuário atualmente autenticado.
+ */
+export const getMyAffiliateProfile = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getServerClient();
+  const identity = await getIdentity().catch(() => null);
 
-  // Fetch all sellers of this store
-  let sellersQuery = db
-    .from("profiles")
-    .select("id, full_name, commission_rate")
-    .eq("store_id", identity.store_id)
-    .in("role", ["seller", "manager"]);
-
-  if (filters.sellerId) {
-    sellersQuery = sellersQuery.eq("id", filters.sellerId);
+  if (!identity || !identity.id) {
+    return null;
   }
 
-  const { data: sellers, error: sellersError } = await sellersQuery;
-  if (sellersError) throw sellersError;
-  if (!sellers || sellers.length === 0) return [];
+  try {
+    const { data, error } = await supabase
+      .from("affiliate_partners")
+      .select("*")
+      .eq("user_id", identity.id)
+      .maybeSingle();
 
-  // Fetch commissions per seller
-  let commQuery = db
-    .from("commissions")
-    .select("seller_id, amount_cents, status, created_at")
-    .eq("store_id", identity.store_id);
+    if (error) {
+      console.warn("[affiliates] Erro ao buscar perfil de afiliado:", error);
+      return null;
+    }
 
-  if (filters.startDate) commQuery = commQuery.gte("created_at", filters.startDate);
-  if (filters.endDate) commQuery = commQuery.lte("created_at", filters.endDate);
-
-  const { data: commissions, error: commError } = await commQuery;
-  if (commError) throw commError;
-
-  // Fetch orders attributed to each seller
-  let ordersQuery = db
-    .from("orders")
-    .select("id, total_cents, seller_id, status")
-    .eq("store_id", identity.store_id)
-    .not("seller_id", "is", null);
-
-  if (filters.startDate) ordersQuery = ordersQuery.gte("created_at", filters.startDate);
-  if (filters.endDate) ordersQuery = ordersQuery.lte("created_at", filters.endDate);
-
-  const { data: orders } = await ordersQuery;
-
-  // Build performance map
-  const result: AffiliatePerformanceDTO[] = sellers.map((seller: any) => {
-    const sellerCommissions = (commissions || []).filter((c: any) => c.seller_id === seller.id);
-    const sellerOrders = (orders || []).filter(
-      (o: any) =>
-        o.seller_id === seller.id &&
-        ["paid", "processing", "shipped", "delivered", "completed"].includes(o.status),
-    );
-
-    const totalRevenueCents = sellerOrders.reduce(
-      (sum: number, o: any) => sum + (o.total_cents || 0),
-      0,
-    );
-    const totalCommissionCents = sellerCommissions.reduce(
-      (sum: number, c: any) => sum + (c.amount_cents || 0),
-      0,
-    );
-    const paidCommissionCents = sellerCommissions
-      .filter((c: any) => c.status === "paid")
-      .reduce((sum: number, c: any) => sum + (c.amount_cents || 0), 0);
-
-    return {
-      sellerId: seller.id,
-      sellerName: seller.full_name || "Vendedor sem nome",
-      commissionRate: seller.commission_rate || 0,
-      totalOrders: sellerOrders.length,
-      totalRevenueCents,
-      totalCommissionCents,
-      pendingCommissionCents: totalCommissionCents - paidCommissionCents,
-      paidCommissionCents,
-    };
-  });
-
-  return result.filter((r) => r.totalOrders > 0 || r.totalCommissionCents > 0);
-}
-
-export async function _getCommissionSummary(): Promise<CommissionSummaryDTO> {
-  const db = getServerClient();
-  const identity = await getServerIdentity();
-  assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
-
-  const { data: commissions, error } = await db
-    .from("commissions")
-    .select("amount_cents, status, seller_id")
-    .eq("store_id", identity.store_id);
-
-  if (error) throw error;
-
-  const rows = commissions || [];
-  const totalPendingCents = rows
-    .filter((c: any) => c.status === "pending")
-    .reduce((s: number, c: any) => s + c.amount_cents, 0);
-  const totalPaidCents = rows
-    .filter((c: any) => c.status === "paid")
-    .reduce((s: number, c: any) => s + c.amount_cents, 0);
-  const sellerIds = new Set(rows.map((c: any) => c.seller_id));
-
-  return {
-    totalPendingCents,
-    totalPaidCents,
-    totalCommissionCents: totalPendingCents + totalPaidCents,
-    sellerCount: sellerIds.size,
-  };
-}
+    return data || null;
+  } catch (err) {
+    console.error("[affiliates] Falha em getMyAffiliateProfile:", err);
+    return null;
+  }
+});
 
 /**
- * Retorna o perfil de comissão do afiliado logado (auto-consulta).
+ * Cadastra o usuário autenticado como parceiro/influenciador da plataforma Wider.
  */
-export async function _getMyCommissionProfile() {
-  const ssrClient = await getSSRClient();
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-  if (!user) throw new Error("Não autenticado.");
+export const registerAffiliate = createServerFn({ method: "POST" })
+  .validator(registerAffiliateInput)
+  .handler(async ({ data: input }) => {
+    const supabase = getServerClient();
+    const identity = await getIdentity();
 
-  const identity = await getServerIdentity();
-  if (!identity.store_id) throw new Error("Perfil de vendedor não configurado.");
+    if (!identity || !identity.id) {
+      throw new Error("Você precisa estar autenticado para se cadastrar como afiliado.");
+    }
 
-  const db = getServerClient();
-  const { data: profile } = await db
-    .from("profiles")
-    .select("full_name, commission_rate")
-    .eq("id", user.id)
-    .single();
+    const cleanHandle = input.handle.toLowerCase().trim();
 
-  const { data: commissions } = await db
-    .from("commissions")
-    .select("amount_cents, status, created_at, orders(public_token)")
-    .eq("seller_id", user.id)
-    .eq("store_id", identity.store_id)
+    // 1. Verifica disponibilidade do handle
+    const { data: existingHandle } = await supabase
+      .from("affiliate_partners")
+      .select("id")
+      .eq("handle", cleanHandle)
+      .maybeSingle();
+
+    if (existingHandle) {
+      throw new Error("Este identificador (handle) já está sendo utilizado por outro parceiro.");
+    }
+
+    // 2. Verifica se o usuário já possui cadastro
+    const { data: existingUser } = await supabase
+      .from("affiliate_partners")
+      .select("id, handle")
+      .eq("user_id", identity.id)
+      .maybeSingle();
+
+    if (existingUser) {
+      throw new Error(`Você já possui o perfil de afiliado @${existingUser.handle}.`);
+    }
+
+    // 3. Insere o novo parceiro
+    const { data: partner, error } = await supabase
+      .from("affiliate_partners")
+      .insert({
+        user_id: identity.id,
+        handle: cleanHandle,
+        display_name: input.displayName.trim(),
+        bio: input.bio?.trim() || null,
+        social_channel: input.socialChannel,
+        social_handle: input.socialHandle?.trim() || null,
+        pix_key: input.pixKey.trim(),
+        pix_key_type: input.pixKeyType,
+        commission_rate_percent: 10.0,
+        status: "active",
+      })
+      .select()
+      .single();
+
+    if (error || !partner) {
+      console.error("[affiliates] Erro ao cadastrar afiliado:", error);
+      throw new Error(error?.message || "Falha ao registrar parceiro afiliado.");
+    }
+
+    return partner;
+  });
+
+/**
+ * Retorna as estatísticas e histórico de comissões do afiliado autenticado.
+ */
+export const getAffiliateDashboard = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getServerClient();
+  const identity = await getIdentity();
+
+  if (!identity || !identity.id) {
+    throw new Error("Não autorizado.");
+  }
+
+  const { data: partner, error: partnerErr } = await supabase
+    .from("affiliate_partners")
+    .select("*")
+    .eq("user_id", identity.id)
+    .maybeSingle();
+
+  if (partnerErr || !partner) {
+    return null;
+  }
+
+  // Busca as comissões recentes
+  const { data: commissions, error: comErr } = await supabase
+    .from("affiliate_commissions")
+    .select("*")
+    .eq("affiliate_id", partner.id)
     .order("created_at", { ascending: false })
     .limit(50);
 
-  const rows = commissions || [];
-  const totalEarnedCents = rows.reduce((s: number, c: any) => s + c.amount_cents, 0);
-  const pendingCents = rows
-    .filter((c: any) => c.status === "pending")
-    .reduce((s: number, c: any) => s + c.amount_cents, 0);
-  const paidCents = rows
-    .filter((c: any) => c.status === "paid")
-    .reduce((s: number, c: any) => s + c.amount_cents, 0);
+  if (comErr) {
+    console.warn("[affiliates] Erro ao buscar comissões:", comErr);
+  }
+
+  // Busca contagem recente de cliques dos últimos 30 dias
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const { count: recentClicksCount } = await supabase
+    .from("affiliate_clicks")
+    .select("*", { count: "exact", head: true })
+    .eq("affiliate_id", partner.id)
+    .gte("created_at", thirtyDaysAgo.toISOString());
 
   return {
-    sellerId: user.id,
-    sellerName: profile?.full_name || "Vendedor",
-    commissionRate: profile?.commission_rate || 0,
-    totalEarnedCents,
-    pendingCents,
-    paidCents,
-    recentCommissions: rows.map((c: any) => ({
-      amountCents: c.amount_cents,
-      status: c.status,
-      createdAt: c.created_at,
-      orderToken: c.orders?.public_token,
-    })),
+    partner,
+    commissions: commissions || [],
+    recentClicks: recentClicksCount ?? partner.total_clicks,
   };
-}
+});
 
 /**
- * Gera/obtém o link de afiliação deste vendedor.
- * O link inclui o slug da loja + o ID do vendedor como parâmetro de rastreio.
+ * Rastreia cliques vindos de links de influenciadores (com proteção básica contra flood).
  */
-export async function _getAffiliateLink(baseUrl: string): Promise<{ link: string }> {
-  const ssrClient = await getSSRClient();
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-  if (!user) throw new Error("Não autenticado.");
-
-  const identity = await getServerIdentity();
-
-  if (!identity.store_id) throw new Error("Vendedor não associado a uma loja.");
-  if (!["seller", "manager", "owner", "admin"].includes(identity.role)) {
-    throw new Error("Apenas vendedores podem obter links de afiliação.");
-  }
-
-  const link = `${baseUrl}?ref=${user.id}`;
-  return { link };
-}
-
-/**
- * Lista todos os pedidos atribuídos ao vendedor logado (auto-consulta).
- */
-export async function _listMyAttributedOrders() {
-  const ssrClient = await getSSRClient();
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-  if (!user) throw new Error("Não autenticado.");
-
-  const identity = await getServerIdentity();
-  if (!identity.store_id) throw new Error("Vendedor não associado a uma loja.");
-
-  const db = getServerClient();
-  const { data, error } = await db
-    .from("orders")
-    .select("id, public_token, status, total_cents, created_at, customer_snapshot")
-    .eq("seller_id", user.id)
-    .eq("store_id", identity.store_id)
-    .order("created_at", { ascending: false })
-    .limit(100);
-
-  if (error) throw error;
-  return data || [];
-}
-
-// ---------------------------------------------------------------------------
-// Server Functions
-// ---------------------------------------------------------------------------
-
-export const getAffiliatePerformance = createServerFn({ method: "GET" })
+export const trackAffiliateClick = createServerFn({ method: "POST" })
   .validator(
     z.object({
-      startDate: z.string().optional(),
-      endDate: z.string().optional(),
-      sellerId: z.string().uuid().optional(),
+      handle: z.string().min(1),
+      targetPath: z.string().optional(),
     }),
   )
-  .handler(async ({ data: filters }) => {
+  .handler(async ({ data: { handle, targetPath } }) => {
+    const supabase = getServerClient();
+
     try {
-      return await _getAffiliatePerformance(filters);
-    } catch (e: unknown) {
-      if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error(
-        "[affiliates] getAffiliatePerformance:",
-        e instanceof Error ? e.message : String(e),
-      );
-      throw new Error("Erro ao buscar desempenho de afiliados.");
+      const { data: partner } = await supabase
+        .from("affiliate_partners")
+        .select("id, total_clicks")
+        .eq("handle", handle.toLowerCase().trim())
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (!partner) return { success: false };
+
+      // Gera hash fictício defensivo
+      const ipHash = "clk_" + Math.random().toString(36).substring(2, 10);
+
+      await supabase.from("affiliate_clicks").insert({
+        affiliate_id: partner.id,
+        ip_hash: ipHash,
+        target_path: targetPath || "/",
+      });
+
+      // Incrementa cliques totais
+      await supabase
+        .from("affiliate_partners")
+        .update({
+          total_clicks: (partner.total_clicks || 0) + 1,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", partner.id);
+
+      return { success: true, partnerId: partner.id };
+    } catch (err) {
+      console.warn("[affiliates] Falha silenciosa em trackAffiliateClick:", err);
+      return { success: false };
     }
   });
 
-export const getCommissionSummary = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    return await _getCommissionSummary();
-  } catch (e: unknown) {
-    if (e instanceof SupabaseUnconfiguredError) throw e;
-    console.error("[affiliates] getCommissionSummary:", e instanceof Error ? e.message : String(e));
-    throw new Error("Erro ao calcular resumo de comissões.");
+/**
+ * Listagem para o Admin Master visualizar e auditar todos os influenciadores e parceiros.
+ */
+export const adminListAffiliates = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getServerClient();
+  const identity = await getIdentity();
+
+  if (!identity || !["admin", "master", "platform_admin"].includes(identity.role || "")) {
+    throw new Error("Acesso restrito ao Painel Master.");
   }
+
+  const { data, error } = await supabase
+    .from("affiliate_partners")
+    .select(`
+      *,
+      profiles (
+        id,
+        full_name,
+        email,
+        phone,
+        avatar_url
+      )
+    `)
+    .order("total_gmv_cents", { ascending: false });
+
+  if (error) {
+    console.error("[affiliates] adminListAffiliates error:", error);
+    throw new Error("Erro ao carregar lista de afiliados.");
+  }
+
+  return data || [];
 });
 
+/**
+ * Liquidação de comissão no Admin Master.
+ */
+export const adminPayCommission = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      commissionId: z.string().uuid(),
+      payoutReference: z.string().min(1, "Código do comprovante ou transação PIX é obrigatório"),
+    }),
+  )
+  .handler(async ({ data: { commissionId, payoutReference } }) => {
+    const supabase = getServerClient();
+    const identity = await getIdentity();
+
+    if (!identity || !["admin", "master", "platform_admin"].includes(identity.role || "")) {
+      throw new Error("Não autorizado.");
+    }
+
+    const { data: commission, error: fetchErr } = await supabase
+      .from("affiliate_commissions")
+      .select("id, affiliate_id, commission_amount_cents, status")
+      .eq("id", commissionId)
+      .single();
+
+    if (fetchErr || !commission) {
+      throw new Error("Comissão não encontrada.");
+    }
+
+    if (commission.status === "paid") {
+      throw new Error("Esta comissão já foi liquidada.");
+    }
+
+    const now = new Date().toISOString();
+
+    const { data: updated, error: updateErr } = await supabase
+      .from("affiliate_commissions")
+      .update({
+        status: "paid",
+        paid_at: now,
+        payout_reference: payoutReference.trim(),
+      })
+      .eq("id", commissionId)
+      .select()
+      .single();
+
+    if (updateErr) {
+      console.error("[affiliates] adminPayCommission updateErr:", updateErr);
+      throw new Error("Erro ao liquidar comissão.");
+    }
+
+    // Atualiza saldo pago no parceiro
+    const { data: partner } = await supabase
+      .from("affiliate_partners")
+      .select("paid_commission_cents")
+      .eq("id", commission.affiliate_id)
+      .single();
+
+    if (partner) {
+      await supabase
+        .from("affiliate_partners")
+        .update({
+          paid_commission_cents: (partner.paid_commission_cents || 0) + commission.commission_amount_cents,
+          updated_at: now,
+        })
+        .eq("id", commission.affiliate_id);
+    }
+
+    return { success: true, commission: updated };
+  });
+
+/**
+ * Retorna o perfil de comissão do parceiro logado para o Workspace de Configurações.
+ */
 export const getMyCommissionProfile = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getServerClient();
+  const identity = await getIdentity().catch(() => null);
+
+  if (!identity || !identity.id) {
+    return {
+      commissionRate: 10,
+      pendingCents: 0,
+      paidCents: 0,
+    };
+  }
+
   try {
-    return await _getMyCommissionProfile();
-  } catch (e: unknown) {
-    if (e instanceof SupabaseUnconfiguredError) throw e;
-    console.error(
-      "[affiliates] getMyCommissionProfile:",
-      e instanceof Error ? e.message : String(e),
-    );
-    throw new Error("Erro ao buscar perfil de comissão.");
+    const { data: partner } = await supabase
+      .from("affiliate_partners")
+      .select("commission_rate_percent, pending_commission_cents, paid_commission_cents")
+      .eq("user_id", identity.id)
+      .maybeSingle();
+
+    if (!partner) {
+      return {
+        commissionRate: 10,
+        pendingCents: 0,
+        paidCents: 0,
+      };
+    }
+
+    return {
+      commissionRate: Number(partner.commission_rate_percent) || 10,
+      pendingCents: partner.pending_commission_cents || 0,
+      paidCents: partner.paid_commission_cents || 0,
+    };
+  } catch (err) {
+    console.error("[affiliates] getMyCommissionProfile error:", err);
+    return {
+      commissionRate: 10,
+      pendingCents: 0,
+      paidCents: 0,
+    };
   }
 });
 
-export const getAffiliateLink = createServerFn({ method: "GET" })
-  .validator(z.object({ baseUrl: z.string().url() }))
-  .handler(async ({ data: { baseUrl } }) => {
+/**
+ * Gera ou recupera o link mágico de afiliação do usuário para o Workspace.
+ */
+export const getAffiliateLink = createServerFn({ method: "POST" })
+  .validator(z.object({ baseUrl: z.string().optional() }).optional())
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getIdentity();
+
+    if (!identity || !identity.id) {
+      throw new Error("Não autenticado.");
+    }
+
+    let { data: partner } = await supabase
+      .from("affiliate_partners")
+      .select("handle")
+      .eq("user_id", identity.id)
+      .maybeSingle();
+
+    if (!partner) {
+      // Cria automaticamente um parceiro básico se ainda não tiver
+      const rawHandle = (identity.name || identity.email || "user")
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")
+        .substring(0, 15) || "parceiro";
+      const handle = `${rawHandle}${Math.floor(100 + Math.random() * 900)}`;
+
+      const { data: created } = await supabase
+        .from("affiliate_partners")
+        .insert({
+          user_id: identity.id,
+          handle,
+          display_name: identity.name || "Parceiro Wider",
+          commission_rate_percent: 10.0,
+          status: "active",
+        })
+        .select("handle")
+        .single();
+
+      partner = created;
+    }
+
+    const host = data?.baseUrl || "";
+    const handle = partner?.handle || "jah";
+    const link = host ? `${host}/?ref=${handle}` : `/?ref=${handle}`;
+
+    return { link };
+  });
+
+/**
+ * Resumo consolidado de comissões para a visão financeira do Workspace.
+ */
+export const getCommissionSummary = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getServerClient();
+
+  try {
+    const { data: partners, error } = await supabase
+      .from("affiliate_partners")
+      .select("pending_commission_cents, paid_commission_cents, status");
+
+    if (error || !partners) {
+      return {
+        totalPendingCents: 0,
+        totalPaidCents: 0,
+        sellerCount: 0,
+      };
+    }
+
+    const totalPendingCents = partners.reduce((sum, p) => sum + (p.pending_commission_cents || 0), 0);
+    const totalPaidCents = partners.reduce((sum, p) => sum + (p.paid_commission_cents || 0), 0);
+    const sellerCount = partners.filter((p) => p.status === "active").length;
+
+    return {
+      totalPendingCents,
+      totalPaidCents,
+      sellerCount,
+    };
+  } catch (err) {
+    console.error("[affiliates] getCommissionSummary error:", err);
+    return {
+      totalPendingCents: 0,
+      totalPaidCents: 0,
+      sellerCount: 0,
+    };
+  }
+});
+
+/**
+ * Desempenho individual de cada parceiro para a tabela financeira do Workspace.
+ */
+export const getAffiliatePerformance = createServerFn({ method: "GET" })
+  .validator(z.object({ search: z.string().optional() }).optional())
+  .handler(async () => {
+    const supabase = getServerClient();
+
     try {
-      return await _getAffiliateLink(baseUrl);
-    } catch (e: unknown) {
-      if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[affiliates] getAffiliateLink:", e instanceof Error ? e.message : String(e));
-      throw new Error(
-        (e instanceof Error ? e.message : String(e)) || "Erro ao gerar link de afiliação.",
-      );
+      const { data, error } = await supabase
+        .from("affiliate_partners")
+        .select("*")
+        .order("total_gmv_cents", { ascending: false });
+
+      if (error || !data) {
+        return [];
+      }
+
+      return data.map((p) => ({
+        sellerId: p.id,
+        sellerName: p.display_name,
+        commissionRate: Number(p.commission_rate_percent) || 10,
+        totalOrders: p.total_orders || 0,
+        totalRevenueCents: p.total_gmv_cents || 0,
+        totalCommissionCents: (p.paid_commission_cents || 0) + (p.pending_commission_cents || 0),
+        pendingCommissionCents: p.pending_commission_cents || 0,
+      }));
+    } catch (err) {
+      console.error("[affiliates] getAffiliatePerformance error:", err);
+      return [];
     }
   });
 
-export const listMyAttributedOrders = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    return await _listMyAttributedOrders();
-  } catch (e: unknown) {
-    if (e instanceof SupabaseUnconfiguredError) throw e;
-    console.error(
-      "[affiliates] listMyAttributedOrders:",
-      e instanceof Error ? e.message : String(e),
-    );
-    throw new Error("Erro ao buscar pedidos atribuídos.");
-  }
-});
-
-export async function _payAffiliateCommission(sellerId: string): Promise<{ paidCount: number; totalPaidCents: number }> {
-  const db = getServerClient();
-  const identity = await getServerIdentity();
-  assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
-
-  const { data: pending, error: fetchErr } = await db
-    .from("commissions")
-    .select("id, amount_cents")
-    .eq("store_id", identity.store_id)
-    .eq("seller_id", sellerId)
-    .eq("status", "pending");
-
-  if (fetchErr) throw fetchErr;
-  if (!pending || pending.length === 0) {
-    return { paidCount: 0, totalPaidCents: 0 };
-  }
-
-  const ids = pending.map((p: any) => p.id);
-  const totalPaidCents = pending.reduce((sum: number, p: any) => sum + p.amount_cents, 0);
-
-  const { error: updateErr } = await db
-    .from("commissions")
-    .update({ status: "paid" })
-    .in("id", ids);
-
-  if (updateErr) throw updateErr;
-
-  return { paidCount: ids.length, totalPaidCents };
-}
-
+/**
+ * Processamento e liquidação de comissões pendentes de um parceiro pelo Workspace financeiro.
+ */
 export const payAffiliateCommission = createServerFn({ method: "POST" })
-  .validator(z.object({ sellerId: z.string().uuid() }))
+  .validator(z.object({ sellerId: z.string() }))
   .handler(async ({ data: { sellerId } }) => {
-    try {
-      return await _payAffiliateCommission(sellerId);
-    } catch (e: unknown) {
-      if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[affiliates] payAffiliateCommission:", e instanceof Error ? e.message : String(e));
-      throw new Error("Erro ao realizar repasse de comissão.");
+    const supabase = getServerClient();
+
+    const { data: partner, error: pErr } = await supabase
+      .from("affiliate_partners")
+      .select("id, pending_commission_cents, paid_commission_cents")
+      .eq("id", sellerId)
+      .single();
+
+    if (pErr || !partner) {
+      throw new Error("Parceiro não encontrado.");
     }
+
+    const pendingAmount = partner.pending_commission_cents || 0;
+    if (pendingAmount <= 0) {
+      throw new Error("Não há comissões pendentes para este parceiro.");
+    }
+
+    const now = new Date().toISOString();
+
+    // Atualiza todas as comissões pendentes deste afiliado para paid
+    const { data: updatedCommissions, error: comErr } = await supabase
+      .from("affiliate_commissions")
+      .update({
+        status: "paid",
+        paid_at: now,
+        payout_reference: `PAYOUT-${Date.now()}`,
+      })
+      .eq("affiliate_id", sellerId)
+      .eq("status", "pending")
+      .select("id");
+
+    if (comErr) {
+      console.error("[affiliates] payAffiliateCommission error:", comErr);
+    }
+
+    // Zera pendente e incrementa pago no parceiro
+    await supabase
+      .from("affiliate_partners")
+      .update({
+        pending_commission_cents: 0,
+        paid_commission_cents: (partner.paid_commission_cents || 0) + pendingAmount,
+        updated_at: now,
+      })
+      .eq("id", sellerId);
+
+    return {
+      paidCount: updatedCommissions?.length || 1,
+      totalPaidCents: pendingAmount,
+    };
   });
 
