@@ -644,5 +644,44 @@
    - Suíte global Vitest: 42 arquivos de teste, 218 testes passando com sucesso.
    - Build de produção (`npm run build` -> Vite + Nitro Cloudflare Pages) com código de saída 0.
 
+## Ciclo 90 — Microfase 90A
+
+- **Data/Hora:** 2026-09-06T19:35:00-03:00
+- **Módulo:** Reforma Sistêmica de Afiliados, Tokens com Vesting, Sub-Perfis de Criadores & Reativação do Mural (`affiliates-and-tokens-vesting`)
+- **Capacidade:** Expurgo de 10% hardcoded e chave PIX, Economia de Tokens com Vesting Futuro (`affiliate_reward_rules`, `affiliate_referrals`), Sub-Perfis de Criadores/Influenciadores (`creator_profiles`) com Anonimato Pessoal (`privacy_mode`), Governança Bilateral de Abatimento de Faturas de Lojas com Tokens (`request_invoice_token_discount` & `approve_invoice_token_discount`), e Reativação do Feed/Mural Social (`_store.mural.tsx`).
+- **Commit Base:** `9ccabc8`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. O módulo de afiliados possuía regras financeiras espúrias não autorizadas (comissão de 10% hardcoded e formulários para cadastro de chave Pix e saques em dinheiro vivo).
+2. O sistema de indicação não estava conectado à economia de tokens nem registrava o vesting futuro, impedindo que os tokens maturassem no tempo certo conforme a governança da rede.
+3. Não havia mecanismo de governança bilateral para que as lojas pudessem aceitar tokens e utilizá-los para abater em mensalidades e faturas da plataforma ou converter em saldo de Ads.
+4. Faltava suporte a sub-perfis de criadores/influenciadores/marcas desvinculados dos dados civis da conta titular, impedindo figuras públicas e influenciadores de atuarem sem expor CPF, telefone ou histórico privado.
+5. A rota do Mural Social (`_store.mural.tsx`) estava desativada por um `redirect` arbitrário para `/noticias`, bloqueando a experiência social da comunidade.
+
+### Ações Executadas
+1. **Modelagem de Dados & PostgreSQL Remoto**:
+   - Criada e aplicada a migração `supabase/migrations/20260929000000_affiliate_tokens_vesting_and_creator_profiles.sql`.
+   - Criadas tabelas `affiliate_reward_rules`, `creator_profiles` e `affiliate_referrals` com RLS restritivo.
+   - Adicionadas colunas `privacy_mode` e `is_anonymous` em `profiles`.
+   - Adicionadas colunas de abatimento de faturas com tokens em `store_token_billing_invoices`.
+   - Criadas e compiladas no PostgreSQL remoto 3 stored procedures ACID: `award_referral_tokens_with_vesting`, `request_invoice_token_discount`, `approve_invoice_token_discount`.
+2. **Serviços BFF (`src/services/affiliates.functions.ts`)**:
+   - Purgados campos de PIX e percentuais de 10% hardcoded.
+   - Implementado `getMyAffiliateTokensOverview` unificando saldo ativo, saldo em vesting futuro e regras ativas.
+   - Implementado `recordReferralConversion` com telemetria e tamper-seal criptográfico.
+   - Implementado `upsertCreatorProfile` e `updateProfilePrivacyMode` para alternância de persona pública e proteção civil.
+   - Implementado `requestStoreInvoiceDiscount` e `approveStoreInvoiceDiscount` para abatimento bilateral de faturas com auditoria.
+3. **Interfaces & Navegação**:
+   - Refatorada `src/routes/_store.afiliados.tsx` no padrão Apple HIG, exibindo métricas de tokens, link exclusivo de compartilhamento, configuração do sub-perfil de criador e controle de privacidade anônima.
+   - Reativada a rota `src/routes/_store.mural.tsx` com `InlinePostComposer`, `PostCard` e filtragem por tipo de postagem.
+   - Adicionada aba de "Abatimento de Faturas com Tokens" no painel Master (`src/routes/admin-master.tokens.tsx`).
+   - Adicionados atalhos de "Mural" e "Criadores" no dock móvel (`src/components/shell/mobile-nav.tsx`).
+4. **Validação & Testes**:
+   - Criada suíte `src/services/affiliates-and-tokens.test.ts` com 6 testes unitários aprovados (100% de sucesso).
+   - Suíte global Vitest: 43 arquivos de teste, 224 testes passando sem regressão.
+   - Build de produção (`npm run build` -> Vite + Nitro Cloudflare Pages) com código de saída 0.
+
+
 
 

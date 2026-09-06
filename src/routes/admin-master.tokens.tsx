@@ -46,16 +46,22 @@ import {
  runTokenReconciliationAdmin,
  getSecurityAuditEventsAdmin,
 } from "@/services/tokens.functions";
+import {
+  listPendingInvoiceTokenDiscounts,
+  approveStoreInvoiceDiscount,
+} from "@/services/affiliates.functions";
+import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin-master/tokens")({
  head: () => ({ meta: [{ title: "Economia de Tokens | Wider Master" }] }),
  loader: async () => {
  try {
- const [stats, eventsRes] = await Promise.all([
+ const [stats, eventsRes, discounts] = await Promise.all([
  getGlobalTokenStatsAdmin(),
  getSecurityAuditEventsAdmin().catch(() => ({ events: [] })),
+ listPendingInvoiceTokenDiscounts().catch(() => []),
  ]);
- return { stats, events: eventsRes.events || [] };
+ return { stats, events: eventsRes.events || [], pendingDiscounts: discounts || [] };
  } catch (e) {
  console.error("[admin-master.tokens] loader error:", e);
  return {
@@ -68,6 +74,7 @@ export const Route = createFileRoute("/admin-master/tokens")({
  stores: [],
  },
  events: [],
+ pendingDiscounts: [],
  };
  }
  },
@@ -89,6 +96,29 @@ function AdminTokensPage() {
  const [bonusTokens, setBonusTokens] = useState(50_000);
  const [bonusReason, setBonusReason] = useState("");
  const [isSubmittingBonus, setIsSubmittingBonus] = useState(false);
+
+ const [pendingDiscounts, setPendingDiscounts] = useState(loaderData.pendingDiscounts || []);
+ const [isProcessingDiscount, setIsProcessingDiscount] = useState<string | null>(null);
+
+ const handleConciliateDiscount = async (invoiceId: string, approved: boolean) => {
+    try {
+      setIsProcessingDiscount(invoiceId);
+      await approveStoreInvoiceDiscount({
+        data: {
+          invoiceId,
+          approved,
+          notes: approved ? "Aprovado pelo Super Admin no Painel Master" : "Recusado pelo Super Admin",
+        },
+      });
+
+      toast.success(approved ? "Abatimento na fatura aprovado com sucesso!" : "Abatimento recusado e tokens estornados.");
+      setPendingDiscounts((prev: any[]) => prev.filter((d: any) => d.id !== invoiceId));
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao conciliar abatimento.");
+    } finally {
+      setIsProcessingDiscount(null);
+    }
+  };
 
  const filteredStores = dataStats.stores.filter((s: any) =>
  (s.store_name || "").toLowerCase().includes(search.toLowerCase()) ||
@@ -211,11 +241,12 @@ function AdminTokensPage() {
 
  {/* Tabs */}
  <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
- <TabsList className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto no-scrollbar p-1 rounded-xl h-10">
- <TabsTrigger value="carteiras" className="text-xs">Carteiras ({dataStats.stores.length})</TabsTrigger>
- <TabsTrigger value="conciliacao" className="text-xs">Solvência</TabsTrigger>
- <TabsTrigger value="seguranca" className="text-xs">Auditoria</TabsTrigger>
- </TabsList>
+  <TabsList className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto no-scrollbar p-1 rounded-xl h-10">
+    <TabsTrigger value="carteiras" className="text-xs">Carteiras ({dataStats.stores.length})</TabsTrigger>
+    <TabsTrigger value="abatimentos" className="text-xs">Abatimentos ({pendingDiscounts.length})</TabsTrigger>
+    <TabsTrigger value="conciliacao" className="text-xs">Solvência</TabsTrigger>
+    <TabsTrigger value="seguranca" className="text-xs">Auditoria</TabsTrigger>
+  </TabsList>
 
  {/* Tab 1: Carteiras */}
  <TabsContent value="carteiras" className="space-y-3">
@@ -369,7 +400,74 @@ function AdminTokensPage() {
  </Table>
  </div>
  </TabsContent>
- </Tabs>
+
+        {/* Tab 4: Abatimentos de Faturas com Tokens */}
+        <TabsContent value="abatimentos" className="space-y-3">
+          <div className="rounded-xl border border-border/60 overflow-hidden bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">Loja Parceira</TableHead>
+                  <TableHead className="text-xs">Fatura</TableHead>
+                  <TableHead className="text-xs">Valor Original</TableHead>
+                  <TableHead className="text-xs">Tokens Utilizados</TableHead>
+                  <TableHead className="text-xs">Desconto (BRL)</TableHead>
+                  <TableHead className="text-xs text-right">Ação Bilateral</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingDiscounts.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground text-xs">
+                      Nenhum pedido de abatimento pendente de conciliação.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  pendingDiscounts.map((disc: any) => (
+                    <TableRow key={disc.id}>
+                      <TableCell className="font-medium text-xs py-3">
+                        <span className="font-semibold block text-foreground">{disc.stores?.name || "Loja"}</span>
+                        <span className="text-[11px] text-muted-foreground font-mono">{disc.stores?.slug}</span>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs py-3">
+                        {disc.invoice_number || disc.id.substring(0, 8)}
+                      </TableCell>
+                      <TableCell className="text-xs py-3">
+                        {formatMoney(disc.amount_cents || 0)}
+                      </TableCell>
+                      <TableCell className="text-xs font-mono font-semibold text-primary py-3">
+                        {(disc.tokens_redeemed_for_discount || 0).toLocaleString()} tokens
+                      </TableCell>
+                      <TableCell className="text-xs font-bold text-emerald-600 dark:text-emerald-400 py-3">
+                        -{formatMoney(disc.discount_applied_cents || 0)}
+                      </TableCell>
+                      <TableCell className="text-right py-3 space-x-2">
+                        <Button
+                          size="sm"
+                          disabled={isProcessingDiscount === disc.id}
+                          onClick={() => handleConciliateDiscount(disc.id, true)}
+                          className="h-8 px-3 rounded-lg text-xs font-semibold"
+                        >
+                          {isProcessingDiscount === disc.id ? <Loader2 className="size-3 animate-spin" /> : "Aprovar"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isProcessingDiscount === disc.id}
+                          onClick={() => handleConciliateDiscount(disc.id, false)}
+                          className="h-8 px-3 rounded-lg text-xs text-destructive hover:bg-destructive/10"
+                        >
+                          Recusar
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+      </Tabs>
 
  {/* Modal Bônus */}
  <Dialog open={bonusModalOpen} onOpenChange={setBonusModalOpen}>

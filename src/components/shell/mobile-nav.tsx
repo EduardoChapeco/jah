@@ -1,120 +1,507 @@
-import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Tag, ShoppingBag, User, LogIn, MessageSquare } from "lucide-react";
+/**
+ * MobileNav — Barra de Navegação Mobile Unificada (Wider Community Platform)
+ *
+ * Design System: Wider — Anti-AI-Smell, Apple HIG, BigTech Board Compliant
+ * Ref: Especificação do usuário & Foto de Referência (Wider project):
+ *  - Linha única flutuante (floating dock com squircle/pill e blur)
+ *  - Botão [+] fixo à esquerda, contextual por módulo (classificados, feed, mercado bloqueado)
+ *  - Seção central com rolagem horizontal (overflow-x-auto) sem sobrepor os botões fixos
+ *  - Botões grandes, escrita grande, tipografia em fonte Inter (font-sans font-medium text-sm)
+ *  - Quando há itens no carrinho: botão Carrinho fica FIXO ao lado da foto de perfil
+ *  - Quando há pedidos ativos para rastrear: botão Pedidos fica FIXO ao lado da foto de perfil
+ *  - Quando vazios: Carrinho e Pedidos permanecem na seção com scroll horizontal
+ *  - Atalhos Secundários integrados: Pedidos | Carrinho | Agenda | Ingressos | Salvos | Negociações
+ *  - Avatar/Perfil: 1 toque → perfil público | segurar 500ms → editar | 2 toques → central da conta
+ */
+
+import { useRef, useState, useCallback, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import {
+  Home,
+  Search,
+  MessageCircle,
+  Plus,
+  ShoppingBag,
+  ShoppingCart,
+  CalendarDays,
+  Ticket,
+  Bookmark,
+  Handshake,
+  LogIn,
+  Wallet,
+  Coins,
+  MessageSquare,
+} from "lucide-react";
 import { QuickCreateModal } from "@/components/commerce/quick-create-modal";
 import { useCartContext } from "@/lib/cart-context";
+import { listCustomerOrders } from "@/services/order.functions";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export interface MobileNavProps {
   session?: any;
 }
 
+// ── Lógica Contextual do Botão + ─────────────────────────────────────────────
+type CreateContext = {
+  label: string;
+  disabled: boolean;
+  disabledReason?: string;
+  useQuickCreate?: boolean;
+  navigateTo?: string;
+};
+
+function resolveCreateContext(pathname: string): CreateContext {
+  if (pathname.startsWith("/classificados")) {
+    return {
+      label: "Publicar anúncio",
+      disabled: false,
+      navigateTo: "/conta/classificados/novo",
+    };
+  }
+  if (pathname.startsWith("/empregos")) {
+    return {
+      label: "Publicar vaga",
+      disabled: false,
+      navigateTo: "/workspace/empregos/candidatos",
+    };
+  }
+  if (pathname.startsWith("/turismo")) {
+    return {
+      label: "Criar pacote",
+      disabled: false,
+      navigateTo: "/workspace/turismo/viagens",
+    };
+  }
+  if (pathname.startsWith("/agenda") || pathname.startsWith("/evento")) {
+    return {
+      label: "Criar evento",
+      disabled: false,
+      navigateTo: "/workspace/eventos",
+    };
+  }
+  if (pathname.startsWith("/noticias")) {
+    return {
+      label: "Nova matéria",
+      disabled: false,
+      navigateTo: "/workspace/noticias/novo",
+    };
+  }
+  if (
+    pathname.startsWith("/mercado") ||
+    pathname.startsWith("/gastronomia") ||
+    pathname.startsWith("/farmacia") ||
+    pathname.startsWith("/bebidas")
+  ) {
+    return {
+      label: "Só para empresas",
+      disabled: true,
+      disabledReason:
+        "Publicação no Marketplace é exclusiva para lojas cadastradas no Workspace.",
+    };
+  }
+  // Default: feed, mural, home, etc. Abre o QuickCreateModal
+  return { label: "Criar & Anunciar", disabled: false, useQuickCreate: true };
+}
+
 export function MobileNav({ session }: MobileNavProps) {
   const location = useLocation();
-  const { setIsCartOpen, globalCarts } = useCartContext();
+  const navigate = useNavigate();
+  const { globalCarts, cart } = useCartContext();
+
   const isAuthenticated = Boolean(session?.user || session?.id);
+  const user = session?.user || session;
+  const userAvatar = user?.user_metadata?.avatar_url || user?.avatar_url || "";
+  const userFullName =
+    user?.user_metadata?.name ||
+    user?.user_metadata?.full_name ||
+    user?.email ||
+    "Usuário";
 
-  const isHome = location.pathname === "/";
-  const isClassifieds = location.pathname.startsWith("/classificados");
-  const isProfile =
+  const userInitials =
+    userFullName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part: string) => part[0]?.toUpperCase())
+      .join("") || "AW";
+
+  // Total de itens no carrinho (global ou da loja corrente)
+  const totalCartItems =
+    globalCarts.reduce((acc, c) => acc + (c.itemCount || 0), 0) ||
+    (cart?.itemCount ?? 0);
+  const hasCartItems = totalCartItems > 0;
+
+  // Estado de pedidos ativos para rastreamento
+  const [activeOrdersCount, setActiveOrdersCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setActiveOrdersCount(0);
+      return;
+    }
+    let isMounted = true;
+    listCustomerOrders()
+      .then((orders) => {
+        if (!isMounted) return;
+        const activeStatuses = [
+          "awaiting_payment",
+          "paid",
+          "processing",
+          "ready_for_pickup",
+          "shipped",
+        ];
+        const active = (orders || []).filter((o: any) =>
+          activeStatuses.includes(o.status)
+        );
+        setActiveOrdersCount(active.length);
+      })
+      .catch(() => {
+        if (isMounted) setActiveOrdersCount(0);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, location.pathname]);
+
+  const hasActiveOrders = activeOrdersCount > 0;
+
+  // ── Gestos do Avatar / Botão Perfil (1 toque, long press, double tap) ──────
+  const lastTapRef = useRef<number>(0);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isLongPressing, setIsLongPressing] = useState(false);
+
+  const handleAvatarTouchStart = useCallback(() => {
+    setIsLongPressing(true);
+    longPressTimerRef.current = setTimeout(() => {
+      // Long press (500ms) → editar perfil
+      setIsLongPressing(false);
+      navigate({ to: "/conta/perfil" });
+    }, 500);
+  }, [navigate]);
+
+  const handleAvatarTouchEnd = useCallback(() => {
+    setIsLongPressing(false);
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    const now = Date.now();
+    const delta = now - lastTapRef.current;
+    if (delta < 320 && delta > 0) {
+      // Double tap → central da conta
+      navigate({ to: "/conta" });
+    } else {
+      // Single tap → perfil público
+      lastTapRef.current = now;
+      navigate({ to: "/conta/perfil" });
+    }
+  }, [navigate]);
+
+  // ── Contexto do botão + ───────────────────────────────────────────────────
+  const createCtx = resolveCreateContext(location.pathname);
+
+  // ── Atalhos Secundários Dinâmicos ─────────────────────────────────────────
+  // Se o Carrinho estiver com itens, ele sai da lista de scroll e vai para a área fixa à direita.
+  // Se houver pedidos ativos, Pedidos sai da lista de scroll e vai para a área fixa à direita.
+  const secondaryShortcuts = [
+    {
+      id: "pedidos",
+      to: "/conta/pedidos",
+      label: "Pedidos",
+      icon: ShoppingBag,
+      pinned: hasActiveOrders,
+    },
+    {
+      id: "carrinho",
+      to: "/carrinho",
+      label: "Carrinho",
+      icon: ShoppingCart,
+      pinned: hasCartItems,
+    },
+    {
+      id: "mural",
+      to: "/mural",
+      label: "Mural",
+      icon: MessageSquare,
+      pinned: false,
+    },
+    {
+      id: "criadores",
+      to: "/afiliados",
+      label: "Criadores",
+      icon: Coins,
+      pinned: false,
+    },
+    {
+      id: "financas",
+      to: "/conta/financas",
+      label: "Finanças",
+      icon: Wallet,
+      pinned: false,
+    },
+    {
+      id: "agenda",
+      to: "/conta/agendamentos",
+      label: "Agenda",
+      icon: CalendarDays,
+      pinned: false,
+    },
+    {
+      id: "ingressos",
+      to: "/conta/ingressos",
+      label: "Ingressos",
+      icon: Ticket,
+      pinned: false,
+    },
+    {
+      id: "salvos",
+      to: "/conta/salvos",
+      label: "Salvos",
+      icon: Bookmark,
+      pinned: false,
+    },
+    {
+      id: "negociacoes",
+      to: "/conta/negociacoes",
+      label: "Negociações",
+      icon: Handshake,
+      pinned: false,
+    },
+  ];
+
+  // Filtra atalhos secundários que aparecem no scroll (os não-fixados)
+  const scrollableSecondaryShortcuts = secondaryShortcuts.filter((s) => !s.pinned);
+
+  // ── Active States ──────────────────────────────────────────────────────────
+  const isHomeActive = location.pathname === "/";
+  const isSearchActive =
+    location.pathname.startsWith("/buscar") || location.pathname.startsWith("/diretorio");
+  const isMessagesActive =
+    location.pathname.startsWith("/conta/conversas") ||
+    location.pathname.startsWith("/conta/suporte");
+  const isProfileActive =
     location.pathname.startsWith("/conta/perfil") ||
-    location.pathname.startsWith("/membro/");
+    location.pathname.startsWith("/membro/") ||
+    location.pathname === "/conta";
 
- const user = session?.user || session;
- const userAvatar = user?.user_metadata?.avatar_url || user?.avatar_url || "";
- const totalItemCount = globalCarts.reduce((acc, c) => acc + c.itemCount, 0);
-
- return (
- <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/97 backdrop-blur-md border-t border-border/50 z-40 flex items-center justify-around px-1 select-none pb-safe">
- {/* 1. Início */}
- <Link
- to="/"
- className={`flex flex-col items-center justify-center gap-0.5 min-h-[56px] flex-1 py-2 text-[10px] font-semibold transition-colors ${
- isHome ? "text-primary" : "text-muted-foreground"
- }`}
- >
- <Home className={`size-5 transition-transform ${isHome ? "scale-110" : ""}`} />
- <span>Início</span>
- </Link>
-
-      {/* 2. Classificados */}
-      <Link
-        to="/classificados"
-        className={`flex flex-col items-center justify-center gap-0.5 min-h-[56px] flex-1 py-2 text-[10px] font-semibold transition-colors ${
-          isClassifieds ? "text-primary" : "text-muted-foreground"
-        }`}
+  return (
+    <div
+      className="lg:hidden fixed bottom-2.5 inset-x-2.5 z-40 max-w-xl mx-auto select-none"
+      style={{ bottom: "max(calc(env(safe-area-inset-bottom) + 6px), 10px)" }}
+    >
+      <nav
+        aria-label="Navegação principal mobile"
+        className="flex items-center gap-1.5 p-1.5 bg-background/95 backdrop-blur-xl border border-border/60 shadow-xl rounded-[24px] ring-1 ring-black/5 dark:ring-white/10"
       >
-        <Tag className={`size-5 transition-transform ${isClassifieds ? "scale-110" : ""}`} />
-        <span>Classificados</span>
-      </Link>
+        {/* ── 1. BOTÃO [+] FIXO À ESQUERDA (Não se move, contextual por módulo) ── */}
+        <div className="shrink-0">
+          {createCtx.useQuickCreate ? (
+            <QuickCreateModal
+              isAuthenticated={isAuthenticated}
+              session={session}
+              asNavButton={true}
+            />
+          ) : createCtx.disabled ? (
+            <button
+              type="button"
+              onClick={() => toast.info(createCtx.disabledReason)}
+              aria-label={createCtx.label}
+              title={createCtx.disabledReason}
+              className="h-11 w-11 shrink-0 rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500 flex items-center justify-center border border-border/40 cursor-not-allowed opacity-50"
+            >
+              <Plus className="size-5.5 stroke-[2.5]" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (!isAuthenticated) {
+                  toast.info("Acesse sua conta para continuar.");
+                  navigate({
+                    to: "/entrar",
+                    search: { returnUrl: createCtx.navigateTo || location.pathname },
+                  });
+                  return;
+                }
+                if (createCtx.navigateTo) {
+                  navigate({ to: createCtx.navigateTo as any });
+                }
+              }}
+              aria-label={createCtx.label}
+              className="h-11 w-11 shrink-0 rounded-2xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-900 dark:text-neutral-100 flex items-center justify-center border border-border/50 active:scale-95 transition-all shadow-xs cursor-pointer"
+            >
+              <Plus className="size-5.5 stroke-[2.5]" />
+            </button>
+          )}
+        </div>
 
- {/* 3. Ação Central de Criação (FAB + Sheet) */}
- <div className="flex items-center justify-center flex-1 min-h-[56px]">
- <QuickCreateModal isAuthenticated={isAuthenticated} session={session} />
- </div>
+        {/* ── 2. SEÇÃO COM SCROLL HORIZONTAL NA MESMA LINHA (Não sobrepõe botões fixos) ── */}
+        <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-1.5 px-1">
+          {/* A. Início */}
+          <Link
+            to="/"
+            className={cn(
+              "h-11 px-3.5 rounded-2xl font-sans font-medium text-[13.5px] flex items-center gap-2 shrink-0 transition-all active:scale-95",
+              isHomeActive
+                ? "bg-foreground text-background font-semibold shadow-xs"
+                : "bg-muted/40 hover:bg-muted/70 text-foreground/85 hover:text-foreground border border-border/30"
+            )}
+          >
+            <Home className={cn("size-[18px]", isHomeActive && "fill-current")} />
+            <span className="whitespace-nowrap">Início</span>
+          </Link>
 
- {/* 4. Conversas / Atendimento */}
- {isAuthenticated ? (
- <Link
- to="/conta/suporte"
- className={`flex flex-col items-center justify-center gap-0.5 min-h-[56px] flex-1 py-2 text-[10px] font-semibold transition-colors ${
- location.pathname.startsWith("/conta/suporte") ? "text-primary" : "text-muted-foreground"
- }`}
- >
- <MessageSquare className={`size-5 transition-transform ${location.pathname.startsWith("/conta/suporte") ? "scale-110" : ""}`} />
- <span>Atendimento</span>
- </Link>
- ) : (
- <button
- type="button"
- onClick={() => setIsCartOpen(true)}
- className="relative flex flex-col items-center justify-center gap-0.5 min-h-[56px] flex-1 py-2 text-[10px] font-semibold transition-colors text-muted-foreground hover:text-foreground cursor-pointer"
- aria-label="Abrir sacola de compras"
- >
- <div className="relative">
- <ShoppingBag className="size-5" />
- {totalItemCount > 0 && (
- <span className="absolute -top-1.5 -right-1.5 size-4 rounded-full bg-primary text-primary-foreground text-[9px] font-black flex items-center justify-center leading-none">
- {totalItemCount > 9 ? "9+" : totalItemCount}
- </span>
- )}
- </div>
- <span>Sacola</span>
- </button>
- )}
+          {/* B. Explorar / Busca */}
+          <Link
+            to="/buscar"
+            className={cn(
+              "h-11 px-3.5 rounded-2xl font-sans font-medium text-[13.5px] flex items-center gap-2 shrink-0 transition-all active:scale-95",
+              isSearchActive
+                ? "bg-foreground text-background font-semibold shadow-xs"
+                : "bg-muted/40 hover:bg-muted/70 text-foreground/85 hover:text-foreground border border-border/30"
+            )}
+          >
+            <Search className="size-[18px]" strokeWidth={isSearchActive ? 2.5 : 2} />
+            <span className="whitespace-nowrap">Explorar</span>
+          </Link>
 
- {/* 5. Perfil / Entrar */}
- {isAuthenticated ? (
- <Link
- to="/conta/perfil"
- className={`flex flex-col items-center justify-center gap-0.5 min-h-[56px] flex-1 py-2 text-[10px] font-semibold transition-colors ${
- isProfile ? "text-primary" : "text-muted-foreground"
- }`}
- >
- {userAvatar ? (
- <div
- className={`size-6 rounded-full overflow-hidden flex-shrink-0 ${
- isProfile
- ? "ring-2 ring-primary ring-offset-1 ring-offset-background"
- : "ring-1 ring-border"
- }`}
- >
- <img src={userAvatar} alt="Perfil" className="size-full object-cover" />
- </div>
- ) : (
- <User className={`size-5 transition-transform ${isProfile ? "scale-110" : ""}`} />
- )}
- <span>Perfil</span>
- </Link>
- ) : (
- <Link
- to="/entrar"
- className={`flex flex-col items-center justify-center gap-0.5 min-h-[56px] flex-1 py-2 text-[10px] font-semibold transition-colors ${
- location.pathname.startsWith("/entrar") ? "text-primary" : "text-muted-foreground"
- }`}
- >
- <LogIn className="size-5" />
- <span>Entrar</span>
- </Link>
- )}
- </nav>
- );
+          {/* C. Mensagens (antigo Atendimento/Chat) */}
+          <Link
+            to={isAuthenticated ? "/conta/conversas" : "/entrar"}
+            className={cn(
+              "h-11 px-3.5 rounded-2xl font-sans font-medium text-[13.5px] flex items-center gap-2 shrink-0 transition-all active:scale-95",
+              isMessagesActive
+                ? "bg-foreground text-background font-semibold shadow-xs"
+                : "bg-muted/40 hover:bg-muted/70 text-foreground/85 hover:text-foreground border border-border/30"
+            )}
+          >
+            <MessageCircle
+              className={cn("size-[18px]", isMessagesActive && "fill-current")}
+            />
+            <span className="whitespace-nowrap">Mensagens</span>
+          </Link>
+
+          {/* D. Atalhos Secundários com Scroll Horizontal (Quando Logado) */}
+          {isAuthenticated &&
+            scrollableSecondaryShortcuts.map((s) => {
+              const Icon = s.icon;
+              const isActive = location.pathname.startsWith(s.to);
+              return (
+                <Link
+                  key={s.id}
+                  to={s.to as any}
+                  className={cn(
+                    "h-11 px-3.5 rounded-2xl font-sans font-medium text-[13.5px] flex items-center gap-2 shrink-0 transition-all active:scale-95",
+                    isActive
+                      ? "bg-foreground text-background font-semibold shadow-xs"
+                      : "bg-muted/40 hover:bg-muted/70 text-foreground/85 hover:text-foreground border border-border/30"
+                  )}
+                >
+                  <Icon className="size-[18px]" />
+                  <span className="whitespace-nowrap">{s.label}</span>
+                </Link>
+              );
+            })}
+        </div>
+
+        {/* ── 3. BOTÕES FIXOS À DIREITA (Ao lado da foto de perfil) ── */}
+        <div className="flex items-center gap-1 shrink-0 pl-0.5">
+          {/* A. Botão Pedidos Fixo (Apenas quando há pedidos ativos para rastrear) */}
+          {hasActiveOrders && (
+            <Link
+              to="/conta/pedidos"
+              aria-label={`Pedidos ativos (${activeOrdersCount})`}
+              title="Acompanhar e rastrear pedidos ativos"
+              className={cn(
+                "h-11 px-3 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 dark:text-amber-200 border border-amber-500/40 flex items-center gap-1.5 shrink-0 font-sans font-semibold text-[13px] active:scale-95 transition-all relative animate-in fade-in zoom-in-95",
+                location.pathname.startsWith("/conta/pedidos") &&
+                  "ring-2 ring-amber-500"
+              )}
+            >
+              <div className="relative">
+                <ShoppingBag className="size-4.5" />
+                <span className="absolute -top-1 -right-1 size-2 rounded-full bg-amber-500 animate-ping" />
+                <span className="absolute -top-1 -right-1 size-2 rounded-full bg-amber-500" />
+              </div>
+              <span className="whitespace-nowrap font-sans font-medium">Pedidos</span>
+              <span className="size-4.5 rounded-full bg-amber-500 text-white text-[10px] font-black flex items-center justify-center">
+                {activeOrdersCount}
+              </span>
+            </Link>
+          )}
+
+          {/* B. Botão Carrinho Fixo (Apenas quando há itens no carrinho) */}
+          {hasCartItems && (
+            <Link
+              to="/carrinho"
+              aria-label={`Carrinho (${totalCartItems} itens)`}
+              title="Ver meu carrinho"
+              className={cn(
+                "h-11 px-3 rounded-2xl bg-primary text-primary-foreground flex items-center gap-1.5 shrink-0 font-sans font-semibold text-[13px] shadow-sm active:scale-95 transition-all relative animate-in fade-in zoom-in-95",
+                location.pathname === "/carrinho" && "ring-2 ring-foreground"
+              )}
+            >
+              <ShoppingCart className="size-4.5" />
+              <span className="whitespace-nowrap font-sans font-medium">Carrinho</span>
+              <span className="size-4.5 rounded-full bg-background text-foreground text-[10px] font-black flex items-center justify-center">
+                {totalCartItems > 99 ? "99+" : totalCartItems}
+              </span>
+            </Link>
+          )}
+
+          {/* C. Divisor Vertical Sutil */}
+          <div className="h-6 w-px bg-border/60 mx-0.5 shrink-0" />
+
+          {/* D. Foto de Perfil / Botão Entrar (Fixo no extremo direito) */}
+          {isAuthenticated ? (
+            <button
+              type="button"
+              aria-label="Perfil (1 toque: perfil, segurar: editar, 2 toques: conta)"
+              onTouchStart={handleAvatarTouchStart}
+              onTouchEnd={handleAvatarTouchEnd}
+              onMouseDown={handleAvatarTouchStart}
+              onMouseUp={handleAvatarTouchEnd}
+              className={cn(
+                "h-11 w-11 shrink-0 rounded-2xl flex items-center justify-center transition-all cursor-pointer relative active:scale-95",
+                isProfileActive
+                  ? "ring-2 ring-foreground ring-offset-2 ring-offset-background"
+                  : "ring-1 ring-border/80",
+                isLongPressing && "scale-90 opacity-75"
+              )}
+            >
+              {userAvatar ? (
+                <div className="size-full rounded-2xl overflow-hidden">
+                  <img
+                    src={userAvatar}
+                    alt={userFullName}
+                    className="size-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="size-full rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-sans font-bold text-xs tracking-tight">
+                  {userInitials}
+                </div>
+              )}
+
+              {/* Distintivo de status visual no canto inferior */}
+              <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-neutral-200 dark:bg-neutral-800 text-[8px] font-black text-foreground flex items-center justify-center border border-background shadow-xs">
+                P
+              </span>
+            </button>
+          ) : (
+            <Link
+              to="/entrar"
+              aria-label="Entrar na conta"
+              className="h-11 px-3.5 rounded-2xl bg-foreground text-background font-sans font-medium text-[13.5px] flex items-center gap-1.5 shrink-0 active:scale-95 transition-all shadow-xs"
+            >
+              <LogIn className="size-4.5" />
+              <span className="whitespace-nowrap">Entrar</span>
+            </Link>
+          )}
+        </div>
+      </nav>
+    </div>
+  );
 }
