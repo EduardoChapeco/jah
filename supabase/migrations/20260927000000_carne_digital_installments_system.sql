@@ -75,6 +75,7 @@ ALTER TABLE public.receivable_adjustment_log ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para receivables
 DROP POLICY IF EXISTS "receivables_participants_policy" ON public.receivables;
+DROP POLICY IF EXISTS "receivables_participants_and_store_policy" ON public.receivables;
 CREATE POLICY "receivables_participants_and_store_policy" ON public.receivables
   FOR ALL USING (
     creditor_id = auth.uid() OR 
@@ -87,6 +88,7 @@ CREATE POLICY "receivables_participants_and_store_policy" ON public.receivables
 
 -- Políticas para receivable_installments
 DROP POLICY IF EXISTS "installments_participants_policy" ON public.receivable_installments;
+DROP POLICY IF EXISTS "installments_participants_and_store_policy" ON public.receivable_installments;
 CREATE POLICY "installments_participants_and_store_policy" ON public.receivable_installments
   FOR ALL USING (
     EXISTS (
@@ -104,6 +106,7 @@ CREATE POLICY "installments_participants_and_store_policy" ON public.receivable_
   );
 
 -- Políticas para receivable_adjustment_log
+DROP POLICY IF EXISTS "adjustment_log_read_policy" ON public.receivable_adjustment_log;
 CREATE POLICY "adjustment_log_read_policy" ON public.receivable_adjustment_log
   FOR SELECT USING (
     EXISTS (
@@ -120,6 +123,7 @@ CREATE POLICY "adjustment_log_read_policy" ON public.receivable_adjustment_log
     )
   );
 
+DROP POLICY IF EXISTS "adjustment_log_insert_policy" ON public.receivable_adjustment_log;
 CREATE POLICY "adjustment_log_insert_policy" ON public.receivable_adjustment_log
   FOR INSERT WITH CHECK (
     adjusted_by = auth.uid()

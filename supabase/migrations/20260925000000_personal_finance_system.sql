@@ -45,28 +45,36 @@ ALTER TABLE public.personal_financial_entries ENABLE ROW LEVEL SECURITY;
 
 -- 5. Políticas de Segurança RLS para Categorias
 -- Usuários podem ler categorias do sistema (profile_id IS NULL) e suas próprias categorias
+DROP POLICY IF EXISTS "pfc_select_policy" ON public.personal_financial_categories;
 CREATE POLICY "pfc_select_policy" ON public.personal_financial_categories
     FOR SELECT USING (profile_id IS NULL OR profile_id = auth.uid());
 
+DROP POLICY IF EXISTS "pfc_insert_policy" ON public.personal_financial_categories;
 CREATE POLICY "pfc_insert_policy" ON public.personal_financial_categories
     FOR INSERT WITH CHECK (profile_id = auth.uid());
 
+DROP POLICY IF EXISTS "pfc_update_policy" ON public.personal_financial_categories;
 CREATE POLICY "pfc_update_policy" ON public.personal_financial_categories
     FOR UPDATE USING (profile_id = auth.uid()) WITH CHECK (profile_id = auth.uid());
 
+DROP POLICY IF EXISTS "pfc_delete_policy" ON public.personal_financial_categories;
 CREATE POLICY "pfc_delete_policy" ON public.personal_financial_categories
     FOR DELETE USING (profile_id = auth.uid());
 
 -- 6. Políticas de Segurança RLS para Lançamentos (Privacidade Total do Usuário)
+DROP POLICY IF EXISTS "pfe_select_policy" ON public.personal_financial_entries;
 CREATE POLICY "pfe_select_policy" ON public.personal_financial_entries
     FOR SELECT USING (profile_id = auth.uid());
 
+DROP POLICY IF EXISTS "pfe_insert_policy" ON public.personal_financial_entries;
 CREATE POLICY "pfe_insert_policy" ON public.personal_financial_entries
     FOR INSERT WITH CHECK (profile_id = auth.uid());
 
+DROP POLICY IF EXISTS "pfe_update_policy" ON public.personal_financial_entries;
 CREATE POLICY "pfe_update_policy" ON public.personal_financial_entries
     FOR UPDATE USING (profile_id = auth.uid()) WITH CHECK (profile_id = auth.uid());
 
+DROP POLICY IF EXISTS "pfe_delete_policy" ON public.personal_financial_entries;
 CREATE POLICY "pfe_delete_policy" ON public.personal_financial_entries
     FOR DELETE USING (profile_id = auth.uid());
 
