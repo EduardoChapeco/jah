@@ -63,6 +63,7 @@ import { Route as AdminMasterIndexRouteImport } from './routes/admin-master.inde
 import { Route as AdminMasterAlgoritmoRouteImport } from './routes/admin-master.algoritmo'
 import { Route as AdminMasterBannersRouteImport } from './routes/admin-master.banners'
 import { Route as AdminMasterBotoesRouteImport } from './routes/admin-master.botoes'
+import { Route as AdminMasterCarnesRouteImport } from './routes/admin-master.carnes'
 import { Route as AdminMasterConviteRouteImport } from './routes/admin-master.convite'
 import { Route as AdminMasterCuradoriaRouteImport } from './routes/admin-master.curadoria'
 import { Route as AdminMasterDenunciasRouteImport } from './routes/admin-master.denuncias'
@@ -109,9 +110,12 @@ import { Route as StoreContaIndexRouteImport } from './routes/_store.conta.index
 import { Route as StoreContaAgendamentosRouteImport } from './routes/_store.conta.agendamentos'
 import { Route as StoreContaAvaliacoesRouteImport } from './routes/_store.conta.avaliacoes'
 import { Route as StoreContaCandidaturasRouteImport } from './routes/_store.conta.candidaturas'
+import { Route as StoreContaCarnesRouteImport } from './routes/_store.conta.carnes'
 import { Route as StoreContaColaboradorRouteImport } from './routes/_store.conta.colaborador'
+import { Route as StoreContaContratosRouteImport } from './routes/_store.conta.contratos'
 import { Route as StoreContaCreditosRouteImport } from './routes/_store.conta.creditos'
 import { Route as StoreContaEnderecosRouteImport } from './routes/_store.conta.enderecos'
+import { Route as StoreContaFinancasRouteImport } from './routes/_store.conta.financas'
 import { Route as StoreContaGiftCardsRouteImport } from './routes/_store.conta.gift-cards'
 import { Route as StoreContaIngressosRouteImport } from './routes/_store.conta.ingressos'
 import { Route as StoreContaLojasRouteImport } from './routes/_store.conta.lojas'
@@ -137,6 +141,7 @@ import { Route as StoreDiretorioIdRouteImport } from './routes/_store.diretorio.
 import { Route as StoreEmpregosIndexRouteImport } from './routes/_store.empregos.index'
 import { Route as StoreEmpregosIdRouteImport } from './routes/_store.empregos.$id'
 import { Route as StoreEntregaTokenRouteImport } from './routes/_store.entrega.$token'
+import { Route as StoreEntregadorCadastroRouteImport } from './routes/_store.entregador.cadastro'
 import { Route as StoreEventoIdRouteImport } from './routes/_store.evento.$id'
 import { Route as StoreGiftCardClaimTokenRouteImport } from './routes/_store.gift-card.$claimToken'
 import { Route as StoreMembroIdRouteImport } from './routes/_store.membro.$id'
@@ -152,6 +157,7 @@ import { Route as StoreTurismoIdRouteImport } from './routes/_store.turismo.$id'
 import { Route as StoreUUsernameRouteImport } from './routes/_store.u.$username'
 import { Route as StoreVendedoraSlugRouteImport } from './routes/_store.vendedora.$slug'
 import { Route as StoreVoucherTokenRouteImport } from './routes/_store.voucher.$token'
+import { Route as AdminMasterEntregadoresAuditoriaRouteImport } from './routes/admin-master.entregadores.auditoria'
 import { Route as AdminMasterSegurancaIndexRouteImport } from './routes/admin-master.seguranca.index'
 import { Route as AdminMasterSegurancaCertificadosRouteImport } from './routes/admin-master.seguranca.certificados'
 import { Route as AdminMasterSegurancaTelemetriaRouteImport } from './routes/admin-master.seguranca.telemetria'
@@ -187,6 +193,7 @@ import { Route as WorkspaceConfiguracoesEquipeRouteImport } from './routes/works
 import { Route as WorkspaceConfiguracoesIntegracoesRouteImport } from './routes/workspace.configuracoes.integracoes'
 import { Route as WorkspaceConfiguracoesInteligenciaArtificialRouteImport } from './routes/workspace.configuracoes.inteligencia-artificial'
 import { Route as WorkspaceConfiguracoesParceirosRouteImport } from './routes/workspace.configuracoes.parceiros'
+import { Route as WorkspaceConfiguracoesPrivacidadeLojaRouteImport } from './routes/workspace.configuracoes.privacidade-loja'
 import { Route as WorkspaceConfiguracoesPwaRouteImport } from './routes/workspace.configuracoes.pwa'
 import { Route as WorkspaceConfiguracoesSessoesRouteImport } from './routes/workspace.configuracoes.sessoes'
 import { Route as WorkspaceContadorIndexRouteImport } from './routes/workspace.contador.index'
@@ -261,6 +268,7 @@ import { Route as StoreContaConversasIndexRouteImport } from './routes/_store.co
 import { Route as StoreContaConversasIdRouteImport } from './routes/_store.conta.conversas.$id'
 import { Route as StoreContaPedidosIndexRouteImport } from './routes/_store.conta.pedidos.index'
 import { Route as StoreContaPedidosIdRouteImport } from './routes/_store.conta.pedidos.$id'
+import { Route as StoreLojaSlugSenhaRouteImport } from './routes/_store.loja.$slug.senha'
 import { Route as StorePedidoPublicTokenConfirmacaoRouteImport } from './routes/_store.pedido.$publicToken.confirmacao'
 import { Route as AdminMasterSegurancaCertificadosIdRouteImport } from './routes/admin-master.seguranca.certificados.$id'
 import { Route as WorkspaceAgendaServicosIndexRouteImport } from './routes/workspace.agenda.servicos.index'
@@ -568,6 +576,11 @@ const AdminMasterBotoesRoute = AdminMasterBotoesRouteImport.update({
   path: '/botoes',
   getParentRoute: () => AdminMasterRoute,
 } as any)
+const AdminMasterCarnesRoute = AdminMasterCarnesRouteImport.update({
+  id: '/carnes',
+  path: '/carnes',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
 const AdminMasterConviteRoute = AdminMasterConviteRouteImport.update({
   id: '/convite',
   path: '/convite',
@@ -798,9 +811,19 @@ const StoreContaCandidaturasRoute = StoreContaCandidaturasRouteImport.update({
   path: '/candidaturas',
   getParentRoute: () => StoreContaRoute,
 } as any)
+const StoreContaCarnesRoute = StoreContaCarnesRouteImport.update({
+  id: '/carnes',
+  path: '/carnes',
+  getParentRoute: () => StoreContaRoute,
+} as any)
 const StoreContaColaboradorRoute = StoreContaColaboradorRouteImport.update({
   id: '/colaborador',
   path: '/colaborador',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaContratosRoute = StoreContaContratosRouteImport.update({
+  id: '/contratos',
+  path: '/contratos',
   getParentRoute: () => StoreContaRoute,
 } as any)
 const StoreContaCreditosRoute = StoreContaCreditosRouteImport.update({
@@ -811,6 +834,11 @@ const StoreContaCreditosRoute = StoreContaCreditosRouteImport.update({
 const StoreContaEnderecosRoute = StoreContaEnderecosRouteImport.update({
   id: '/enderecos',
   path: '/enderecos',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaFinancasRoute = StoreContaFinancasRouteImport.update({
+  id: '/financas',
+  path: '/financas',
   getParentRoute: () => StoreContaRoute,
 } as any)
 const StoreContaGiftCardsRoute = StoreContaGiftCardsRouteImport.update({
@@ -938,6 +966,11 @@ const StoreEntregaTokenRoute = StoreEntregaTokenRouteImport.update({
   path: '/entrega/$token',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreEntregadorCadastroRoute = StoreEntregadorCadastroRouteImport.update({
+  id: '/entregador/cadastro',
+  path: '/entregador/cadastro',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StoreEventoIdRoute = StoreEventoIdRouteImport.update({
   id: '/evento/$id',
   path: '/evento/$id',
@@ -1013,6 +1046,12 @@ const StoreVoucherTokenRoute = StoreVoucherTokenRouteImport.update({
   path: '/voucher/$token',
   getParentRoute: () => StoreRoute,
 } as any)
+const AdminMasterEntregadoresAuditoriaRoute =
+  AdminMasterEntregadoresAuditoriaRouteImport.update({
+    id: '/entregadores/auditoria',
+    path: '/entregadores/auditoria',
+    getParentRoute: () => AdminMasterRoute,
+  } as any)
 const AdminMasterSegurancaIndexRoute =
   AdminMasterSegurancaIndexRouteImport.update({
     id: '/seguranca/',
@@ -1199,6 +1238,12 @@ const WorkspaceConfiguracoesParceirosRoute =
   WorkspaceConfiguracoesParceirosRouteImport.update({
     id: '/configuracoes/parceiros',
     path: '/configuracoes/parceiros',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceConfiguracoesPrivacidadeLojaRoute =
+  WorkspaceConfiguracoesPrivacidadeLojaRouteImport.update({
+    id: '/configuracoes/privacidade-loja',
+    path: '/configuracoes/privacidade-loja',
     getParentRoute: () => WorkspaceRoute,
   } as any)
 const WorkspaceConfiguracoesPwaRoute =
@@ -1611,6 +1656,11 @@ const StoreContaPedidosIdRoute = StoreContaPedidosIdRouteImport.update({
   path: '/pedidos/$id',
   getParentRoute: () => StoreContaRoute,
 } as any)
+const StoreLojaSlugSenhaRoute = StoreLojaSlugSenhaRouteImport.update({
+  id: '/loja/$slug/senha',
+  path: '/loja/$slug/senha',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StorePedidoPublicTokenConfirmacaoRoute =
   StorePedidoPublicTokenConfirmacaoRouteImport.update({
     id: '/pedido/$publicToken/confirmacao',
@@ -1886,6 +1936,7 @@ export interface FileRoutesByFullPath {
   '/admin-master/algoritmo': typeof AdminMasterAlgoritmoRoute
   '/admin-master/banners': typeof AdminMasterBannersRoute
   '/admin-master/botoes': typeof AdminMasterBotoesRoute
+  '/admin-master/carnes': typeof AdminMasterCarnesRoute
   '/admin-master/convite': typeof AdminMasterConviteRoute
   '/admin-master/curadoria': typeof AdminMasterCuradoriaRoute
   '/admin-master/denuncias': typeof AdminMasterDenunciasRoute
@@ -1930,9 +1981,12 @@ export interface FileRoutesByFullPath {
   '/conta/agendamentos': typeof StoreContaAgendamentosRoute
   '/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
   '/conta/candidaturas': typeof StoreContaCandidaturasRoute
+  '/conta/carnes': typeof StoreContaCarnesRoute
   '/conta/colaborador': typeof StoreContaColaboradorRoute
+  '/conta/contratos': typeof StoreContaContratosRoute
   '/conta/creditos': typeof StoreContaCreditosRoute
   '/conta/enderecos': typeof StoreContaEnderecosRoute
+  '/conta/financas': typeof StoreContaFinancasRoute
   '/conta/gift-cards': typeof StoreContaGiftCardsRoute
   '/conta/ingressos': typeof StoreContaIngressosRoute
   '/conta/lojas': typeof StoreContaLojasRoute
@@ -1956,6 +2010,7 @@ export interface FileRoutesByFullPath {
   '/diretorio/$id': typeof StoreDiretorioIdRoute
   '/empregos/$id': typeof StoreEmpregosIdRoute
   '/entrega/$token': typeof StoreEntregaTokenRoute
+  '/entregador/cadastro': typeof StoreEntregadorCadastroRoute
   '/evento/$id': typeof StoreEventoIdRoute
   '/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
   '/membro/$id': typeof StoreMembroIdRoute
@@ -1969,6 +2024,7 @@ export interface FileRoutesByFullPath {
   '/u/$username': typeof StoreUUsernameRoute
   '/vendedora/$slug': typeof StoreVendedoraSlugRoute
   '/voucher/$token': typeof StoreVoucherTokenRoute
+  '/admin-master/entregadores/auditoria': typeof AdminMasterEntregadoresAuditoriaRoute
   '/admin-master/seguranca/certificados': typeof AdminMasterSegurancaCertificadosRouteWithChildren
   '/admin-master/seguranca/telemetria': typeof AdminMasterSegurancaTelemetriaRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
@@ -1998,6 +2054,7 @@ export interface FileRoutesByFullPath {
   '/workspace/configuracoes/integracoes': typeof WorkspaceConfiguracoesIntegracoesRoute
   '/workspace/configuracoes/inteligencia-artificial': typeof WorkspaceConfiguracoesInteligenciaArtificialRoute
   '/workspace/configuracoes/parceiros': typeof WorkspaceConfiguracoesParceirosRoute
+  '/workspace/configuracoes/privacidade-loja': typeof WorkspaceConfiguracoesPrivacidadeLojaRoute
   '/workspace/configuracoes/pwa': typeof WorkspaceConfiguracoesPwaRoute
   '/workspace/configuracoes/sessoes': typeof WorkspaceConfiguracoesSessoesRoute
   '/workspace/contratos/novo': typeof WorkspaceContratosNovoRoute
@@ -2082,6 +2139,7 @@ export interface FileRoutesByFullPath {
   '/conta/classificados/novo': typeof StoreContaClassificadosNovoRoute
   '/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
+  '/loja/$slug/senha': typeof StoreLojaSlugSenhaRoute
   '/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
   '/admin-master/seguranca/certificados/$id': typeof AdminMasterSegurancaCertificadosIdRoute
   '/workspace/builder/$documentId/editor': typeof WorkspaceBuilderDocumentIdEditorRoute
@@ -2168,6 +2226,7 @@ export interface FileRoutesByTo {
   '/admin-master/algoritmo': typeof AdminMasterAlgoritmoRoute
   '/admin-master/banners': typeof AdminMasterBannersRoute
   '/admin-master/botoes': typeof AdminMasterBotoesRoute
+  '/admin-master/carnes': typeof AdminMasterCarnesRoute
   '/admin-master/convite': typeof AdminMasterConviteRoute
   '/admin-master/curadoria': typeof AdminMasterCuradoriaRoute
   '/admin-master/denuncias': typeof AdminMasterDenunciasRoute
@@ -2213,9 +2272,12 @@ export interface FileRoutesByTo {
   '/conta/agendamentos': typeof StoreContaAgendamentosRoute
   '/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
   '/conta/candidaturas': typeof StoreContaCandidaturasRoute
+  '/conta/carnes': typeof StoreContaCarnesRoute
   '/conta/colaborador': typeof StoreContaColaboradorRoute
+  '/conta/contratos': typeof StoreContaContratosRoute
   '/conta/creditos': typeof StoreContaCreditosRoute
   '/conta/enderecos': typeof StoreContaEnderecosRoute
+  '/conta/financas': typeof StoreContaFinancasRoute
   '/conta/gift-cards': typeof StoreContaGiftCardsRoute
   '/conta/ingressos': typeof StoreContaIngressosRoute
   '/conta/lojas': typeof StoreContaLojasRoute
@@ -2239,6 +2301,7 @@ export interface FileRoutesByTo {
   '/diretorio/$id': typeof StoreDiretorioIdRoute
   '/empregos/$id': typeof StoreEmpregosIdRoute
   '/entrega/$token': typeof StoreEntregaTokenRoute
+  '/entregador/cadastro': typeof StoreEntregadorCadastroRoute
   '/evento/$id': typeof StoreEventoIdRoute
   '/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
   '/membro/$id': typeof StoreMembroIdRoute
@@ -2252,6 +2315,7 @@ export interface FileRoutesByTo {
   '/u/$username': typeof StoreUUsernameRoute
   '/vendedora/$slug': typeof StoreVendedoraSlugRoute
   '/voucher/$token': typeof StoreVoucherTokenRoute
+  '/admin-master/entregadores/auditoria': typeof AdminMasterEntregadoresAuditoriaRoute
   '/admin-master/seguranca/certificados': typeof AdminMasterSegurancaCertificadosRouteWithChildren
   '/admin-master/seguranca/telemetria': typeof AdminMasterSegurancaTelemetriaRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
@@ -2281,6 +2345,7 @@ export interface FileRoutesByTo {
   '/workspace/configuracoes/integracoes': typeof WorkspaceConfiguracoesIntegracoesRoute
   '/workspace/configuracoes/inteligencia-artificial': typeof WorkspaceConfiguracoesInteligenciaArtificialRoute
   '/workspace/configuracoes/parceiros': typeof WorkspaceConfiguracoesParceirosRoute
+  '/workspace/configuracoes/privacidade-loja': typeof WorkspaceConfiguracoesPrivacidadeLojaRoute
   '/workspace/configuracoes/pwa': typeof WorkspaceConfiguracoesPwaRoute
   '/workspace/configuracoes/sessoes': typeof WorkspaceConfiguracoesSessoesRoute
   '/workspace/contratos/novo': typeof WorkspaceContratosNovoRoute
@@ -2365,6 +2430,7 @@ export interface FileRoutesByTo {
   '/conta/classificados/novo': typeof StoreContaClassificadosNovoRoute
   '/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
+  '/loja/$slug/senha': typeof StoreLojaSlugSenhaRoute
   '/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
   '/admin-master/seguranca/certificados/$id': typeof AdminMasterSegurancaCertificadosIdRoute
   '/workspace/builder/$documentId/editor': typeof WorkspaceBuilderDocumentIdEditorRoute
@@ -2460,6 +2526,7 @@ export interface FileRoutesById {
   '/admin-master/algoritmo': typeof AdminMasterAlgoritmoRoute
   '/admin-master/banners': typeof AdminMasterBannersRoute
   '/admin-master/botoes': typeof AdminMasterBotoesRoute
+  '/admin-master/carnes': typeof AdminMasterCarnesRoute
   '/admin-master/convite': typeof AdminMasterConviteRoute
   '/admin-master/curadoria': typeof AdminMasterCuradoriaRoute
   '/admin-master/denuncias': typeof AdminMasterDenunciasRoute
@@ -2505,9 +2572,12 @@ export interface FileRoutesById {
   '/_store/conta/agendamentos': typeof StoreContaAgendamentosRoute
   '/_store/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
   '/_store/conta/candidaturas': typeof StoreContaCandidaturasRoute
+  '/_store/conta/carnes': typeof StoreContaCarnesRoute
   '/_store/conta/colaborador': typeof StoreContaColaboradorRoute
+  '/_store/conta/contratos': typeof StoreContaContratosRoute
   '/_store/conta/creditos': typeof StoreContaCreditosRoute
   '/_store/conta/enderecos': typeof StoreContaEnderecosRoute
+  '/_store/conta/financas': typeof StoreContaFinancasRoute
   '/_store/conta/gift-cards': typeof StoreContaGiftCardsRoute
   '/_store/conta/ingressos': typeof StoreContaIngressosRoute
   '/_store/conta/lojas': typeof StoreContaLojasRoute
@@ -2531,6 +2601,7 @@ export interface FileRoutesById {
   '/_store/diretorio/$id': typeof StoreDiretorioIdRoute
   '/_store/empregos/$id': typeof StoreEmpregosIdRoute
   '/_store/entrega/$token': typeof StoreEntregaTokenRoute
+  '/_store/entregador/cadastro': typeof StoreEntregadorCadastroRoute
   '/_store/evento/$id': typeof StoreEventoIdRoute
   '/_store/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
   '/_store/membro/$id': typeof StoreMembroIdRoute
@@ -2544,6 +2615,7 @@ export interface FileRoutesById {
   '/_store/u/$username': typeof StoreUUsernameRoute
   '/_store/vendedora/$slug': typeof StoreVendedoraSlugRoute
   '/_store/voucher/$token': typeof StoreVoucherTokenRoute
+  '/admin-master/entregadores/auditoria': typeof AdminMasterEntregadoresAuditoriaRoute
   '/admin-master/seguranca/certificados': typeof AdminMasterSegurancaCertificadosRouteWithChildren
   '/admin-master/seguranca/telemetria': typeof AdminMasterSegurancaTelemetriaRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
@@ -2573,6 +2645,7 @@ export interface FileRoutesById {
   '/workspace/configuracoes/integracoes': typeof WorkspaceConfiguracoesIntegracoesRoute
   '/workspace/configuracoes/inteligencia-artificial': typeof WorkspaceConfiguracoesInteligenciaArtificialRoute
   '/workspace/configuracoes/parceiros': typeof WorkspaceConfiguracoesParceirosRoute
+  '/workspace/configuracoes/privacidade-loja': typeof WorkspaceConfiguracoesPrivacidadeLojaRoute
   '/workspace/configuracoes/pwa': typeof WorkspaceConfiguracoesPwaRoute
   '/workspace/configuracoes/sessoes': typeof WorkspaceConfiguracoesSessoesRoute
   '/workspace/contratos/novo': typeof WorkspaceContratosNovoRoute
@@ -2657,6 +2730,7 @@ export interface FileRoutesById {
   '/_store/conta/classificados/novo': typeof StoreContaClassificadosNovoRoute
   '/_store/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/_store/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
+  '/_store/loja/$slug/senha': typeof StoreLojaSlugSenhaRoute
   '/_store/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
   '/admin-master/seguranca/certificados/$id': typeof AdminMasterSegurancaCertificadosIdRoute
   '/workspace/builder/$documentId/editor': typeof WorkspaceBuilderDocumentIdEditorRoute
@@ -2753,6 +2827,7 @@ export interface FileRouteTypes {
     | '/admin-master/algoritmo'
     | '/admin-master/banners'
     | '/admin-master/botoes'
+    | '/admin-master/carnes'
     | '/admin-master/convite'
     | '/admin-master/curadoria'
     | '/admin-master/denuncias'
@@ -2797,9 +2872,12 @@ export interface FileRouteTypes {
     | '/conta/agendamentos'
     | '/conta/avaliacoes'
     | '/conta/candidaturas'
+    | '/conta/carnes'
     | '/conta/colaborador'
+    | '/conta/contratos'
     | '/conta/creditos'
     | '/conta/enderecos'
+    | '/conta/financas'
     | '/conta/gift-cards'
     | '/conta/ingressos'
     | '/conta/lojas'
@@ -2823,6 +2901,7 @@ export interface FileRouteTypes {
     | '/diretorio/$id'
     | '/empregos/$id'
     | '/entrega/$token'
+    | '/entregador/cadastro'
     | '/evento/$id'
     | '/gift-card/$claimToken'
     | '/membro/$id'
@@ -2836,6 +2915,7 @@ export interface FileRouteTypes {
     | '/u/$username'
     | '/vendedora/$slug'
     | '/voucher/$token'
+    | '/admin-master/entregadores/auditoria'
     | '/admin-master/seguranca/certificados'
     | '/admin-master/seguranca/telemetria'
     | '/api/auth/callback'
@@ -2865,6 +2945,7 @@ export interface FileRouteTypes {
     | '/workspace/configuracoes/integracoes'
     | '/workspace/configuracoes/inteligencia-artificial'
     | '/workspace/configuracoes/parceiros'
+    | '/workspace/configuracoes/privacidade-loja'
     | '/workspace/configuracoes/pwa'
     | '/workspace/configuracoes/sessoes'
     | '/workspace/contratos/novo'
@@ -2949,6 +3030,7 @@ export interface FileRouteTypes {
     | '/conta/classificados/novo'
     | '/conta/conversas/$id'
     | '/conta/pedidos/$id'
+    | '/loja/$slug/senha'
     | '/pedido/$publicToken/confirmacao'
     | '/admin-master/seguranca/certificados/$id'
     | '/workspace/builder/$documentId/editor'
@@ -3035,6 +3117,7 @@ export interface FileRouteTypes {
     | '/admin-master/algoritmo'
     | '/admin-master/banners'
     | '/admin-master/botoes'
+    | '/admin-master/carnes'
     | '/admin-master/convite'
     | '/admin-master/curadoria'
     | '/admin-master/denuncias'
@@ -3080,9 +3163,12 @@ export interface FileRouteTypes {
     | '/conta/agendamentos'
     | '/conta/avaliacoes'
     | '/conta/candidaturas'
+    | '/conta/carnes'
     | '/conta/colaborador'
+    | '/conta/contratos'
     | '/conta/creditos'
     | '/conta/enderecos'
+    | '/conta/financas'
     | '/conta/gift-cards'
     | '/conta/ingressos'
     | '/conta/lojas'
@@ -3106,6 +3192,7 @@ export interface FileRouteTypes {
     | '/diretorio/$id'
     | '/empregos/$id'
     | '/entrega/$token'
+    | '/entregador/cadastro'
     | '/evento/$id'
     | '/gift-card/$claimToken'
     | '/membro/$id'
@@ -3119,6 +3206,7 @@ export interface FileRouteTypes {
     | '/u/$username'
     | '/vendedora/$slug'
     | '/voucher/$token'
+    | '/admin-master/entregadores/auditoria'
     | '/admin-master/seguranca/certificados'
     | '/admin-master/seguranca/telemetria'
     | '/api/auth/callback'
@@ -3148,6 +3236,7 @@ export interface FileRouteTypes {
     | '/workspace/configuracoes/integracoes'
     | '/workspace/configuracoes/inteligencia-artificial'
     | '/workspace/configuracoes/parceiros'
+    | '/workspace/configuracoes/privacidade-loja'
     | '/workspace/configuracoes/pwa'
     | '/workspace/configuracoes/sessoes'
     | '/workspace/contratos/novo'
@@ -3232,6 +3321,7 @@ export interface FileRouteTypes {
     | '/conta/classificados/novo'
     | '/conta/conversas/$id'
     | '/conta/pedidos/$id'
+    | '/loja/$slug/senha'
     | '/pedido/$publicToken/confirmacao'
     | '/admin-master/seguranca/certificados/$id'
     | '/workspace/builder/$documentId/editor'
@@ -3326,6 +3416,7 @@ export interface FileRouteTypes {
     | '/admin-master/algoritmo'
     | '/admin-master/banners'
     | '/admin-master/botoes'
+    | '/admin-master/carnes'
     | '/admin-master/convite'
     | '/admin-master/curadoria'
     | '/admin-master/denuncias'
@@ -3371,9 +3462,12 @@ export interface FileRouteTypes {
     | '/_store/conta/agendamentos'
     | '/_store/conta/avaliacoes'
     | '/_store/conta/candidaturas'
+    | '/_store/conta/carnes'
     | '/_store/conta/colaborador'
+    | '/_store/conta/contratos'
     | '/_store/conta/creditos'
     | '/_store/conta/enderecos'
+    | '/_store/conta/financas'
     | '/_store/conta/gift-cards'
     | '/_store/conta/ingressos'
     | '/_store/conta/lojas'
@@ -3397,6 +3491,7 @@ export interface FileRouteTypes {
     | '/_store/diretorio/$id'
     | '/_store/empregos/$id'
     | '/_store/entrega/$token'
+    | '/_store/entregador/cadastro'
     | '/_store/evento/$id'
     | '/_store/gift-card/$claimToken'
     | '/_store/membro/$id'
@@ -3410,6 +3505,7 @@ export interface FileRouteTypes {
     | '/_store/u/$username'
     | '/_store/vendedora/$slug'
     | '/_store/voucher/$token'
+    | '/admin-master/entregadores/auditoria'
     | '/admin-master/seguranca/certificados'
     | '/admin-master/seguranca/telemetria'
     | '/api/auth/callback'
@@ -3439,6 +3535,7 @@ export interface FileRouteTypes {
     | '/workspace/configuracoes/integracoes'
     | '/workspace/configuracoes/inteligencia-artificial'
     | '/workspace/configuracoes/parceiros'
+    | '/workspace/configuracoes/privacidade-loja'
     | '/workspace/configuracoes/pwa'
     | '/workspace/configuracoes/sessoes'
     | '/workspace/contratos/novo'
@@ -3523,6 +3620,7 @@ export interface FileRouteTypes {
     | '/_store/conta/classificados/novo'
     | '/_store/conta/conversas/$id'
     | '/_store/conta/pedidos/$id'
+    | '/_store/loja/$slug/senha'
     | '/_store/pedido/$publicToken/confirmacao'
     | '/admin-master/seguranca/certificados/$id'
     | '/workspace/builder/$documentId/editor'
@@ -3973,6 +4071,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMasterBotoesRouteImport
       parentRoute: typeof AdminMasterRoute
     }
+    '/admin-master/carnes': {
+      id: '/admin-master/carnes'
+      path: '/carnes'
+      fullPath: '/admin-master/carnes'
+      preLoaderRoute: typeof AdminMasterCarnesRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
     '/admin-master/convite': {
       id: '/admin-master/convite'
       path: '/convite'
@@ -4295,11 +4400,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreContaCandidaturasRouteImport
       parentRoute: typeof StoreContaRoute
     }
+    '/_store/conta/carnes': {
+      id: '/_store/conta/carnes'
+      path: '/carnes'
+      fullPath: '/conta/carnes'
+      preLoaderRoute: typeof StoreContaCarnesRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
     '/_store/conta/colaborador': {
       id: '/_store/conta/colaborador'
       path: '/colaborador'
       fullPath: '/conta/colaborador'
       preLoaderRoute: typeof StoreContaColaboradorRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/contratos': {
+      id: '/_store/conta/contratos'
+      path: '/contratos'
+      fullPath: '/conta/contratos'
+      preLoaderRoute: typeof StoreContaContratosRouteImport
       parentRoute: typeof StoreContaRoute
     }
     '/_store/conta/creditos': {
@@ -4314,6 +4433,13 @@ declare module '@tanstack/react-router' {
       path: '/enderecos'
       fullPath: '/conta/enderecos'
       preLoaderRoute: typeof StoreContaEnderecosRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/financas': {
+      id: '/_store/conta/financas'
+      path: '/financas'
+      fullPath: '/conta/financas'
+      preLoaderRoute: typeof StoreContaFinancasRouteImport
       parentRoute: typeof StoreContaRoute
     }
     '/_store/conta/gift-cards': {
@@ -4491,6 +4617,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreEntregaTokenRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/entregador/cadastro': {
+      id: '/_store/entregador/cadastro'
+      path: '/entregador/cadastro'
+      fullPath: '/entregador/cadastro'
+      preLoaderRoute: typeof StoreEntregadorCadastroRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/evento/$id': {
       id: '/_store/evento/$id'
       path: '/evento/$id'
@@ -4595,6 +4728,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/voucher/$token'
       preLoaderRoute: typeof StoreVoucherTokenRouteImport
       parentRoute: typeof StoreRoute
+    }
+    '/admin-master/entregadores/auditoria': {
+      id: '/admin-master/entregadores/auditoria'
+      path: '/entregadores/auditoria'
+      fullPath: '/admin-master/entregadores/auditoria'
+      preLoaderRoute: typeof AdminMasterEntregadoresAuditoriaRouteImport
+      parentRoute: typeof AdminMasterRoute
     }
     '/admin-master/seguranca/': {
       id: '/admin-master/seguranca/'
@@ -4839,6 +4979,13 @@ declare module '@tanstack/react-router' {
       path: '/configuracoes/parceiros'
       fullPath: '/workspace/configuracoes/parceiros'
       preLoaderRoute: typeof WorkspaceConfiguracoesParceirosRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/configuracoes/privacidade-loja': {
+      id: '/workspace/configuracoes/privacidade-loja'
+      path: '/configuracoes/privacidade-loja'
+      fullPath: '/workspace/configuracoes/privacidade-loja'
+      preLoaderRoute: typeof WorkspaceConfiguracoesPrivacidadeLojaRouteImport
       parentRoute: typeof WorkspaceRoute
     }
     '/workspace/configuracoes/pwa': {
@@ -5359,6 +5506,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreContaPedidosIdRouteImport
       parentRoute: typeof StoreContaRoute
     }
+    '/_store/loja/$slug/senha': {
+      id: '/_store/loja/$slug/senha'
+      path: '/loja/$slug/senha'
+      fullPath: '/loja/$slug/senha'
+      preLoaderRoute: typeof StoreLojaSlugSenhaRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/pedido/$publicToken/confirmacao': {
       id: '/_store/pedido/$publicToken/confirmacao'
       path: '/pedido/$publicToken/confirmacao'
@@ -5637,9 +5791,12 @@ interface StoreContaRouteChildren {
   StoreContaAgendamentosRoute: typeof StoreContaAgendamentosRoute
   StoreContaAvaliacoesRoute: typeof StoreContaAvaliacoesRoute
   StoreContaCandidaturasRoute: typeof StoreContaCandidaturasRoute
+  StoreContaCarnesRoute: typeof StoreContaCarnesRoute
   StoreContaColaboradorRoute: typeof StoreContaColaboradorRoute
+  StoreContaContratosRoute: typeof StoreContaContratosRoute
   StoreContaCreditosRoute: typeof StoreContaCreditosRoute
   StoreContaEnderecosRoute: typeof StoreContaEnderecosRoute
+  StoreContaFinancasRoute: typeof StoreContaFinancasRoute
   StoreContaGiftCardsRoute: typeof StoreContaGiftCardsRoute
   StoreContaIngressosRoute: typeof StoreContaIngressosRoute
   StoreContaLojasRoute: typeof StoreContaLojasRoute
@@ -5671,9 +5828,12 @@ const StoreContaRouteChildren: StoreContaRouteChildren = {
   StoreContaAgendamentosRoute: StoreContaAgendamentosRoute,
   StoreContaAvaliacoesRoute: StoreContaAvaliacoesRoute,
   StoreContaCandidaturasRoute: StoreContaCandidaturasRoute,
+  StoreContaCarnesRoute: StoreContaCarnesRoute,
   StoreContaColaboradorRoute: StoreContaColaboradorRoute,
+  StoreContaContratosRoute: StoreContaContratosRoute,
   StoreContaCreditosRoute: StoreContaCreditosRoute,
   StoreContaEnderecosRoute: StoreContaEnderecosRoute,
+  StoreContaFinancasRoute: StoreContaFinancasRoute,
   StoreContaGiftCardsRoute: StoreContaGiftCardsRoute,
   StoreContaIngressosRoute: StoreContaIngressosRoute,
   StoreContaLojasRoute: StoreContaLojasRoute,
@@ -5801,6 +5961,7 @@ interface StoreRouteChildren {
   StoreContratoTokenRoute: typeof StoreContratoTokenRoute
   StoreDestaquesSlugRoute: typeof StoreDestaquesSlugRoute
   StoreEntregaTokenRoute: typeof StoreEntregaTokenRoute
+  StoreEntregadorCadastroRoute: typeof StoreEntregadorCadastroRoute
   StoreEventoIdRoute: typeof StoreEventoIdRoute
   StoreGiftCardClaimTokenRoute: typeof StoreGiftCardClaimTokenRoute
   StoreMembroIdRoute: typeof StoreMembroIdRoute
@@ -5815,6 +5976,7 @@ interface StoreRouteChildren {
   StoreVoucherTokenRoute: typeof StoreVoucherTokenRoute
   StoreClassificadosIndexRoute: typeof StoreClassificadosIndexRoute
   StoreNoticiasIndexRoute: typeof StoreNoticiasIndexRoute
+  StoreLojaSlugSenhaRoute: typeof StoreLojaSlugSenhaRoute
   StorePedidoPublicTokenConfirmacaoRoute: typeof StorePedidoPublicTokenConfirmacaoRoute
 }
 
@@ -5872,6 +6034,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreContratoTokenRoute: StoreContratoTokenRoute,
   StoreDestaquesSlugRoute: StoreDestaquesSlugRoute,
   StoreEntregaTokenRoute: StoreEntregaTokenRoute,
+  StoreEntregadorCadastroRoute: StoreEntregadorCadastroRoute,
   StoreEventoIdRoute: StoreEventoIdRoute,
   StoreGiftCardClaimTokenRoute: StoreGiftCardClaimTokenRoute,
   StoreMembroIdRoute: StoreMembroIdRoute,
@@ -5886,6 +6049,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreVoucherTokenRoute: StoreVoucherTokenRoute,
   StoreClassificadosIndexRoute: StoreClassificadosIndexRoute,
   StoreNoticiasIndexRoute: StoreNoticiasIndexRoute,
+  StoreLojaSlugSenhaRoute: StoreLojaSlugSenhaRoute,
   StorePedidoPublicTokenConfirmacaoRoute:
     StorePedidoPublicTokenConfirmacaoRoute,
 }
@@ -5911,6 +6075,7 @@ interface AdminMasterRouteChildren {
   AdminMasterAlgoritmoRoute: typeof AdminMasterAlgoritmoRoute
   AdminMasterBannersRoute: typeof AdminMasterBannersRoute
   AdminMasterBotoesRoute: typeof AdminMasterBotoesRoute
+  AdminMasterCarnesRoute: typeof AdminMasterCarnesRoute
   AdminMasterConviteRoute: typeof AdminMasterConviteRoute
   AdminMasterCuradoriaRoute: typeof AdminMasterCuradoriaRoute
   AdminMasterDenunciasRoute: typeof AdminMasterDenunciasRoute
@@ -5930,6 +6095,7 @@ interface AdminMasterRouteChildren {
   AdminMasterUsuariosRoute: typeof AdminMasterUsuariosRoute
   AdminMasterVitrinesRoute: typeof AdminMasterVitrinesRoute
   AdminMasterIndexRoute: typeof AdminMasterIndexRoute
+  AdminMasterEntregadoresAuditoriaRoute: typeof AdminMasterEntregadoresAuditoriaRoute
   AdminMasterSegurancaCertificadosRoute: typeof AdminMasterSegurancaCertificadosRouteWithChildren
   AdminMasterSegurancaTelemetriaRoute: typeof AdminMasterSegurancaTelemetriaRoute
   AdminMasterSegurancaIndexRoute: typeof AdminMasterSegurancaIndexRoute
@@ -5939,6 +6105,7 @@ const AdminMasterRouteChildren: AdminMasterRouteChildren = {
   AdminMasterAlgoritmoRoute: AdminMasterAlgoritmoRoute,
   AdminMasterBannersRoute: AdminMasterBannersRoute,
   AdminMasterBotoesRoute: AdminMasterBotoesRoute,
+  AdminMasterCarnesRoute: AdminMasterCarnesRoute,
   AdminMasterConviteRoute: AdminMasterConviteRoute,
   AdminMasterCuradoriaRoute: AdminMasterCuradoriaRoute,
   AdminMasterDenunciasRoute: AdminMasterDenunciasRoute,
@@ -5958,6 +6125,7 @@ const AdminMasterRouteChildren: AdminMasterRouteChildren = {
   AdminMasterUsuariosRoute: AdminMasterUsuariosRoute,
   AdminMasterVitrinesRoute: AdminMasterVitrinesRoute,
   AdminMasterIndexRoute: AdminMasterIndexRoute,
+  AdminMasterEntregadoresAuditoriaRoute: AdminMasterEntregadoresAuditoriaRoute,
   AdminMasterSegurancaCertificadosRoute:
     AdminMasterSegurancaCertificadosRouteWithChildren,
   AdminMasterSegurancaTelemetriaRoute: AdminMasterSegurancaTelemetriaRoute,
@@ -6047,6 +6215,7 @@ interface WorkspaceRouteChildren {
   WorkspaceConfiguracoesIntegracoesRoute: typeof WorkspaceConfiguracoesIntegracoesRoute
   WorkspaceConfiguracoesInteligenciaArtificialRoute: typeof WorkspaceConfiguracoesInteligenciaArtificialRoute
   WorkspaceConfiguracoesParceirosRoute: typeof WorkspaceConfiguracoesParceirosRoute
+  WorkspaceConfiguracoesPrivacidadeLojaRoute: typeof WorkspaceConfiguracoesPrivacidadeLojaRoute
   WorkspaceConfiguracoesPwaRoute: typeof WorkspaceConfiguracoesPwaRoute
   WorkspaceConfiguracoesSessoesRoute: typeof WorkspaceConfiguracoesSessoesRoute
   WorkspaceContratosNovoRoute: typeof WorkspaceContratosNovoRoute
@@ -6179,6 +6348,8 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceConfiguracoesInteligenciaArtificialRoute:
     WorkspaceConfiguracoesInteligenciaArtificialRoute,
   WorkspaceConfiguracoesParceirosRoute: WorkspaceConfiguracoesParceirosRoute,
+  WorkspaceConfiguracoesPrivacidadeLojaRoute:
+    WorkspaceConfiguracoesPrivacidadeLojaRoute,
   WorkspaceConfiguracoesPwaRoute: WorkspaceConfiguracoesPwaRoute,
   WorkspaceConfiguracoesSessoesRoute: WorkspaceConfiguracoesSessoesRoute,
   WorkspaceContratosNovoRoute: WorkspaceContratosNovoRoute,

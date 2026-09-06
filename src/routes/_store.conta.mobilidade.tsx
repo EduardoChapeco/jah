@@ -19,17 +19,20 @@ import { formatDate } from "@/lib/datetime";
 import {
  listCustomerMobilityRequests,
 } from "@/services/mobility.functions";
+import {
+ getMyCourierApplicationStatus,
+} from "@/services/courier-verification.functions";
 
 export const Route = createFileRoute("/_store/conta/mobilidade")({
- beforeLoad: () => {
-   throw redirect({ to: "/conta" });
- },
  head: () => ({
  meta: [{ title: "Minhas Corridas & Mudanças | Wider OS" }],
  }),
  loader: async () => {
- const requests = await listCustomerMobilityRequests().catch(() => []);
- return { requests };
+ const [requests, courierApp] = await Promise.all([
+ listCustomerMobilityRequests().catch(() => []),
+ getMyCourierApplicationStatus().catch(() => null),
+ ]);
+ return { requests, courierApp };
  },
  component: CustomerMobilityHistoryPage,
 });
@@ -44,12 +47,18 @@ const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secon
 };
 
 function CustomerMobilityHistoryPage() {
- const { requests: initialRequests } = Route.useLoaderData();
+ const { requests: initialRequests, courierApp: initialCourierApp } = Route.useLoaderData();
  const { data: requests, isLoading } = useQuery({
  queryKey: ["customer-mobility-history"],
  queryFn: () => listCustomerMobilityRequests(),
  initialData: initialRequests,
  refetchInterval: 10000,
+ });
+
+ const { data: courierApp } = useQuery({
+ queryKey: ["my-courier-application-status"],
+ queryFn: () => getMyCourierApplicationStatus(),
+ initialData: initialCourierApp,
  });
 
  return (
@@ -62,13 +71,61 @@ function CustomerMobilityHistoryPage() {
  <span className="text-xs text-muted-foreground font-mono">Trajetos & Entregas</span>
  </div>
 
- <Button asChild size="sm" className="rounded-xl h-9 px-4 font-bold text-xs bg-primary text-primary-foreground gap-1.5 ">
+ <div className="flex items-center gap-2">
+ <Button asChild variant="outline" size="sm" className="rounded-xl h-9 px-3.5 font-semibold text-xs border-border/80 hover:bg-muted">
+ <Link to="/entregador/cadastro">
+ <span>{courierApp ? "Status de Parceiro" : "Seja um Parceiro"}</span>
+ </Link>
+ </Button>
+
+ <Button asChild size="sm" className="rounded-xl h-9 px-4 font-bold text-xs bg-primary text-primary-foreground gap-1.5">
  <Link to="/mobilidade">
  <Plus className="size-3.5" />
  <span>Novo Chamado</span>
  </Link>
  </Button>
  </div>
+ </div>
+
+ {/* Banner de Status de Parceiro se houver inscrição */}
+ {courierApp && (
+ <div className={`p-4 rounded-2xl border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+ courierApp.crosscheck_status === "match_approved"
+ ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-950 dark:text-emerald-300"
+ : courierApp.crosscheck_status === "divergence_flagged"
+ ? "bg-amber-500/10 border-amber-500/20 text-amber-950 dark:text-amber-300"
+ : courierApp.crosscheck_status === "fraud_rejected"
+ ? "bg-destructive/10 border-destructive/20 text-destructive"
+ : "bg-muted/40 border-border/60 text-foreground"
+ }`}>
+ <div className="space-y-0.5">
+ <div className="flex items-center gap-2">
+ <span className="font-bold">
+ {courierApp.crosscheck_status === "match_approved"
+ ? "Motorista/Entregador Ativo"
+ : courierApp.crosscheck_status === "divergence_flagged"
+ ? "Inscrição em Revisão de Segurança"
+ : courierApp.crosscheck_status === "fraud_rejected"
+ ? "Inscrição Recusada"
+ : "Inscrição de Parceiro em Análise"}
+ </span>
+ <Badge variant="outline" className="text-[10px] font-mono uppercase">
+ {courierApp.vehicle_type}
+ </Badge>
+ </div>
+ <p className="text-[11px] opacity-80">
+ {courierApp.crosscheck_status === "match_approved"
+ ? "Sua biometria facial e CNH foram aprovadas. Você está apto para entregas e corridas."
+ : courierApp.crosscheck_status === "divergence_flagged"
+ ? "Divergência detectada com o titular. A equipe de segurança está analisando manualmente."
+ : "Seus documentos e minivídeo de prova de vida estão sendo auditados."}
+ </p>
+ </div>
+ <Button asChild size="sm" variant="outline" className="rounded-xl h-8 px-3 text-xs shrink-0 self-start sm:self-auto">
+ <Link to="/entregador/cadastro">Ver Dossiê</Link>
+ </Button>
+ </div>
+ )}
 
  {isLoading && (
  <div className="flex justify-center py-24">

@@ -536,3 +536,37 @@
    - Suíte de testes de design `src/routes/-apple-hig-design.test.ts` expandida para incluir as 4 rotas, passando 100%.
    - Build de produção (`vite build`) executou com **código de saída 0**, gerando com sucesso os bundles Client, SSR e Cloudflare Nitro Pages.
    - Validação E2E no navegador real comprovou renderização silenciosa e ergonômica sem quebras nas resoluções mobile (390x844).
+
+## Ciclo 87 — Microfase 87A
+
+- **Data/Hora:** 2026-09-06T18:35:00-03:00
+- **Módulo:** Identidade & Onboarding de Parceiros (`courier-verification`)
+- **Capacidade:** Validação Biométrica em 2 Etapas, Prova de Vida (Minivídeo Liveness), Cross-Check de Titularidade com Circuit Breaker Anti-Loop e Telemetria Legal.
+- **Commit Base:** `eb62645`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. Cadastros de entregadores e motoristas parceiros não dispunham de validação cruzada entre os dados de titularidade da conta (KYC inicial / perfil) e a documentação enviada (CNH / CPF / Face).
+2. Risco iminente de contas emprestadas ou laranjas operando no marketplace sob identidade adulterada, sem prova de vida em vídeo (liveness) e sem dossiê forense.
+3. Ausência de circuit breaker anti-loop para processamento de IA/OCR em caso de falhas consecutivas ou dados divergentes.
+4. Falta de painel de auditoria forense no Admin Master para revisão visual de CNH vs Selfie vs Vídeo e despacho para autoridades em caso de fraude deliberada.
+5. Inexistência de telemetria legal com assinatura criptográfica vinculando o aceite do Termo de Autonomia e Não-Vínculo (`entregadores`).
+
+### Ações Executadas
+1. **Modelagem de Dados & Migração**:
+   - Criadas tabelas `courier_onboarding_applications` e `fraud_investigation_logs` via migration `20260928000000_courier_fraud_prevention_private_stores_and_tokenized_ledger.sql`.
+   - Inserido termo legal `entregadores` v4.0 em `legal_documents` (categoria `delivery_terms`).
+2. **Serviços BFF (`courier-verification.functions.ts`)**:
+   - `submitCourierApplication`: Coleta dados, valida aceitação de termos, cruza CPF e similaridade de nome com a conta titular, detecta divergências e grava dossiê em `fraud_investigation_logs` com status `divergence_flagged` (ou `match_approved` caso concorde).
+   - `getMyCourierApplicationStatus`: Consulta o status da candidatura do usuário logado.
+   - `listCourierApplicationsForAudit`: Governança Super Admin com filtros por status e divergências.
+   - `auditCourierApplication`: Aprovação, solicitação de reenvio ou rejeição por fraude com flag policial e protocolo de B.O.
+3. **Rotas e Telas Conectadas**:
+   - `src/routes/_store.entregador.cadastro.tsx`: Wizard em 3 passos com selfie, minivídeo liveness, upload de CNH (frente e verso), dados de veículo e aceitação de termos.
+   - `src/routes/admin-master.entregadores.auditoria.tsx`: Painel forense com visualização de documento, minivídeo, score de similaridade e ações auditáveis.
+   - `src/routes/_store.conta.mobilidade.tsx`: Integração contextual com banner de status do parceiro e link para cadastro.
+4. **Validação & Testes**:
+   - Teste unitário criado em `src/services/courier-verification.functions.test.ts` com 8 testes passando (100% de sucesso).
+   - Suíte global Vitest: 41 arquivos de teste, 211 testes passando sem regressões.
+   - Build de produção (`vite build` + Nitro Cloudflare Pages) com código de saída 0.
+

@@ -114,6 +114,17 @@
   - Build de produção compila? **SIM** (Cloudflare Pages bundle exit code 0).
 - **Classificação Final:** `COMPROVADO EM RUNTIME`
 
+### Alegação 10: "Validação Biométrica em 2 Etapas, Cross-Check Facial/CNH e Prevenção de Fraude de Entregadores"
+
+- **Prometido:** Fluxo de credenciamento de motoristas/entregadores com validação em duas etapas (Selfie + Minivídeo de prova de vida + CNH), cross-check de titularidade contra a conta base (CPF/Nome), circuit breaker anti-loop e painel forense master para despacho policial.
+- **O Que Foi Codificado:** Migration `20260928000000_courier_fraud_prevention_private_stores_and_tokenized_ledger.sql` aplicada; tabelas `courier_onboarding_applications` e `fraud_investigation_logs`; termo legal `entregadores` v4.0; BFF `src/services/courier-verification.functions.ts`; rotas `_store.entregador.cadastro.tsx`, `admin-master.entregadores.auditoria.tsx` e integração em `_store.conta.mobilidade.tsx`; suíte de testes `src/services/courier-verification.functions.test.ts`.
+- **Análise dos 20 Pontos**:
+  - Persiste no banco remoto? **SIM** (`courier_onboarding_applications` e `fraud_investigation_logs` aplicadas no Supabase).
+  - Sobrevive ao reload F5? **SIM** (Estado recuperado por `getMyCourierApplicationStatus`).
+  - Teste positivo? **SIM** (`src/services/courier-verification.functions.test.ts` 8/8 aprovado no Vitest).
+  - Build de produção compila? **SIM** (Cloudflare Pages bundle exit code 0).
+- **Classificação Final:** `COMPROVADO EM RUNTIME`
+
 ## Tabela de Resumo de Alegações Auditadas
 
 | Alegação Histórica                   | Status Prometido | Status Real Auditado | Ação Necessária                               |
@@ -124,3 +135,5 @@
 | BFF Deny-by-Default                  | Concluído        | `COMPROVADO`         | Manter monitoramento contínuo.                |
 | Checkout Transacional RPC v2         | Concluído        | `COMPROVADO`         | Suportar métodos de pagamento adicionais.     |
 | Invalidação em Tempo Real (Realtime) | Parcial          | `PARCIAL`            | Conectar realtime Supabase em chat e estoque. |
+| Verificação de Entregadores & Fraude | Concluído        | `COMPROVADO`         | Auditoria em produção ativada.                |
+
