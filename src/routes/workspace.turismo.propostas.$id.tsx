@@ -239,16 +239,19 @@ function WorkspaceProposalStudioPage() {
  {/* Seletor de Template Visual */}
  <div className="flex items-center gap-0.5 bg-muted/40 p-0.5 rounded-xl border border-border/50">
  {[
- { id: "editorial-flat", label: "Clean Apple", icon: "" },
+ { id: "editorial-flat", label: "Clean Apple", icon: "✨" },
  { id: "dark-premium", label: "Dark Luxo", icon: "🌙" },
  { id: "executivo", label: "Executivo", icon: "💼" },
+ { id: "landscape-presentation", label: "Paisagem", icon: "🖥️" },
+ { id: "vertical-premium", label: "Vertical", icon: "📜" },
+ { id: "group-catalog", label: "Catálogo", icon: "🏷️" },
  ].map((tpl) => (
  <button
  key={tpl.id}
  type="button"
  onClick={() => handleChange({ template: tpl.id } as any)}
  className={cn(
- "px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer",
+ "px-2 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer",
  currentTemplate === tpl.id
  ? "bg-background text-foreground shadow-2xs"
  : "text-muted-foreground hover:text-foreground"

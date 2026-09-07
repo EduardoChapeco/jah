@@ -16,6 +16,7 @@ import {
  CreditCard,
  QrCode,
 } from "@phosphor-icons/react";
+import { getProposalTemplate } from "@/components/tourism/proposals/templates";
 import { cn } from "@/lib/utils";
 
 interface ProposalCanvasRendererProps {
@@ -28,6 +29,24 @@ export function ProposalCanvasRenderer({ proposal }: ProposalCanvasRendererProps
  const template = (proposal as any)?.template || "editorial-flat";
  const isDark = template === "dark-premium";
  const isCorporate = template === "executivo";
+
+ // Se for um dos templates canônicos avançados da referência (paisagem, vertical ou catálogo), renderiza o motor completo
+ if (template === "landscape-presentation" || template === "vertical-premium" || template === "group-catalog") {
+   const agency = {
+     name: proposal.agency_name || "Agência",
+     logo_url: proposal.agency_logo_url,
+     brand_color: (proposal as any)?.agency_brand_color || "#0A2540",
+     brand_color_fg: "#ffffff",
+     brand_color_light: "#eff6ff",
+     phone: proposal.agency_phone,
+     email: proposal.agency_email,
+     whatsapp: proposal.agency_whatsapp,
+   };
+   const TemplateComponent = getProposalTemplate(template);
+   if (TemplateComponent) {
+     return <TemplateComponent proposal={proposal as any} agency={agency} />;
+   }
+ }
 
  const rawPricing = proposal.pricing || {};
  const totalCents =
