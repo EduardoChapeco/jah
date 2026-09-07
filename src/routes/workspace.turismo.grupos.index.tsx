@@ -30,7 +30,7 @@ import {
 import { getStoreSettings } from "@/services/store.functions";
 import { listVehicleLayouts } from "@/services/vehicle-layouts.functions";
 import { NicheOperationalGuard } from "@/components/workspace/niche-operational-guard";
-import { NewGroupTourSheet } from "@/components/tourism/groups/new-group-tour-sheet";
+import { NewGroupTourWizard } from "@/components/tourism/group-tours/NewGroupTourWizard";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/turismo/grupos/")({
@@ -344,14 +344,17 @@ export default function WorkspaceGroupToursIndexPage() {
           </div>
         )}
 
-        {/* ── 3. SHEET DE CADASTRO DO GRUPO (STUDIO) ── */}
-        <NewGroupTourSheet
-          open={isNewSheetOpen}
-          onOpenChange={setIsNewSheetOpen}
-          layouts={layouts}
-          defaultDepartureCity={defaultDepartureCity}
-          storeId={store?.id || ""}
-        />
+        {/* ── 3. WIZARD CANÔNICO DE CADASTRO DO GRUPO (7 ETAPAS) ── */}
+        {isNewSheetOpen && (
+          <NewGroupTourWizard
+            agencyId={store?.id || ""}
+            onClose={() => setIsNewSheetOpen(false)}
+            onCreated={() => {
+              setIsNewSheetOpen(false);
+              refetch();
+            }}
+          />
+        )}
 
         {/* ── 4. DASHBOARD SHEET DE MÉTRICAS DA FROTA ── */}
         <WorkspaceDashboardSheet

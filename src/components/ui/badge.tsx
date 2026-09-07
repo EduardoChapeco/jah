@@ -35,4 +35,24 @@ function Badge({ className, variant, ...props }: BadgeProps) {
  return <div className={cn(badgeVariants({ variant }), className)} {...props} />;
 }
 
+export interface StatusBadgeProps extends BadgeProps {
+  status?: string;
+}
+
+export function StatusBadge({ status, variant, className, children, ...props }: StatusBadgeProps) {
+  let mappedVariant = variant;
+  if (!mappedVariant && status) {
+    const s = status.toLowerCase();
+    if (["open", "confirmed", "active", "won", "paid", "success"].includes(s)) mappedVariant = "success";
+    else if (["pending", "analyzing", "quoted", "warning", "planning"].includes(s)) mappedVariant = "warning";
+    else if (["closed", "canceled", "cancelled", "lost", "destructive"].includes(s)) mappedVariant = "destructive";
+    else mappedVariant = "secondary";
+  }
+  return (
+    <Badge variant={mappedVariant || "default"} className={className} {...props}>
+      {children || status}
+    </Badge>
+  );
+}
+
 export { Badge, badgeVariants };

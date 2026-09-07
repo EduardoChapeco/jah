@@ -138,6 +138,29 @@ const SelectSeparator = React.forwardRef<
 ));
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
 
+export interface NativeSelectProps extends React.ComponentProps<"select"> {
+  hasError?: boolean;
+}
+
+export const NativeSelect = React.forwardRef<HTMLSelectElement, NativeSelectProps>(
+  ({ className, hasError, children, ...props }, ref) => {
+    return (
+      <select
+        ref={ref}
+        className={cn(
+          "flex h-12 w-full rounded-xl border border-input bg-background px-4 py-2 text-base md:text-sm text-foreground ring-offset-background transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50",
+          hasError && "border-destructive focus:ring-destructive",
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </select>
+    );
+  },
+);
+NativeSelect.displayName = "NativeSelect";
+
 export {
  Select,
  SelectGroup,

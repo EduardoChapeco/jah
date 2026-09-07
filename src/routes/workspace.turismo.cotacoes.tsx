@@ -2,7 +2,7 @@ import { Tag } from "lucide-react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { AirplaneTilt, MapPin, CalendarDots, Users, WhatsappLogo, CheckCircle, Clock, CurrencyCircleDollar, SuitcaseSimple, ShieldCheck, ChatCircleDots, FileText, Plus, PencilSimple, Trash, ChartLineUp, Funnel, Buildings,  } from "@phosphor-icons/react";
+import { AirplaneTilt, MapPin, CalendarDots, Users, WhatsappLogo, CheckCircle, Clock, CurrencyCircleDollar, SuitcaseSimple, ShieldCheck, ChatCircleDots, FileText, Plus, PencilSimple, Trash, ChartLineUp, Funnel, Buildings, Columns, SquaresFour, CaretRight, CaretLeft } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -97,6 +97,7 @@ export default function AgencyQuotesPage() {
  const [search, setSearch] = useState("");
  const [tripTypeFilter, setTripTypeFilter] = useState("all");
  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+ const [viewMode, setViewMode] = useState<"kanban" | "grid">("kanban");
 
  // Modais
  const [isNewSheetOpen, setIsNewSheetOpen] = useState(Boolean(searchParams?.leadName));
@@ -205,7 +206,20 @@ export default function AgencyQuotesPage() {
  onError: (err: any) => toast.error(err?.message || "Erro ao criar proposta."),
  });
 
-
+  const quickMoveStageMutation = useMutation({
+    mutationFn: ({ id, nextStatus }: { id: string; nextStatus: TravelQuoteRequestDTO["status"] }) =>
+      updateAgencyTravelQuote({
+        data: {
+          id,
+          status: nextStatus,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Estágio do lead atualizado!");
+      queryClient.invalidateQueries({ queryKey: ["agency-travel-quotes"] });
+    },
+    onError: (err: any) => toast.error(err?.message || "Erro ao atualizar estágio."),
+  });
 
  const openManageModal = (q: TravelQuoteRequestDTO) => {
  setManagingQuote(q);
@@ -266,26 +280,217 @@ export default function AgencyQuotesPage() {
           }}
         />
 
- {/* ── 4. Lista de Cotações Recebidas ── */}
- {filteredQuotes.length === 0 ? (
- <div className="py-20 text-center space-y-3 bg-card rounded-2xl border border-border/60 p-8">
- <AirplaneTilt size={40} className="mx-auto text-muted-foreground" />
- <h3 className="text-sm font-bold text-foreground">Nenhuma cotação encontrada</h3>
- <p className="text-xs text-muted-foreground max-w-sm mx-auto">
- Cadastre leads recebidos no balcão ou WhatsApp pelo botão acima, ou aguarde novos pedidos pelo portal público.
- </p>
- <Button
- type="button"
- size="sm"
- onClick={() => setIsNewSheetOpen(true)}
- className="rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5"
- >
- <Plus size={16} weight="bold" />
- <span>Cadastrar Primeira Cotação</span>
- </Button>
- </div>
- ) : (
- <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* ── 4. Alternador de Visualização: Funil Kanban vs Grade ── */}
+        <div className="flex items-center justify-between gap-2 px-1">
+          <div className="flex items-center gap-1 p-1 bg-muted/60 rounded-xl border border-border/40">
+            <button
+              type="button"
+              onClick={() => setViewMode("kanban")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                viewMode === "kanban"
+                  ? "bg-background text-foreground shadow-2xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Columns size={14} weight="bold" />
+              <span>Funil Kanban</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("grid")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                viewMode === "grid"
+                  ? "bg-background text-foreground shadow-2xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <SquaresFour size={14} weight="bold" />
+              <span>Grade de Cards</span>
+            </button>
+          </div>
+          <span className="text-xs text-muted-foreground font-mono">
+            {filteredQuotes.length} cotações encontradas
+          </span>
+        </div>
+
+        {/* ── 5. Conteúdo: Funil Kanban ou Lista ── */}
+        {filteredQuotes.length === 0 ? (
+          <div className="py-20 text-center space-y-3 bg-card rounded-2xl border border-border/60 p-8">
+            <AirplaneTilt size={40} className="mx-auto text-muted-foreground" />
+            <h3 className="text-sm font-bold text-foreground">Nenhuma cotação encontrada</h3>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              Cadastre leads recebidos no balcão ou WhatsApp pelo botão acima, ou aguarde novos pedidos pelo portal público.
+            </p>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => setIsNewSheetOpen(true)}
+              className="rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5"
+            >
+              <Plus size={16} weight="bold" />
+              <span>Cadastrar Primeira Cotação</span>
+            </Button>
+          </div>
+        ) : viewMode === "kanban" ? (
+          /* Visualização de Funil Kanban por Estágios */
+          <div className="flex gap-4 overflow-x-auto pb-4 min-h-[calc(100vh-16rem)] no-scrollbar">
+            {[
+              { id: "new", title: "Novas Solicitações", icon: Clock, color: "#3b82f6" },
+              { id: "analyzing", title: "Em Análise & Cotação", icon: ChatCircleDots, color: "#f59e0b" },
+              { id: "quoted", title: "Proposta Enviada", icon: FileText, color: "#8b5cf6" },
+              { id: "won", title: "Fechadas / Ganhas", icon: CheckCircle, color: "#10b981" },
+              { id: "lost", title: "Perdidas", icon: Trash, color: "#f43f5e" },
+            ].map((col) => {
+              const colQuotes = filteredQuotes.filter((q) => q.status === col.id);
+              const ColIcon = col.icon;
+              return (
+                <div
+                  key={col.id}
+                  className="flex-none w-[320px] bg-muted/20 border border-border/70 rounded-2xl flex flex-col shadow-2xs"
+                  style={{ borderTop: `3px solid ${col.color}` }}
+                >
+                  {/* Cabeçalho da Coluna */}
+                  <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between shrink-0 bg-card/60 rounded-t-2xl">
+                    <div className="flex items-center gap-2">
+                      <ColIcon size={16} style={{ color: col.color }} weight="bold" />
+                      <h3 className="text-xs font-bold text-foreground">{col.title}</h3>
+                    </div>
+                    <Badge variant="outline" className="font-mono text-[10px] h-5 px-1.5">
+                      {colQuotes.length}
+                    </Badge>
+                  </div>
+
+                  {/* Cards da Coluna */}
+                  <div className="flex-1 overflow-y-auto p-3 space-y-3 no-scrollbar">
+                    {colQuotes.length === 0 ? (
+                      <div className="h-28 rounded-xl border border-dashed border-border/60 flex items-center justify-center text-[11px] text-muted-foreground text-center p-3">
+                        Nenhum lead nesta etapa
+                      </div>
+                    ) : (
+                      colQuotes.map((q) => {
+                        const cleanWhatsapp = (q.contact_whatsapp || "").replace(/\D/g, "");
+                        const waMessage = encodeURIComponent(
+                          `Olá ${q.contact_name}! Sou da agência de viagens no Wider e preparei opções para ${q.destination_city}.`,
+                        );
+                        return (
+                          <Card
+                            key={q.id}
+                            className="p-3.5 rounded-xl border border-border/70 bg-card space-y-2.5 hover:border-primary/50 transition-all shadow-none flex flex-col justify-between"
+                          >
+                            <div className="space-y-1.5">
+                              <div className="flex items-center justify-between gap-1">
+                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-primary/10 text-primary truncate max-w-[170px]">
+                                  {q.destination_city}
+                                </span>
+                                {q.quote_amount_cents && q.quote_amount_cents > 0 ? (
+                                  <span className="text-[11px] font-mono font-black text-foreground">
+                                    {formatMoney(q.quote_amount_cents)}
+                                  </span>
+                                ) : null}
+                              </div>
+
+                              <div className="text-xs font-bold text-foreground truncate">
+                                {q.contact_name}
+                              </div>
+
+                              <div className="text-[11px] text-muted-foreground flex items-center gap-1 font-mono">
+                                <MapPin size={11} className="shrink-0" />
+                                <span className="truncate">{q.origin_city} → {q.destination_city}</span>
+                              </div>
+
+                              <div className="text-[11px] text-muted-foreground flex items-center gap-2 font-mono">
+                                <Users size={11} className="shrink-0" />
+                                <span>{q.adults_count} ad{q.children_count > 0 ? `, ${q.children_count} ch` : ""}</span>
+                                <span>•</span>
+                                <span className="capitalize">{q.budget_tier}</span>
+                              </div>
+                            </div>
+
+                            {/* Ações Rápidas no Card */}
+                            <div className="pt-2 border-t border-border/40 flex items-center justify-between gap-1">
+                              {/* Mover para trás */}
+                              <div className="flex items-center gap-0.5">
+                                {col.id !== "new" && (
+                                  <button
+                                    type="button"
+                                    title="Voltar etapa"
+                                    onClick={() => {
+                                      const prev: Record<string, TravelQuoteRequestDTO["status"]> = {
+                                        analyzing: "new",
+                                        quoted: "analyzing",
+                                        won: "quoted",
+                                        lost: "quoted",
+                                      };
+                                      quickMoveStageMutation.mutate({ id: q.id, nextStatus: prev[col.id] || "new" });
+                                    }}
+                                    className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
+                                  >
+                                    <CaretLeft size={13} weight="bold" />
+                                  </button>
+                                )}
+                                {col.id !== "won" && col.id !== "lost" && (
+                                  <button
+                                    type="button"
+                                    title="Avançar etapa"
+                                    onClick={() => {
+                                      const next: Record<string, TravelQuoteRequestDTO["status"]> = {
+                                        new: "analyzing",
+                                        analyzing: "quoted",
+                                        quoted: "won",
+                                      };
+                                      quickMoveStageMutation.mutate({ id: q.id, nextStatus: next[col.id] || "won" });
+                                    }}
+                                    className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
+                                  >
+                                    <CaretRight size={13} weight="bold" />
+                                  </button>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-1">
+                                {cleanWhatsapp && (
+                                  <a
+                                    href={`https://wa.me/55${cleanWhatsapp}?text=${waMessage}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-1 rounded-md text-emerald-600 hover:bg-emerald-500/10 cursor-pointer"
+                                    title="WhatsApp"
+                                  >
+                                    <WhatsappLogo size={14} weight="bold" />
+                                  </a>
+                                )}
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => createProposalMutation.mutate(q)}
+                                  className="h-6 px-1.5 text-[10px] font-bold text-primary hover:bg-primary/10 rounded-md"
+                                  title="Criar Proposta no Studio"
+                                >
+                                  Lâmina
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => openManageModal(q)}
+                                  className="h-6 px-1.5 text-[10px] font-bold rounded-md"
+                                >
+                                  Gerenciar
+                                </Button>
+                              </div>
+                            </div>
+                          </Card>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  {filteredQuotes.map((q) => {
  const cleanWhatsapp = (q.contact_whatsapp || "").replace(/\D/g, "");
  const tripTypeLabel =

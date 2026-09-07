@@ -40,4 +40,5 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 );
 Input.displayName = "Input";
 
+export const FormInput = Input;
 export { Input };

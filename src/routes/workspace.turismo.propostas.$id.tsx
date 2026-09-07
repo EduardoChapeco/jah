@@ -239,13 +239,13 @@ function WorkspaceProposalStudioPage() {
  {/* Seletor de Template Visual */}
  <div className="flex items-center gap-0.5 bg-muted/40 p-0.5 rounded-xl border border-border/50">
  {[
- { id: "editorial-flat", label: "Clean Apple", icon: "✨" },
- { id: "dark-premium", label: "Dark Luxo", icon: "🌙" },
- { id: "executivo", label: "Executivo", icon: "💼" },
- { id: "landscape-presentation", label: "Paisagem", icon: "🖥️" },
- { id: "vertical-premium", label: "Vertical", icon: "📜" },
- { id: "group-catalog", label: "Catálogo", icon: "🏷️" },
- ].map((tpl) => (
+  { id: "editorial-flat", label: "Clean Apple", icon: "✨" },
+  { id: "dark-premium", label: "Dark Luxo", icon: "🌙" },
+  { id: "executivo-b2b", label: "Executivo", icon: "💼" },
+  { id: "landscape-presentation", label: "Paisagem", icon: "🖥️" },
+  { id: "vertical-premium", label: "Vertical", icon: "📜" },
+  { id: "group-catalog", label: "Catálogo", icon: "🏷️" },
+  ].map((tpl) => (
  <button
  key={tpl.id}
  type="button"
