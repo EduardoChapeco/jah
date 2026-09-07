@@ -1,335 +1,476 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import {
- Calendar,
- Plus,
- QrCode,
- ExternalLink,
- MapPin,
- Clock,
- Ticket,
- Users,
- CheckCircle2,
- Trash2,
+  Calendar,
+  Plus,
+  QrCode,
+  ExternalLink,
+  MapPin,
+  Clock,
+  Ticket,
+  Users,
+  CheckCircle2,
+  Trash2,
+  Sparkles,
+  Building,
+  TrendingUp,
 } from "lucide-react";
-import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
- Sheet,
- SheetContent,
- SheetHeader,
- SheetTitle,
- SheetDescription,
- SheetFooter,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
 } from "@/components/ui/sheet";
-import { EmptyState } from "@/components/state/states";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { listAdminEvents, upsertEvent } from "@/services/events.functions";
-import { formatMoney } from "@/lib/money";
+import { getStoreSettings } from "@/services/store.functions";
+import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-canonical-toolbar";
+import {
+  WorkspaceDashboardSheet,
+  type MetricCardItem,
+} from "@/components/workspace/workspace-dashboard-sheet";
+import { NicheOperationalGuard } from "@/components/workspace/niche-operational-guard";
 
 export const Route = createFileRoute("/workspace/eventos/")({
- head: () => ({ meta: [{ title: "Gestão de Eventos & Produtora | Workspace Wider OS" }] }),
- loader: async () => {
- try {
- const events = await listAdminEvents();
- return { events: events || [] };
- } catch {
- return { events: [] };
- }
- },
- component: WorkspaceEventosPage,
+  head: () => ({ meta: [{ title: "Gestão de Eventos & Produtora | Workspace Wider OS" }] }),
+  loader: async () => {
+    try {
+      const [events, store] = await Promise.all([
+        listAdminEvents().catch(() => []),
+        getStoreSettings().catch(() => null),
+      ]);
+      return { events: events || [], store };
+    } catch {
+      return { events: [], store: null };
+    }
+  },
+  component: WorkspaceEventosPage,
 });
 
-function WorkspaceEventosPage() {
- const { events } = Route.useLoaderData();
- const router = useRouter();
- const [isOpen, setIsOpen] = useState(false);
- const [isSaving, setIsSaving] = useState(false);
+export default function WorkspaceEventosPage() {
+  const { events: initialEvents, store } = Route.useLoaderData() as any;
+  const router = useRouter();
+  const [eventsList] = useState<any[]>(initialEvents || []);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [search, setSearch] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
 
- // Form State
- const [form, setForm] = useState({
- title: "",
- description: "",
- event_date: "",
- location: "",
- cover_image: "",
- category: "shows",
- });
+  // Form State
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    event_date: "",
+    location: "",
+    cover_image: "",
+    category: "shows",
+    capacity: 200,
+  });
 
- const handleSave = async (e: React.FormEvent) => {
- e.preventDefault();
- if (!form.title.trim() || !form.event_date) {
- toast.error("Informe o título e a data do evento.");
- return;
- }
+  // Métricas Executivas da Produtora de Eventos
+  const metrics = useMemo(() => {
+    const total = eventsList.length;
+    const now = new Date().getTime();
+    const upcoming = eventsList.filter((e) => new Date(e.event_date).getTime() >= now).length;
+    const past = total - upcoming;
+    const totalCapacity = eventsList.reduce((acc, e) => acc + (e.capacity || 0), 0);
 
- setIsSaving(true);
- try {
- // Normalização robusta para data ISO compatível
- const normalizedDate = form.event_date.includes("Z") || form.event_date.includes("+")
- ? form.event_date
- : new Date(form.event_date).toISOString();
+    return { total, upcoming, past, totalCapacity };
+  }, [eventsList]);
 
- await upsertEvent({
- data: {
- title: form.title.trim(),
- description: form.description.trim() || null,
- event_date: normalizedDate,
- location: form.location.trim() || null,
- cover_image: form.cover_image || null,
- category: form.category || "shows",
- status: "published",
- },
- });
+  // Filtro
+  const filteredEvents = useMemo(() => {
+    return eventsList.filter((e) => {
+      if (selectedCategory !== "all" && e.category !== selectedCategory) return false;
+      if (search.trim()) {
+        const q = search.toLowerCase();
+        return (
+          e.title?.toLowerCase().includes(q) ||
+          e.location?.toLowerCase().includes(q) ||
+          e.category?.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [eventsList, selectedCategory, search]);
 
- toast.success("Evento criado com sucesso!");
- setIsOpen(false);
- setForm({
- title: "",
- description: "",
- event_date: "",
- location: "",
- cover_image: "",
- category: "shows",
- });
- router.invalidate();
- } catch (err: any) {
- toast.error(err?.message || "Erro ao salvar evento.");
- } finally {
- setIsSaving(false);
- }
- };
+  const metricsItems: MetricCardItem[] = [
+    {
+      label: "Eventos Cadastrados",
+      value: `${metrics.total} produções`,
+      description: "Total de atrações no histórico",
+    },
+    {
+      label: "Próximos Shows & Eventos",
+      value: `${metrics.upcoming} ativos`,
+      description: "Com ingressos ou cronograma aberto",
+    },
+    {
+      label: "Capacidade Ofertada",
+      value: `${metrics.totalCapacity.toLocaleString("pt-BR")} pessoas`,
+      description: "Público máximo estimado em todos os locais",
+    },
+    {
+      label: "Eventos Concluídos",
+      value: `${metrics.past} realizados`,
+      description: "Histórico de portarias encerradas",
+    },
+  ];
 
- return (
- <div className="space-y-6">
- <PageHeader
- title="Eventos & Atrações"
- actions={
- <Button onClick={() => setIsOpen(true)} className="gap-2">
- <Plus className="size-4" />
- Criar Evento
- </Button>
- }
- />
+  const TABS = [
+    { id: "all", label: "Todos os Eventos", count: metrics.total },
+    { id: "shows", label: "Shows & Festivais" },
+    { id: "corporate", label: "Corporativo & Palestras" },
+    { id: "theatre", label: "Teatro & Cultura" },
+    { id: "sports", label: "Esportivos" },
+  ];
 
- {/* Grid de Eventos */}
- {events.length === 0 ? (
- <EmptyState
- title="Nenhum evento cadastrado"
- description="Crie o primeiro evento da sua produtora para iniciar as vendas de ingressos."
- />
- ) : (
- <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
- {events.map((event: any) => (
- <div
- key={event.id}
- className="bg-card rounded-2xl border border-border/60 overflow-hidden flex flex-col justify-between"
- >
- <div>
- {event.cover_image ? (
- <div className="w-full aspect-[16/9] bg-muted overflow-hidden">
- <img
- src={event.cover_image}
- alt={event.title}
- className="w-full h-full object-cover"
- />
- </div>
- ) : (
- <div className="w-full aspect-[16/9] bg-muted/40 flex items-center justify-center text-muted-foreground">
- <Calendar className="size-8 opacity-40" />
- </div>
- )}
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.title.trim() || !form.event_date) {
+      toast.error("Informe o título e a data do evento.");
+      return;
+    }
 
- <div className="p-4 space-y-2">
- <div className="flex items-center justify-between gap-2">
- <Badge variant="outline" className="text-[10px] font-mono uppercase">
- {event.category || "Evento"}
- </Badge>
- <Badge
- variant={event.status === "published" ? "default" : "secondary"}
- className="text-[10px]"
- >
- {event.status === "published" ? "Publicado" : "Rascunho"}
- </Badge>
- </div>
+    setIsSaving(true);
+    try {
+      const normalizedDate =
+        form.event_date.includes("Z") || form.event_date.includes("+")
+          ? form.event_date
+          : new Date(form.event_date).toISOString();
 
- <h3 className="font-bold text-base text-foreground line-clamp-1">
- {event.title}
- </h3>
+      await upsertEvent({
+        data: {
+          title: form.title.trim(),
+          description: form.description.trim() || null,
+          event_date: normalizedDate,
+          location: form.location.trim() || null,
+          cover_image: form.cover_image || null,
+          category: form.category || "shows",
+          capacity: form.capacity ? Number(form.capacity) : 200,
+          status: "published",
+        },
+      });
 
- {event.event_date && (
- <p className="text-xs text-muted-foreground flex items-center gap-1.5">
- <Clock className="size-3.5" />
- {new Date(event.event_date).toLocaleDateString("pt-BR", {
- day: "2-digit",
- month: "long",
- year: "numeric",
- hour: "2-digit",
- minute: "2-digit",
- })}
- </p>
- )}
+      toast.success("Evento criado com sucesso! Lote inicial provisionado.");
+      setIsOpen(false);
+      setForm({
+        title: "",
+        description: "",
+        event_date: "",
+        location: "",
+        cover_image: "",
+        category: "shows",
+        capacity: 200,
+      });
+      router.invalidate();
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao salvar evento.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
- {event.location && (
- <p className="text-xs text-muted-foreground flex items-center gap-1.5 line-clamp-1">
- <MapPin className="size-3.5 shrink-0" />
- {event.location}
- </p>
- )}
- </div>
- </div>
+  return (
+    <NicheOperationalGuard
+      targetNiche="events"
+      toolTitle="Gestão de Eventos, Shows & Produtora"
+      toolDescription="Controle de ingressos, lotes promocionais, check-in de portaria com QR Code, orçamentos e fornecedores de eventos."
+      store={store}
+    >
+      <div className="w-full space-y-6 animate-in fade-in duration-200">
+        {/* ── 1. TOOLBAR CANÔNICA PADRÃO WIDER OS ── */}
+        <WorkspaceCanonicalToolbar
+          tabs={TABS}
+          activeTab={selectedCategory}
+          onTabChange={(id) => setSelectedCategory(id)}
+          searchPlaceholder="Buscar eventos por título, local ou atração..."
+          searchValue={search}
+          onSearchChange={setSearch}
+          onOpenDashboard={() => setIsDashboardOpen(true)}
+          dashboardLabel="Métricas de Bilheteria"
+          metricsBadge={metrics.upcoming > 0 ? `${metrics.upcoming} ativos` : undefined}
+          primaryAction={{
+            label: "Novo Evento & Lotes",
+            icon: Plus,
+            onClick: () => setIsOpen(true),
+          }}
+        />
 
- {/* Ações Rápidas do Evento */}
- <div className="p-4 pt-0 flex items-center gap-2 border-t border-border/40 mt-3 pt-3">
- <Button
- asChild
- variant="default"
- size="sm"
- className="flex-1 h-9 rounded-xl text-xs font-semibold gap-1.5"
- >
- <Link
- to="/workspace/eventos/$id"
- params={{ id: event.id }}
- >
- <Ticket className="size-3.5" />
- Gerenciar Lotes & Setores
- </Link>
- </Button>
+        {/* ── 2. GRID DE EVENTOS ── */}
+        {filteredEvents.length === 0 ? (
+          <div className="py-20 text-center space-y-3 bg-card rounded-2xl border border-dashed border-border/70 p-8">
+            <Calendar className="size-12 mx-auto text-muted-foreground/40" />
+            <h3 className="text-sm font-bold text-foreground">Nenhum evento encontrado</h3>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              Cadastre sua atração, configure os lotes de ingressos e ative o validador de portaria QR Code para o público.
+            </p>
+            <Button
+              size="sm"
+              onClick={() => setIsOpen(true)}
+              className="rounded-xl text-xs font-bold gap-1.5 h-9 mt-2 cursor-pointer"
+            >
+              <Plus className="size-4" />
+              <span>Criar Primeiro Evento</span>
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredEvents.map((event: any) => {
+              const evtTime = new Date(event.event_date).getTime();
+              const isPast = evtTime < new Date().getTime();
 
- <Button
- asChild
- variant="outline"
- size="sm"
- className="h-9 px-3 rounded-xl text-xs font-semibold gap-1.5"
- title="Portaria / Validador de QR Code"
- >
- <Link
- to="/workspace/eventos/$id/checkin"
- params={{ id: event.id }}
- >
- <QrCode className="size-3.5" />
- </Link>
- </Button>
+              return (
+                <Card
+                  key={event.id}
+                  className="rounded-2xl border border-border/70 bg-card overflow-hidden hover:border-foreground/20 transition-all flex flex-col justify-between shadow-2xs"
+                >
+                  <div>
+                    {event.cover_image ? (
+                      <div className="w-full aspect-[16/9] bg-muted overflow-hidden relative">
+                        <img
+                          src={event.cover_image}
+                          alt={event.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-3 left-3">
+                          <Badge className="bg-black/70 backdrop-blur-md text-white border-none text-[10px] font-bold">
+                            {event.category || "Evento"}
+                          </Badge>
+                        </div>
+                        <div className="absolute top-3 right-3">
+                          <Badge
+                            variant={isPast ? "secondary" : "default"}
+                            className="bg-card/90 backdrop-blur-md text-foreground text-[10px] font-bold uppercase"
+                          >
+                            {isPast ? "Encerrado" : "Confirmado"}
+                          </Badge>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-full aspect-[16/9] bg-muted/40 flex items-center justify-center text-muted-foreground relative">
+                        <Calendar className="size-8 opacity-40" />
+                        <div className="absolute top-3 left-3">
+                          <Badge variant="outline" className="text-[10px] font-mono uppercase">
+                            {event.category || "Evento"}
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
 
- <Button
- asChild
- variant="ghost"
- size="sm"
- className="h-9 px-2.5 rounded-xl text-xs"
- title="Ver na Vitrine Pública"
- >
- <Link
- to="/evento/$id"
- params={{ id: event.id }}
- target="_blank"
- >
- <ExternalLink className="size-3.5" />
- </Link>
- </Button>
- </div>
- </div>
- ))}
- </div>
- )}
+                    <div className="p-4 space-y-2">
+                      <h3 className="font-bold text-base text-foreground line-clamp-1">
+                        {event.title}
+                      </h3>
 
- {/* Drawer de Cadastro de Evento */}
- <Sheet open={isOpen} onOpenChange={setIsOpen}>
- <SheetContent side="right" className="sm:max-w-xl p-0 overflow-y-auto no-scrollbar">
- <SheetHeader className="px-6 py-4 bg-muted/30">
- <SheetTitle className="text-xl font-bold">Novo Evento / Atração</SheetTitle>
- <SheetDescription>
- Preencha os dados do evento para habilitar a venda de ingressos e o controle de portaria.
- </SheetDescription>
- </SheetHeader>
+                      {event.event_date && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5 font-mono">
+                          <Clock className="size-3.5 shrink-0" />
+                          <span>
+                            {new Date(event.event_date).toLocaleDateString("pt-BR", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </p>
+                      )}
 
- <form onSubmit={handleSave} className="p-6 space-y-4">
- <div className="space-y-2">
- <Label htmlFor="evt-title">Título do Evento *</Label>
- <Input
- id="evt-title"
- required
- value={form.title}
- onChange={(e) => setForm({ ...form, title: e.target.value })}
- placeholder="Ex: Festival de Verão 2026"
- />
- </div>
+                      {event.location && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5 line-clamp-1 font-mono">
+                          <MapPin className="size-3.5 shrink-0" />
+                          <span>{event.location}</span>
+                        </p>
+                      )}
 
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
- <div className="space-y-2">
- <Label htmlFor="evt-date">Data e Hora *</Label>
- <Input
- id="evt-date"
- type="datetime-local"
- required
- value={form.event_date}
- onChange={(e) => setForm({ ...form, event_date: e.target.value })}
- />
- </div>
+                      {event.capacity && (
+                        <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 font-mono pt-1">
+                          <Users className="size-3.5 shrink-0" />
+                          <span>Capacidade: {event.capacity} pessoas</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
 
- <div className="space-y-2">
- <Label htmlFor="evt-cat">Categoria</Label>
- <Input
- id="evt-cat"
- value={form.category}
- onChange={(e) => setForm({ ...form, category: e.target.value })}
- placeholder="Ex: shows, teatro, festival"
- />
- </div>
- </div>
+                  {/* Ações Rápidas do Evento */}
+                  <div className="p-4 pt-0 flex items-center gap-2 border-t border-border/40 mt-3 pt-3">
+                    <Button
+                      asChild
+                      variant="default"
+                      size="sm"
+                      className="flex-1 h-9 rounded-xl text-xs font-semibold gap-1.5 cursor-pointer"
+                    >
+                      <Link to="/workspace/eventos/$id" params={{ id: event.id }}>
+                        <Ticket className="size-3.5" />
+                        <span>Lotes & Gestão</span>
+                      </Link>
+                    </Button>
 
- <div className="space-y-2">
- <Label htmlFor="evt-loc">Local / Endereço</Label>
- <Input
- id="evt-loc"
- value={form.location}
- onChange={(e) => setForm({ ...form, location: e.target.value })}
- placeholder="Ex: Arena Central — São Miguel do Oeste"
- />
- </div>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="h-9 px-3 rounded-xl text-xs font-semibold gap-1.5 cursor-pointer"
+                      title="Portaria / Validador de QR Code"
+                    >
+                      <Link to="/workspace/eventos/$id/checkin" params={{ id: event.id }}>
+                        <QrCode className="size-3.5" />
+                      </Link>
+                    </Button>
 
- <div className="space-y-2">
- <Label>Capa do Evento (16:9)</Label>
- <ImageUpload
- value={form.cover_image}
- onChange={(url) => setForm({ ...form, cover_image: url })}
- onRemove={() => setForm({ ...form, cover_image: "" })}
- aspectPreset="widescreen"
- bucket="cms-media"
- helperText="Arraste ou selecione a imagem oficial de divulgação do evento."
- />
- </div>
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="sm"
+                      className="h-9 px-2.5 rounded-xl text-xs cursor-pointer"
+                      title="Ver na Vitrine Pública"
+                    >
+                      <Link to="/evento/$id" params={{ id: event.id }} target="_blank">
+                        <ExternalLink className="size-3.5" />
+                      </Link>
+                    </Button>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
- <div className="space-y-2">
- <Label htmlFor="evt-desc">Descrição / Line-up</Label>
- <Textarea
- id="evt-desc"
- rows={4}
- value={form.description}
- onChange={(e) => setForm({ ...form, description: e.target.value })}
- placeholder="Detalhes da atração, horários e regulamento..."
- />
- </div>
+        {/* ── 3. SHEET DE CADASTRO DE EVENTO & LOTES ── */}
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetContent side="right" className="sm:max-w-xl p-0 overflow-y-auto no-scrollbar flex flex-col h-full bg-background border-l border-border">
+            <SheetHeader className="px-6 py-4 bg-muted/20 border-b border-border/60 text-left shrink-0">
+              <SheetTitle className="text-lg font-bold">Novo Evento & Lotes de Ingressos</SheetTitle>
+              <SheetDescription className="text-xs text-muted-foreground">
+                Cadastre o evento para habilitar a venda de ingressos, controle de lotes e portaria.
+              </SheetDescription>
+            </SheetHeader>
 
- <SheetFooter className="pt-4">
- <Button
- type="button"
- variant="ghost"
- onClick={() => setIsOpen(false)}
- >
- Cancelar
- </Button>
- <Button type="submit" disabled={isSaving} className="font-bold">
- {isSaving ? "Salvando..." : "Criar e Publicar"}
- </Button>
- </SheetFooter>
- </form>
- </SheetContent>
- </Sheet>
- </div>
- );
+            <form onSubmit={handleSave} className="p-6 space-y-4 flex-1">
+              <div className="space-y-1.5">
+                <Label htmlFor="evt-title" className="text-xs font-bold">Título do Evento *</Label>
+                <Input
+                  id="evt-title"
+                  required
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  placeholder="Ex: Festival de Música de Verão 2026"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="evt-date" className="text-xs font-bold">Data e Hora de Início *</Label>
+                  <Input
+                    id="evt-date"
+                    type="datetime-local"
+                    required
+                    value={form.event_date}
+                    onChange={(e) => setForm({ ...form, event_date: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="evt-cat" className="text-xs font-bold">Categoria</Label>
+                  <select
+                    id="evt-cat"
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    className="flex h-12 w-full rounded-xl border border-input bg-background px-4 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="shows">Shows & Festivais</option>
+                    <option value="corporate">Corporativo & Palestras</option>
+                    <option value="theatre">Teatro & Cultura</option>
+                    <option value="sports">Esportivos</option>
+                    <option value="gastronomy">Gastronomia & Open Food</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="evt-loc" className="text-xs font-bold">Local / Endereço</Label>
+                  <Input
+                    id="evt-loc"
+                    value={form.location}
+                    onChange={(e) => setForm({ ...form, location: e.target.value })}
+                    placeholder="Ex: Arena Central — Centro"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="evt-cap" className="text-xs font-bold">Capacidade Estimada (Público)</Label>
+                  <Input
+                    id="evt-cap"
+                    type="number"
+                    min={1}
+                    value={form.capacity}
+                    onChange={(e) => setForm({ ...form, capacity: Number(e.target.value) })}
+                    placeholder="Ex: 500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">Capa do Evento (16:9)</Label>
+                <ImageUpload
+                  value={form.cover_image}
+                  onChange={(url) => setForm({ ...form, cover_image: url })}
+                  onRemove={() => setForm({ ...form, cover_image: "" })}
+                  aspectPreset="widescreen"
+                  bucket="cms-media"
+                  helperText="Selecione a imagem oficial do banner ou flyer de divulgação."
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="evt-desc" className="text-xs font-bold">Descrição / Regulamento</Label>
+                <Textarea
+                  id="evt-desc"
+                  rows={4}
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="Line-up, horários de abertura de portões, classificação indicativa e avisos gerais..."
+                />
+              </div>
+
+              <SheetFooter className="pt-4 border-t border-border/60 flex items-center justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={isSaving} className="font-bold">
+                  {isSaving ? "Salvando..." : "Criar Evento"}
+                </Button>
+              </SheetFooter>
+            </form>
+          </SheetContent>
+        </Sheet>
+
+        {/* ── 4. DASHBOARD SHEET DE MÉTRICAS ── */}
+        <WorkspaceDashboardSheet
+          isOpen={isDashboardOpen}
+          onClose={() => setIsDashboardOpen(false)}
+          title="Painel Executivo da Produtora"
+          subtitle="Taxa de ocupação de público e capacidade dos eventos"
+          metrics={metricsItems}
+        />
+      </div>
+    </NicheOperationalGuard>
+  );
 }

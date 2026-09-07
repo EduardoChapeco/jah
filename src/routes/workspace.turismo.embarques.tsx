@@ -22,6 +22,7 @@ import {
   Upload,
   X,
   Star,
+  Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -266,6 +267,94 @@ export default function WorkspaceBoardingPage() {
       qc.invalidateQueries({ queryKey: ['travel-departures', storeId] });
     },
   });
+
+  async function exportGuiaPdf(detailObj: any) {
+    const toastId = toast.loading("Gerando Guia de Embarque PDF...");
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const { jsPDF } = await import("jspdf");
+
+      const printContainer = document.createElement("div");
+      printContainer.style.position = "fixed";
+      printContainer.style.left = "-9999px";
+      printContainer.style.top = "-9999px";
+      printContainer.style.width = "800px";
+      printContainer.style.backgroundColor = "#FFFFFF";
+      printContainer.style.fontFamily = "sans-serif";
+      printContainer.style.color = "#151515";
+      printContainer.style.padding = "40px";
+
+      const pnr = detailObj.airline_locator || detailObj.pnr || "PENDENTE";
+      const depDate = detailObj.departure_date ? new Date(detailObj.departure_date).toLocaleDateString("pt-BR") : "Pendente";
+      const retDate = detailObj.return_date ? new Date(detailObj.return_date).toLocaleDateString("pt-BR") : "—";
+
+      printContainer.innerHTML = `
+        <div style="border: 1px solid #E8E4DC; padding: 30px; background-color: #FFFFFF; font-family: sans-serif;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #000000; padding-bottom: 20px; margin-bottom: 25px;">
+            <div>
+              <h1 style="font-size: 22px; font-weight: 800; margin: 0; color: #151515; letter-spacing: -0.5px; text-transform: uppercase;">GUIA DE EMBARQUE & ROTEIRO</h1>
+              <p style="font-size: 11px; color: #777168; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Wider Turismo & Inteligência Operacional</p>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 14px; font-weight: 800; color: #000000; font-family: monospace;">LOCALIZADOR: ${pnr}</span>
+              <p style="font-size: 10px; color: #777168; margin: 4px 0 0 0;">Passageiro: ${detailObj.client_name}</p>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <h2 style="font-size: 11px; font-weight: 700; border-bottom: 1px solid #E8E4DC; padding-bottom: 4px; color: #777168; text-transform: uppercase; margin-bottom: 10px;">Dados do Roteiro</h2>
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px;">
+              <div>
+                <p style="margin: 0; font-size: 14px; font-weight: 700; color: #151515;">${detailObj.destination}</p>
+                <p style="margin: 4px 0 0 0; font-size: 11px; color: #777168;">Passageiros: ${detailObj.passengers_count} pax</p>
+              </div>
+              <div style="text-align: right;">
+                <p style="margin: 0; font-size: 12px; font-weight: 600;">Embarque: ${depDate}</p>
+                <p style="margin: 4px 0 0 0; font-size: 11px; color: #777168;">Retorno: ${retDate}</p>
+              </div>
+            </div>
+          </div>
+
+          ${detailObj.airline_code ? `
+          <div style="margin-bottom: 20px; background-color: #F8F9FA; padding: 12px; border: 1px solid #E9ECEF; border-radius: 6px;">
+            <h2 style="font-size: 11px; font-weight: 700; color: #495057; text-transform: uppercase; margin: 0 0 8px 0;">Voo & Companhia Aérea</h2>
+            <p style="margin: 0; font-size: 12px; font-weight: bold; color: #212529;">${detailObj.airline_code} ${detailObj.flight_number || ""} — Localizador: ${pnr}</p>
+          </div>` : ""}
+
+          ${detailObj.hotel_name ? `
+          <div style="margin-bottom: 20px; background-color: #F8F9FA; padding: 12px; border: 1px solid #E9ECEF; border-radius: 6px;">
+            <h2 style="font-size: 11px; font-weight: 700; color: #495057; text-transform: uppercase; margin: 0 0 8px 0;">Hospedagem Confirmada</h2>
+            <p style="margin: 0; font-size: 12px; font-weight: bold; color: #212529;">${detailObj.hotel_name}</p>
+          </div>` : ""}
+
+          <div style="margin-top: 25px; border-top: 1px solid #E8E4DC; padding-top: 15px;">
+            <h2 style="font-size: 11px; font-weight: 700; color: #777168; text-transform: uppercase; margin-bottom: 8px;">Recomendações Importantes de Embarque</h2>
+            <ul style="font-size: 10px; color: #555555; line-height: 1.6; margin: 0; padding-left: 16px;">
+              <li>Apresente-se com no mínimo 2h de antecedência para voos nacionais e 3h para internacionais.</li>
+              <li>Mantenha em mãos documento oficial de identificação com foto e bilhetes de embarque.</li>
+              <li>Verifique o limite de peso de bagagem de mão (máx. 10kg) e itens permitidos na cabine.</li>
+            </ul>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(printContainer);
+      const canvas = await html2canvas(printContainer, { scale: 2, useCORS: true });
+      document.body.removeChild(printContainer);
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Guia_Embarque_${pnr}.pdf`);
+
+      toast.success("Guia de Embarque PDF exportado!", { id: toastId });
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Erro ao gerar Guia de Embarque PDF.", { id: toastId });
+    }
+  }
 
   // ── Computed ──
   const daysInMonth = getDaysInMonth(calYear, calMonth);
@@ -661,10 +750,24 @@ export default function WorkspaceBoardingPage() {
                       target="_blank"
                       rel="noreferrer"
                       className="h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center hover:bg-emerald-500/20 shrink-0"
+                      title="Conversar no WhatsApp"
                     >
                       <Send className="size-3.5" />
                     </a>
                   )}
+
+                  {/* Exportar Guia de Embarque PDF */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportGuiaPdf(detail)}
+                    className="h-7 px-2 text-[11px] font-bold gap-1 rounded-lg border-border cursor-pointer shrink-0"
+                    title="Exportar Guia de Embarque PDF"
+                  >
+                    <Download className="size-3" />
+                    <span>Guia PDF</span>
+                  </Button>
                 </div>
 
                 {/* Tab navigation inside sheet */}
