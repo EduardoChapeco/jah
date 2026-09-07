@@ -84,23 +84,30 @@ export function LeadVisualProposalSheet({
   const handleGenerateProposal = async () => {
     setIsSubmitting(true);
     try {
+      const totalPrice = basePriceCents + boardingTaxCents;
       const res = await createTravelProposal({
         data: {
+          title: `Proposta: ${destinationCity || "Viagem Exclusiva"} (${lead?.fullName || "Cliente Especial"})`,
           clientName: lead?.fullName || "Cliente Especial",
           clientEmail: lead?.email || undefined,
-          clientPhone: lead?.phone || undefined,
+          clientWhatsapp: lead?.phone || "49998887777",
+          clientPhone: lead?.phone || "49998887777",
           destinationCity,
           destinationCountry,
           startDate,
           endDate,
+          travelStartDate: startDate,
+          travelEndDate: endDate,
           paxCount: passengerCount,
+          adultsCount: passengerCount,
           coverPhotoUrl,
           leadId: lead?.id,
           pricing: {
             currency: "BRL",
             base_price_cents: basePriceCents,
             boarding_tax_cents: boardingTaxCents,
-            total_cents: basePriceCents + boardingTaxCents,
+            total_price_cents: totalPrice,
+            total_cents: totalPrice,
             payment_terms: paymentTerms,
           },
           itinerary: [
@@ -142,7 +149,11 @@ export function LeadVisualProposalSheet({
       toast.success("Proposta visual gerada com sucesso!");
       if (onSuccess) onSuccess();
     } catch (err: any) {
-      toast.error(err?.message || "Erro ao emitir proposta comercial.");
+      const msg =
+        typeof err?.message === "string" && err.message.startsWith("[{")
+          ? "Verifique os dados da proposta."
+          : (err?.message || "Erro ao emitir proposta comercial.");
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }

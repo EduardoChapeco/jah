@@ -29,8 +29,22 @@ export function ProposalCanvasRenderer({ proposal }: ProposalCanvasRendererProps
  const isDark = template === "dark-premium";
  const isCorporate = template === "executivo";
 
- const totalCents = proposal.pricing?.total_price_cents || 0;
- const installments = proposal.pricing?.installments_options || [];
+ const rawPricing = proposal.pricing || {};
+ const totalCents =
+   Number(rawPricing.total_price_cents || 0) ||
+   Number(rawPricing.total_cents || 0) ||
+   (Number(rawPricing.base_price_cents || 0) + Number(rawPricing.boarding_tax_cents || 0)) ||
+   0;
+
+ const installments =
+   rawPricing.installments_options && rawPricing.installments_options.length > 0
+     ? rawPricing.installments_options
+     : totalCents > 0
+       ? [
+           { installments_count: 1, installment_value_cents: totalCents, method: "pix" },
+           { installments_count: 10, installment_value_cents: Math.round(totalCents / 10), method: "credit_card" },
+         ]
+       : [];
 
  return (
  <div

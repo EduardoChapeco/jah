@@ -1,0 +1,1363 @@
+import React, { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  X,
+  Check,
+  ChevronRight,
+  ChevronLeft,
+  Map,
+  Plane,
+  Plus,
+  Trash2,
+  Upload,
+  Hotel,
+  Star,
+  Video,
+  BedDouble,
+  DollarSign,
+  Info,
+  Layers,
+} from "lucide-react";
+import { Field } from "@/components/ui/field";
+import { FormInput as Input } from "@/components/ui/input";
+import { NativeSelect as Select } from "@/components/ui/select";
+import { FormTextarea as Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/ui/badge";
+import { formatDate, formatCurrency } from "@/lib/formatters";
+import { SheetPage } from "@/components/ui/sheet";
+import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+function slugify(s: string) {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+const STEPS = [
+  "Essencial",
+  "Data & Vagas",
+  "Hospedagem & Vídeo",
+  "Tarifas & Opcionais",
+  "Valores & Inclusos",
+  "Itinerário",
+  "Revisão",
+];
+
+type ItineraryDay = { day_number: number; title: string; description: string };
+
+const tourWizardSchema = z
+  .object({
+    title: z.string().min(3, "Título deve ter no mínimo 3 caracteres"),
+    destination: z.string().min(2, "Destino é obrigatório"),
+    transportType: z.string().default("air"),
+    slug: z.string().min(2, "Slug inválido ou curto"),
+    departure: z.string().min(1, "Data de saída é obrigatória"),
+    ret: z.string().optional().nullable(),
+    regDeadline: z.string().optional().nullable(),
+    seats: z.number({ invalid_type_error: "Deve ser um número" }).min(1, "Mínimo 1 vaga"),
+    busLayout: z.string().optional().nullable(),
+    price: z
+      .number({ invalid_type_error: "Insira um valor válido" })
+      .min(0, "O preço base não pode ser negativo"),
+    includes: z.array(z.string()).default([]),
+    excludes: z.array(z.string()).default([]),
+    hasFlights: z.boolean().default(false),
+    coverUrl: z.string().optional().nullable(),
+    itinerary: z
+      .array(
+        z.object({
+          day_number: z.number(),
+          title: z.string(),
+          description: z.string(),
+        }),
+      )
+      .default([]),
+    isPublic: z.boolean().default(false),
+    status: z.string().default("draft"),
+    // Novos campos premium:
+    hotelName: z.string().optional(),
+    hotelStars: z.number().min(1).max(5).default(3),
+    hotelCheckIn: z.string().optional(),
+    hotelCheckOut: z.string().optional(),
+    hotelAmenities: z.array(z.string()).default([]),
+    hotelDescription: z.string().optional(),
+    hotelGallery: z.array(z.string()).default([]),
+    youtubeUrl: z.string().optional(),
+    pricingTiers: z
+      .array(
+        z.object({
+          name: z.string().min(1, "Nome da tarifa é obrigatório"),
+          price: z.number().min(0, "Preço inválido"),
+          description: z.string().optional(),
+        }),
+      )
+      .default([]),
+    extraOptions: z
+      .array(
+        z.object({
+          name: z.string().min(1, "Nome do opcional é obrigatório"),
+          price: z.number().min(0, "Preço inválido"),
+          description: z.string().optional(),
+        }),
+      )
+      .default([]),
+  })
+  .refine(
+    (data) => {
+      if (data.departure && data.ret) {
+        return new Date(data.ret) >= new Date(data.departure);
+      }
+      return true;
+    },
+    {
+      message: "Retorno deve ser posterior ou igual à saída",
+      path: ["ret"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.departure && data.regDeadline) {
+        return new Date(data.regDeadline) <= new Date(data.departure);
+      }
+      return true;
+    },
+    {
+      message: "Prazo de inscrição deve ser anterior ou igual à saída",
+      path: ["regDeadline"],
+    },
+  );
+
+type TourWizardFormData = z.infer<typeof tourWizardSchema>;
+
+export function NewGroupTourWizard({
+  agencyId,
+  onClose,
+  onCreated,
+}: {
+  agencyId: string;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const qc = useQueryClient();
+  const [step, setStep] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  // Aux state for adding elements
+  const [newInclude, setNewInclude] = useState("");
+  const [newExclude, setNewExclude] = useState("");
+
+  // Aux states for new pricing & extras
+  const [newTierName, setNewTierName] = useState("");
+  const [newTierPrice, setNewTierPrice] = useState<number | "">("");
+  const [newTierDesc, setNewTierDesc] = useState("");
+  const [newExtraName, setNewExtraName] = useState("");
+  const [newExtraPrice, setNewExtraPrice] = useState<number | "">("");
+  const [newExtraDesc, setNewExtraDesc] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    trigger,
+    formState: { errors },
+  } = useForm<TourWizardFormData>({
+    resolver: zodResolver(tourWizardSchema) as any,
+    defaultValues: {
+      title: "",
+      destination: "",
+      transportType: "air",
+      slug: "",
+      departure: "",
+      ret: "",
+      regDeadline: "",
+      seats: 20,
+      busLayout: "",
+      price: 0,
+      includes: [],
+      excludes: [],
+      hasFlights: false,
+      coverUrl: "",
+      itinerary: [],
+      isPublic: false,
+      status: "draft",
+      hotelName: "",
+      hotelStars: 3,
+      hotelCheckIn: "14:00",
+      hotelCheckOut: "12:00",
+      hotelAmenities: [],
+      hotelDescription: "",
+      hotelGallery: [],
+      youtubeUrl: "",
+      pricingTiers: [],
+      extraOptions: [],
+    },
+  });
+
+  const watchTitle = watch("title");
+  const watchDestination = watch("destination");
+  const watchTransportType = watch("transportType");
+  const watchSlug = watch("slug");
+  const watchDeparture = watch("departure");
+  const watchRet = watch("ret");
+  const watchRegDeadline = watch("regDeadline");
+  const watchSeats = watch("seats");
+  const watchBusLayout = watch("busLayout");
+  const watchPrice = watch("price");
+  const watchIncludes = watch("includes");
+  const watchExcludes = watch("excludes");
+  const watchHasFlights = watch("hasFlights");
+  const watchCoverUrl = watch("coverUrl");
+  const watchItinerary = watch("itinerary");
+  const watchIsPublic = watch("isPublic");
+  const watchStatus = watch("status");
+  const watchHotelName = watch("hotelName");
+  const watchHotelStars = watch("hotelStars");
+  const watchHotelCheckIn = watch("hotelCheckIn");
+  const watchHotelCheckOut = watch("hotelCheckOut");
+  const watchHotelAmenities = watch("hotelAmenities");
+  const watchHotelDescription = watch("hotelDescription");
+  const watchYoutubeUrl = watch("youtubeUrl");
+  const watchPricingTiers = watch("pricingTiers");
+  const watchExtraOptions = watch("extraOptions");
+
+  const busesQ = useQuery({
+    queryKey: ["bus-layouts", agencyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("bus_layouts")
+        .select("id, name")
+        .eq("agency_id", agencyId);
+      return data ?? [];
+    },
+  });
+
+  const generateSlug = () => {
+    if (!watchTitle) return;
+    setValue("slug", slugify(watchTitle) + "-" + crypto.randomUUID(), {
+      shouldValidate: true,
+    });
+  };
+
+  const handleNext = async () => {
+    let fieldsToValidate: Array<keyof TourWizardFormData> = [];
+    if (step === 0) {
+      fieldsToValidate = ["title", "destination", "transportType", "slug"];
+      if (!watchSlug) generateSlug();
+    } else if (step === 1) {
+      fieldsToValidate = ["departure", "ret", "regDeadline", "seats", "busLayout"];
+    } else if (step === 2) {
+      fieldsToValidate = [
+        "hotelName",
+        "hotelStars",
+        "hotelCheckIn",
+        "hotelCheckOut",
+        "youtubeUrl",
+        "hotelDescription",
+        "hotelAmenities",
+      ];
+    } else if (step === 3) {
+      fieldsToValidate = ["pricingTiers", "extraOptions"];
+    } else if (step === 4) {
+      fieldsToValidate = ["price", "includes", "excludes", "hasFlights"];
+    } else if (step === 5) {
+      fieldsToValidate = ["coverUrl", "itinerary"];
+    }
+
+    const isValid = await trigger(fieldsToValidate);
+    if (isValid) {
+      setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    }
+  };
+
+  const handleBack = () => setStep((s) => Math.max(s - 1, 0));
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `${agencyId}/tours/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("agency-media")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("agency-media").getPublicUrl(filePath);
+      setValue("coverUrl", data.publicUrl, { shouldValidate: true });
+      toast.success("Imagem carregada com sucesso!");
+    } catch (error: any) {
+      toast.error("Erro ao fazer upload da imagem.");
+      console.error(error);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function onSubmit(data: TourWizardFormData) {
+    setSubmitting(true);
+    try {
+      const payload = {
+        agency_id: agencyId,
+        title: data.title,
+        slug: data.slug || slugify(data.title) + "-" + crypto.randomUUID(),
+        destination: data.destination || null,
+        transport_type: data.transportType,
+        departure_date: data.departure || null,
+        return_date: data.ret || null,
+        registration_deadline: data.regDeadline || null,
+        total_seats: data.seats,
+        base_price: data.price,
+        includes: data.includes,
+        excludes: data.excludes,
+        itinerary: data.itinerary.map((item) => ({
+          ...item,
+          description_md: item.description,
+          description: item.description,
+        })),
+        cover_image_url: data.coverUrl || null,
+        is_public: data.isPublic,
+        status: data.status,
+        bus_layout_id: data.busLayout || null,
+        // Premium Fields Mapping
+        hotel_details: {
+          name: data.hotelName || "",
+          stars: Number(data.hotelStars),
+          check_in: data.hotelCheckIn || "14:00",
+          check_out: data.hotelCheckOut || "12:00",
+          amenities: data.hotelAmenities || [],
+          description: data.hotelDescription || "",
+          gallery: data.hotelGallery || [],
+        },
+        promo_media: {
+          youtube_url: data.youtubeUrl || "",
+        },
+        pricing_tiers: data.pricingTiers || [],
+        extra_options: data.extraOptions || [],
+      };
+
+      const { error } = await supabase.from("group_tours").insert(payload);
+      if (error) {
+        throw error;
+      }
+      toast.success("Excursão criada com sucesso!");
+      onCreated();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao criar excursão.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const populateDefaultPricingTiers = () => {
+    const baseVal = watchPrice || 1000;
+    const defaults = [
+      {
+        name: "Quarto Duplo (Double) - por pessoa",
+        price: baseVal,
+        description: "Acomodação compartilhada para 2 adultos",
+      },
+      {
+        name: "Quarto Individual (Single)",
+        price: Math.round(baseVal * 1.4),
+        description: "Acomodação privativa em quarto individual",
+      },
+      {
+        name: "Quarto Triplo (Triple) - por pessoa",
+        price: Math.round(baseVal * 0.9),
+        description: "Acomodação compartilhada para 3 adultos",
+      },
+      {
+        name: "Tarifa Infantil (Child)",
+        price: Math.round(baseVal * 0.5),
+        description: "Para crianças de 2 a 11 anos no mesmo quarto",
+      },
+    ];
+    setValue("pricingTiers", defaults, { shouldValidate: true });
+    toast.success("Tarifas sugeridas adicionadas!");
+  };
+
+  const AMENITIES_LIST = [
+    "Wi-Fi",
+    "Piscina",
+    "Ar-condicionado",
+    "Café da manhã",
+    "Restaurante",
+    "Academia",
+    "Estacionamento",
+    "Spa",
+    "Pet Friendly",
+    "Serviço de Quarto",
+  ];
+
+  return (
+    <SheetPage
+      isOpen={true}
+      onClose={onClose}
+      title="Nova Excursão em Grupo"
+      contentClassName="flex flex-col flex-1 min-h-0 overflow-hidden"
+    >
+      <div className="px-6 pt-4 pb-2 shrink-0">
+        <p className="text-xs text-muted-foreground">
+          Configure as informações do seu pacote passo a passo.
+        </p>
+      </div>
+
+      {/* Mobile progress indicator */}
+      <div className="md:hidden flex items-center justify-between border-b border-border bg-surface px-6 py-3 shrink-0">
+        <span className="ds-meta font-bold text-muted-foreground uppercase tracking-wider">
+          Passo {step + 1} de {STEPS.length}
+        </span>
+        <span className="text-xs font-black text-brand uppercase tracking-widest">
+          {STEPS[step]}
+        </span>
+      </div>
+
+      {/* Desktop progress indicator */}
+      <div className="hidden md:flex items-center justify-between border-b border-border bg-surface px-8 py-3 shrink-0">
+        {STEPS.map((s, i) => (
+          <div
+            key={i}
+            className={`flex items-center gap-2 ${i === step ? "opacity-100" : "opacity-40"}`}
+          >
+            <div
+              className={`flex h-6 w-6 items-center justify-center rounded-full ds-meta font-bold ${
+                i < step
+                  ? "bg-success text-success-foreground"
+                  : i === step
+                    ? "bg-brand text-brand-foreground"
+                    : "bg-surface-alt text-muted-foreground"
+              }`}
+            >
+              {i < step ? <Check className="h-3.5 w-3.5" /> : i + 1}
+            </div>
+            <span
+              className={`text-xs font-semibold uppercase tracking-widest hidden lg:block ${
+                i < step ? "text-success" : i === step ? "text-brand" : "text-muted-foreground"
+              }`}
+            >
+              {s}
+            </span>
+            {i < STEPS.length - 1 && (
+              <ChevronRight className="h-4 w-4 text-muted-foreground/30 mx-2" />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Content Area */}
+      <form
+        onSubmit={handleSubmit(onSubmit as any)}
+        className="flex-1 flex flex-col overflow-hidden"
+      >
+        <div className="flex-1 overflow-y-auto p-6 bg-surface/30 min-h-0">
+          <div className="mx-auto max-w-2xl space-y-6">
+            {/* STEP 0: ESSENTIALS */}
+            {step === 0 && (
+              <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+                <Field label="Título do Pacote *" error={errors.title?.message}>
+                  <Input
+                    {...register("title")}
+                    placeholder="Ex: Réveillon Mágico em Gramado 2027"
+                    className="text-lg font-medium"
+                    autoFocus
+                  />
+                </Field>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="Destino Principal *" error={errors.destination?.message}>
+                    <Input {...register("destination")} placeholder="Ex: Gramado, RS" />
+                  </Field>
+                  <Field label="Meio de Transporte" error={errors.transportType?.message}>
+                    <Select {...register("transportType")}>
+                      <option value="air">Aéreo</option>
+                      <option value="bus">Rodoviário</option>
+                      <option value="cruise">Marítimo / Cruzeiro</option>
+                      <option value="train">Trem</option>
+                      <option value="mixed">Misto</option>
+                    </Select>
+                  </Field>
+                </div>
+                <Field label="Slug (URL Amigável)" error={errors.slug?.message}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground bg-surface-alt px-3 py-2 rounded-full border border-border text-sm">
+                      /tour/
+                    </span>
+                    <Input {...register("slug")} placeholder="reveillon-gramado-2027" />
+                    <Button
+                      variant="ghost"
+                      type="button"
+                      onClick={generateSlug}
+                      className="shrink-0 h-9"
+                    >
+                      Gerar
+                    </Button>
+                  </div>
+                </Field>
+              </div>
+            )}
+
+            {/* STEP 1: DATES & SEATS */}
+            {step === 1 && (
+              <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="Data de Saída *" error={errors.departure?.message}>
+                    <Input type="date" {...register("departure")} />
+                  </Field>
+                  <Field label="Data de Retorno" error={errors.ret?.message}>
+                    <Input type="date" {...register("ret")} />
+                  </Field>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="Prazo limite p/ inscrição" error={errors.regDeadline?.message}>
+                    <Input type="date" {...register("regDeadline")} />
+                  </Field>
+                  <Field label="Total de Vagas *" error={errors.seats?.message}>
+                    <Input type="number" min={1} {...register("seats", { valueAsNumber: true })} />
+                  </Field>
+                </div>
+                {watchTransportType === "bus" && (
+                  <Field
+                    label="Mapa de Assentos (Frota de Ônibus)"
+                    error={errors.busLayout?.message}
+                  >
+                    <Select {...register("busLayout")}>
+                      <option value="">Sem ônibus atrelado (Não controlar mapa)</option>
+                      {busesQ.data?.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.name}
+                        </option>
+                      ))}
+                    </Select>
+                    <p className="ds-meta text-muted-foreground mt-1">
+                      Ao atrelar um ônibus, as vendas permitirão a escolha da poltrona.
+                    </p>
+                  </Field>
+                )}
+              </div>
+            )}
+
+            {/* STEP 2: HOTEL & PROMO VIDEO */}
+            {step === 2 && (
+              <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="flex items-center gap-2 pb-2 border-b border-border">
+                  <Hotel className="h-5 w-5 text-brand" />
+                  <h3 className="font-semibold text-base">Hospedagem Principal</h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="sm:col-span-2">
+                    <Field
+                      label="Nome da Hospedagem (Hotel / Pousada)"
+                      error={errors.hotelName?.message}
+                    >
+                      <Input {...register("hotelName")} placeholder="Ex: Hotel Majestic Gramado" />
+                    </Field>
+                  </div>
+                  <div>
+                    <Field label="Categoria (Estrelas)" error={errors.hotelStars?.message}>
+                      <Select {...register("hotelStars", { valueAsNumber: true })}>
+                        <option value={1}>1 Estrela</option>
+                        <option value={2}>2 Estrelas</option>
+                        <option value={3}>3 Estrelas</option>
+                        <option value={4}>4 Estrelas</option>
+                        <option value={5}>5 Estrelas</option>
+                      </Select>
+                    </Field>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="Horário de Check-in" error={errors.hotelCheckIn?.message}>
+                    <Input {...register("hotelCheckIn")} placeholder="Ex: 14:00" />
+                  </Field>
+                  <Field label="Horário de Check-out" error={errors.hotelCheckOut?.message}>
+                    <Input {...register("hotelCheckOut")} placeholder="Ex: 12:00" />
+                  </Field>
+                </div>
+
+                <Field label="Descrição da Hospedagem" error={errors.hotelDescription?.message}>
+                  <Textarea
+                    {...register("hotelDescription")}
+                    placeholder="Descreva a acomodação, sua localização, diferenciais e quartos..."
+                    rows={3}
+                  />
+                </Field>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground block">
+                    Facilidades / Amenidades
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {AMENITIES_LIST.map((amenity) => {
+                      const selected = watchHotelAmenities?.includes(amenity);
+                      return (
+                        <Button
+                          key={amenity}
+                          type="button"
+                          onClick={() => {
+                            const current = watchHotelAmenities || [];
+                            const next = selected
+                              ? current.filter((x) => x !== amenity)
+                              : [...current, amenity];
+                            setValue("hotelAmenities", next, { shouldValidate: true });
+                          }}
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 cursor-pointer ${
+                            selected
+                              ? "bg-brand/10 border-brand text-brand shadow-sm shadow-brand/10"
+                              : "bg-surface-alt/55 border-border text-muted-foreground hover:border-muted-foreground/30"
+                          }`}
+                        >
+                          {amenity}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-3 pb-2 border-b border-border">
+                  <Video className="h-5 w-5 text-brand" />
+                  <h3 className="font-semibold text-base">Vídeo Promocional</h3>
+                </div>
+
+                <Field label="Link do Vídeo (YouTube)" error={errors.youtubeUrl?.message}>
+                  <Input
+                    {...register("youtubeUrl")}
+                    placeholder="Ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                  />
+                  <p className="ds-meta text-muted-foreground mt-1">
+                    Insira a URL de um vídeo promocional para ser incorporado na página de vendas
+                    B2C.
+                  </p>
+                </Field>
+              </div>
+            )}
+
+            {/* STEP 3: PRICING TIERS & EXTRA OPTIONS */}
+            {step === 3 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="flex items-center justify-between pb-2 border-b border-border">
+                  <div className="flex items-center gap-2">
+                    <BedDouble className="h-5 w-5 text-brand" />
+                    <h3 className="font-semibold text-base">Acomodações & Tarifas</h3>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    onClick={populateDefaultPricingTiers}
+                    className="h-8 text-xs text-brand border border-brand/20 hover:bg-brand/5"
+                  >
+                    Gerar Tarifas Padrão
+                  </Button>
+                </div>
+
+                {/* Form to add a new pricing tier */}
+                <div className="p-4 rounded-[var(--radius-card)] border border-border bg-surface-alt/10 space-y-4">
+                  <h4 className="ds-label-caps tracking-wider text-muted-foreground">
+                    Nova Tarifa
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="sm:col-span-2">
+                      <Input
+                        placeholder="Nome da acomodação (ex: Quarto Individual)"
+                        value={newTierName}
+                        onChange={(e) => setNewTierName(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Input
+                        type="number"
+                        placeholder="Preço (R$)"
+                        value={newTierPrice}
+                        onChange={(e) =>
+                          setNewTierPrice(e.target.value === "" ? "" : Number(e.target.value))
+                        }
+                        className="font-mono"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Descrição complementar (ex: Privativo para 1 adulto)"
+                      value={newTierDesc}
+                      onChange={(e) => setNewTierDesc(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="ghost"
+                      type="button"
+                      onClick={() => {
+                        if (!newTierName.trim() || newTierPrice === "") {
+                          toast.error("Preencha nome e preço da tarifa.");
+                          return;
+                        }
+                        const current = watchPricingTiers || [];
+                        setValue(
+                          "pricingTiers",
+                          [
+                            ...current,
+                            {
+                              name: newTierName.trim(),
+                              price: Number(newTierPrice),
+                              description: newTierDesc.trim(),
+                            },
+                          ],
+                          { shouldValidate: true },
+                        );
+                        setNewTierName("");
+                        setNewTierPrice("");
+                        setNewTierDesc("");
+                        toast.success("Tarifa adicionada!");
+                      }}
+                      className="h-9 text-xs border border-border px-3 shrink-0"
+                    >
+                      <Plus className="h-4 w-4 mr-1" /> Adicionar
+                    </Button>
+                  </div>
+                </div>
+
+                {/* List of pricing tiers */}
+                <div className="space-y-2">
+                  {watchPricingTiers && watchPricingTiers.length > 0 ? (
+                    watchPricingTiers.map((tier, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 rounded-2xl border border-border bg-surface text-xs"
+                      >
+                        <div>
+                          <strong className="text-sm font-semibold">{tier.name}</strong>
+                          {tier.description && (
+                            <p className="text-muted-foreground mt-0.5">{tier.description}</p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono font-bold text-brand text-sm">
+                            {formatCurrency(tier.price)}
+                          </span>
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              setValue(
+                                "pricingTiers",
+                                watchPricingTiers.filter((_, i) => i !== idx),
+                                { shouldValidate: true },
+                              );
+                            }}
+                            className="text-muted-foreground hover:text-danger p-1"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 border border-dashed border-border rounded-2xl text-xs text-muted-foreground">
+                      Nenhuma tarifa adicionada. Clientes usarão o preço base do pacote.
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 pt-4 pb-2 border-b border-border">
+                  <Layers className="h-5 w-5 text-brand" />
+                  <h3 className="font-semibold text-base">Serviços Extras & Opcionais</h3>
+                </div>
+
+                {/* Form to add a new extra option */}
+                <div className="p-4 rounded-[var(--radius-card)] border border-border bg-surface-alt/10 space-y-4">
+                  <h4 className="ds-label-caps tracking-wider text-muted-foreground">
+                    Novo Opcional
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="sm:col-span-2">
+                      <Input
+                        placeholder="Nome do opcional (ex: Seguro Viagem Premium)"
+                        value={newExtraName}
+                        onChange={(e) => setNewExtraName(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Input
+                        type="number"
+                        placeholder="Preço (R$)"
+                        value={newExtraPrice}
+                        onChange={(e) =>
+                          setNewExtraPrice(e.target.value === "" ? "" : Number(e.target.value))
+                        }
+                        className="font-mono"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Descrição complementar (ex: Cobertura médica nacional)"
+                      value={newExtraDesc}
+                      onChange={(e) => setNewExtraDesc(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="ghost"
+                      type="button"
+                      onClick={() => {
+                        if (!newExtraName.trim() || newExtraPrice === "") {
+                          toast.error("Preencha nome e preço do opcional.");
+                          return;
+                        }
+                        const current = watchExtraOptions || [];
+                        setValue(
+                          "extraOptions",
+                          [
+                            ...current,
+                            {
+                              name: newExtraName.trim(),
+                              price: Number(newExtraPrice),
+                              description: newExtraDesc.trim(),
+                            },
+                          ],
+                          { shouldValidate: true },
+                        );
+                        setNewExtraName("");
+                        setNewExtraPrice("");
+                        setNewExtraDesc("");
+                        toast.success("Serviço opcional adicionado!");
+                      }}
+                      className="h-9 text-xs border border-border px-3 shrink-0"
+                    >
+                      <Plus className="h-4 w-4 mr-1" /> Adicionar
+                    </Button>
+                  </div>
+                </div>
+
+                {/* List of extra options */}
+                <div className="space-y-2">
+                  {watchExtraOptions && watchExtraOptions.length > 0 ? (
+                    watchExtraOptions.map((ext, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 rounded-2xl border border-border bg-surface text-xs"
+                      >
+                        <div>
+                          <strong className="text-sm font-semibold">{ext.name}</strong>
+                          {ext.description && (
+                            <p className="text-muted-foreground mt-0.5">{ext.description}</p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono font-bold text-success text-sm">
+                            +{formatCurrency(ext.price)}
+                          </span>
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              setValue(
+                                "extraOptions",
+                                watchExtraOptions.filter((_, i) => i !== idx),
+                                { shouldValidate: true },
+                              );
+                            }}
+                            className="text-muted-foreground hover:text-danger p-1"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 border border-dashed border-border rounded-2xl text-xs text-muted-foreground">
+                      Nenhum serviço opcional cadastrado.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* STEP 4: VALUES & INCLUSIONS (originally Step 2) */}
+            {step === 4 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <Field label="Preço Base por Pessoa (R$) *" error={errors.price?.message}>
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    {...register("price", { valueAsNumber: true })}
+                    className="text-lg font-mono text-brand"
+                  />
+                </Field>
+                <label className="flex items-center gap-2 text-sm mt-8">
+                  <Input
+                    type="checkbox"
+                    {...register("hasFlights")}
+                    className="rounded text-brand focus:ring-brand"
+                  />
+                  Incluir Voos no Pacote Base
+                </label>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Includes */}
+                  <div className="space-y-3">
+                    <Field label="O que está incluso" error={errors.includes?.message}>
+                      <div className="flex gap-2">
+                        <Input
+                          value={newInclude}
+                          onChange={(e) => setNewInclude(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              if (newInclude.trim()) {
+                                setValue("includes", [...watchIncludes, newInclude.trim()], {
+                                  shouldValidate: true,
+                                });
+                                setNewInclude("");
+                              }
+                            }
+                          }}
+                          placeholder="Ex: Café da manhã"
+                        />
+                        <Button
+                          variant="ghost"
+                          type="button"
+                          onClick={() => {
+                            if (newInclude.trim()) {
+                              setValue("includes", [...watchIncludes, newInclude.trim()], {
+                                shouldValidate: true,
+                              });
+                              setNewInclude("");
+                            }
+                          }}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </Field>
+                    <div className="flex flex-col gap-1.5">
+                      {watchIncludes.map((inc, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between bg-success/10 text-success text-xs py-1.5 px-3 rounded-full border border-success/20"
+                        >
+                          <span className="flex items-center gap-1.5">
+                            <Check className="h-3 w-3" /> {inc}
+                          </span>
+                          <Button
+                            type="button"
+                            onClick={() =>
+                              setValue(
+                                "includes",
+                                watchIncludes.filter((_, idx) => idx !== i),
+                                { shouldValidate: true },
+                              )
+                            }
+                            className="hover:text-danger"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                      {watchIncludes.length === 0 && (
+                        <div className="text-xs text-muted-foreground italic">
+                          Nenhum item adicionado.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Excludes */}
+                  <div className="space-y-3">
+                    <Field label="O que NÃO está incluso" error={errors.excludes?.message}>
+                      <div className="flex gap-2">
+                        <Input
+                          value={newExclude}
+                          onChange={(e) => setNewExclude(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              if (newExclude.trim()) {
+                                setValue("excludes", [...watchExcludes, newExclude.trim()], {
+                                  shouldValidate: true,
+                                });
+                                setNewExclude("");
+                              }
+                            }
+                          }}
+                          placeholder="Ex: Taxa de turismo"
+                        />
+                        <Button
+                          variant="ghost"
+                          type="button"
+                          onClick={() => {
+                            if (newExclude.trim()) {
+                              setValue("excludes", [...watchExcludes, newExclude.trim()], {
+                                shouldValidate: true,
+                              });
+                              setNewExclude("");
+                            }
+                          }}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </Field>
+                    <div className="flex flex-col gap-1.5">
+                      {watchExcludes.map((exc, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between bg-danger/10 text-danger text-xs py-1.5 px-3 rounded-full border border-danger/20"
+                        >
+                          <span className="flex items-center gap-1.5">
+                            <X className="h-3 w-3" /> {exc}
+                          </span>
+                          <Button
+                            type="button"
+                            onClick={() =>
+                              setValue(
+                                "excludes",
+                                watchExcludes.filter((_, idx) => idx !== i),
+                                { shouldValidate: true },
+                              )
+                            }
+                            className="hover:text-danger/70"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                      {watchExcludes.length === 0 && (
+                        <div className="text-xs text-muted-foreground italic">
+                          Nenhum item adicionado.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 5: ITINERARY (originally Step 3) */}
+            {step === 5 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <Field label="Imagem de Capa (Banner)" error={errors.coverUrl?.message}>
+                  {watchCoverUrl ? (
+                    <div className="relative w-full h-40 rounded-[var(--radius-card)] border border-border overflow-hidden group">
+                      <img src={watchCoverUrl} alt="Cover" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Button
+                          type="button"
+                          onClick={() => setValue("coverUrl", "", { shouldValidate: true })}
+                          className="text-danger flex items-center gap-2 text-sm font-bold bg-surface px-4 py-2 rounded-2xl border border-danger/30 hover:bg-danger hover:text-white transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" /> Remover Imagem
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={uploading}
+                        className="hidden"
+                        id="cover-upload"
+                      />
+                      <label
+                        htmlFor="cover-upload"
+                        className="flex flex-col items-center justify-center w-full h-40 rounded-[var(--radius-card)] border-2 border-dashed border-border/60 bg-surface hover:border-brand/50 hover:bg-surface-alt/50 cursor-pointer transition-colors"
+                      >
+                        {uploading ? (
+                          <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand border-t-transparent mb-2" />
+                        ) : (
+                          <Upload className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                        )}
+                        <span className="text-sm font-semibold text-muted-foreground">
+                          {uploading ? "Enviando..." : "Clique para fazer upload da capa"}
+                        </span>
+                        <span className="ds-meta text-muted-foreground mt-1 uppercase tracking-widest">
+                          Recomendado: 1200x800px
+                        </span>
+                      </label>
+                    </div>
+                  )}
+                </Field>
+
+                <div className="border-t border-border pt-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-semibold text-sm">Itinerário Dia-a-Dia</h4>
+                    <Button
+                      variant="ghost"
+                      type="button"
+                      onClick={() =>
+                        setValue(
+                          "itinerary",
+                          [
+                            ...watchItinerary,
+                            { day_number: watchItinerary.length + 1, title: "", description: "" },
+                          ],
+                          { shouldValidate: true },
+                        )
+                      }
+                      className="h-8 text-xs gap-1.5 border border-border"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Adicionar Dia
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {watchItinerary.map((day, idx) => (
+                      <div
+                        key={idx}
+                        className="flex gap-4 p-4 rounded-[var(--radius-card)] border border-border/60 bg-surface-alt/20"
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand/10 text-brand font-bold text-xs">
+                            {idx + 1}
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={() =>
+                              setValue(
+                                "itinerary",
+                                watchItinerary
+                                  .filter((_, i) => i !== idx)
+                                  .map((d, i) => ({ ...d, day_number: i + 1 })),
+                                { shouldValidate: true },
+                              )
+                            }
+                            className="text-muted-foreground/50 hover:text-danger mt-auto pb-1"
+                            title="Remover dia"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="flex-1 space-y-3">
+                          <Input
+                            placeholder={`Título do Dia ${idx + 1} (ex: Chegada em Gramado)`}
+                            value={day.title}
+                            onChange={(e) =>
+                              setValue(
+                                "itinerary",
+                                watchItinerary.map((d, i) =>
+                                  i === idx ? { ...d, title: e.target.value } : d,
+                                ),
+                                { shouldValidate: true },
+                              )
+                            }
+                            className="font-semibold"
+                          />
+                          <Textarea
+                            placeholder="Descrição rica das atividades do dia..."
+                            rows={3}
+                            value={day.description}
+                            onChange={(e) =>
+                              setValue(
+                                "itinerary",
+                                watchItinerary.map((d, i) =>
+                                  i === idx ? { ...d, description: e.target.value } : d,
+                                ),
+                                { shouldValidate: true },
+                              )
+                            }
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    {watchItinerary.length === 0 && (
+                      <div className="text-center py-6 border border-dashed border-border/50 rounded-[var(--radius-card)] text-xs text-muted-foreground">
+                        Nenhum dia adicionado ao itinerário.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 6: REVIEW & PUBLISH (originally Step 4) */}
+            {step === 6 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="rounded-[var(--radius-card)] border border-border bg-surface-alt/20 p-6 flex flex-col sm:flex-row gap-6">
+                  {watchCoverUrl ? (
+                    <img
+                      src={watchCoverUrl}
+                      alt="Cover"
+                      className="w-full h-40 sm:w-32 sm:h-32 rounded-2xl object-cover shrink-0"
+                    />
+                  ) : (
+                    <div className="w-full h-40 sm:w-32 sm:h-32 rounded-2xl bg-surface flex items-center justify-center border border-dashed border-border shrink-0">
+                      <Map className="h-8 w-8 text-muted-foreground/30" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-foreground">
+                      {watchTitle || "Sem título"}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {watchDestination || "Destino não informado"}
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-y-2 text-xs">
+                      <div className="flex flex-col col-span-2">
+                        <span className="text-muted-foreground">Hospedagem:</span>
+                        <strong>
+                          {watchHotelName ? (
+                            <span className="flex items-center gap-1">
+                              {watchHotelName} ({watchHotelStars}{" "}
+                              <Star className="h-3 w-3 fill-amber-400 text-amber-400 inline" />)
+                            </span>
+                          ) : (
+                            "Sem hospedagem cadastrada"
+                          )}
+                        </strong>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-muted-foreground">Preço Base:</span>
+                        <strong className="text-brand font-mono text-sm">
+                          R$ {watchPrice.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </strong>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-muted-foreground">Vagas:</span>
+                        <strong>{watchSeats} pessoas</strong>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-muted-foreground">Saída:</span>
+                        <strong>
+                          {watchDeparture
+                            ? new Date(watchDeparture + "T00:00:00").toLocaleDateString("pt-BR")
+                            : "A definir"}
+                        </strong>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-muted-foreground">Retorno:</span>
+                        <strong>
+                          {watchRet
+                            ? new Date(watchRet + "T00:00:00").toLocaleDateString("pt-BR")
+                            : "A definir"}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {watchPricingTiers && watchPricingTiers.length > 0 && (
+                  <div className="space-y-2 rounded-[var(--radius-card)] border border-border bg-surface p-5">
+                    <h4 className="ds-label-caps text-muted-foreground mb-2 flex items-center gap-1.5">
+                      <BedDouble className="h-4 w-4" /> Tarifas de Acomodação (
+                      {watchPricingTiers.length})
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      {watchPricingTiers.map((t, idx) => (
+                        <div
+                          key={idx}
+                          className="bg-surface-alt/40 p-2.5 rounded-2xl flex justify-between items-center"
+                        >
+                          <span>{t.name}</span>
+                          <strong className="font-mono text-brand">
+                            {formatCurrency(t.price)}
+                          </strong>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {watchExtraOptions && watchExtraOptions.length > 0 && (
+                  <div className="space-y-2 rounded-[var(--radius-card)] border border-border bg-surface p-5">
+                    <h4 className="ds-label-caps text-muted-foreground mb-2 flex items-center gap-1.5">
+                      <Layers className="h-4 w-4" /> Opcionais Cadastrados (
+                      {watchExtraOptions.length})
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      {watchExtraOptions.map((e, idx) => (
+                        <div
+                          key={idx}
+                          className="bg-surface-alt/40 p-2.5 rounded-2xl flex justify-between items-center"
+                        >
+                          <span>{e.name}</span>
+                          <strong className="font-mono text-success">
+                            +{formatCurrency(e.price)}
+                          </strong>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-4 rounded-[var(--radius-card)] border border-border bg-surface p-5">
+                  <h4 className="ds-label-caps text-muted-foreground">Opções de Publicação</h4>
+
+                  <div className="flex items-center gap-3">
+                    <Input type="checkbox" id="isPublic" {...register("isPublic")} />
+                    <label
+                      htmlFor="isPublic"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Publicar no Portal B2C
+                    </label>
+                  </div>
+                  <p className="text-xs text-muted-foreground pl-7">
+                    Se marcado, esta excursão ficará visível publicamente no site da agência para
+                    clientes comprarem online.
+                  </p>
+
+                  <div className="pt-2">
+                    <Field label="Status Operacional" error={errors.status?.message}>
+                      <Select {...register("status")} className="max-w-xs">
+                        <option value="draft">Rascunho (Não iniciada)</option>
+                        <option value="open">Abertas inscrições</option>
+                        <option value="confirmed">Confirmada / Lotada</option>
+                      </Select>
+                    </Field>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="flex items-center justify-between border-t border-border bg-surface-alt/30 px-6 py-4 shrink-0">
+          <Button
+            variant="ghost"
+            type="button"
+            onClick={handleBack}
+            disabled={step === 0}
+            className="gap-2 w-28"
+          >
+            <ChevronLeft className="h-4 w-4" /> Voltar
+          </Button>
+
+          <div className="flex gap-3">
+            <Button variant="ghost" type="button" onClick={onClose} disabled={submitting}>
+              Cancelar
+            </Button>
+            {step < STEPS.length - 1 ? (
+              <Button variant="default" type="button" onClick={handleNext} className="gap-2 w-32">
+                Próximo <ChevronRight className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                variant="default"
+                type="submit"
+                disabled={submitting}
+                className="w-40 font-bold tracking-wider"
+              >
+                {submitting ? "SALVANDO..." : "CRIAR EXCURSÃO"}
+              </Button>
+            )}
+          </div>
+        </div>
+      </form>
+    </SheetPage>
+  );
+}
