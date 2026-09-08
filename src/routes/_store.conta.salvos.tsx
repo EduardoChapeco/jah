@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bookmark, Tag, ShoppingBag, Calendar, MessageSquare, Trash2, ExternalLink, Loader2, MapPin, Clock, Layers } from 'lucide-react';
+import { Bookmark, Tag, ShoppingBag, Calendar, MessageSquare, Trash2, ExternalLink, Loader2, MapPin, Clock, Layers, Scissors } from 'lucide-react';
 import { toast } from "sonner";
 
 import { listUserFavorites, toggleFavorite } from "@/services/favorites.functions";
@@ -16,10 +16,10 @@ export const Route = createFileRoute("/_store/conta/salvos")({
 });
 
 const TYPE_TABS = [
- { id: "all", label: "Todos os Salvos", icon: Layers },
- { id: "classified", label: "Classificados", icon: Tag },
- { id: "product", label: "Produtos", icon: ShoppingBag },
- { id: "event", label: "Eventos", icon: Calendar },
+  { id: "all", label: "Todos os Salvos", icon: Layers },
+  { id: "product", label: "Produtos & Serviços", icon: ShoppingBag },
+  { id: "classified", label: "Classificados", icon: Tag },
+  { id: "event", label: "Eventos", icon: Calendar },
 ] as const;
 
 function SavedItemsPage() {
@@ -59,31 +59,21 @@ function SavedItemsPage() {
 
  return (
  <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
- {/* ── 1. Top Header Unificado ── */}
- <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5 pt-2">
- <div className="space-y-1">
- <div className="flex items-center gap-2">
- <Link
- to="/conta"
- className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
- >
- Minha Conta
- </Link>
- <span className="text-xs text-muted-foreground">/</span>
- <Badge variant="outline" className="text-[10px] font-mono uppercase font-bold tracking-wider">
+ {/* ── 1. Clean Minimalist Header ── */}
+ <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+ <div className="flex items-center gap-3">
+ <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
  Salvos
- </Badge>
- </div>
- <h1 className="text-2xl font-bold tracking-tight text-foreground">
- Itens Salvos & Favoritos
  </h1>
- <p className="text-xs text-muted-foreground">
- Acompanhe produtos, anúncios de classificados e eventos que você marcou para rever depois.
- </p>
+ {favorites && favorites.length > 0 && (
+ <Badge variant="secondary" className="text-xs font-mono font-bold px-2 py-0.5 rounded-full">
+ {favorites.length}
+ </Badge>
+ )}
  </div>
 
- <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-9 px-4 cursor-pointer self-start sm:self-auto">
- <Link to="/mercado">Explorar Mercado</Link>
+ <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-8 px-3.5 cursor-pointer">
+ <Link to="/mercado">Explorar Vitrines</Link>
  </Button>
  </div>
 
@@ -188,69 +178,94 @@ function SavedItemsPage() {
  );
  }
 
- if (fav.entity_type === "product") {
- const cover = item.images && item.images.length > 0 ? item.images[0] : null;
+  if (fav.entity_type === "product") {
+    const isService = item.is_service === true;
+    const cover = item.images && item.images.length > 0 ? item.images[0] : null;
 
- return (
- <div
- key={fav.id}
- className=" bg-card rounded-2xl overflow-hidden hover: transition-shadow flex flex-col justify-between"
- >
- <div>
- <div className="relative aspect-video bg-muted overflow-hidden">
- {cover ? (
- <img src={cover} alt={item.name} className="w-full h-full object-cover" />
- ) : (
- <div className="w-full h-full flex items-center justify-center text-muted-foreground/60">
- <ShoppingBag className="size-8 stroke-[1.5]" />
- </div>
- )}
- <Badge
- variant="secondary"
- className="absolute top-2.5 left-2.5 text-[10px] uppercase font-bold"
- >
- Produto
- </Badge>
- </div>
+    return (
+      <div
+        key={fav.id}
+        className="bg-card rounded-2xl overflow-hidden hover:shadow-xs transition-shadow flex flex-col justify-between border border-border/60"
+      >
+        <div>
+          <div className="relative aspect-video bg-muted overflow-hidden">
+            {cover ? (
+              <img src={cover} alt={item.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground/60">
+                {isService ? (
+                  <Scissors className="size-8 stroke-[1.5]" />
+                ) : (
+                  <ShoppingBag className="size-8 stroke-[1.5]" />
+                )}
+              </div>
+            )}
+            <Badge
+              variant={isService ? "default" : "secondary"}
+              className="absolute top-2.5 left-2.5 text-[10px] uppercase font-bold"
+            >
+              {isService ? "Serviço" : "Produto"}
+            </Badge>
+          </div>
 
- <div className="p-4 space-y-2">
- <h3 className="text-sm font-bold text-foreground line-clamp-1">
- {item.name}
- </h3>
- <div className="pt-2 flex items-baseline justify-between ">
- <span className="text-base font-black text-primary font-mono">
- {formatMoney(item.price_cents)}
- </span>
- </div>
- </div>
- </div>
+          <div className="p-4 space-y-2">
+            <h3 className="text-sm font-bold text-foreground line-clamp-1">
+              {item.name}
+            </h3>
+            {isService && item.duration_minutes && (
+              <p className="text-[11px] text-muted-foreground flex items-center gap-1 font-medium">
+                <Clock className="size-3 text-primary" />
+                {item.duration_minutes} min
+              </p>
+            )}
+            <div className="pt-2 flex items-baseline justify-between">
+              <span className="text-base font-black text-primary font-mono">
+                {formatMoney(item.price_cents)}
+              </span>
+            </div>
+          </div>
+        </div>
 
- <div className="p-3 bg-muted/20 flex items-center justify-between gap-2">
- <Button
- asChild
- size="sm"
- variant="outline"
- className="rounded-xl text-xs h-8 flex-1"
- >
- <Link to="/produto/$slug" params={{ slug: item.slug }}>
- <ExternalLink className="size-3 mr-1.5" />
- <span>Ver Produto</span>
- </Link>
- </Button>
+        <div className="p-3 bg-muted/20 flex items-center justify-between gap-2 border-t border-border/40">
+          {isService ? (
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              className="rounded-xl text-xs h-8 flex-1 font-semibold"
+            >
+              <Link to="/agendar/$id" params={{ id: item.id }}>
+                <ExternalLink className="size-3 mr-1.5" />
+                <span>Agendar Horário</span>
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              className="rounded-xl text-xs h-8 flex-1 font-semibold"
+            >
+              <Link to="/produto/$slug" params={{ slug: item.slug || item.id }}>
+                <ExternalLink className="size-3 mr-1.5" />
+                <span>Ver Produto</span>
+              </Link>
+            </Button>
+          )}
 
- <Button
- size="sm"
- variant="ghost"
- onClick={() => handleRemove(fav.entity_type, fav.entity_id)}
- className="rounded-xl text-xs h-8 px-2.5 text-destructive hover:bg-destructive/10"
- title="Remover dos salvos"
- >
- <Trash2 className="size-3.5" />
- </Button>
- </div>
- </div>
- );
- }
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => handleRemove(fav.entity_type, fav.entity_id)}
+            className="rounded-xl text-xs h-8 px-2.5 text-destructive hover:bg-destructive/10 cursor-pointer"
+            title="Remover dos salvos"
+          >
+            <Trash2 className="size-3.5" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
  if (fav.entity_type === "event") {
  return (

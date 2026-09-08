@@ -115,26 +115,28 @@ function CustomerAgendaPage() {
 
  return (
  <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
- {/* ── 1. Top Header Unificado ── */}
- <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5 pt-2">
- <div className="space-y-1">
- <h1 className="text-2xl font-bold tracking-tight text-foreground">
- Agendamentos
- </h1>
- <p className="text-xs text-muted-foreground">
- Consulte horários marcados, profissionais de beleza, consultas e serviços agendados.
- </p>
- </div>
+   {/* ── 1. Clean Minimalist Header ── */}
+   <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+     <div className="flex items-center gap-3">
+       <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+         Agendamentos
+       </h1>
+       {apptList.length > 0 && (
+         <Badge variant="secondary" className="text-xs font-mono font-bold px-2 py-0.5 rounded-full">
+           {apptList.length}
+         </Badge>
+       )}
+     </div>
 
- <Button
- asChild
- size="sm"
- variant="outline"
- className="rounded-xl text-xs font-semibold h-9 px-4 cursor-pointer self-start sm:self-auto"
- >
- <Link to="/agendar">Novo Agendamento</Link>
- </Button>
- </div>
+     <Button
+       asChild
+       size="sm"
+       variant="outline"
+       className="rounded-xl text-xs font-semibold h-8 px-3.5 cursor-pointer"
+     >
+       <Link to="/agendar">Novo Agendamento</Link>
+     </Button>
+   </div>
 
  {/* ── 2. Minimalist Tab Controls (Apple iOS Segments) ── */}
  <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-2xl w-fit border border-border/40">

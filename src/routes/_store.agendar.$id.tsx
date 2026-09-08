@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatMoney } from "@/lib/money";
@@ -28,6 +28,17 @@ import {
   CaretRight,
   CircleNotch,
   Ticket,
+  CreditCard,
+  QrCode,
+  Money,
+  MapPin,
+  WhatsappLogo,
+  Star,
+  Check,
+  ArrowRight,
+  ChatCircleDots,
+  ArrowSquareOut,
+  SlidersHorizontal,
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import {
@@ -177,6 +188,12 @@ function ServiceDetailPage() {
 
   const categoryLabel = CATEGORY_LABELS[service.category] || service.category || "Geral";
   const store = service.stores;
+  const storeSettings = (store?.settings as any) || {};
+  const storeCity = storeSettings.address?.city || storeSettings.address_city || "São Miguel do Oeste, SC";
+  const storeAddress = storeSettings.address?.street
+    ? `${storeSettings.address.street}, ${storeSettings.address.number || "s/n"} - ${storeSettings.address.neighborhood || ""}`
+    : "Atendimento no estabelecimento parceiro";
+  const storePhone = storeSettings.phone || storeSettings.whatsapp || "";
 
   // Próximos 7 dias para seleção rápida
   const nextDays = Array.from({ length: 7 }, (_, i) => {
@@ -188,8 +205,15 @@ function ServiceDetailPage() {
     return { iso, weekday, dayNum, isToday: i === 0 };
   });
 
+  const targetGenderLabel =
+    service.gender_target === "male"
+      ? "Público Masculino"
+      : service.gender_target === "female"
+      ? "Público Feminino"
+      : "Unissex (Todos os Públicos)";
+
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-6 md:px-6 md:py-8 space-y-6 pb-28 lg:pb-12">
+    <div className="w-full max-w-6xl mx-auto px-1 sm:px-2 py-1 sm:py-3 space-y-6 pb-28 lg:pb-12">
       {/* ── Breadcrumb / Voltar ── */}
       <div className="flex items-center justify-between">
         <Link
@@ -212,10 +236,12 @@ function ServiceDetailPage() {
 
       {/* ── Layout Split BigTech (2 Colunas no Desktop) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Coluna Principal: Galeria + Detalhes (col-span-7 ou col-span-8) */}
-        <div className="lg:col-span-7 space-y-6">
+        {/* ======================================================== */}
+        {/* COLUNA PRINCIPAL: Mídia, Título, Detalhes, Especificações (7 Colunas) */}
+        {/* ======================================================== */}
+        <div className="lg:col-span-7 space-y-7">
           {/* Banner / Foto Imersiva */}
-          <div className="aspect-[16/10] sm:aspect-[16/9] w-full rounded-2xl overflow-hidden bg-muted relative shadow-sm border border-border/40">
+          <div className="aspect-[16/10] sm:aspect-[16/9] w-full rounded-3xl overflow-hidden bg-muted relative shadow-xs border border-border/60">
             {service.image_url ? (
               <img
                 src={service.image_url}
@@ -227,65 +253,127 @@ function ServiceDetailPage() {
                 <Storefront size={48} />
               </div>
             )}
-            <div className="absolute top-3 left-3 flex items-center gap-2">
-              <Badge className="bg-background/90 text-foreground backdrop-blur-md text-xs font-bold px-3 py-1 rounded-xl shadow-sm border border-border/50">
+            <div className="absolute top-4 left-4 flex flex-wrap items-center gap-2">
+              <Badge className="bg-background/95 text-foreground backdrop-blur-md text-xs font-bold px-3 py-1 rounded-xl shadow-xs border border-border/60">
                 {categoryLabel}
               </Badge>
               {service.duration_minutes && (
-                <Badge variant="secondary" className="backdrop-blur-md text-xs font-mono font-bold px-2.5 py-1 rounded-xl flex items-center gap-1">
+                <Badge variant="secondary" className="backdrop-blur-md text-xs font-mono font-bold px-2.5 py-1 rounded-xl flex items-center gap-1.5 shadow-xs">
                   <Clock size={13} weight="bold" />
                   <span>{service.duration_minutes} min</span>
                 </Badge>
               )}
             </div>
+            <div className="absolute top-4 right-4">
+              <Badge className="bg-emerald-500/90 text-white backdrop-blur-md text-[11px] font-bold px-3 py-1 rounded-xl shadow-xs flex items-center gap-1">
+                <Sparkle size={12} weight="fill" />
+                <span>Vagas Hoje</span>
+              </Badge>
+            </div>
           </div>
 
-          {/* Cabeçalho do Serviço */}
-          <div className="space-y-3">
-            <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight leading-snug">
+          {/* Badges Rápidos de Garantia */}
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-muted/40 border border-border/40 text-[11px] font-semibold text-muted-foreground">
+              <ShieldCheck size={14} weight="bold" className="text-emerald-500" />
+              Profissional Certificado
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-muted/40 border border-border/40 text-[11px] font-semibold text-muted-foreground">
+              <Sparkle size={14} weight="bold" className="text-amber-500" />
+              Biossegurança 100%
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-muted/40 border border-border/40 text-[11px] font-semibold text-muted-foreground">
+              <CalendarDots size={14} weight="bold" className="text-primary" />
+              Reagendamento Grátis
+            </span>
+          </div>
+
+          {/* Título Principal */}
+          <div className="space-y-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground tracking-tight leading-snug">
               {service.title}
             </h1>
-
-            {/* Estabelecimento Parceiro */}
-            {store && (
-              <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-card border border-border/60">
-                <div className="size-11 rounded-xl bg-muted overflow-hidden shrink-0 border border-border/40">
-                  {store.avatar_url || store.logo_url ? (
-                    <img
-                      src={store.avatar_url || store.logo_url}
-                      alt={store.name}
-                      className="size-full object-cover"
-                    />
-                  ) : (
-                    <div className="size-full flex items-center justify-center text-muted-foreground font-bold">
-                      {store.name.charAt(0)}
-                    </div>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-bold text-foreground truncate">{store.name}</span>
-                    <ShieldCheck size={16} weight="fill" className="text-emerald-500 shrink-0" />
-                  </div>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {store.settings?.address?.city || store.settings?.address_city || "Atendimento no estabelecimento"}
-                  </p>
-                </div>
-                <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold shrink-0">
-                  <Link to="/loja/$slug" params={{ slug: store.slug || store.id }}>
-                    Ver Loja
-                  </Link>
-                </Button>
-              </div>
-            )}
           </div>
 
-          {/* Descrição Completa */}
+          {/* ── DETALHES E ESPECIFICAÇÕES LOGO APÓS O TÍTULO (Exigência do Usuário) ── */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <SlidersHorizontal size={14} weight="bold" />
+                <span>Especificações do Procedimento</span>
+              </h2>
+              <span className="text-[11px] text-muted-foreground font-mono">Atendimento Individual</span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              <div className="p-3.5 rounded-2xl bg-card border border-border/60 flex flex-col justify-between gap-1">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Clock size={16} className="text-primary" />
+                  <span className="text-[11px] font-semibold">Duração da Sessão</span>
+                </div>
+                <span className="text-xs font-bold text-foreground mt-0.5">
+                  {service.duration_minutes || 60} minutos dedicados
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-card border border-border/60 flex flex-col justify-between gap-1">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <User size={16} className="text-primary" />
+                  <span className="text-[11px] font-semibold">Público Alvo</span>
+                </div>
+                <span className="text-xs font-bold text-foreground mt-0.5">
+                  {targetGenderLabel}
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-card border border-border/60 flex flex-col justify-between gap-1">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MapPin size={16} className="text-primary" />
+                  <span className="text-[11px] font-semibold">Modalidade</span>
+                </div>
+                <span className="text-xs font-bold text-foreground mt-0.5">
+                  No Estabelecimento
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-card border border-border/60 flex flex-col justify-between gap-1">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <ShieldCheck size={16} className="text-emerald-500" />
+                  <span className="text-[11px] font-semibold">Biossegurança</span>
+                </div>
+                <span className="text-xs font-bold text-foreground mt-0.5">
+                  Materiais Esterilizados
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-card border border-border/60 flex flex-col justify-between gap-1">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <CreditCard size={16} className="text-primary" />
+                  <span className="text-[11px] font-semibold">Pagamento</span>
+                </div>
+                <span className="text-xs font-bold text-foreground mt-0.5">
+                  Pix, Cartão ou no Local
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-card border border-border/60 flex flex-col justify-between gap-1">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <CalendarDots size={16} className="text-primary" />
+                  <span className="text-[11px] font-semibold">Flexibilidade</span>
+                </div>
+                <span className="text-xs font-bold text-foreground mt-0.5">
+                  Reagendamento sem Taxa
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Descrição Completa e Benefícios ── */}
           {service.description && (
-            <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-2">
+            <div className="p-6 rounded-3xl bg-card border border-border/60 space-y-3 shadow-xs">
               <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <Sparkle size={16} className="text-primary" />
-                <span>Sobre este serviço</span>
+                <Sparkle size={18} className="text-primary" weight="fill" />
+                <span>Sobre este Atendimento</span>
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
                 {service.description}
@@ -293,12 +381,85 @@ function ServiceDetailPage() {
             </div>
           )}
 
-          {/* Pacotes de Sessões Disponíveis */}
+          {/* ── O que está incluso nesta sessão (Checklist) ── */}
+          <div className="p-6 rounded-3xl bg-card border border-border/60 space-y-4 shadow-xs">
+            <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <CheckCircle size={18} weight="fill" className="text-emerald-500" />
+              <span>O que está incluso no seu atendimento</span>
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-foreground/90">
+              <div className="flex items-start gap-2.5">
+                <Check size={16} weight="bold" className="text-emerald-500 shrink-0 mt-0.5" />
+                <span>Avaliação prévia e diagnóstico personalizado de necessidades</span>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <Check size={16} weight="bold" className="text-emerald-500 shrink-0 mt-0.5" />
+                <span>Procedimento completo realizado por profissional capacitado</span>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <Check size={16} weight="bold" className="text-emerald-500 shrink-0 mt-0.5" />
+                <span>Utilização de cosméticos e insumos homologados de linha profissional</span>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <Check size={16} weight="bold" className="text-emerald-500 shrink-0 mt-0.5" />
+                <span>Higienização prévia e protocolo rigoroso de assepsia</span>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <Check size={16} weight="bold" className="text-emerald-500 shrink-0 mt-0.5" />
+                <span>Finalização técnica com produto hidratante ou finalizador</span>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <Check size={16} weight="bold" className="text-emerald-500 shrink-0 mt-0.5" />
+                <span>Orientações de cuidados e manutenção pós-atendimento</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Etapas da Experiência (Passo a Passo) ── */}
+          <div className="p-6 rounded-3xl bg-card border border-border/60 space-y-4 shadow-xs">
+            <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <Clock size={18} className="text-primary" weight="bold" />
+              <span>Como funciona o seu agendamento</span>
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+              <div className="p-4 rounded-2xl bg-muted/20 border border-border/40 space-y-1.5">
+                <div className="size-7 rounded-xl bg-foreground text-background font-mono font-bold text-xs flex items-center justify-center">
+                  1
+                </div>
+                <h3 className="font-bold text-xs text-foreground">Escolha a Data & Hora</h3>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Consulte os horários disponíveis em tempo real e reserve sem burocracia.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-muted/20 border border-border/40 space-y-1.5">
+                <div className="size-7 rounded-xl bg-foreground text-background font-mono font-bold text-xs flex items-center justify-center">
+                  2
+                </div>
+                <h3 className="font-bold text-xs text-foreground">Confirmação Digital</h3>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Receba os dados no WhatsApp com lembretes inteligentes antes do horário.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-muted/20 border border-border/40 space-y-1.5">
+                <div className="size-7 rounded-xl bg-foreground text-background font-mono font-bold text-xs flex items-center justify-center">
+                  3
+                </div>
+                <h3 className="font-bold text-xs text-foreground">Atendimento Pontual</h3>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Chegue ao estabelecimento e seja atendido sem filas pelo profissional.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Pacotes de Sessões Disponíveis ── */}
           {service.packages && service.packages.length > 0 && (
-            <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-3">
+            <div className="p-6 rounded-3xl bg-card border border-border/60 space-y-4 shadow-xs">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <Ticket size={16} className="text-primary" />
+                  <Ticket size={18} className="text-primary" weight="bold" />
                   <span>Pacotes & Planos de Sessões com Desconto</span>
                 </h2>
                 <Badge variant="secondary" className="text-[10px] font-mono font-bold">
@@ -309,20 +470,28 @@ function ServiceDetailPage() {
                 {service.packages.map((pkg: any) => (
                   <div
                     key={pkg.id}
-                    className="p-3.5 rounded-xl border border-border/60 bg-muted/20 flex flex-col justify-between gap-2"
+                    className="p-4 rounded-2xl border border-border/60 bg-muted/10 flex flex-col justify-between gap-3 hover:border-primary/50 transition-colors"
                   >
                     <div>
-                      <h3 className="font-bold text-xs text-foreground">{pkg.title}</h3>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
-                        {pkg.credits_count} sessões inclusas ({pkg.validity_days} dias de validade)
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-bold text-xs text-foreground">{pkg.title}</h3>
+                        <Badge className="text-[10px] font-mono bg-primary/10 text-primary border-primary/20">
+                          {pkg.credits_count} sessões
+                        </Badge>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-1">
+                        Validade de {pkg.validity_days} dias para uso individual ou transferível.
                       </p>
                     </div>
                     <div className="flex items-center justify-between pt-2 border-t border-border/40">
-                      <span className="font-mono font-bold text-sm text-foreground">
-                        {formatMoney(pkg.price_cents)}
-                      </span>
-                      <Button size="sm" variant="outline" className="h-7 text-[10px] rounded-lg font-bold">
-                        Adquirir Pacote
+                      <div>
+                        <span className="text-[10px] text-muted-foreground block">Valor do Pacote</span>
+                        <span className="font-mono font-bold text-sm text-foreground">
+                          {formatMoney(pkg.price_cents)}
+                        </span>
+                      </div>
+                      <Button size="sm" variant="outline" className="h-8 text-xs rounded-xl font-bold">
+                        Adquirir
                       </Button>
                     </div>
                   </div>
@@ -330,37 +499,206 @@ function ServiceDetailPage() {
               </div>
             </div>
           )}
+
+          {/* ── Políticas da Casa & Regras de Atendimento ── */}
+          <div className="p-5 rounded-3xl bg-muted/20 border border-border/50 space-y-2 text-xs text-muted-foreground">
+            <h3 className="font-bold text-foreground flex items-center gap-1.5 text-xs">
+              <WarningCircle size={15} className="text-amber-500" />
+              <span>Políticas de Pontualidade & Cancelamento</span>
+            </h3>
+            <p className="leading-relaxed">
+              Tolerância de atraso de até 10 minutos para garantir o tempo de atendimento adequado. 
+              Cancelamentos ou reagendamentos podem ser realizados sem custos pelo app com até 2 horas de antecedência.
+            </p>
+          </div>
+
+          {/* ── Outros Serviços Relacionados (Cross-selling) ── */}
+          {service.relatedServices && service.relatedServices.length > 0 && (
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-bold text-foreground">Outros Serviços Recomendados</h2>
+                <Link to="/agendar" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+                  <span>Ver todos</span>
+                  <ArrowRight size={13} weight="bold" />
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {service.relatedServices.map((rel: any) => (
+                  <Link
+                    key={rel.id}
+                    to="/agendar/$id"
+                    params={{ id: rel.id }}
+                    className="p-3.5 rounded-2xl border border-border/60 bg-card hover:border-foreground/30 transition-all flex items-center gap-3.5 group"
+                  >
+                    <div className="size-14 rounded-xl bg-muted overflow-hidden shrink-0 border border-border/40">
+                      {rel.image_url ? (
+                        <img src={rel.image_url} alt={rel.title} className="size-full object-cover group-hover:scale-105 transition-transform" />
+                      ) : (
+                        <div className="size-full flex items-center justify-center text-muted-foreground">
+                          <Storefront size={20} />
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                        {rel.title}
+                      </h3>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {rel.duration_minutes || 60} min • {formatMoney(rel.price_cents)}
+                      </p>
+                    </div>
+                    <CaretRight size={14} className="text-muted-foreground group-hover:text-foreground shrink-0" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Coluna Lateral: Box de Agendamento Desktop (col-span-5) */}
-        <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
-          <div className="p-6 rounded-2xl bg-card border border-border/60 shadow-sm space-y-5">
+        {/* ======================================================== */}
+        {/* COLUNA LATERAL STICKY: Preços, Pagamento, Loja/Prestador (5 Colunas) */}
+        {/* ======================================================== */}
+        <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-5">
+          {/* ── CARD 1: Bloco Comercial (Preço, Pagamento, CTA) ── */}
+          <div className="p-6 rounded-3xl bg-card border border-border/60 shadow-xs space-y-5">
             <div>
-              <span className="text-xs font-semibold text-muted-foreground block">Preço do Serviço</span>
-              <div className="text-3xl font-black font-mono text-foreground mt-1">
+              <span className="text-xs font-semibold text-muted-foreground block">Valor do Atendimento</span>
+              <div className="text-3xl sm:text-4xl font-black font-mono text-foreground mt-1">
                 {formatMoney(service.price_cents)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
+              <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
                 <Clock size={14} className="text-primary" />
-                <span>Duração estimada de {service.duration_minutes || 60} minutos</span>
+                <span>{service.duration_minutes || 60} minutos de dedicação exclusiva</span>
               </p>
             </div>
 
+            {/* Formas de Pagamento Aceitas */}
+            <div className="pt-4 border-t border-border/50 space-y-2.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
+                Formas de Pagamento Aceitas
+              </span>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center gap-2 text-foreground/90">
+                  <QrCode size={16} className="text-emerald-600" />
+                  <span><strong>Pix Instantâneo</strong> (Aprovação imediata)</span>
+                </div>
+                <div className="flex items-center gap-2 text-foreground/90">
+                  <CreditCard size={16} className="text-primary" />
+                  <span><strong>Cartão de Crédito</strong> (em até 3x sem juros)</span>
+                </div>
+                <div className="flex items-center gap-2 text-foreground/90">
+                  <Money size={16} className="text-amber-600" />
+                  <span><strong>No Estabelecimento</strong> (Dinheiro ou Cartão)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Ação Primária de Agendamento */}
             <div className="pt-4 border-t border-border/50 space-y-3">
               <Button
                 size="lg"
                 onClick={handleStartBooking}
-                className="w-full h-12 rounded-xl text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm cursor-pointer"
+                className="w-full h-12 rounded-2xl text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm cursor-pointer"
               >
                 <CalendarDots size={18} weight="bold" className="mr-2" />
                 Agendar Horário Agora
               </Button>
 
-              <p className="text-[11px] text-center text-muted-foreground leading-relaxed">
-                Confirmação em tempo real com o estabelecimento. Sem cobranças antecipadas obrigatórias.
-              </p>
+              {storePhone && (
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="w-full h-10 rounded-xl text-xs font-bold border-border/60 hover:bg-muted"
+                >
+                  <a
+                    href={`https://wa.me/55${storePhone.replace(/\D/g, "")}?text=Olá,%20gostaria%20de%20tirar%20dúvidas%20sobre%20o%20serviço%20${encodeURIComponent(service.title)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <WhatsappLogo size={16} weight="bold" className="mr-1.5 text-emerald-500" />
+                    Tirar Dúvidas no WhatsApp
+                  </a>
+                </Button>
+              )}
+
+              <div className="pt-2 flex items-center justify-center gap-4 text-[11px] text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <ShieldCheck size={14} className="text-emerald-500" />
+                  Garantia Wider
+                </span>
+                <span>•</span>
+                <span className="flex items-center gap-1">
+                  <CheckCircle size={14} className="text-primary" />
+                  Sem taxas extras
+                </span>
+              </div>
             </div>
           </div>
+
+          {/* ── CARD 2: Informações da Loja / Prestador (EMBAIXO DE PREÇOS/PAGAMENTOS, conforme exigido) ── */}
+          {store && (
+            <div className="p-6 rounded-3xl bg-card border border-border/60 shadow-xs space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Prestador Responsável
+                </span>
+                <Badge variant="secondary" className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 border-emerald-500/20">
+                  Verificado
+                </Badge>
+              </div>
+
+              <div className="flex items-start gap-3.5">
+                <div className="size-13 rounded-2xl bg-muted overflow-hidden shrink-0 border border-border/50 shadow-2xs">
+                  {store.avatar_url || store.logo_url ? (
+                    <img
+                      src={store.avatar_url || store.logo_url}
+                      alt={store.name}
+                      className="size-full object-cover"
+                    />
+                  ) : (
+                    <div className="size-full flex items-center justify-center text-muted-foreground font-black text-lg">
+                      {store.name.charAt(0)}
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-sm font-black text-foreground truncate">{store.name}</h3>
+                    <ShieldCheck size={16} weight="fill" className="text-emerald-500 shrink-0" />
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate mt-0.5">
+                    {storeCity}
+                  </p>
+                  <div className="flex items-center gap-1 text-[11px] text-amber-500 font-bold mt-1">
+                    <Star size={13} weight="fill" />
+                    <span>4.9</span>
+                    <span className="text-muted-foreground font-normal">(120+ atendimentos)</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-border/40 space-y-2 text-xs text-muted-foreground">
+                <div className="flex items-start gap-2">
+                  <MapPin size={15} className="text-primary shrink-0 mt-0.5" />
+                  <span className="leading-snug text-foreground/90">{storeAddress}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock size={15} className="text-primary shrink-0" />
+                  <span>Segunda a Sábado • 08:00 às 19:00</span>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <Button asChild variant="outline" className="w-full h-10 rounded-xl text-xs font-bold border-border/60">
+                  <Link to="/loja/$slug" params={{ slug: store.slug || store.id }}>
+                    <Storefront size={15} className="mr-1.5" />
+                    Ver Perfil Completo da Loja
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

@@ -30,6 +30,8 @@ import {
   Package,
   Ticket,
   ArrowSquareOut,
+  Gear,
+  UserCircle,
 } from "@phosphor-icons/react";
 
 export interface ContextSidebarProps {
@@ -77,12 +79,14 @@ const UTILITY_ITEMS = [
 
 // ── 4. Painel Pessoal & Social (1 Palavra) ──
 const USER_NAV_ITEMS = [
- { to: "/conta/conversas", label: "Conversas", icon: ChatCircleDots, exact: true },
- { to: "/conta/salvos", label: "Salvos", icon: BookmarkSimple, exact: true },
- { to: "/conta/pedidos", label: "Pedidos", icon: Package, exact: true },
- { to: "/conta/ingressos", label: "Ingressos", icon: Ticket, exact: true },
- { to: "/conta/agendamentos", label: "Agendamentos", icon: Scissors, exact: true },
- { to: "/conta/perfil", label: "Perfil", icon: User, exact: true },
+  { to: "/conta", label: "Minha Conta", icon: UserCircle, exact: true },
+  { to: "/conta/conversas", label: "Conversas", icon: ChatCircleDots, exact: true },
+  { to: "/conta/salvos", label: "Salvos", icon: BookmarkSimple, exact: true },
+  { to: "/conta/pedidos", label: "Pedidos", icon: Package, exact: true },
+  { to: "/conta/ingressos", label: "Ingressos", icon: Ticket, exact: true },
+  { to: "/conta/agendamentos", label: "Agendamentos", icon: Scissors, exact: true },
+  { to: "/conta/perfil", label: "Perfil", icon: User, exact: true },
+  { to: "/conta/seguranca", label: "Configurações", icon: Gear, exact: true },
 ];
 
 export function ContextSidebar({ config, session }: ContextSidebarProps) {

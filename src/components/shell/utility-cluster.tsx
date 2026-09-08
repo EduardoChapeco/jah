@@ -229,13 +229,11 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
  {/* Ações da Conta Pessoal (1 Palavra / Rótulo Direto) */}
  <div className="space-y-0.5">
  <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-bold text-foreground px-3 py-2 hover:bg-muted/60">
- <Link to="/conta/perfil">
- Meu Perfil
- </Link>
+ <Link to="/conta">Minha Conta</Link>
  </DropdownMenuItem>
 
  <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
- <Link to="/conta/suporte">Atendimento</Link>
+ <Link to="/conta/perfil">Meu Perfil</Link>
  </DropdownMenuItem>
 
  <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
@@ -247,15 +245,23 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
  </DropdownMenuItem>
 
  <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
- <Link to="/conta/pedidos" search={{ tab: "ingressos" } as any}>Ingressos</Link>
+ <Link to="/conta/ingressos">Ingressos</Link>
  </DropdownMenuItem>
 
  <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
- <Link to="/conta/pacotes">Agendamentos</Link>
+ <Link to="/conta/agendamentos">Agendamentos</Link>
  </DropdownMenuItem>
 
  <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
  <Link to="/conta/classificados">Meus Desapegos</Link>
+ </DropdownMenuItem>
+
+ <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
+ <Link to="/conta/seguranca">Configurações</Link>
+ </DropdownMenuItem>
+
+ <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
+ <Link to="/conta/suporte">Ajuda & Suporte</Link>
  </DropdownMenuItem>
  </div>
 

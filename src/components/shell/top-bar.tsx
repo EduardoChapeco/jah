@@ -56,6 +56,13 @@ export interface TopBarProps {
 
 export function TopBar({ session, brandSettings }: TopBarProps) {
  const location = useLocation();
+ const isDetailPage =
+    (location.pathname.startsWith("/agendar/") && location.pathname !== "/agendar") ||
+    (location.pathname.startsWith("/classificados/") && !location.pathname.includes("/novo")) ||
+    location.pathname.startsWith("/produto/") ||
+    location.pathname.startsWith("/evento/") ||
+    (location.pathname.startsWith("/hospedagem/") && location.pathname !== "/hospedagem") ||
+    (location.pathname.startsWith("/turismo/") && location.pathname !== "/turismo");
 
  return (
  <header className="sticky top-0 z-30 w-full bg-background/95 backdrop-blur-md select-none border-b border-border/40">
@@ -121,34 +128,36 @@ export function TopBar({ session, brandSettings }: TopBarProps) {
  </div>
  </div>
 
-      {/* ── Camada 2: Chips de Navegação Rápida (Mobile/Tablet) ── */}
-      <div className="lg:hidden flex items-center gap-1.5 px-3 py-1.5 overflow-x-auto no-scrollbar bg-background/80 backdrop-blur-sm border-t border-border/30">
-        {MOBILE_QUICK_CHIPS.map((chip) => {
-          const isSelected =
-            chip.to === "/"
-              ? location.pathname === "/"
-              : (location.pathname || "").startsWith(chip.to.split("?")[0]) &&
-                (chip.to.includes("?")
-                  ? (location.searchStr || "").includes(chip.to.split("?")[1])
-                  : true);
-          const Icon = chip.icon;
+      {/* ── Camada 2: Chips de Navegação Rápida (Mobile/Tablet) — Oculto em Telas de Detalhes ── */}
+      {!isDetailPage && (
+        <div className="lg:hidden flex items-center gap-1.5 px-3 py-1.5 overflow-x-auto no-scrollbar bg-background/80 backdrop-blur-sm border-t border-border/30">
+          {MOBILE_QUICK_CHIPS.map((chip) => {
+            const isSelected =
+              chip.to === "/"
+                ? location.pathname === "/"
+                : (location.pathname || "").startsWith(chip.to.split("?")[0]) &&
+                  (chip.to.includes("?")
+                    ? (location.searchStr || "").includes(chip.to.split("?")[1])
+                    : true);
+            const Icon = chip.icon;
 
-          return (
-            <Link
-              key={chip.label}
-              to={chip.to as any}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold font-sans shrink-0 transition-all ${
-                isSelected
-                  ? "bg-foreground text-background shadow-xs"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/70 bg-muted/30"
-              }`}
-            >
-              <Icon size={14} weight={isSelected ? "fill" : "bold"} />
-              <span className="whitespace-nowrap">{chip.label}</span>
-            </Link>
-          );
-        })}
-      </div>
+            return (
+              <Link
+                key={chip.label}
+                to={chip.to as any}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold font-sans shrink-0 transition-all ${
+                  isSelected
+                    ? "bg-foreground text-background shadow-xs"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/70 bg-muted/30"
+                }`}
+              >
+                <Icon size={14} weight={isSelected ? "fill" : "bold"} />
+                <span className="whitespace-nowrap">{chip.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
  </header>
  );
 }

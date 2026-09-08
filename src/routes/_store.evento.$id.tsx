@@ -87,7 +87,7 @@ function EventDetailPage() {
  const activeLots = lots.filter((l: any) => l.status === "active");
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-6 md:px-6 md:py-8 space-y-6 pb-28 lg:pb-12">
+    <div className="w-full max-w-6xl mx-auto px-1 sm:px-2 py-1 sm:py-3 space-y-6 pb-28 lg:pb-12">
       {/* ── Breadcrumb / Voltar ── */}
       <div className="flex items-center justify-between">
         <Link

@@ -285,6 +285,15 @@ export const getBookingServiceById = createServerFn({ method: "GET" })
         .eq("status", "active")
         .order("price_cents");
 
+      // Buscar outros serviços relacionados da mesma categoria ou loja
+      const { data: related } = await db
+        .from("booking_services")
+        .select("id, title, price_cents, duration_minutes, image_url, category, stores(id, name, slug)")
+        .eq("status", "active")
+        .neq("id", id)
+        .order("title")
+        .limit(4);
+
       return {
         ...service,
         stores: service.stores ? {
@@ -293,6 +302,7 @@ export const getBookingServiceById = createServerFn({ method: "GET" })
           logo_url: storeLogo,
         } : null,
         packages: packages || [],
+        relatedServices: related || [],
       };
     } catch (err: unknown) {
       console.error("[booking.functions] getBookingServiceById error:", err);

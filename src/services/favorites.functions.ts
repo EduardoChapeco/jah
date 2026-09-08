@@ -152,19 +152,42 @@ export const listUserFavorites = createServerFn({ method: "GET" })
  });
  }
 
- // Enriquece itens de produtos
+ // Enriquece itens de produtos e serviços
  const productIds = favorites.filter((f) => f.entity_type === "product").map((f) => f.entity_id);
 
  let productMap: Record<string, any> = {};
  if (productIds.length > 0) {
- const { data: products } = await supabase
- .from("products")
- .select("id, name, slug, price_cents, images, status")
- .in("id", productIds);
+   const { data: products } = await supabase
+     .from("products")
+     .select("id, name, slug, price_cents, images, status")
+     .in("id", productIds);
 
- (products || []).forEach((p) => {
- productMap[p.id] = p;
- });
+   (products || []).forEach((p) => {
+     productMap[p.id] = p;
+   });
+
+   // Se algum ID não foi encontrado em produtos, busca em booking_services (serviços e agendamentos)
+   const missingProductIds = productIds.filter((id) => !productMap[id]);
+   if (missingProductIds.length > 0) {
+     const { data: services } = await supabase
+       .from("booking_services")
+       .select("id, title, price_cents, image_url, category, duration_minutes, status")
+       .in("id", missingProductIds);
+
+     (services || []).forEach((s) => {
+       productMap[s.id] = {
+         id: s.id,
+         name: s.title,
+         title: s.title,
+         price_cents: s.price_cents,
+         images: s.image_url ? [s.image_url] : [],
+         category: s.category,
+         duration_minutes: s.duration_minutes,
+         status: s.status,
+         is_service: true,
+       };
+     });
+   }
  }
 
  // Enriquece itens de eventos
@@ -189,11 +212,11 @@ export const listUserFavorites = createServerFn({ method: "GET" })
  created_at: fav.created_at,
  details:
  fav.entity_type === "classified"
- ? classifiedMap[fav.entity_id] || null
+ ? classifiedMap[fav.entity_id] || { id: fav.entity_id, title: "Anúncio Salvo", content: "Item salvo nos seus favoritos.", price_cents: 0, images: [] }
  : fav.entity_type === "product"
- ? productMap[fav.entity_id] || null
+ ? productMap[fav.entity_id] || { id: fav.entity_id, name: "Item Salvo", title: "Item Salvo", price_cents: 0, images: [] }
  : fav.entity_type === "event"
- ? eventMap[fav.entity_id] || null
+ ? eventMap[fav.entity_id] || { id: fav.entity_id, title: "Evento Salvo", description: "", cover_image: null }
  : null,
  }));
  });
