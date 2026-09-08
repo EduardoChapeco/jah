@@ -127,9 +127,9 @@ export function TopBar({ session, brandSettings }: TopBarProps) {
           const isSelected =
             chip.to === "/"
               ? location.pathname === "/"
-              : location.pathname.startsWith(chip.to.split("?")[0]) &&
+              : (location.pathname || "").startsWith(chip.to.split("?")[0]) &&
                 (chip.to.includes("?")
-                  ? location.searchStr.includes(chip.to.split("?")[1])
+                  ? (location.searchStr || "").includes(chip.to.split("?")[1])
                   : true);
           const Icon = chip.icon;
 

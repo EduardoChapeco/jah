@@ -102,6 +102,7 @@ import { Route as WorkspaceSuporteRouteImport } from './routes/workspace.suporte
 import { Route as WorkspaceTarefasRouteImport } from './routes/workspace.tarefas'
 import { Route as WorkspaceTokensRouteImport } from './routes/workspace.tokens'
 import { Route as StoreAgendarIndexRouteImport } from './routes/_store.agendar.index'
+import { Route as StoreAgendarIdRouteImport } from './routes/_store.agendar.$id'
 import { Route as StoreBioSlugRouteImport } from './routes/_store.bio.$slug'
 import { Route as StoreCategoriaSlugRouteImport } from './routes/_store.categoria.$slug'
 import { Route as StoreClassificadosIndexRouteImport } from './routes/_store.classificados.index'
@@ -773,6 +774,11 @@ const WorkspaceTokensRoute = WorkspaceTokensRouteImport.update({
 const StoreAgendarIndexRoute = StoreAgendarIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => StoreAgendarRoute,
+} as any)
+const StoreAgendarIdRoute = StoreAgendarIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
   getParentRoute: () => StoreAgendarRoute,
 } as any)
 const StoreBioSlugRoute = StoreBioSlugRouteImport.update({
@@ -1996,6 +2002,7 @@ export interface FileRoutesByFullPath {
   '/workspace/tokens': typeof WorkspaceTokensRoute
   '/admin-master/': typeof AdminMasterIndexRoute
   '/workspace/': typeof WorkspaceIndexRoute
+  '/agendar/$id': typeof StoreAgendarIdRoute
   '/bio/$slug': typeof StoreBioSlugRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/classificados/$id': typeof StoreClassificadosIdRoute
@@ -2290,6 +2297,7 @@ export interface FileRoutesByTo {
   '/': typeof StoreIndexRoute
   '/admin-master': typeof AdminMasterIndexRoute
   '/workspace': typeof WorkspaceIndexRoute
+  '/agendar/$id': typeof StoreAgendarIdRoute
   '/bio/$slug': typeof StoreBioSlugRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/classificados/$id': typeof StoreClassificadosIdRoute
@@ -2593,6 +2601,7 @@ export interface FileRoutesById {
   '/_store/': typeof StoreIndexRoute
   '/admin-master/': typeof AdminMasterIndexRoute
   '/workspace/': typeof WorkspaceIndexRoute
+  '/_store/agendar/$id': typeof StoreAgendarIdRoute
   '/_store/bio/$slug': typeof StoreBioSlugRoute
   '/_store/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/_store/classificados/$id': typeof StoreClassificadosIdRoute
@@ -2896,6 +2905,7 @@ export interface FileRouteTypes {
     | '/workspace/tokens'
     | '/admin-master/'
     | '/workspace/'
+    | '/agendar/$id'
     | '/bio/$slug'
     | '/categoria/$slug'
     | '/classificados/$id'
@@ -3190,6 +3200,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin-master'
     | '/workspace'
+    | '/agendar/$id'
     | '/bio/$slug'
     | '/categoria/$slug'
     | '/classificados/$id'
@@ -3492,6 +3503,7 @@ export interface FileRouteTypes {
     | '/_store/'
     | '/admin-master/'
     | '/workspace/'
+    | '/_store/agendar/$id'
     | '/_store/bio/$slug'
     | '/_store/categoria/$slug'
     | '/_store/classificados/$id'
@@ -4381,6 +4393,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/agendar/'
       preLoaderRoute: typeof StoreAgendarIndexRouteImport
+      parentRoute: typeof StoreAgendarRoute
+    }
+    '/_store/agendar/$id': {
+      id: '/_store/agendar/$id'
+      path: '/$id'
+      fullPath: '/agendar/$id'
+      preLoaderRoute: typeof StoreAgendarIdRouteImport
       parentRoute: typeof StoreAgendarRoute
     }
     '/_store/bio/$slug': {
@@ -5836,10 +5855,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface StoreAgendarRouteChildren {
+  StoreAgendarIdRoute: typeof StoreAgendarIdRoute
   StoreAgendarIndexRoute: typeof StoreAgendarIndexRoute
 }
 
 const StoreAgendarRouteChildren: StoreAgendarRouteChildren = {
+  StoreAgendarIdRoute: StoreAgendarIdRoute,
   StoreAgendarIndexRoute: StoreAgendarIndexRoute,
 }
 

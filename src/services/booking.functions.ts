@@ -253,102 +253,163 @@ export const listBookingServices = createServerFn({ method: "GET" })
  });
 
 /**
+ * Busca detalhes canônicos de um serviço por ID para a página de detalhes.
+ */
+export const getBookingServiceById = createServerFn({ method: "GET" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: { id } }) => {
+    try {
+      const db = getServerClient();
+      const { data: service, error } = await db
+        .from("booking_services")
+        .select(`
+          *,
+          stores (
+            id, name, slug, avatar_url, settings
+          )
+        `)
+        .eq("id", id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (error || !service) return null;
+
+      const storeSettings = (service.stores?.settings as any) || {};
+      const storeLogo = storeSettings.logoUrl || storeSettings.logo_url || null;
+
+      // Buscar pacotes de sessões ativos para este serviço
+      const { data: packages } = await db
+        .from("service_packages")
+        .select("*")
+        .eq("service_id", id)
+        .eq("status", "active")
+        .order("price_cents");
+
+      return {
+        ...service,
+        stores: service.stores ? {
+          ...service.stores,
+          avatar_url: storeLogo,
+          logo_url: storeLogo,
+        } : null,
+        packages: packages || [],
+      };
+    } catch (err: unknown) {
+      console.error("[booking.functions] getBookingServiceById error:", err);
+      return null;
+    }
+  });
+
+/**
  * Busca horários disponíveis para um serviço em uma data específica.
  * Horários baseados nos Working Hours configurados pela loja (sem fallback hardcoded).
  */
 export const getAvailableSlots = createServerFn({ method: "GET" })
- .validator(z.object({ service_id: z.string().uuid(), date: z.string() }))
- .handler(async ({ data: { service_id, date } }) => {
- try {
- const storeId = await resolveTenantStoreId();
- if (!storeId) throw new Error("Loja não encontrada no contexto.");
+  .validator(z.object({ service_id: z.string().uuid(), date: z.string() }))
+  .handler(async ({ data: { service_id, date } }) => {
+    try {
+      const db = getServerClient();
 
- const db = getServerClient();
+      // 1. Buscar serviço para saber a duração e loja
+      const { data: service, error: sErr } = await db
+        .from("booking_services")
+        .select("id, duration_minutes, store_id")
+        .eq("id", service_id)
+        .single();
 
- // 1. Buscar serviço para saber a duração
- const { data: service, error: sErr } = await db
- .from("booking_services")
- .select("duration_minutes")
- .eq("id", service_id)
- .single();
+      if (sErr || !service) throw new Error("Serviço não encontrado.");
 
- if (sErr || !service) throw new Error("Serviço não encontrado.");
+      const tenantStoreId = await resolveTenantStoreId();
+      const storeId = service.store_id || tenantStoreId;
+      if (!storeId) throw new Error("Loja não encontrada no contexto.");
 
- // 2. Buscar agendamentos existentes do dia
- const startOfDay = new Date(`${date}T00:00:00.000Z`);
- const endOfDay = new Date(`${date}T23:59:59.999Z`);
+      // 2. Buscar agendamentos existentes do dia
+      const startOfDay = new Date(`${date}T00:00:00.000Z`);
+      const endOfDay = new Date(`${date}T23:59:59.999Z`);
 
- const { data: existing, error: apptErr } = await db
- .from("booking_appointments")
- .select("scheduled_at, booking_services(duration_minutes)")
- .eq("store_id", storeId)
- .neq("status", "cancelled")
- .gte("scheduled_at", startOfDay.toISOString())
- .lte("scheduled_at", endOfDay.toISOString());
+      const { data: existing, error: apptErr } = await db
+        .from("booking_appointments")
+        .select("scheduled_at, booking_services(duration_minutes)")
+        .eq("store_id", storeId)
+        .neq("status", "cancelled")
+        .gte("scheduled_at", startOfDay.toISOString())
+        .lte("scheduled_at", endOfDay.toISOString());
 
- if (apptErr) throw apptErr;
+      if (apptErr) throw apptErr;
 
- // 3. Buscar intervalos de trabalho reais da loja
- const intervals = await getWorkingIntervalsForDate(storeId, date);
+      // 3. Buscar intervalos de trabalho reais da loja
+      const intervals = await getWorkingIntervalsForDate(storeId, date);
 
- if (intervals.length === 0) {
- // Loja fechada nesse dia
- return { status: "success" as const, data: [] };
- }
+      if (intervals.length === 0) {
+        // Loja fechada nesse dia
+        return { status: "success" as const, data: [] };
+      }
 
- const duration = service.duration_minutes || 60;
- const slots: string[] = [];
+      const duration = service.duration_minutes || 60;
+      const slots: string[] = [];
 
- // 4. Para cada intervalo configurado, calcular slots válidos
- for (const interval of intervals) {
- const [fromH, fromM] = interval.from.split(":").map(Number);
- const [toH, toM] = interval.to.split(":").map(Number);
- const intervalEndMinutes = toH * 60 + toM;
+      // 4. Para cada intervalo configurado, calcular slots válidos
+      for (const interval of intervals) {
+        const [fromH, fromM] = interval.from.split(":").map(Number);
+        const [toH, toM] = interval.to.split(":").map(Number);
+        const intervalEndMinutes = toH * 60 + toM;
 
- let currentMinutes = fromH * 60 + fromM;
+        let currentMinutes = fromH * 60 + fromM;
 
- while (currentMinutes + duration <= intervalEndMinutes) {
- const h = Math.floor(currentMinutes / 60);
- const m = currentMinutes % 60;
- const slotTime = new Date(
- `${date}T${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:00.000Z`,
- );
+        while (currentMinutes + duration <= intervalEndMinutes) {
+          const h = Math.floor(currentMinutes / 60);
+          const m = currentMinutes % 60;
+          const slotTime = new Date(
+            `${date}T${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:00.000Z`,
+          );
 
- const isOccupied = existing?.some((appt: any) => {
- const apptStart = new Date(appt.scheduled_at);
- const apptDuration = appt.booking_services?.duration_minutes || 60;
- const apptEnd = new Date(apptStart.getTime() + apptDuration * 60000);
- const proposedEnd = new Date(slotTime.getTime() + duration * 60000);
- return slotTime < apptEnd && proposedEnd > apptStart;
- });
+          const isOccupied = existing?.some((appt: any) => {
+            const apptStart = new Date(appt.scheduled_at);
+            const apptDuration = appt.booking_services?.duration_minutes || 60;
+            const apptEnd = new Date(apptStart.getTime() + apptDuration * 60000);
+            const proposedEnd = new Date(slotTime.getTime() + duration * 60000);
+            return slotTime < apptEnd && proposedEnd > apptStart;
+          });
 
- if (!isOccupied) {
- slots.push(slotTime.toISOString());
- }
+          if (!isOccupied) {
+            slots.push(slotTime.toISOString());
+          }
 
- currentMinutes += duration;
- }
- }
+          currentMinutes += duration;
+        }
+      }
 
- return { status: "success" as const, data: slots };
- } catch (error: unknown) {
- console.error("[booking.functions] getAvailableSlots error:", error);
- throw new Error(
- (error instanceof Error ? error.message : String(error)) ||
- "Erro ao buscar horários disponíveis.",
- );
- }
- });
+      return { status: "success" as const, data: slots };
+    } catch (error: unknown) {
+      console.error("[booking.functions] getAvailableSlots error:", error);
+      throw new Error(
+        (error instanceof Error ? error.message : String(error)) ||
+          "Erro ao buscar horários disponíveis.",
+      );
+    }
+  });
 
 /**
  * Cria um novo agendamento.
  */
 export const createAppointment = createServerFn({ method: "POST" })
- .validator(createAppointmentSchema)
- .handler(async ({ data: input }) => {
- try {
- const storeId = await resolveTenantStoreId();
- if (!storeId) throw new Error("Loja não encontrada no contexto.");
+  .validator(createAppointmentSchema)
+  .handler(async ({ data: input }) => {
+    try {
+      const db = getServerClient();
+
+      // 1. Obter store_id a partir do serviço agendado
+      const { data: service, error: sErr } = await db
+        .from("booking_services")
+        .select("id, store_id, title, duration_minutes, price_cents")
+        .eq("id", input.service_id)
+        .single();
+
+      if (sErr || !service) throw new Error("Serviço não encontrado.");
+
+      const tenantStoreId = await resolveTenantStoreId();
+      const storeId = service.store_id || tenantStoreId;
+      if (!storeId) throw new Error("Loja não encontrada no contexto.");
 
  // Try to get logged in user (optional)
  let customer_id = null;
@@ -358,8 +419,6 @@ export const createAppointment = createServerFn({ method: "POST" })
  } catch (e) {
  // Guest user
  }
-
- const db = getServerClient();
 
  let apptStatus = "pending";
  let passRow: any = null;

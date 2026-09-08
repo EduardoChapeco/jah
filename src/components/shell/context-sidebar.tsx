@@ -93,7 +93,7 @@ export function ContextSidebar({ config, session }: ContextSidebarProps) {
 
  // Detecta se a rota atual é um sub-marketplace
  const isInsideMarketplace = useMemo(() => {
- return SUB_MARKETPLACES.some((sub) => location.pathname.startsWith(sub.to));
+   return SUB_MARKETPLACES.some((sub) => (location.pathname || "").startsWith(sub.to));
  }, [location.pathname]);
 
  const [isMarketplacesOpen, setIsMarketplacesOpen] = useState(isInsideMarketplace);
@@ -103,14 +103,15 @@ export function ContextSidebar({ config, session }: ContextSidebarProps) {
  }
 
  const isCurrentActive = (item: { to: string; exact?: boolean }) => {
- if (item.exact) {
- return location.pathname === item.to && (!item.to.includes("?") ? !location.searchStr : true);
- }
- if (item.to.includes("?")) {
- const [base, query] = item.to.split("?");
- return location.pathname === base && (location.searchStr || "").includes(query);
- }
- return location.pathname === item.to || (item.to !== "/" && location.pathname.startsWith(item.to + "/"));
+   const currentPath = location.pathname || "";
+   if (item.exact) {
+     return currentPath === item.to && (!item.to.includes("?") ? !location.searchStr : true);
+   }
+   if (item.to.includes("?")) {
+     const [base, query] = item.to.split("?");
+     return currentPath === base && (location.searchStr || "").includes(query);
+   }
+   return currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to + "/"));
  };
 
  return (
@@ -212,7 +213,7 @@ export function ContextSidebar({ config, session }: ContextSidebarProps) {
  <div className="grid grid-cols-2 gap-1 p-1.5 my-1 rounded-2xl bg-muted/30 border border-border/40 animate-in fade-in slide-in-from-top-1 duration-150">
  {SUB_MARKETPLACES.map((sub) => {
  const SubIcon = sub.icon;
- const isSubActive = location.pathname.startsWith(sub.to);
+ const isSubActive = (location.pathname || "").startsWith(sub.to);
 
  return (
  <Link

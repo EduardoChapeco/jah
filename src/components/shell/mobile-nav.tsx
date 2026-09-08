@@ -52,35 +52,36 @@ type CreateContext = {
 };
 
 function resolveCreateContext(pathname: string): CreateContext {
-  if (pathname.startsWith("/classificados")) {
+  const path = pathname || "";
+  if (path.startsWith("/classificados")) {
     return {
       label: "Publicar anúncio",
       disabled: false,
       navigateTo: "/conta/classificados/novo",
     };
   }
-  if (pathname.startsWith("/empregos")) {
+  if (path.startsWith("/empregos")) {
     return {
       label: "Publicar vaga",
       disabled: false,
       navigateTo: "/workspace/empregos/candidatos",
     };
   }
-  if (pathname.startsWith("/turismo")) {
+  if (path.startsWith("/turismo")) {
     return {
       label: "Criar pacote",
       disabled: false,
       navigateTo: "/workspace/turismo/viagens",
     };
   }
-  if (pathname.startsWith("/agenda") || pathname.startsWith("/evento")) {
+  if (path.startsWith("/agenda") || path.startsWith("/evento")) {
     return {
       label: "Criar evento",
       disabled: false,
       navigateTo: "/workspace/eventos",
     };
   }
-  if (pathname.startsWith("/noticias")) {
+  if (path.startsWith("/noticias")) {
     return {
       label: "Nova matéria",
       disabled: false,
@@ -88,10 +89,10 @@ function resolveCreateContext(pathname: string): CreateContext {
     };
   }
   if (
-    pathname.startsWith("/mercado") ||
-    pathname.startsWith("/gastronomia") ||
-    pathname.startsWith("/farmacia") ||
-    pathname.startsWith("/bebidas")
+    path.startsWith("/mercado") ||
+    path.startsWith("/gastronomia") ||
+    path.startsWith("/farmacia") ||
+    path.startsWith("/bebidas")
   ) {
     return {
       label: "Só para empresas",
@@ -484,7 +485,7 @@ export function MobileNav({ session }: MobileNavProps) {
           {isAuthenticated &&
             scrollableSecondaryShortcuts.map((s) => {
               const Icon = s.icon;
-              const isActive = location.pathname.startsWith(s.to);
+              const isActive = (location.pathname || "").startsWith(s.to);
               return (
                 <Link
                   key={s.id}

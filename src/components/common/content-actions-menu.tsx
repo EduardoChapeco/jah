@@ -108,12 +108,13 @@ export function ContentActionsMenu({
  });
  };
 
+ const safeCanonicalUrl = canonicalUrl || (typeof window !== "undefined" ? window.location.pathname : "");
  const fullUrl =
- typeof window !== "undefined"
- ? canonicalUrl.startsWith("http")
- ? canonicalUrl
- : `${window.location.origin}${canonicalUrl}`
- : canonicalUrl;
+   typeof window !== "undefined"
+     ? safeCanonicalUrl.startsWith("http")
+       ? safeCanonicalUrl
+       : `${window.location.origin}${safeCanonicalUrl}`
+     : safeCanonicalUrl;
 
  const handleCopyLink = async () => {
  try {
