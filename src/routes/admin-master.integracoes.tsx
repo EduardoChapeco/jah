@@ -86,7 +86,8 @@ export const Route = createFileRoute("/admin-master/integracoes")({
  listMasterPrompts().catch(() => []),
  ]);
 
- return { integrations, pools, prompts };
+ const gov = await getPublicApiGovernanceSettings().catch(() => DEFAULT_PUBLIC_API_GOVERNANCE);
+      return { integrations, pools, prompts, gov: gov || DEFAULT_PUBLIC_API_GOVERNANCE };
  } catch {
  return {
  integrations: {
@@ -114,7 +115,7 @@ export const Route = createFileRoute("/admin-master/integracoes")({
 type TabType = "pools" | "prompts" | "maps" | "payments" | "comms" | "logistics" | "webhooks";
 
 function AdminMasterIntegracoesPage() {
- const { integrations: initialData, pools: initialPools, prompts: initialPrompts } = Route.useLoaderData();
+ const { integrations: initialData, pools: initialPools, prompts: initialPrompts, gov: initialGov } = Route.useLoaderData() as any;
  const router = useRouter();
 
  const [activeTab, setActiveTab] = useState<TabType>("pools");
@@ -144,6 +145,88 @@ function AdminMasterIntegracoesPage() {
  const [promptTemplate, setPromptTemplate] = useState("");
  const [promptModel, setPromptModel] = useState("gemini-1.5-flash");
  const [promptTemperature, setPromptTemperature] = useState(0.2);
+
+  // Governança de Mapas & APIs Públicas
+  const [govSettings, setGovSettings] = useState<PublicApiGovernanceDTO>(initialGov || DEFAULT_PUBLIC_API_GOVERNANCE);
+  const [isSavingGov, setIsSavingGov] = useState(false);
+  const handleSaveGov = async () => {
+    setIsSavingGov(true);
+    try {
+      await savePublicApiGovernanceSettings({ data: govSettings });
+      toast.success("Configurações de governança salvas com sucesso!");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao salvar governança.");
+    } finally {
+      setIsSavingGov(false);
+    }
+  };
+
+  const [isPinging, setIsPinging] = useState(false);
+  const [pingResults, setPingResults] = useState<Record<string, ApiPingResult>>({});
+  const handleRunPingTest = async (service: "osm" | "viacep" | "brasilapi" | "receitaws") => {
+    setIsPinging(true);
+    try {
+      const res = await pingPublicApis({ data: { service } });
+      setPingResults((prev) => ({ ...prev, [service]: res }));
+      toast.success(`Serviço ${service.toUpperCase()} testado: ${res.status}`);
+    } catch (err: any) {
+      toast.error(err.message || `Erro ao testar ${service}.`);
+    } finally {
+      setIsPinging(false);
+    }
+  };
+
+  // Testadores Sandbox
+  const [sandboxCep, setSandboxCep] = useState("");
+  const [isSearchingCep, setIsSearchingCep] = useState(false);
+  const [cepResult, setCepResult] = useState<ResolvedAddressDTO | null>(null);
+  const handleTestCepLookup = async () => {
+    if (!sandboxCep.trim()) return;
+    setIsSearchingCep(true);
+    try {
+      const res = await lookupCep({ data: { cep: sandboxCep } });
+      setCepResult(res);
+      toast.success("CEP consultado com sucesso!");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao consultar CEP.");
+    } finally {
+      setIsSearchingCep(false);
+    }
+  };
+
+  const [sandboxCnpj, setSandboxCnpj] = useState("");
+  const [isSearchingCnpj, setIsSearchingCnpj] = useState(false);
+  const [cnpjResult, setCnpjResult] = useState<CnpjCompanyDTO | null>(null);
+  const handleTestCnpjLookup = async () => {
+    if (!sandboxCnpj.trim()) return;
+    setIsSearchingCnpj(true);
+    try {
+      const res = await lookupCnpj({ data: { cnpj: sandboxCnpj } });
+      setCnpjResult(res);
+      toast.success("CNPJ consultado com sucesso!");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao consultar CNPJ.");
+    } finally {
+      setIsSearchingCnpj(false);
+    }
+  };
+
+  const [sandboxNlp, setSandboxNlp] = useState("");
+  const [isParsingNlp, setIsParsingNlp] = useState(false);
+  const [nlpResult, setNlpResult] = useState<any>(null);
+  const handleTestNlpLookup = async () => {
+    if (!sandboxNlp.trim()) return;
+    setIsParsingNlp(true);
+    try {
+      const res = await parseAddressWithAI({ data: { text: sandboxNlp } });
+      setNlpResult(res);
+      toast.success("Endereço decomposto com IA!");
+    } catch (err: any) {
+      toast.error(err.message || "Erro no processamento de linguagem natural.");
+    } finally {
+      setIsParsingNlp(false);
+    }
+  };
 
  const toggleVisibility = (key: string) => {
  setVisibleKeys((prev) => ({ ...prev, [key]: !prev[key] }));

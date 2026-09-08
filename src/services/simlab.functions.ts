@@ -267,6 +267,7 @@ export async function executeSimLabBatchSimulation(data: {
   let testPrice = 85.0;
   let expRow: any = null;
   try {
+    const supabase = getServerClient();
     const res = await supabase
       .from('simlab_market_experiments')
       .select('*')
@@ -470,6 +471,7 @@ export async function executeCreateFocusGroupSession(data: {
   moderatorGoal?: string;
 }): Promise<{ success: boolean; session: FocusGroupSession }> {
   try {
+    const supabase = getServerClient();
     const { data: row, error } = await supabase
       .from('simlab_focus_group_sessions')
       .insert({
@@ -512,6 +514,7 @@ export async function executeGetOrCreateActiveFocusSession(data: {
   personaIds?: string[];
 }): Promise<{ session: FocusGroupSession }> {
   try {
+    const supabase = getServerClient();
     const { data: existing, error } = await supabase
       .from('simlab_focus_group_sessions')
       .select('*')
@@ -560,6 +563,7 @@ export async function executeListFocusGroupMessages(data: { sessionId: string })
   try {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.sessionId);
     if (isUuid) {
+      const supabase = getServerClient();
       const { data: rows, error } = await supabase
         .from('simlab_focus_group_messages')
         .select('*')

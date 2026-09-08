@@ -2,34 +2,38 @@ import { createFileRoute, Link, useNavigate, isRedirect } from "@tanstack/react-
 import { useState, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
- Tag,
- MapPin,
- MessageCircle,
- Share2,
- ShieldCheck,
- ChevronLeft,
- ChevronRight,
- Clock,
- User,
- AlertTriangle,
- ArrowLeft,
- Handshake,
- Loader2,
- Image as ImageIcon,
- Play,
- Maximize2,
- ExternalLink,
- Edit3,
- Truck,
- Package,
- CreditCard,
- QrCode,
- RefreshCw,
- Calendar,
- Users,
- Check,
- FileArchive,
- DownloadCloud,
+  Tag,
+  MapPin,
+  MessageCircle,
+  Share2,
+  ShieldCheck,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  User,
+  AlertTriangle,
+  ArrowLeft,
+  Handshake,
+  Loader2,
+  Image as ImageIcon,
+  Play,
+  Maximize2,
+  ExternalLink,
+  Edit3,
+  Truck,
+  Package,
+  CreditCard,
+  QrCode,
+  RefreshCw,
+  Calendar,
+  Users,
+  Check,
+  FileArchive,
+  DownloadCloud,
+  Briefcase,
+  CheckCircle2,
+  TrendingUp,
+  Wrench,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -38,12 +42,12 @@ import { Input } from "@/components/ui/input";
 import { CurrencyField } from "@/components/ui/currency-field";
 import { Textarea } from "@/components/ui/textarea";
 import {
- Dialog,
- DialogContent,
- DialogHeader,
- DialogTitle,
- DialogDescription,
- DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatMoney } from "@/lib/money";
@@ -51,24 +55,31 @@ import { formatRelativeTime, formatDate } from "@/lib/datetime";
 import { trackAndOpenWhatsApp } from "@/lib/whatsapp";
 import { MapLibreCanvas } from "@/components/mobility/maplibre-canvas";
 import {
- getPublicClassifiedById,
- updateClassifiedStatus,
- deleteClassified,
- getDigitalDownloadSignedUrl,
+  getPublicClassifiedById,
+  updateClassifiedStatus,
+  deleteClassified,
+  getDigitalDownloadSignedUrl,
+  listClassifiedJobApplications,
 } from "@/services/classifieds.functions";
+import {
+  getEducationLabel,
+  getExperienceLabel,
+  getRegimeLabel,
+  getWorkplaceModelLabel,
+} from "@/lib/classifieds/canonical-hiring";
 import { createDealProposal } from "@/services/deals.functions";
 import { getProfile } from "@/services/auth.functions";
 import { ContentActionsMenu } from "@/components/common/content-actions-menu";
 import {
- resolveClassifiedNiche,
- getSemanticBadges,
- getSemanticCondition,
+  resolveClassifiedNiche,
+  getSemanticBadges,
+  getSemanticCondition,
 } from "@/lib/classifieds/semantics";
 
 export const Route = createFileRoute("/_store/classificados/$id")({
- head: ({
- loaderData,
- }: {
+  head: ({
+    loaderData,
+  }: {
  loaderData?: { classified: any; isOwner: boolean; canManage: boolean; viewerContext: string };
  }) => {
  const classified = loaderData?.classified;

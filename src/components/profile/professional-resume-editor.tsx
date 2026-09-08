@@ -1075,7 +1075,7 @@ export function ProfessionalResumeEditor({
  if (isDelete && activeItem) {
  updated = updated.filter((c) => c.id !== activeItem.id);
  } else if (activeItem) {
- updated = updated.map((c) => (c.id === activeItem.id ? itemToSave : e));
+ updated = updated.map((c) => (c.id === activeItem.id ? itemToSave : c));
  } else {
  updated = [itemToSave, ...updated];
  }

@@ -136,15 +136,14 @@ export const exportCarouselToStudio = createServerFn({ method: "POST" })
  slides: data.slides,
  };
 
- const project = await upsertStudioProject({
- data: {
- title: `[Carrossel Machine] ${data.carouselTitle}`,
- project_type: 'graphic',
- aspect_ratio: '4:5',
- canvas_data: canvasData,
- store_id: identity.store_id,
- },
- });
+ const project = await saveStudioProject({
+  data: {
+  title: `[Carrossel Machine] ${data.carouselTitle}`,
+  project_type: 'graphic',
+  aspect_ratio: '4:5',
+  canvas_data: canvasData,
+  },
+  });
 
  return {
  status: 'success',

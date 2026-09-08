@@ -2,7 +2,7 @@ import { DocumentsPanel } from "@/components/crm/DocumentsPanel";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { User, ChevronLeft, Save, MapPin, Trash2, Plus, Check, ShieldCheck, FileText, Mail, Phone, Settings, Layers, Search, AlertTriangle, Gift, DollarSign, HeartPulse, Calendar, Clock, Building, CreditCard, History, Tag } from 'lucide-react';
+import { User, ChevronLeft, Save, MapPin, Trash2, Plus, Check, ShieldCheck, FileText, Mail, Phone, Settings, Layers, Search, AlertTriangle, Gift, DollarSign, HeartPulse, Calendar, Clock, Building, CreditCard, History, Tag, TrendingUp } from 'lucide-react';
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

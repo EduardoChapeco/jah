@@ -25,7 +25,8 @@ import {
   CreditCard,
   UserCheck,
   Scale,
-  FileText
+  FileText,
+  Cpu
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

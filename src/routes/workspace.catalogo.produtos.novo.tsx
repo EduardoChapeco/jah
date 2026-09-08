@@ -76,6 +76,7 @@ import {
 import { importProductFromUrl } from "@/services/api-orchestrator.functions";
 import { getNicheCatalogContext } from "@/lib/catalog-niche-context";
 import { getNicheSemantics } from "@/lib/niche-semantics";
+import { getStoreSettings } from "@/services/store.functions";
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 

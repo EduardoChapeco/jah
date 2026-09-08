@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import type { Map, Marker } from "maplibre-gl";
+import { getCanonicalMapStyle, setupMapResizeObserver } from "@/lib/map-styles";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -218,73 +220,79 @@ export function BusinessLocationPicker({
  const [newCoverageCity, setNewCoverageCity] = useState("");
 
  const mapContainer = useRef<HTMLDivElement>(null);
- const map = useRef<maplibregl.Map | null>(null);
- const marker = useRef<maplibregl.Marker | null>(null);
+ const map = useRef<Map | null>(null);
+ const marker = useRef<Marker | null>(null);
 
- // Inicialização do Mapa
+ // Inicialização do Mapa (SSR Safe & Dynamic Import)
  useEffect(() => {
- if (!mapContainer.current || map.current) return;
+   if (!mapContainer.current || map.current) return;
+   let isMounted = true;
+   let cleanupResize: (() => void) | undefined;
 
- // Coordenadas padrão (Chapecó / Oeste Catarinense ou valor atual)
- const initialLat = value.latitude || -27.1004;
- const initialLng = value.longitude || -52.6152;
+   // Coordenadas padrão (Chapecó / Oeste Catarinense ou valor atual)
+   const initialLat = value.latitude || -27.1004;
+   const initialLng = value.longitude || -52.6152;
 
- let cleanupResize: (() => void) | undefined;
+   import("maplibre-gl").then((maplibreglModule) => {
+     if (!isMounted || !mapContainer.current || map.current) return;
+     const maplibregl = (maplibreglModule as any).default || maplibreglModule;
 
- try {
- map.current = new maplibregl.Map({
- container: mapContainer.current,
- style: getCanonicalMapStyle(),
- center: [initialLng, initialLat],
- zoom: value.latitude ? 16 : 13,
- attributionControl: false,
- });
+     try {
+       map.current = new maplibregl.Map({
+         container: mapContainer.current,
+         style: getCanonicalMapStyle(),
+         center: [initialLng, initialLat],
+         zoom: value.latitude ? 16 : 13,
+         attributionControl: false,
+       });
 
- cleanupResize = setupMapResizeObserver(map.current, mapContainer.current);
+       cleanupResize = setupMapResizeObserver(map.current, mapContainer.current);
 
- map.current.addControl(
- new maplibregl.AttributionControl({ compact: true }),
- "bottom-right"
- );
- map.current.addControl(new maplibregl.NavigationControl(), "top-right");
+       map.current.addControl(
+         new maplibregl.AttributionControl({ compact: true }),
+         "bottom-right"
+       );
+       map.current.addControl(new maplibregl.NavigationControl(), "top-right");
 
- // Marcador arrastável personalizado
- const markerEl = document.createElement("div");
- markerEl.className = "cursor-grab active:cursor-grabbing";
- markerEl.innerHTML = `
- <div class="relative flex items-center justify-center">
- <div class="size-10 rounded-full bg-primary/20 animate-ping absolute inset-0"></div>
- <div class="size-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg border-2 border-white">
- <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
- </div>
- </div>
- `;
+       // Marcador arrastável personalizado
+       const markerEl = document.createElement("div");
+       markerEl.className = "cursor-grab active:cursor-grabbing";
+       markerEl.innerHTML = `
+         <div class="relative flex items-center justify-center">
+           <div class="size-10 rounded-full bg-primary/20 animate-ping absolute inset-0"></div>
+           <div class="size-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg border-2 border-white">
+             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+           </div>
+         </div>
+       `;
 
- marker.current = new maplibregl.Marker({ element: markerEl, draggable: true })
- .setLngLat([initialLng, initialLat])
- .addTo(map.current);
+       marker.current = new maplibregl.Marker({ element: markerEl, draggable: true })
+         .setLngLat([initialLng, initialLat])
+         .addTo(map.current);
 
- // Evento de arraste do pino (Ajuste fino de latitude/longitude)
- marker.current.on("dragend", async () => {
- const lngLat = marker.current?.getLngLat();
- if (lngLat) {
- onChange({
- ...value,
- latitude: Number(lngLat.lat.toFixed(6)),
- longitude: Number(lngLat.lng.toFixed(6)),
- });
- toast.success("Ponto no mapa ajustado com precisão!");
- }
- });
- } catch (err) {
- console.warn("[BusinessLocationPicker] Erro ao instanciar mapa:", err);
- }
+       // Evento de arraste do pino (Ajuste fino de latitude/longitude)
+       marker.current.on("dragend", async () => {
+         const lngLat = marker.current?.getLngLat();
+         if (lngLat) {
+           onChange({
+             ...value,
+             latitude: Number(lngLat.lat.toFixed(6)),
+             longitude: Number(lngLat.lng.toFixed(6)),
+           });
+           toast.success("Ponto no mapa ajustado com precisão!");
+         }
+       });
+     } catch (err) {
+       console.warn("[BusinessLocationPicker] Erro ao instanciar mapa:", err);
+     }
+   });
 
- return () => {
- cleanupResize?.();
- map.current?.remove();
- map.current = null;
- };
+   return () => {
+     isMounted = false;
+     cleanupResize?.();
+     map.current?.remove();
+     map.current = null;
+   };
  }, []);
 
  // Atualiza centro do mapa quando coordenadas mudam externamente

@@ -137,6 +137,7 @@ export async function executeMcpToolCall(data: McpToolCallRequest): Promise<McpT
     if (data.tool === 'analyze_competitor_dna') {
       let competitorData: any = null;
       try {
+        const supabase = getServerClient();
         const { data: compRow } = await supabase
           .from('market_competitors')
           .select('*')

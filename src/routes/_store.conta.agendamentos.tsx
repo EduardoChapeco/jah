@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formatMoney } from "@/lib/money";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
  Dialog,
  DialogContent,
@@ -117,18 +118,6 @@ function CustomerAgendaPage() {
  {/* ── 1. Top Header Unificado ── */}
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5 pt-2">
  <div className="space-y-1">
- <div className="flex items-center gap-2">
- <Link
- to="/conta"
- className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
- >
- Minha Conta
- </Link>
- <span className="text-xs text-muted-foreground">/</span>
- <Badge variant="outline" className="text-[10px] font-mono uppercase font-bold tracking-wider">
- Agenda
- </Badge>
- </div>
  <h1 className="text-2xl font-bold tracking-tight text-foreground">
  Agendamentos
  </h1>

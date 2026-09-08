@@ -870,7 +870,7 @@ export function BuilderInspector({
  value={(selectedNode.design_tokens as any)?.animation?.trigger || "fade_up"}
  onValueChange={(val) => {
  const currAnim = (selectedNode.design_tokens as any)?.animation || {};
- onUpdateNode(selectedNode.id, {
+ updateNode(selectedNode.id, {
  design_tokens: {
  ...(selectedNode.design_tokens || {}),
  animation: { ...currAnim, trigger: val },
@@ -909,7 +909,7 @@ export function BuilderInspector({
  type="button"
  onClick={() => {
  const currAnim = (selectedNode.design_tokens as any)?.animation || {};
- onUpdateNode(selectedNode.id, {
+ updateNode(selectedNode.id, {
  design_tokens: {
  ...(selectedNode.design_tokens || {}),
  animation: { ...currAnim, speed: speed.id },
@@ -947,7 +947,7 @@ export function BuilderInspector({
  type="button"
  onClick={() => {
  const currAnim = (selectedNode.design_tokens as any)?.animation || {};
- onUpdateNode(selectedNode.id, {
+ updateNode(selectedNode.id, {
  design_tokens: {
  ...(selectedNode.design_tokens || {}),
  animation: { ...currAnim, hover: hov.id },
