@@ -26,15 +26,23 @@ function SavedItemsPage() {
  const queryClient = useQueryClient();
  const [selectedType, setSelectedType] = useState<string>("all");
 
- const { data: favorites, isLoading } = useQuery({
- queryKey: ["user-favorites", selectedType],
- queryFn: () =>
- listUserFavorites({
- data: {
- entityType: selectedType as any,
- },
- }),
- });
+  const { data: favorites, isLoading } = useQuery({
+    queryKey: ["user-favorites", selectedType],
+    queryFn: async () => {
+      try {
+        const res = await listUserFavorites({
+          data: {
+            entityType: selectedType as any,
+          },
+        });
+        return res || [];
+      } catch (err) {
+        console.error("[salvos] listUserFavorites error:", err);
+        return [];
+      }
+    },
+    retry: 1,
+  });
 
  const removeMutation = useMutation({
  mutationFn: toggleFavorite,

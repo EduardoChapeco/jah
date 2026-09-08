@@ -111,7 +111,7 @@ export const listUserFavorites = createServerFn({ method: "GET" })
  const identity = await getIdentity();
 
  if (!identity || !identity.id) {
- throw new Error("Você precisa estar autenticado para ver seus itens salvos.");
+   return [];
  }
 
  let query = supabase
