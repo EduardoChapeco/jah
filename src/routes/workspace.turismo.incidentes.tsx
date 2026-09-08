@@ -59,8 +59,13 @@ export const Route = createFileRoute('/workspace/turismo/incidentes')({
     meta: [{ title: 'Incidentes Turísticos | Workspace' }],
   }),
   loader: async () => {
+    try {
     const store = await getStoreSettings().catch(() => null);
     return { store };
+    } catch (err) {
+      console.error("[loader:workspace.turismo.incidentes] Unhandled error:", err);
+      return null;
+    }
   },
   component: TourismIncidentsPage,
 });

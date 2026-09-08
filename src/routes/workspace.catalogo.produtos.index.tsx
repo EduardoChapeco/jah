@@ -65,6 +65,7 @@ import type { AdminProductRow } from "@/types/catalog";
 export const Route = createFileRoute("/workspace/catalogo/produtos/")({
  head: () => ({ meta: [{ title: "Catálogo & Itens | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const [products, store] = await Promise.all([
  listAdminProducts().catch(() => []),
  getStoreSettings().catch(() => null),
@@ -73,6 +74,10 @@ export const Route = createFileRoute("/workspace/catalogo/produtos/")({
  products: products || [],
  store: store || null,
  };
+   } catch (err) {
+     console.error("[loader:workspace.catalogo.produtos.index] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: AdminProductsPage,
 });

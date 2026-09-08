@@ -32,7 +32,12 @@ import { formatMoney } from "@/lib/money";
 export const Route = createFileRoute("/workspace/clientes/$id")({
  head: () => ({ meta: [{ title: "Ficha 360° do Cliente | Workspace" }] }),
  loader: async ({ params }) => {
+   try {
  return await getCustomer360({ data: { customerId: params.id } });
+   } catch (err) {
+     console.error("[loader:workspace.clientes.$id] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: CustomerDetailPage,
 });

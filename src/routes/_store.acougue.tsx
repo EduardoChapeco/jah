@@ -70,6 +70,7 @@ export const Route = createFileRoute("/_store/acougue")({
  SearchSchema.parse(search),
  loaderDeps: ({ search }) => search,
  loader: async () => {
+   try {
  const [banners, hotpages, marketplaceFeed, productsRes] = await Promise.all([
  listActiveBanners({ data: { placement: "acougue" } }).catch(() => []),
  listHotpages({ data: { module: "acougue" } }).catch(() => []),
@@ -82,6 +83,10 @@ export const Route = createFileRoute("/_store/acougue")({
  marketplaceFeed,
  catalogProducts: (productsRes as any).data ?? [],
  };
+   } catch (err) {
+     console.error("[loader:_store.acougue] Unhandled error:", err);
+     return null;
+   }
  },
  component: AcougueVerticalPage,
  pendingComponent: PageSkeleton,

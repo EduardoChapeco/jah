@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 const sqlPath = path.resolve(__dirname, "../supabase/migrations/20260904140000_hotels_bank_enterprise_expansion.sql");
 const sqlContent = fs.readFileSync(sqlPath, "utf8");
 
-const password = "EEaR6399!@#2026";
+const password = process.env.SUPABASE_DB_PASSWORD || "";
 
 const configs = [
   {

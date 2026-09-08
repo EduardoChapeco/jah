@@ -48,12 +48,17 @@ import { WorkspaceDashboardSheet } from "@/components/workspace/workspace-dashbo
 export const Route = createFileRoute("/workspace/suporte")({
   head: () => ({ meta: [{ title: "Suporte Técnico | Workspace Wider OS" }] }),
   loader: async () => {
+    try {
     const store = await getStoreSettings().catch(() => null);
     const storeId = store?.id || "";
     const tickets = storeId
       ? await listSupportTickets({ data: { store_id: storeId } }).catch(() => [])
       : [];
     return { store, initialTickets: tickets as SupportTicketItem[] };
+    } catch (err) {
+      console.error("[loader:workspace.suporte] Unhandled loader error:", err);
+      return null;
+    }
   },
   component: WorkspaceSupportPage,
 });

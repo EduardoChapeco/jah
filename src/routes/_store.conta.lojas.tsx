@@ -21,8 +21,13 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/conta/lojas")({
  head: () => ({ meta: [{ title: "Minhas Lojas & Negócios | Wider OS" }] }),
  loader: async () => {
+   try {
  const stores = await getMyStoresList().catch(() => []);
  return { stores: stores || [] };
+   } catch (err) {
+     console.error("[loader:_store.conta.lojas] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: ContaLojasPage,
 });

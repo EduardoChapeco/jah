@@ -12,7 +12,12 @@ import { addToCart } from "@/services/cart.functions";
 export const Route = createFileRoute("/_store/match-time")({
  head: () => ({ meta: [{ title: "Match Time! Ofertas Surpresa" }] }),
  loader: async () => {
+   try {
  return await generateMatchTimeOffers();
+   } catch (err) {
+     console.error("[loader:_store.match-time] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: MatchTimePage,
 });

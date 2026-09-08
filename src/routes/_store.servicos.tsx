@@ -160,6 +160,7 @@ export const Route = createFileRoute("/_store/servicos")({
  validateSearch: (search: Record<string, unknown>): ServicosSearch => SearchSchema.parse(search),
  loaderDeps: ({ search }) => search,
  loader: async () => {
+   try {
  const [banners, hotpages, marketplaceFeed, packages] = await Promise.all([
  listActiveBanners({ data: { placement: "servicos" } }).catch(() => []),
  listHotpages({ data: { module: "servicos" } }).catch(() => []),
@@ -173,6 +174,10 @@ export const Route = createFileRoute("/_store/servicos")({
  marketplaceFeed,
  packages,
  };
+   } catch (err) {
+     console.error("[loader:_store.servicos] Unhandled error:", err);
+     return null;
+   }
  },
  component: ServicosVerticalPage,
  pendingComponent: PageSkeleton,

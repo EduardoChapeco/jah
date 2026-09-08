@@ -63,8 +63,13 @@ import { createExperienceDocument, duplicateExperienceDocument } from "@/service
 export const Route = createFileRoute("/workspace/cms/paginas/")({
  head: () => ({ meta: [{ title: "Páginas & Landing Pages | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const res = await listAdminPages();
  return res || [];
+   } catch (err) {
+     console.error("[loader:workspace.cms.paginas.index] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: CmsPagesPage,
 });

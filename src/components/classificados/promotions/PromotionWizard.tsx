@@ -16,7 +16,7 @@ import { Plus, Trash2, CalendarIcon, Copy } from "lucide-react";
 import { format } from "date-fns";
 import { PROMO_TYPES, type Promotion } from "@/hooks/usePromotions";
 import { useCreatePromotion, useUpdatePromotion } from "@/hooks/usePromotions";
-import { supabase } from "@/integrations/supabase/client";
+import { listAdminProducts } from "@/services/admin-catalog.functions";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -94,10 +94,12 @@ export default function PromotionWizard({ open, onOpenChange, companyId, editPro
     queryKey: ["promo-products", companyId],
     enabled: open,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("products").select("id, name, price").eq("company_id", companyId).order("name");
-      if (error) throw error;
-      return data || [];
+      const res = await listAdminProducts();
+      return (res || []).map((p: any) => ({
+        id: p.id,
+        name: p.title || p.name || "",
+        price: ((p.priceCents ?? p.price_cents ?? p.price ?? 0) as number) / 100,
+      }));
     },
   });
 

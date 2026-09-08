@@ -63,6 +63,7 @@ import { NewClientWizard } from "@/components/crm/NewClientWizard";
 export const Route = createFileRoute("/workspace/clientes/")({
  head: () => ({ meta: [{ title: "Carteira de Clientes & Passageiros | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const [customers, teamRes, store] = await Promise.all([
  listCustomers().catch(() => []),
  listTeamMembers().catch(() => []),
@@ -73,6 +74,10 @@ export const Route = createFileRoute("/workspace/clientes/")({
  team: teamRes || [],
  store: store || null,
  };
+   } catch (err) {
+     console.error("[loader:workspace.clientes.index] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: CarteiraClientesPage,
 });

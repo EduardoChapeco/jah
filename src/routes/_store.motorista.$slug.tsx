@@ -18,8 +18,13 @@ export const Route = createFileRoute("/_store/motorista/$slug")({
  ],
  }),
  loader: async ({ params }) => {
+   try {
  const courier = await getCourierBySlug({ data: { slug: params.slug } }).catch(() => null);
  return { courier, slug: params.slug };
+   } catch (err) {
+     console.error("[loader:_store.motorista.$slug] Unhandled error:", err);
+     return null;
+   }
  },
  component: DriverDirectPage,
 });
@@ -72,7 +77,7 @@ function DriverDirectPage() {
  </div>
 
  {/* Stats */}
- <div className="grid grid-cols-3 gap-3 p-3 rounded-xl bg-muted/40 text-center">
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-xl bg-muted/40 text-center">
  <div>
  <div className="flex items-center justify-center gap-1 font-semibold text-sm text-foreground">
  <Star className="size-3.5 fill-foreground text-foreground" />

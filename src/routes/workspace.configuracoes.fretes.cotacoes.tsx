@@ -27,6 +27,7 @@ import { formatDate } from "@/lib/datetime";
 export const Route = createFileRoute("/workspace/configuracoes/fretes/cotacoes")({
  head: () => ({ meta: [{ title: "Cotações de Frete | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const [zonesRes, pendingRes] = await Promise.all([
  listShippingZones(),
  listOrdersAwaitingShippingQuote(),
@@ -36,6 +37,10 @@ export const Route = createFileRoute("/workspace/configuracoes/fretes/cotacoes")
  zones: zonesRes || [],
  pendingOrders: pendingRes || [],
  };
+   } catch (err) {
+     console.error("[loader:workspace.configuracoes.fretes.cotacoes] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: FretesCotacoesPage,
 });

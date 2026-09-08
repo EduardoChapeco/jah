@@ -43,8 +43,13 @@ import { formatRelativeTime } from "@/lib/datetime";
 export const Route = createFileRoute("/workspace/orcamentos/$id")({
  head: () => ({ meta: [{ title: "Detalhe do Orçamento | Workspace Wider OS" }] }),
  loader: async ({ params }) => {
+   try {
  const data = await getQuoteDetail({ data: { quote_id: params.id } });
  return { quote: data };
+   } catch (err) {
+     console.error("[loader:workspace.orcamentos.$id] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: QuoteDetailPage,
 });

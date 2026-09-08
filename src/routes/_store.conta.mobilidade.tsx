@@ -28,11 +28,16 @@ export const Route = createFileRoute("/_store/conta/mobilidade")({
  meta: [{ title: "Minhas Corridas & Mudanças | Wider OS" }],
  }),
  loader: async () => {
+   try {
  const [requests, courierApp] = await Promise.all([
  listCustomerMobilityRequests().catch(() => []),
  getMyCourierApplicationStatus().catch(() => null),
  ]);
  return { requests, courierApp };
+   } catch (err) {
+     console.error("[loader:_store.conta.mobilidade] Unhandled error:", err);
+     return null;
+   }
  },
  component: CustomerMobilityHistoryPage,
 });

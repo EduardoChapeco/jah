@@ -702,3 +702,272 @@ export const listStudioTemplates = createServerFn({ method: "GET" })
 
  return canonicals;
  });
+
+// ============================================================
+// BRAND KIT — DNA Visual da Loja
+// ============================================================
+
+export interface BrandKitDTO {
+  id?: string;
+  store_id?: string | null;
+  colors: Record<string, any>;
+  fonts: Record<string, any>;
+  logos: Record<string, any>;
+  voice: Record<string, any>;
+  updated_at?: string;
+}
+
+/**
+ * getBrandKit — Carrega o Brand Kit da loja autenticada
+ */
+export const getBrandKit = createServerFn({ method: "GET" })
+  .validator(z.object({}).optional())
+  .handler(async () => {
+    const identity = await getServerIdentity();
+    const supabase = getServerClient();
+
+    if (!identity.store_id) return null;
+
+    const { data, error } = await supabase
+      .from("brand_kits")
+      .select("*")
+      .eq("store_id", identity.store_id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("[studio.functions] getBrandKit error:", error.message);
+      return null;
+    }
+
+    return data as BrandKitDTO | null;
+  });
+
+/**
+ * saveBrandKit — Persiste ou atualiza o Brand Kit via upsert
+ */
+export const saveBrandKit = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      colors: z.record(z.any()).optional(),
+      fonts: z.record(z.any()).optional(),
+      logos: z.record(z.any()).optional(),
+      voice: z.record(z.any()).optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    const supabase = getServerClient();
+
+    if (!identity.store_id) {
+      throw new Error("Loja não identificada. Faça login novamente.");
+    }
+
+    const payload = {
+      store_id: identity.store_id,
+      colors: data.colors ?? {},
+      fonts: data.fonts ?? {},
+      logos: data.logos ?? {},
+      voice: data.voice ?? {},
+      updated_at: new Date().toISOString(),
+    };
+
+    // Verifica se já existe para decidir insert vs update
+    const { data: existing } = await supabase
+      .from("brand_kits")
+      .select("id")
+      .eq("store_id", identity.store_id)
+      .maybeSingle();
+
+    if (existing?.id) {
+      const { data: updated, error } = await supabase
+        .from("brand_kits")
+        .update(payload)
+        .eq("id", existing.id)
+        .select("*")
+        .single();
+
+      if (error) throw new Error("Erro ao atualizar Brand Kit: " + error.message);
+      return updated as BrandKitDTO;
+    } else {
+      const { data: created, error } = await supabase
+        .from("brand_kits")
+        .insert(payload)
+        .select("*")
+        .single();
+
+      if (error) throw new Error("Erro ao criar Brand Kit: " + error.message);
+      return created as BrandKitDTO;
+    }
+  });
+
+/**
+ * generateBrandKitWithAI — Chama Edge Function para gerar paleta e fontes via IA
+ */
+export const generateBrandKitWithAI = createServerFn({ method: "POST" })
+  .validator(z.object({ context_hint: z.string().optional() }).optional())
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    const supabase = getServerClient();
+
+    if (!identity.store_id) throw new Error("Loja não identificada.");
+
+    // Lê briefing existente para dar contexto à IA
+    const { data: briefing } = await supabase
+      .from("briefings")
+      .select("company, content")
+      .eq("store_id", identity.store_id)
+      .maybeSingle();
+
+    const briefingContext = briefing
+      ? {
+          company_name: (briefing as any).company?.name || "",
+          segment: (briefing as any).company?.segment || "",
+          brand_dna: (briefing as any).company?.brand_dna || "",
+          tone_of_voice: (briefing as any).content?.tone_of_voice || "",
+        }
+      : {};
+
+    const { data: result, error } = await supabase.functions.invoke("sw-brand-generate", {
+      body: {
+        store_id: identity.store_id,
+        briefing_data: { ...briefingContext, context_hint: data?.context_hint },
+      },
+    });
+
+    if (error) throw new Error("Erro na geração IA: " + error.message);
+    return result?.data ?? result ?? null;
+  });
+
+// ============================================================
+// BRAND BRIEFING — DNA Estratégico da Marca
+// ============================================================
+
+export interface BrandBriefingDTO {
+  id?: string;
+  store_id?: string | null;
+  company: Record<string, any>;
+  audience: Record<string, any>;
+  market: Record<string, any>;
+  content: Record<string, any>;
+  channels: any[];
+  completeness_score: number;
+  updated_at?: string;
+}
+
+/**
+ * getBrandBriefing — Carrega o briefing estratégico da loja
+ */
+export const getBrandBriefing = createServerFn({ method: "GET" })
+  .validator(z.object({}).optional())
+  .handler(async () => {
+    const identity = await getServerIdentity();
+    const supabase = getServerClient();
+
+    if (!identity.store_id) return null;
+
+    const { data, error } = await supabase
+      .from("briefings")
+      .select("*")
+      .eq("store_id", identity.store_id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("[studio.functions] getBrandBriefing error:", error.message);
+      return null;
+    }
+
+    return data as BrandBriefingDTO | null;
+  });
+
+/**
+ * saveBrandBriefing — Persiste o briefing estratégico
+ */
+export const saveBrandBriefing = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      company: z.record(z.any()).optional(),
+      audience: z.record(z.any()).optional(),
+      market: z.record(z.any()).optional(),
+      content: z.record(z.any()).optional(),
+      channels: z.array(z.any()).optional(),
+      completeness_score: z.number().min(0).max(100).optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    const supabase = getServerClient();
+
+    if (!identity.store_id) throw new Error("Loja não identificada.");
+
+    const payload = {
+      store_id: identity.store_id,
+      company: data.company ?? {},
+      audience: data.audience ?? {},
+      market: data.market ?? {},
+      content: data.content ?? {},
+      channels: data.channels ?? [],
+      completeness_score: data.completeness_score ?? 0,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data: existing } = await supabase
+      .from("briefings")
+      .select("id")
+      .eq("store_id", identity.store_id)
+      .maybeSingle();
+
+    if (existing?.id) {
+      const { data: updated, error } = await supabase
+        .from("briefings")
+        .update(payload)
+        .eq("id", existing.id)
+        .select("*")
+        .single();
+
+      if (error) throw new Error("Erro ao atualizar Briefing: " + error.message);
+      return updated as BrandBriefingDTO;
+    } else {
+      const { data: created, error } = await supabase
+        .from("briefings")
+        .insert(payload)
+        .select("*")
+        .single();
+
+      if (error) throw new Error("Erro ao criar Briefing: " + error.message);
+      return created as BrandBriefingDTO;
+    }
+  });
+
+/**
+ * generateBrandBriefingWithAI — Usa IA para completar lacunas estratégicas do briefing
+ */
+export const generateBrandBriefingWithAI = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      company_name: z.string().optional(),
+      segment: z.string().optional(),
+      target_audience: z.string().optional(),
+      main_differentials: z.string().optional(),
+    }).optional(),
+  )
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    const supabase = getServerClient();
+
+    if (!identity.store_id) throw new Error("Loja não identificada.");
+
+    const { data: result, error } = await supabase.functions.invoke("sw-briefing-generate", {
+      body: {
+        store_id: identity.store_id,
+        form_data: {
+          company_name: data?.company_name || "",
+          segment: data?.segment || "",
+          target_audience: data?.target_audience || "",
+          main_differentials: data?.main_differentials || "",
+        },
+      },
+    });
+
+    if (error) throw new Error("Erro na geração de briefing com IA: " + error.message);
+    return result?.data ?? result ?? null;
+  });

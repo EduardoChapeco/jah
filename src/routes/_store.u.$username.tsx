@@ -30,9 +30,14 @@ export const Route = createFileRoute("/_store/u/$username")({
  };
  },
  loader: async ({ params }): Promise<{ data: any }> => {
- const usernameParam = params.username;
- const data = await getPublicMemberProfile({ data: { profileId: usernameParam } }).catch(() => null);
- return { data };
+  try {
+  const usernameParam = params.username;
+  const data = await getPublicMemberProfile({ data: { profileId: usernameParam } }).catch(() => null);
+  return { data };
+  } catch (err) {
+    console.error("[loader:_store.u.$username] Unhandled error:", err);
+    return { data: null };
+  }
  },
  component: MemberVanityPage,
 });

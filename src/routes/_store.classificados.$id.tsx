@@ -49,6 +49,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatMoney } from "@/lib/money";
 import { formatRelativeTime, formatDate } from "@/lib/datetime";
 import { trackAndOpenWhatsApp } from "@/lib/whatsapp";
+import { MapLibreCanvas } from "@/components/mobility/maplibre-canvas";
 import {
  getPublicClassifiedById,
  updateClassifiedStatus,
@@ -119,7 +120,7 @@ function ClassifiedDetailError({ error }: { error: Error }) {
       <div className="inline-flex size-16 items-center justify-center rounded-2xl bg-muted text-muted-foreground mb-2">
         <Tag className="size-8 text-primary" />
       </div>
-      <h1 className="text-xl font-bold text-foreground">Anúncio em Carregamento ou Indisponível</h1>
+      <h1 className="text-xl font-bold text-foreground">Anúncio Indisponível</h1>
       <p className="text-xs text-muted-foreground max-w-md mx-auto">
         Não foi possível carregar os dados deste anúncio no momento. Tente novamente em instantes.
       </p>
@@ -700,7 +701,7 @@ const handleDownloadDigitalFile = async () => {
  </div>
 
  {/* Atributos Gerais Semânticos */}
- <div className=" pt-4 grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+ <div className=" pt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
  {semanticCondition && (
  <div>
  <span className="text-muted-foreground block mb-0.5">{semanticCondition.label}</span>
@@ -802,7 +803,7 @@ const handleDownloadDigitalFile = async () => {
  <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
  Ficha do Veículo
  </h3>
- <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-muted/30 p-3.5 rounded-xl ">
+ <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-muted/30 p-3.5 rounded-xl ">
  {classified.attributes.brand && (
  <div>
  <span className="text-muted-foreground block text-[10px]">Marca</span>
@@ -854,7 +855,7 @@ const handleDownloadDigitalFile = async () => {
 
  {/* Smartphone */}
  {classified.attributes.desapego_subcategory === "smartphones" && (
- <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
+ <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
  {classified.attributes.brand && (
  <div>
  <span className="text-muted-foreground block text-[10px]">Marca</span>
@@ -890,7 +891,7 @@ const handleDownloadDigitalFile = async () => {
 
  {/* Computador / Notebook */}
  {classified.attributes.desapego_subcategory === "computadores" && (
- <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
+ <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
  {classified.attributes.computer_type && (
  <div>
  <span className="text-muted-foreground block text-[10px]">Tipo</span>
@@ -932,7 +933,7 @@ const handleDownloadDigitalFile = async () => {
 
  {/* Eletrodoméstico */}
  {classified.attributes.desapego_subcategory === "eletrodomesticos" && (
- <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
+ <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
  {classified.attributes.appliance_type && (
  <div>
  <span className="text-muted-foreground block text-[10px]">Tipo</span>
@@ -962,7 +963,7 @@ const handleDownloadDigitalFile = async () => {
 
  {/* Games & Consoles */}
  {classified.attributes.desapego_subcategory === "games_consoles" && (
- <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
+ <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
  {classified.attributes.console && (
  <div>
  <span className="text-muted-foreground block text-[10px]">Console</span>
@@ -980,7 +981,7 @@ const handleDownloadDigitalFile = async () => {
 
  {/* Móveis & Decoração */}
  {classified.attributes.desapego_subcategory === "moveis" && (
- <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
+ <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
  {classified.attributes.room && (
  <div>
  <span className="text-muted-foreground block text-[10px]">Ambiente</span>
@@ -1004,7 +1005,7 @@ const handleDownloadDigitalFile = async () => {
 
  {/* Brechó & Moda */}
  {classified.attributes.desapego_subcategory === "moda_brecho" && (
- <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
+ <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
  {classified.attributes.fashion_category && (
  <div>
  <span className="text-muted-foreground block text-[10px]">Categoria</span>
@@ -1363,20 +1364,41 @@ const handleDownloadDigitalFile = async () => {
  )}
  </div>
 
- {/* Localização Aproximada */}
- <div className=" bg-card rounded-2xl p-6 space-y-2 ">
- <div className="flex items-center gap-2">
- <MapPin className="size-4 text-primary" />
- <h2 className="text-sm font-bold text-foreground">Localização Aproximada</h2>
- </div>
- <p className="text-xs font-medium text-foreground">
- {classified.location_name || classified.location_text || "Região Central"}
- </p>
- <p className="text-[11px] text-muted-foreground">
- Por segurança e privacidade, o endereço detalhado é combinado diretamente com o
- anunciante após a proposta.
- </p>
- </div>
+ {/* Localização no Mapa Real (MapLibre OpenStreetMap) */}
+              <div className="bg-card rounded-2xl border border-border/60 p-6 space-y-4 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="size-4 text-primary" />
+                    <h2 className="text-sm font-bold text-foreground">Localização no Mapa</h2>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] font-mono font-bold">
+                    {classified.location_name || classified.location_text || "Região Central"}
+                  </Badge>
+                </div>
+
+                <div className="h-[220px] w-full rounded-2xl overflow-hidden border border-border/70 relative shadow-2xs">
+                  <MapLibreCanvas
+                    center={{
+                      lat: Number(classified.location_lat || classified.latitude || classified.attributes?.latitude || -27.1004),
+                      lng: Number(classified.location_lng || classified.longitude || classified.attributes?.longitude || -52.6152),
+                    }}
+                    zoom={14}
+                    markers={[
+                      {
+                        id: classified.id,
+                        lat: Number(classified.location_lat || classified.latitude || classified.attributes?.latitude || -27.1004),
+                        lng: Number(classified.location_lng || classified.longitude || classified.attributes?.longitude || -52.6152),
+                        title: classified.title,
+                        image_url: classified.media?.[0] || null,
+                      },
+                    ]}
+                  />
+                </div>
+
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Por segurança e privacidade, a localização no mapa indica a região aproximada do anúncio. O endereço exato é combinado diretamente entre as partes.
+                </p>
+              </div>
  </div>
 
  {/* Coluna Direita: Informações Essenciais & Ações (5 colunas) */}
@@ -1462,20 +1484,20 @@ const handleDownloadDigitalFile = async () => {
 
  {/* Entrega e Download de Produto Digital */}
  {(classified.is_digital || classified.attributes?.is_digital || classified.digital_file_url) && (
-   <div className="border border-indigo-500/30 rounded-2xl p-4 bg-indigo-500/5 space-y-3">
+   <div className="border border-primary/20 rounded-2xl p-4 bg-primary/5 space-y-3">
      <div className="flex items-center justify-between">
        <div className="flex items-center gap-2 text-xs font-bold text-foreground">
-         <FileArchive className="size-4 text-indigo-600 dark:text-indigo-400" />
+         <FileArchive className="size-4 text-primary" />
          <span>Entrega Digital Imediata</span>
        </div>
-       <Badge variant="default" className="text-[10px] font-mono bg-indigo-600 text-white">
+       <Badge variant="default" className="text-[10px] font-mono bg-primary text-primary-foreground">
          Download Seguro
        </Badge>
      </div>
 
      <div className="p-3 rounded-xl bg-background border border-border/60 flex items-center justify-between gap-3">
        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-         <div className="size-9 rounded-lg bg-indigo-500/10 text-indigo-600 flex items-center justify-center shrink-0">
+         <div className="size-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
            <FileArchive className="size-4" />
          </div>
          <div className="min-w-0 flex-1">
@@ -1496,7 +1518,7 @@ const handleDownloadDigitalFile = async () => {
            size="sm"
            onClick={handleDownloadDigitalFile}
            disabled={isDownloadingDigital}
-           className="text-xs h-8 gap-1.5 shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white"
+           className="text-xs h-8 gap-1.5 shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground"
          >
            {isDownloadingDigital ? (
              <Loader2 className="size-3.5 animate-spin" />
@@ -1978,7 +2000,7 @@ const handleDownloadDigitalFile = async () => {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground">Modalidade de Atendimento</label>
-                  <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                     {[
                       { id: "presencial", label: "No Local" },
                       { id: "domicilio", label: "A Domicílio" },

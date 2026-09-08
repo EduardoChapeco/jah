@@ -31,7 +31,12 @@ import { Wallet, ArrowDownRight, ArrowUpRight } from "lucide-react";
 export const Route = createFileRoute("/workspace/financeiro/funcionarios")({
  head: () => ({ meta: [{ title: "Folha e Comissões | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  return await listEmployeesBalance();
+   } catch (err) {
+     console.error("[loader:workspace.financeiro.funcionarios] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: HrFinancePage,
 });

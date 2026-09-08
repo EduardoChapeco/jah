@@ -86,11 +86,16 @@ import {
 export const Route = createFileRoute("/workspace/turismo/destinos")({
  head: () => ({ meta: [{ title: "Banco de Destinos Turísticos & CMS | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const [destinations, store] = await Promise.all([
  listDestinations().catch(() => []),
  getStoreSettings().catch(() => null),
  ]);
  return { destinations: destinations || [], store };
+   } catch (err) {
+     console.error("[loader:workspace.turismo.destinos] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspaceDestinationsPage,
 });

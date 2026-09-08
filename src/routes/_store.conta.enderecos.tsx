@@ -23,7 +23,12 @@ import { CitySelect } from "@/components/ui/city-select";
 export const Route = createFileRoute("/_store/conta/enderecos")({
  head: () => ({ meta: [{ title: "Meus Endereços | Wider OS" }] }),
  loader: async () => {
+   try {
  return (await getCustomerAddresses().catch(() => [])) || [];
+   } catch (err) {
+     console.error("[loader:_store.conta.enderecos] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: AddressesPage,
 });

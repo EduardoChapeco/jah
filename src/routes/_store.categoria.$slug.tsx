@@ -10,11 +10,16 @@ import type { CategoryDTO, ProductCardDTO } from "@/types/catalog";
 
 export const Route = createFileRoute("/_store/categoria/$slug")({
  loader: async ({ params }) => {
+   try {
  const [productsResult, categoriesResult] = await Promise.all([
  listPublishedProducts({ data: { categorySlug: params.slug } }),
  listPublishedCategories(),
  ]);
  return { productsResult, categoriesResult, slug: params.slug };
+   } catch (err) {
+     console.error("[loader:_store.categoria.$slug] Unhandled error:", err);
+     return null;
+   }
  },
  head: ({ loaderData }) => {
  const data = loaderData as any;

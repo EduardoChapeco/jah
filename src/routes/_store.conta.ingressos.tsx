@@ -9,6 +9,7 @@ import { listCustomerOrders } from "@/services/order.functions";
 export const Route = createFileRoute("/_store/conta/ingressos")({
  head: () => ({ meta: [{ title: "Meus Ingressos & Eventos | Wider OS" }] }),
  loader: async () => {
+   try {
  const orders = (await listCustomerOrders().catch(() => [])) || [];
  // Filtra itens de ingresso ou eventos
  const ticketOrders = orders.filter((order: any) =>
@@ -17,6 +18,10 @@ export const Route = createFileRoute("/_store/conta/ingressos")({
  ),
  );
  return ticketOrders;
+   } catch (err) {
+     console.error("[loader:_store.conta.ingressos] Unhandled error:", err);
+     return null;
+   }
  },
  component: CustomerTicketsPage,
 });

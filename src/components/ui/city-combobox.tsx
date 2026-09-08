@@ -1,276 +1,436 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
- MapPin,
- Check,
- ChevronsUpDown,
- Search,
- Crosshair,
- Building,
- Navigation,
+  MapPin,
+  Check,
+  ChevronsUpDown,
+  Search,
+  Crosshair,
+  Building,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
- CANONICAL_CITIES,
- searchCanonicalCities,
- type CityRecord,
- findCityByLabel,
+  CANONICAL_CITIES,
+  searchCanonicalCities,
+  type CityRecord,
+  findCityByLabel,
 } from "@/lib/constants/cities";
 import { useMasterLocation } from "@/components/location/location-master-pill";
 
+// ── Vaul Drawer primitives (mobile) ─────────────────────────────────────────
+import { Drawer as DrawerPrimitive } from "vaul";
+
+const DrawerRoot = ({ shouldScaleBackground = false, ...props }: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
+  <DrawerPrimitive.Root shouldScaleBackground={shouldScaleBackground} {...props} />
+);
+const DrawerPortal = DrawerPrimitive.Portal;
+const DrawerOverlay = React.forwardRef<
+  React.ElementRef<typeof DrawerPrimitive.Overlay>,
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Overlay>
+>(({ className, ...props }, ref) => (
+  <DrawerPrimitive.Overlay ref={ref} className={cn("fixed inset-0 z-50 bg-black/60 backdrop-blur-sm", className)} {...props} />
+));
+DrawerOverlay.displayName = "DrawerOverlay";
+
+const DrawerContent = React.forwardRef<
+  React.ElementRef<typeof DrawerPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <DrawerPortal>
+    <DrawerOverlay />
+    <DrawerPrimitive.Content
+      ref={ref}
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-3xl border border-border/60 bg-background",
+        "max-h-[80dvh]",
+        className,
+      )}
+      {...props}
+    >
+      {/* Drag Handle */}
+      <div className="mx-auto mt-3 mb-1 h-1 w-10 shrink-0 rounded-full bg-border" />
+      {children}
+    </DrawerPrimitive.Content>
+  </DrawerPortal>
+));
+DrawerContent.displayName = "DrawerContent";
+
+// ── Types ────────────────────────────────────────────────────────────────────
 export interface StructuredLocationValue {
- city: string;
- state: string;
- neighborhood: string;
- formatted: string;
+  city: string;
+  state: string;
+  neighborhood: string;
+  formatted: string;
 }
 
 interface CityComboboxProps {
- value?: string; // Ex: "Centro, Chapecó - SC" ou "Chapecó - SC"
- onChange: (formatted: string, structured?: StructuredLocationValue) => void;
- className?: string;
- label?: string;
- helperText?: string;
- required?: boolean;
+  value?: string;
+  onChange: (formatted: string, structured?: StructuredLocationValue) => void;
+  className?: string;
+  label?: string;
+  helperText?: string;
+  required?: boolean;
 }
 
+// ── Quick-access regional poles (Oeste SC / priority cities) ─────────────────
+const QUICK_CITIES_IDS = [
+  "sao-miguel-do-oeste-sc",
+  "chapeco-sc",
+  "xanxere-sc",
+  "concordia-sc",
+  "sao-lourenco-do-oeste-sc",
+];
+
+// ── City picker inner panel (shared between mobile sheet & desktop popover) ──
+function CityPickerPanel({
+  searchQuery,
+  setSearchQuery,
+  selectedCity,
+  onSelect,
+  onClose,
+}: {
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
+  selectedCity: CityRecord | null;
+  onSelect: (city: CityRecord) => void;
+  onClose: () => void;
+}) {
+  const filteredCities = searchCanonicalCities(searchQuery, 12);
+  const quickCities = QUICK_CITIES_IDS
+    .map((id) => CANONICAL_CITIES.find((c) => c.id === id))
+    .filter(Boolean) as CityRecord[];
+
+  return (
+    <div className="flex flex-col gap-3 pb-safe-bottom">
+      {/* Search bar */}
+      <div className="relative px-4">
+        <Search className="absolute left-7 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Buscar cidade..."
+          className="h-11 pl-10 pr-10 rounded-2xl text-sm bg-muted/50 border-border/60 font-medium"
+          autoFocus
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery("")}
+            className="absolute right-7 top-1/2 -translate-y-1/2 size-7 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-full transition-colors"
+          >
+            <X className="size-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Quick-access chips */}
+      {!searchQuery && (
+        <div className="px-4 flex items-center gap-2 overflow-x-auto no-scrollbar pb-0.5">
+          {quickCities.map((city) => (
+            <button
+              key={city.id}
+              type="button"
+              onClick={() => { onSelect(city); onClose(); }}
+              className={cn(
+                "shrink-0 h-8 px-3 rounded-xl text-xs font-semibold border transition-all cursor-pointer",
+                selectedCity?.id === city.id
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-foreground border-border/70 hover:border-primary/50 hover:bg-primary/5"
+              )}
+            >
+              {city.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Results list */}
+      <div className="overflow-y-auto flex-1 px-2 pb-6 space-y-0.5">
+        {filteredCities.length > 0 ? (
+          filteredCities.map((city) => {
+            const isSelected = selectedCity?.id === city.id;
+            return (
+              <button
+                key={city.id}
+                type="button"
+                onClick={() => { onSelect(city); onClose(); }}
+                className={cn(
+                  "w-full flex items-center justify-between gap-3 px-3 py-3 rounded-xl text-left cursor-pointer transition-colors",
+                  isSelected
+                    ? "bg-primary/10 text-primary"
+                    : "hover:bg-muted/60 text-foreground"
+                )}
+              >
+                <div className="flex flex-col min-w-0">
+                  <span className={cn("text-sm font-semibold truncate", isSelected && "text-primary")}>
+                    {city.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground font-normal">
+                    {city.state} • {city.region}
+                  </span>
+                </div>
+                {isSelected && <Check className="size-4 text-primary shrink-0" />}
+              </button>
+            );
+          })
+        ) : (
+          <div className="py-10 text-center text-sm text-muted-foreground">
+            Nenhuma cidade encontrada para &ldquo;{searchQuery}&rdquo;
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Main Component ────────────────────────────────────────────────────────────
 export function CityCombobox({
- value = "",
- onChange,
- className = "",
- label = "Localização do Anúncio",
- helperText = "Para sua privacidade, o endereço exato ou número não é divulgado.",
- required = false,
+  value = "",
+  onChange,
+  className = "",
+  label = "Cidade do Anúncio",
+  helperText = "Para sua privacidade, o endereço exato não é exibido publicamente.",
+  required = false,
 }: CityComboboxProps) {
- const { location: masterLoc } = useMasterLocation();
- const [isOpen, setIsOpen] = useState(false);
- const [searchQuery, setSearchQuery] = useState("");
- const [selectedCity, setSelectedCity] = useState<CityRecord | null>(() => {
- // Tenta derivar a cidade a partir do value inicial ou da master location
- if (value) {
- const parts = value.split("—").map((p) => p.trim());
- const lastPart = parts[parts.length - 1] || "";
- const matched = findCityByLabel(lastPart) || findCityByLabel(value);
- if (matched) return matched;
- }
- if (masterLoc.city && masterLoc.city.toLowerCase() !== "global") {
- return findCityByLabel(masterLoc.city) || null;
- }
- return null;
- });
+  const { location: masterLoc } = useMasterLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopOpen, setDesktopOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
- const [neighborhood, setNeighborhood] = useState(() => {
- if (value && value.includes("—")) {
- return value.split("—")[0].trim();
- }
- if (value && value.includes(",")) {
- return value.split(",")[0].trim();
- }
- return "";
- });
+  const [selectedCity, setSelectedCity] = useState<CityRecord | null>(() => {
+    if (value) {
+      const parts = value.split("—").map((p) => p.trim());
+      const lastPart = parts[parts.length - 1] || "";
+      const matched = findCityByLabel(lastPart) || findCityByLabel(value);
+      if (matched) return matched;
+    }
+    if (masterLoc.city && masterLoc.city.toLowerCase() !== "global") {
+      return findCityByLabel(masterLoc.city) || null;
+    }
+    return null;
+  });
 
- const dropdownRef = useRef<HTMLDivElement>(null);
+  const [neighborhood, setNeighborhood] = useState(() => {
+    if (value && value.includes("—")) return value.split("—")[0].trim();
+    if (value && value.includes(",")) return value.split(",")[0].trim();
+    return "";
+  });
 
- // Inicializa o valor se vier preenchido
- useEffect(() => {
- if (!value && selectedCity) {
- const formatted = neighborhood
- ? `${neighborhood} — ${selectedCity.label}`
- : selectedCity.label;
- onChange(formatted, {
- city: selectedCity.name,
- state: selectedCity.state,
- neighborhood,
- formatted,
- });
- }
- }, []);
+  // Seed onChange once on mount if no value provided
+  useEffect(() => {
+    if (!value && selectedCity) {
+      const formatted = neighborhood
+        ? `${neighborhood} — ${selectedCity.label}`
+        : selectedCity.label;
+      onChange(formatted, { city: selectedCity.name, state: selectedCity.state, neighborhood, formatted });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
- // Fecha dropdown ao clicar fora
- useEffect(() => {
- function handleClickOutside(event: MouseEvent) {
- if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
- setIsOpen(false);
- }
- }
- document.addEventListener("mousedown", handleClickOutside);
- return () => document.removeEventListener("mousedown", handleClickOutside);
- }, []);
+  // Close desktop dropdown when clicking outside
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDesktopOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
 
- const filteredCities = searchCanonicalCities(searchQuery, 8);
+  const handleSelectCity = (city: CityRecord) => {
+    setSelectedCity(city);
+    setSearchQuery("");
+    const formatted = neighborhood ? `${neighborhood} — ${city.label}` : city.label;
+    onChange(formatted, { city: city.name, state: city.state, neighborhood, formatted });
+  };
 
- const handleSelectCity = (city: CityRecord) => {
- setSelectedCity(city);
- setIsOpen(false);
- setSearchQuery("");
- const formatted = neighborhood ? `${neighborhood} — ${city.label}` : city.label;
- onChange(formatted, {
- city: city.name,
- state: city.state,
- neighborhood,
- formatted,
- });
- };
+  const handleNeighborhoodChange = (newNeigh: string) => {
+    setNeighborhood(newNeigh);
+    const cityLabel = selectedCity ? selectedCity.label : (masterLoc.city !== "Global" ? masterLoc.city : "");
+    const cityName = selectedCity ? selectedCity.name : (masterLoc.city !== "Global" ? masterLoc.city : "");
+    const cityState = selectedCity ? selectedCity.state : (masterLoc.state || "");
+    const formatted = newNeigh.trim() && cityLabel
+      ? `${newNeigh.trim()} — ${cityLabel}`
+      : cityLabel || newNeigh.trim();
+    onChange(formatted, { city: cityName, state: cityState, neighborhood: newNeigh.trim(), formatted });
+  };
 
- const handleNeighborhoodChange = (newNeigh: string) => {
- setNeighborhood(newNeigh);
- const cityLabel = selectedCity ? selectedCity.label : (masterLoc.city !== "Global" ? masterLoc.city : "Sua Cidade");
- const cityName = selectedCity ? selectedCity.name : (masterLoc.city !== "Global" ? masterLoc.city : "Sua Cidade");
- const cityState = selectedCity ? selectedCity.state : (masterLoc.state || "");
- const formatted = newNeigh.trim() ? `${newNeigh.trim()} — ${cityLabel}` : cityLabel;
- onChange(formatted, {
- city: cityName,
- state: cityState,
- neighborhood: newNeigh.trim(),
- formatted,
- });
- };
+  const handleAutoFill = () => {
+    if (!masterLoc.city || masterLoc.city.toLowerCase() === "global") return;
+    const matched =
+      findCityByLabel(masterLoc.city) ||
+      CANONICAL_CITIES.find((c) => c.name.toLowerCase() === masterLoc.city.toLowerCase());
+    if (matched) {
+      setSelectedCity(matched);
+      const neigh = masterLoc.address?.split(",")[0]?.trim() || "";
+      setNeighborhood(neigh);
+      const formatted = neigh ? `${neigh} — ${matched.label}` : matched.label;
+      onChange(formatted, { city: matched.name, state: matched.state, neighborhood: neigh, formatted });
+    }
+  };
 
- const handleAutoFillCurrent = () => {
- if (!masterLoc.city || masterLoc.city.toLowerCase() === "global") {
- return;
- }
- const matched =
- findCityByLabel(masterLoc.city) ||
- CANONICAL_CITIES.find((c) => c.name.toLowerCase() === masterLoc.city.toLowerCase());
- if (matched) {
- setSelectedCity(matched);
- const neigh = masterLoc.address?.split(",")[0]?.trim() || "";
- setNeighborhood(neigh);
- const formatted = neigh ? `${neigh} — ${matched.label}` : matched.label;
- onChange(formatted, {
- city: matched.name,
- state: matched.state,
- neighborhood: neigh,
- formatted,
- });
- }
- };
+  const triggerLabel = selectedCity ? selectedCity.label : "Selecionar cidade";
 
- return (
- <div className={cn("space-y-3", className)}>
- <div className="flex items-center justify-between">
- <Label className="text-xs text-foreground font-medium flex items-center gap-1.5">
- <MapPin className="size-3.5 text-primary" />
- <span>{label}</span>
- {required && <span className="text-destructive">*</span>}
- </Label>
+  // ── Trigger Button (shared) ──────────────────────────────────────────────
+  const TriggerButton = ({ onClick }: { onClick: () => void }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "w-full h-11 px-3 rounded-xl flex items-center justify-between gap-2 text-sm font-medium transition-all cursor-pointer",
+        "border border-border/80 bg-background hover:border-primary/50 hover:bg-muted/30",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+        !selectedCity && "text-muted-foreground"
+      )}
+    >
+      <span className="flex items-center gap-2 truncate">
+        <Building className="size-4 text-muted-foreground shrink-0" />
+        <span className="truncate">{triggerLabel}</span>
+      </span>
+      <ChevronsUpDown className="size-4 text-muted-foreground shrink-0" />
+    </button>
+  );
 
- {/* Botão de Autopreenchimento Rápido */}
- {masterLoc.city && masterLoc.city.toLowerCase() !== "global" && (
- <button
- type="button"
- onClick={handleAutoFillCurrent}
- className="text-[11px] text-primary hover:underline font-medium flex items-center gap-1 cursor-pointer transition-colors"
- >
- <Crosshair className="size-3" />
- <span>Usar {masterLoc.city}</span>
- </button>
- )}
- </div>
+  return (
+    <div className={cn("space-y-3", className)}>
+      {/* Label row */}
+      <div className="flex items-center justify-between gap-2">
+        <Label className="text-xs text-foreground font-medium flex items-center gap-1.5">
+          <MapPin className="size-3.5 text-primary" />
+          <span>{label}</span>
+          {required && <span className="text-destructive">*</span>}
+        </Label>
+        {masterLoc.city && masterLoc.city.toLowerCase() !== "global" && (
+          <button
+            type="button"
+            onClick={handleAutoFill}
+            className="flex-shrink-0 text-[11px] text-primary hover:underline font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+          >
+            <Crosshair className="size-3" />
+            <span>Usar {masterLoc.city}</span>
+          </button>
+        )}
+      </div>
 
- <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
- {/* Input de Bairro / Região */}
- <div className="sm:col-span-6 space-y-1">
- <Input
- value={neighborhood}
- onChange={(e) => handleNeighborhoodChange(e.target.value)}
- placeholder="Bairro (ex: Centro, Efapi, Seminário)"
- className="h-10 rounded-xl text-xs bg-background font-medium"
- />
- </div>
+      {/* Two-column grid: Neighborhood + City */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        {/* Neighborhood input */}
+        <Input
+          value={neighborhood}
+          onChange={(e) => handleNeighborhoodChange(e.target.value)}
+          placeholder="Bairro / Região (ex: Centro)"
+          className="h-11 rounded-xl text-sm bg-background border-border/80 font-medium placeholder:text-muted-foreground/60"
+        />
 
- {/* Select de Cidade Padronizada (Banco Canônico) */}
- <div className="sm:col-span-6 relative" ref={dropdownRef}>
- <button
- type="button"
- onClick={() => setIsOpen(!isOpen)}
- className="w-full h-10 px-3 rounded-xl bg-background hover:bg-muted/40 flex items-center justify-between gap-2 text-xs font-semibold text-foreground transition-all cursor-pointer text-left"
- >
- <div className="flex items-center gap-2 truncate">
- <Building className="size-3.5 text-muted-foreground shrink-0" />
- <span className="truncate">
- {selectedCity ? selectedCity.label : "Selecione a Cidade"}
- </span>
- </div>
- <ChevronsUpDown className="size-3.5 text-muted-foreground shrink-0" />
- </button>
+        {/* ── Mobile: Vaul Drawer ── */}
+        <div className="sm:hidden">
+          <DrawerRoot open={mobileOpen} onOpenChange={setMobileOpen}>
+            <DrawerPrimitive.Trigger asChild>
+              <TriggerButton onClick={() => setMobileOpen(true)} />
+            </DrawerPrimitive.Trigger>
+            <DrawerContent className="pb-[env(safe-area-inset-bottom)] min-h-[60dvh]">
+              <div className="px-4 pb-2 pt-1">
+                <DrawerPrimitive.Title className="text-base font-bold text-foreground">
+                  Selecionar Cidade
+                </DrawerPrimitive.Title>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <CityPickerPanel
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  selectedCity={selectedCity}
+                  onSelect={handleSelectCity}
+                  onClose={() => setMobileOpen(false)}
+                />
+              </div>
+            </DrawerContent>
+          </DrawerRoot>
+        </div>
 
- {/* Dropdown com Busca Inteligente */}
- {isOpen && (
- <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-popover text-popover-foreground rounded-2xl p-2 space-y-1.5 max-h-72 overflow-y-auto no-scrollbar animate-in fade-in-50 zoom-in-95">
- <div className="relative px-1 pt-1 pb-1">
- <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
- <Input
- value={searchQuery}
- onChange={(e) => setSearchQuery(e.target.value)}
- placeholder="Buscar cidade ou estado..."
- className="h-8 pl-8 text-xs rounded-lg bg-muted/50 border-none font-medium"
- autoFocus
- />
- </div>
+        {/* ── Desktop: Popover dropdown ── */}
+        <div className="hidden sm:block relative" ref={dropdownRef}>
+          <TriggerButton onClick={() => { setDesktopOpen(!desktopOpen); setSearchQuery(""); }} />
 
- {/* Chips de Destaque Regional */}
- <div className="px-1 py-1 flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2">
- {CANONICAL_CITIES.slice(0, 4).map((topCity) => (
- <button
- key={topCity.id}
- type="button"
- onClick={() => handleSelectCity(topCity)}
- className={`text-[10px] px-2 py-0.5 rounded-md font-medium border shrink-0 transition-colors ${
- selectedCity?.id === topCity.id
- ? "bg-primary text-primary-foreground border-primary"
- : "bg-muted hover:bg-muted/80 text-foreground border-border"
- }`}
- >
- {topCity.name}
- </button>
- ))}
- </div>
+          {desktopOpen && (
+            <div
+              className={cn(
+                "absolute left-0 right-0 top-[calc(100%+6px)] z-50",
+                "bg-popover border border-border/80 rounded-2xl shadow-xl",
+                "overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150",
+              )}
+            >
+              <div className="p-2 border-b border-border/40">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Buscar cidade..."
+                    className="h-9 pl-9 rounded-xl text-xs bg-muted/50 border-none font-medium"
+                    autoFocus
+                  />
+                </div>
+                {/* Chips */}
+                <div className="flex items-center gap-1.5 mt-2 overflow-x-auto no-scrollbar pb-0.5">
+                  {QUICK_CITIES_IDS.map((id) => {
+                    const city = CANONICAL_CITIES.find((c) => c.id === id);
+                    if (!city) return null;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => { handleSelectCity(city); setDesktopOpen(false); }}
+                        className={cn(
+                          "shrink-0 h-7 px-2.5 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer",
+                          selectedCity?.id === id
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-muted text-foreground border-border hover:border-primary/50"
+                        )}
+                      >
+                        {city.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
- {/* Lista de Resultados */}
- <div className="space-y-0.5 pt-1">
- {filteredCities.length > 0 ? (
- filteredCities.map((city) => {
- const isSelected = selectedCity?.id === city.id;
- return (
- <button
- key={city.id}
- type="button"
- onClick={() => handleSelectCity(city)}
- className={`w-full flex items-center justify-between p-2 rounded-xl text-xs transition-colors text-left cursor-pointer ${
- isSelected
- ? "bg-primary/10 text-primary font-bold"
- : "hover:bg-muted/60 text-foreground font-medium"
- }`}
- >
- <div className="flex flex-col">
- <span className="leading-tight">{city.name}</span>
- <span className="text-[10px] text-muted-foreground font-normal">
- {city.state} • {city.region}
- </span>
- </div>
- {isSelected && <Check className="size-3.5 text-primary shrink-0" />}
- </button>
- );
- })
- ) : (
- <div className="p-3 text-center text-xs text-muted-foreground">
- Nenhuma cidade encontrada para &quot;{searchQuery}&quot;
- </div>
- )}
- </div>
- </div>
- )}
- </div>
- </div>
+              {/* Results */}
+              <div className="max-h-56 overflow-y-auto p-1 space-y-0.5">
+                {searchCanonicalCities(searchQuery, 10).map((city) => {
+                  const isSelected = selectedCity?.id === city.id;
+                  return (
+                    <button
+                      key={city.id}
+                      type="button"
+                      onClick={() => { handleSelectCity(city); setDesktopOpen(false); }}
+                      className={cn(
+                        "w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors text-left",
+                        isSelected
+                          ? "bg-primary/10 text-primary font-bold"
+                          : "hover:bg-muted/70 text-foreground font-medium"
+                      )}
+                    >
+                      <div className="flex flex-col min-w-0">
+                        <span className="truncate">{city.name}</span>
+                        <span className="text-[10px] text-muted-foreground font-normal">{city.state} • {city.region}</span>
+                      </div>
+                      {isSelected && <Check className="size-3.5 text-primary shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
- {helperText && (
- <p className="text-[10px] text-muted-foreground leading-relaxed">{helperText}</p>
- )}
- </div>
- );
+      {helperText && (
+        <p className="text-[10px] text-muted-foreground leading-relaxed">{helperText}</p>
+      )}
+    </div>
+  );
 }

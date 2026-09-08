@@ -118,3 +118,42 @@ export const updateSellerCommissionRate = createServerFn({ method: "POST" })
  if (error) throw new Error("Erro ao atualizar taxa de comissão");
  return { status: "success" };
  });
+
+export const getTripCommissionDetails = createServerFn({ method: "GET" })
+  .validator(z.object({ tripId: z.string() }))
+  .handler(async ({ data }) => {
+    try {
+      const supabase = getServerClient();
+      const identity = await getServerIdentity();
+      const [commRes, suppliersRes] = await Promise.all([
+        supabase.from("trip_commissions").select("*").eq("trip_id", data.tripId).maybeSingle(),
+        supabase.from("travel_suppliers").select("id, name").eq("store_id", identity.store_id || "").limit(50),
+      ]);
+      return {
+        commission: commRes.data || null,
+        suppliers: suppliersRes.data || [],
+      };
+    } catch {
+      return { commission: null, suppliers: [] };
+    }
+  });
+
+export const saveTripCommission = createServerFn({ method: "POST" })
+  .validator(z.object({
+    tripId: z.string(),
+    payload: z.record(z.any()),
+  }))
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    const { data: existing } = await supabase.from("trip_commissions").select("id").eq("trip_id", data.tripId).maybeSingle();
+    if (existing) {
+      const { data: updated, error } = await supabase.from("trip_commissions").update(data.payload).eq("id", existing.id).select().single();
+      if (error) throw error;
+      return updated;
+    } else {
+      const { data: created, error } = await supabase.from("trip_commissions").insert({ ...data.payload, trip_id: data.tripId, store_id: identity.store_id }).select().single();
+      if (error) throw error;
+      return created;
+    }
+  });

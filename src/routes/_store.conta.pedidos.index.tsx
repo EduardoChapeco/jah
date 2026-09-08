@@ -2,134 +2,139 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { formatMoney } from "@/lib/money";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EmptyState, ErrorState } from "@/components/state/states";
 import { listCustomerOrders } from "@/services/order.functions";
 import { formatDate } from "@/lib/datetime";
+import { ShoppingBag, ChevronRight } from "lucide-react";
 
-export const Route = createFileRoute("/_store/conta/pedidos/")({
- head: () => ({ meta: [{ title: "Meus Pedidos | Wider OS" }] }),
- loader: async () => {
- return (await listCustomerOrders().catch(() => [])) || [];
- },
- component: Page,
-});
+export const Route = createFileRoute("/_store/conta/pedidos/")(({
+  head: () => ({ meta: [{ title: "Pedidos | Wider" }] }),
+  loader: async () => {
+    try {
+      return (await listCustomerOrders().catch(() => [])) || [];
+    } catch {
+      return [];
+    }
+  },
+  component: Page,
+} as any));
 
-function translateStatus(status: string) {
- const map: Record<string, string> = {
- draft: "Rascunho",
- awaiting_payment: "Aguardando Pagamento",
- paid: "Pago",
- processing: "Em Separação",
- ready_for_pickup: "Pronto para Retirada",
- shipped: "Enviado",
- delivered: "Entregue",
- completed: "Concluído",
- cancelled: "Cancelado",
- return_requested: "Devolução Solicitada",
- returned: "Devolvido",
- };
- return map[status] || status;
-}
+const STATUS_STYLE: Record<string, string> = {
+  draft: "bg-muted text-muted-foreground",
+  awaiting_payment: "bg-amber-500/10 text-amber-600",
+  paid: "bg-blue-500/10 text-blue-600",
+  processing: "bg-blue-500/10 text-blue-600",
+  ready_for_pickup: "bg-purple-500/10 text-purple-600",
+  shipped: "bg-primary/10 text-primary",
+  delivered: "bg-primary/10 text-primary",
+  completed: "bg-emerald-500/10 text-emerald-600",
+  cancelled: "bg-destructive/10 text-destructive",
+  return_requested: "bg-orange-500/10 text-orange-600",
+  returned: "bg-muted text-muted-foreground",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  draft: "Rascunho",
+  awaiting_payment: "Aguardando pagamento",
+  paid: "Pago",
+  processing: "Em separação",
+  ready_for_pickup: "Pronto para retirada",
+  shipped: "Enviado",
+  delivered: "Entregue",
+  completed: "Concluído",
+  cancelled: "Cancelado",
+  return_requested: "Devolução solicitada",
+  returned: "Devolvido",
+};
 
 function Page() {
- const orders = Route.useLoaderData();
+  const orders = Route.useLoaderData() as any[];
 
- return (
- <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
- {/* ── 1. Top Header Unificado ── */}
- <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5 pt-2">
- <div className="space-y-1">
- <div className="flex items-center gap-2">
- <Link
- to="/conta"
- className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
- >
- Minha Conta
- </Link>
- <span className="text-xs text-muted-foreground">/</span>
- <Badge variant="outline" className="text-[10px] font-mono uppercase font-bold tracking-wider">
- Pedidos
- </Badge>
- </div>
- <h1 className="text-2xl font-bold tracking-tight text-foreground">
- Meus Pedidos & Compras
- </h1>
- <p className="text-xs text-muted-foreground">
- Acompanhe o status de preparação, entrega e comprovantes de suas compras nas lojas.
- </p>
- </div>
+  return (
+    <div className="flex flex-col h-full pb-20">
+      {/* ── Header limpo — iFood pattern ── */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/40 px-4 py-3 shrink-0">
+        <div className="flex items-center justify-between">
+          <h1 className="text-base font-bold text-foreground">Pedidos</h1>
+          {orders.length > 0 && (
+            <span className="text-xs text-muted-foreground font-medium">
+              {orders.length} {orders.length === 1 ? "pedido" : "pedidos"}
+            </span>
+          )}
+        </div>
+      </div>
 
- <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-9 px-4 cursor-pointer self-start sm:self-auto">
- <Link to="/mercado">Ir às Compras</Link>
- </Button>
- </div>
+      {/* ── Lista ── */}
+      {orders.length === 0 ? (
+        <div className="flex flex-col items-center justify-center flex-1 py-20 px-6 text-center gap-4">
+          <ShoppingBag className="size-9 text-muted-foreground/25" strokeWidth={1.5} />
+          <div>
+            <p className="text-sm font-semibold text-foreground">Nenhum pedido</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Suas compras aparecerão aqui.</p>
+          </div>
+          <Button asChild size="sm" className="rounded-xl h-10 px-5 text-xs font-semibold">
+            <Link to="/mercado">Explorar lojas</Link>
+          </Button>
+        </div>
+      ) : (
+        <div className="divide-y divide-border/30">
+          {orders.map((order: any) => {
+            const statusLabel = STATUS_LABELS[order.status] || order.status;
+            const statusStyle = STATUS_STYLE[order.status] || "bg-muted text-muted-foreground";
+            const firstItem = order.order_items?.[0];
+            const extraCount = (order.order_items?.length || 1) - 1;
 
- {orders.length === 0 ? (
- <div className="rounded-2xl border border-border/60 bg-card p-10 text-center space-y-3">
- <p className="text-sm font-semibold text-foreground">Nenhum pedido encontrado</p>
- <p className="text-xs text-muted-foreground max-w-sm mx-auto">
- Você ainda não realizou compras. Explore as lojas e produtos do catálogo.
- </p>
- <div className="pt-2">
- <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-9">
- <Link to="/mercado">Explorar Lojas</Link>
- </Button>
- </div>
- </div>
- ) : (
- <div className="space-y-4">
- {orders.map((order: any) => (
- <Link
- key={order.id}
- to="/conta/pedidos/$id"
- params={{ id: order.id }}
- className="block rounded-2xl border border-border/60 bg-card overflow-hidden transition-all hover:border-border shadow-2xs group"
- >
- <div className="bg-muted/30 p-4 flex flex-wrap justify-between items-center gap-3 border-b border-border/40 text-xs">
- <div className="space-y-0.5">
- <span className="text-[10px] uppercase font-bold text-muted-foreground">Data</span>
- <p className="font-semibold text-foreground">{formatDate(order.created_at)}</p>
- </div>
- <div className="space-y-0.5">
- <span className="text-[10px] uppercase font-bold text-muted-foreground">Total</span>
- <p className="font-semibold text-foreground">{formatMoney(order.total_cents)}</p>
- </div>
- <div className="space-y-0.5">
- <span className="text-[10px] uppercase font-bold text-muted-foreground">Código</span>
- <p className="font-mono font-bold text-foreground">#{order.public_token || order.id.slice(0, 8)}</p>
- </div>
- <div className="flex items-center gap-2 ml-auto">
- <Badge variant="secondary" className="text-[11px] font-semibold py-0.5 rounded-md">
- {translateStatus(order.status)}
- </Badge>
- <span className="text-xs font-semibold text-primary group-hover:underline">
- Ver Detalhes ↗
- </span>
- </div>
- </div>
+            return (
+              <Link
+                key={order.id}
+                to="/conta/pedidos/$id"
+                params={{ id: order.id }}
+                className="flex items-center gap-3.5 px-4 py-4 hover:bg-muted/40 active:bg-muted/60 transition-colors cursor-pointer group"
+                id={`order-item-${order.id}`}
+              >
+                {/* Imagem do produto ou placeholder */}
+                <div className="size-14 rounded-xl bg-muted border border-border/40 overflow-hidden shrink-0 flex items-center justify-center">
+                  {firstItem?.image_url ? (
+                    <img src={firstItem.image_url} alt={firstItem.product_title} className="size-full object-cover" />
+                  ) : (
+                    <ShoppingBag className="size-5 text-muted-foreground/40" />
+                  )}
+                </div>
 
- <div className="p-4 space-y-2.5">
- {order.order_items?.map((item: any) => (
- <div key={item.id} className="flex justify-between items-center text-xs">
- <div className="min-w-0 pr-3">
- <p className="font-semibold text-foreground truncate">{item.product_title}</p>
- <p className="text-[11px] text-muted-foreground">
- Qtd: {item.qty || item.quantity || 1} {item.variant_sku && `• SKU: ${item.variant_sku}`}
- </p>
- </div>
- <p className="font-mono font-bold text-foreground shrink-0">
- {formatMoney(
- item.total_cents ??
- (item.unit_price_cents || 0) * (item.qty || item.quantity || 1),
- )}
- </p>
- </div>
- ))}
- </div>
- </Link>
- ))}
- </div>
- )}
- </div>
- );
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <p className="text-xs font-bold text-foreground truncate leading-snug">
+                      {firstItem?.product_title || order.store_name || "Pedido"}
+                      {extraCount > 0 && (
+                        <span className="text-muted-foreground font-normal"> +{extraCount} item{extraCount > 1 ? "s" : ""}</span>
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold ${statusStyle}`}>
+                        {statusLabel}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground font-mono hidden xs:block">
+                        {formatDate(order.created_at)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className="text-sm font-bold text-foreground">
+                        {formatMoney(order.total_cents)}
+                      </span>
+                      <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-all group-hover:translate-x-0.5" />
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
+
+export default Page;

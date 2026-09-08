@@ -217,7 +217,7 @@ function TurismoRadarPage() {
  </div>
  <DemandBar score={dest.demand_score} />
  </div>
- <div className="grid grid-cols-3 gap-2 mt-4">
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4">
  <div className="text-center p-2 rounded-xl bg-muted/30">
  <p className="text-[10px] text-muted-foreground">Pacote Médio</p>
  <p className="text-xs font-black text-foreground mt-0.5">{dest.avg_package_brl ? `R$ ${(dest.avg_package_brl / 1000).toFixed(1)}k` : '—'}</p>

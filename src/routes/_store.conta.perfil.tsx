@@ -372,184 +372,198 @@ function ProfilePage() {
  </TabsList>
  </div>
 
- {/* ── ABA 1: Dados Pessoais & Fotos ── */}
- <TabsContent value="dados" className="space-y-6">
- {/* Fotos de Capa e Perfil */}
- <div className="space-y-6">
- <h2 className="text-sm font-bold text-foreground">Fotos do Perfil</h2>
+        {/* ── ABA 1: Dados Pessoais & Fotos ── */}
+        <TabsContent value="dados" className="space-y-5">
+          {/* Card 1: Fotos de Identidade Visual */}
+          <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground pb-2.5 border-b border-border/40">
+              <Camera className="size-4 text-primary shrink-0" />
+              <span>1. Fotos de Identidade Visual</span>
+            </div>
 
- {/* Capa Panorâmica 1090px */}
- <div className="space-y-2">
- <Label className="text-xs font-bold text-muted-foreground">Foto de Capa Panorâmica (1090px)</Label>
- <div className="w-full h-28 sm:h-36 rounded-2xl bg-muted/30 overflow-x-auto no-scrollbar overflow-y-hidden flex items-center gap-3 pr-3 border border-border/40 relative group">
- {formData.coverUrl ? (
- <img src={formData.coverUrl} alt="Capa" className="h-full min-w-[1090px] object-cover flex-shrink-0 select-none rounded-2xl" />
- ) : (
- <div className="h-full min-w-[1090px] bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex items-center justify-center rounded-2xl">
- <span className="text-xs text-muted-foreground flex items-center gap-1.5">
- <ImageIcon className="size-4 opacity-50" />
- Nenhuma capa adicionada (Formato Panorâmico: 1090px de largura)
- </span>
- </div>
- )}
+            {/* Capa Panorâmica 1090px */}
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold text-foreground">Foto de Capa Panorâmica (1090px)</Label>
+              <div className="w-full h-28 sm:h-36 rounded-2xl bg-muted/30 overflow-x-auto no-scrollbar overflow-y-hidden flex items-center gap-3 pr-3 border border-border/40 relative group">
+                {formData.coverUrl ? (
+                  <img src={formData.coverUrl} alt="Capa" className="h-full min-w-[1090px] object-cover flex-shrink-0 select-none rounded-2xl" />
+                ) : (
+                  <div className="h-full min-w-[1090px] bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex items-center justify-center rounded-2xl">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <ImageIcon className="size-4 opacity-50" />
+                      Nenhuma capa adicionada (Formato Panorâmico: 1090px de largura)
+                    </span>
+                  </div>
+                )}
 
- <input
- ref={coverInputRef}
- type="file"
- accept="image/*"
- className="hidden"
- onChange={(e) => handleFileSelected(e, "cover")}
- />
+                <input
+                  ref={coverInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleFileSelected(e, "cover")}
+                />
 
- <Button
- type="button"
- size="sm"
- variant="secondary"
- className="sticky right-3 z-10 shrink-0 rounded-xl text-xs font-bold gap-1.5 bg-background/90 backdrop-blur-sm shadow-sm hover:bg-background"
- onClick={() => coverInputRef.current?.click()}
- disabled={isUploadingMedia}
- >
- <Camera className="size-3.5" />
- <span>{formData.coverUrl ? "Alterar Capa" : "Adicionar Capa"}</span>
- </Button>
- </div>
- </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="sticky right-3 z-10 shrink-0 rounded-xl text-xs font-bold gap-1.5 bg-background/90 backdrop-blur-sm shadow-sm hover:bg-background"
+                  onClick={() => coverInputRef.current?.click()}
+                  disabled={isUploadingMedia}
+                >
+                  <Camera className="size-3.5" />
+                  <span>{formData.coverUrl ? "Alterar Capa" : "Adicionar Capa"}</span>
+                </Button>
+              </div>
+            </div>
 
- {/* Avatar Circular */}
- <div className="flex items-center gap-4 pt-2">
- <div className="relative">
- <div className="size-20 sm:size-24 rounded-2xl overflow-hidden bg-muted flex items-center justify-center">
- {formData.avatarUrl ? (
- <img src={formData.avatarUrl} alt="Avatar" className="size-full object-cover" />
- ) : (
- <User className="size-8 text-muted-foreground/50" />
- )}
- </div>
- <input
- ref={avatarInputRef}
- type="file"
- accept="image/*"
- className="hidden"
- onChange={(e) => handleFileSelected(e, "avatar")}
- />
- </div>
+            {/* Avatar Circular */}
+            <div className="flex items-center gap-4 pt-2 border-t border-border/40">
+              <div className="relative">
+                <div className="size-20 sm:size-24 rounded-2xl overflow-hidden bg-muted flex items-center justify-center border border-border/50">
+                  {formData.avatarUrl ? (
+                    <img src={formData.avatarUrl} alt="Avatar" className="size-full object-cover" />
+                  ) : (
+                    <User className="size-8 text-muted-foreground/50" />
+                  )}
+                </div>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleFileSelected(e, "avatar")}
+                />
+              </div>
 
- <div className="space-y-1.5">
- <Label className="text-xs font-bold text-muted-foreground">Foto de Perfil (1:1)</Label>
- <div>
- <Button
- type="button"
- size="sm"
- variant="outline"
- className="rounded-xl text-xs font-bold gap-1.5 border-border "
- onClick={() => avatarInputRef.current?.click()}
- disabled={isUploadingMedia}
- >
- <Camera className="size-3.5" />
- <span>{formData.avatarUrl ? "Trocar Foto" : "Enviar Foto"}</span>
- </Button>
- </div>
- </div>
- </div>
- </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground">Foto de Perfil (1:1)</Label>
+                <div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="rounded-xl text-xs font-bold gap-1.5 border-border min-h-[44px]"
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={isUploadingMedia}
+                  >
+                    <Camera className="size-3.5" />
+                    <span>{formData.avatarUrl ? "Trocar Foto" : "Enviar Foto"}</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
 
- {/* Informações Pessoais */}
- <div className="space-y-5 pt-4 border-t border-border/40">
- <h2 className="text-sm font-bold text-foreground">Informações de Identidade</h2>
+          {/* Card 2: Informações de Identidade & Contato */}
+          <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground pb-2.5 border-b border-border/40">
+              <User className="size-4 text-primary shrink-0" />
+              <span>2. Dados Básicos & Biografia</span>
+            </div>
 
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
- <div className="space-y-1.5">
- <Label className="text-xs font-bold text-muted-foreground">Nome Completo *</Label>
- <Input
- required
- value={formData.fullName}
- onChange={(e) => set("fullName", e.target.value)}
- placeholder="Seu nome completo"
- className="h-10 rounded-xl text-xs"
- />
- </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground">Nome Completo *</Label>
+                <Input
+                  required
+                  value={formData.fullName}
+                  onChange={(e) => set("fullName", e.target.value)}
+                  placeholder="Seu nome completo"
+                  className="h-11 rounded-xl text-xs bg-background"
+                />
+              </div>
 
- <div className="space-y-1.5">
- <Label className="text-xs font-bold text-muted-foreground">Nome de Usuário (@) *</Label>
- <div className="relative flex items-center">
- <span className="absolute left-3 text-xs font-mono font-bold text-primary select-none">@</span>
- <Input
- required
- value={formData.username}
- onChange={(e) => set("username", e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
- placeholder="seunome"
- className="h-10 rounded-xl text-xs pl-7 font-mono font-semibold"
- />
- </div>
- <p className="text-[11px] text-muted-foreground">
- Permitida 1 alteração a cada 30 dias. Seu @ anterior fica protegido por 30 dias caso queira restaurar.
- </p>
- </div>
- </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground">Nome de Usuário (@) *</Label>
+                <div className="relative flex items-center">
+                  <span className="absolute left-3 text-xs font-mono font-bold text-primary select-none">@</span>
+                  <Input
+                    required
+                    value={formData.username}
+                    onChange={(e) => set("username", e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                    placeholder="seunome"
+                    className="h-11 rounded-xl text-xs pl-7 font-mono font-semibold bg-background"
+                  />
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Permitida 1 alteração a cada 30 dias. Seu @ anterior fica protegido por 30 dias.
+                </p>
+              </div>
+            </div>
 
- <div className="space-y-1.5">
- <Label className="text-xs font-bold text-muted-foreground">Ocupação / Profissão</Label>
- <Input
- value={formData.occupation}
- onChange={(e) => set("occupation", e.target.value)}
- placeholder="Ex: Arquiteto, Fotógrafo, Estudante..."
- className="h-10 rounded-xl text-xs"
- />
- </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-foreground">Ocupação / Profissão</Label>
+              <Input
+                value={formData.occupation}
+                onChange={(e) => set("occupation", e.target.value)}
+                placeholder="Ex: Arquiteto, Fotógrafo, Estudante..."
+                className="h-11 rounded-xl text-xs bg-background"
+              />
+            </div>
 
- <div className="space-y-1.5">
- <div className="flex items-center justify-between">
- <Label className="text-xs font-bold text-muted-foreground">Biografia</Label>
- <span
- className={cn(
- "text-[10px] font-mono",
- formData.bio.length > 280 ? "text-amber-500 font-bold" : "text-muted-foreground"
- )}
- >
- {formData.bio.length}/280
- </span>
- </div>
- <Textarea
- value={formData.bio}
- maxLength={320}
- onChange={(e) => set("bio", e.target.value)}
- placeholder="Conte um pouco sobre você..."
- className="rounded-xl text-xs min-h-[90px] resize-none"
- />
- </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold text-foreground">Biografia</Label>
+                <span
+                  className={cn(
+                    "text-[10px] font-mono",
+                    formData.bio.length > 280 ? "text-amber-500 font-bold" : "text-muted-foreground"
+                  )}
+                >
+                  {formData.bio.length}/280
+                </span>
+              </div>
+              <Textarea
+                value={formData.bio}
+                maxLength={320}
+                onChange={(e) => set("bio", e.target.value)}
+                placeholder="Conte um pouco sobre você..."
+                className="rounded-xl text-xs min-h-[90px] resize-none bg-background"
+              />
+            </div>
+          </div>
 
- <div className="pt-1">
- <CitySelect
- stateValue={formData.state || "SC"}
- cityValue={formData.city || ""}
- onStateChange={(uf) => set("state", uf)}
- onCityChange={(city) => set("city", city)}
- />
- </div>
+          {/* Card 3: Localização & Presença Digital */}
+          <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground pb-2.5 border-b border-border/40">
+              <LinkIcon className="size-4 text-primary shrink-0" />
+              <span>3. Localização & Presença Digital</span>
+            </div>
 
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
- <div className="space-y-1.5">
- <Label className="text-xs font-bold text-muted-foreground">Instagram</Label>
- <Input
- value={formData.instagram}
- onChange={(e) => set("instagram", e.target.value)}
- placeholder="usuario"
- className="h-10 rounded-xl text-xs"
- />
- </div>
+            <div className="pt-1">
+              <CitySelect
+                stateValue={formData.state || "SC"}
+                cityValue={formData.city || ""}
+                onStateChange={(uf) => set("state", uf)}
+                onCityChange={(city) => set("city", city)}
+              />
+            </div>
 
- <div className="space-y-1.5">
- <Label className="text-xs font-bold text-muted-foreground">Site / Link</Label>
- <Input
- value={formData.website}
- onChange={(e) => set("website", e.target.value)}
- placeholder="https://..."
- className="h-10 rounded-xl text-xs"
- />
- </div>
- </div>
- </div>
- </TabsContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground">Instagram</Label>
+                <Input
+                  value={formData.instagram}
+                  onChange={(e) => set("instagram", e.target.value)}
+                  placeholder="usuario"
+                  className="h-11 rounded-xl text-xs bg-background"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground">Site / Link</Label>
+                <Input
+                  value={formData.website}
+                  onChange={(e) => set("website", e.target.value)}
+                  placeholder="https://..."
+                  className="h-11 rounded-xl text-xs bg-background"
+                />
+              </div>
+            </div>
+          </div>
+        </TabsContent>
 
  {/* ── ABA 2: Perfil Profissional (Gupy / InfoJobs / LinkedIn Style) ── */}
  <TabsContent value="profissional" className="space-y-6">
@@ -724,51 +738,47 @@ function ProfilePage() {
  </div>
  )}
 
- {/* Mini-Banner em Destaque Principal */}
- <div className="space-y-3 pt-6 border-t border-border/40">
- <div>
- <h3 className="text-xs font-bold text-foreground">
- Mini-Banner de Destaque / Parceiro Oficial
- </h3>
- <p className="text-[11px] text-muted-foreground">
- Banner de destaque exibido de forma delicada e proporcional (16:9) abaixo da bio.
- </p>
- </div>
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
- <div className="space-y-1.5">
- <Label className="text-[11px] font-bold text-muted-foreground">
- Imagem do Banner (16:9)
- </Label>
- <div className="max-w-[320px]">
- <ImageUpload
- value={formData.featuredBannerUrl}
- onChange={(url) => set("featuredBannerUrl", url)}
- onRemove={() => set("featuredBannerUrl", "")}
- aspectPreset="widescreen"
- bucket="cms-media"
- helperText="Enquadramento 16:9 fiel ao perfil"
- />
- </div>
- </div>
- <div className="space-y-1.5">
- <Label className="text-[11px] font-bold text-muted-foreground">
- Link de Destino
- </Label>
- <Input
- value={formData.featuredBannerLink}
- onChange={(e) => set("featuredBannerLink", e.target.value)}
- placeholder="https://excelenciatour.com ou https://..."
- className="h-10 rounded-xl text-xs font-mono"
- />
- <p className="text-[10px] text-muted-foreground">
- URL aberta quando o visitante clicar no banner de destaque.
- </p>
- </div>
- </div>
- </div>
- </div>
- </TabsContent>
- </Tabs>
+            {/* Mini-Banner em Destaque Principal em Card Canônico */}
+            <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+              <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground pb-2.5 border-b border-border/40">
+                <ImageIcon className="size-4 text-primary shrink-0" />
+                <span>Mini-Banner de Destaque / Parceiro Oficial (16:9)</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-foreground">
+                    Imagem do Banner (16:9)
+                  </Label>
+                  <div className="max-w-[320px]">
+                    <ImageUpload
+                      value={formData.featuredBannerUrl}
+                      onChange={(url) => set("featuredBannerUrl", url)}
+                      onRemove={() => set("featuredBannerUrl", "")}
+                      aspectPreset="widescreen"
+                      bucket="cms-media"
+                      helperText="Enquadramento 16:9 delicado e proporcional"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-foreground">
+                    Link de Destino
+                  </Label>
+                  <Input
+                    value={formData.featuredBannerLink}
+                    onChange={(e) => set("featuredBannerLink", e.target.value)}
+                    placeholder="https://excelenciatour.com ou https://..."
+                    className="h-11 rounded-xl text-xs font-mono bg-background"
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    URL aberta quando o visitante clicar no banner de destaque.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+        </Tabs>
 
  {/* ── Botão Salvar Principal ── */}
  <div className="flex items-center justify-end gap-3 pt-2">

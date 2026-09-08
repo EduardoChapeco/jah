@@ -19,6 +19,7 @@ export const Route = createFileRoute("/_store/mural")({
     ],
   }),
   loader: async () => {
+    try {
     const [feed, profile, session] = await Promise.all([
       getMuralFeed({ data: { limit: 20 } }).catch(() => ({ items: [], hasMore: false, nextCursor: null })),
       getProfile().catch(() => null),
@@ -26,6 +27,10 @@ export const Route = createFileRoute("/_store/mural")({
     ]);
 
     return { initialFeed: feed as MuralFeedResponse, profile, session };
+    } catch (err) {
+      console.error("[loader:_store.mural] Unhandled error:", err);
+      return null;
+    }
   },
   component: MuralPage,
 });

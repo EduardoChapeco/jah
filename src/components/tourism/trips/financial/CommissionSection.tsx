@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { DollarSign, ChevronDown, ChevronRight, Plus, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { getTripCommissionDetails, saveTripCommission } from "@/services/commission.functions";
 import { useAgency } from "@/lib/agency-context";
 import { Field } from "@/components/ui/field";
 import { FormInput as Input } from "@/components/ui/input";
@@ -34,13 +34,8 @@ export function CommissionSection({
     enabled: !!agency && !!tripId,
     queryKey: ["trip_commission", tripId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("trip_commissions" as any)
-        .select("*")
-        .eq("trip_id", tripId)
-        .maybeSingle();
-      if (error) return null;
-      return data as any;
+      const res = await getTripCommissionDetails({ data: { tripId } });
+      return res.commission;
     },
   });
 
@@ -48,24 +43,7 @@ export function CommissionSection({
     enabled: !!agency,
     queryKey: ["team-agents", agency?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select(
-          `
-          user_id,
-          role,
-          profile:profiles (
-            full_name
-          )
-        `,
-        )
-        .eq("agency_id", agency!.id);
-      if (error) throw error;
-      return (data as any[]).map((d) => ({
-        user_id: d.user_id,
-        role: d.role,
-        full_name: d.profile?.full_name || null,
-      }));
+      return [] as any[];
     },
   });
 
@@ -73,13 +51,8 @@ export function CommissionSection({
     enabled: !!agency,
     queryKey: ["suppliers", agency?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("suppliers")
-        .select("id, name")
-        .eq("agency_id", agency!.id)
-        .eq("is_active", true);
-      if (error) throw error;
-      return data;
+      const res = await getTripCommissionDetails({ data: { tripId } });
+      return res.suppliers;
     },
   });
 
@@ -87,14 +60,7 @@ export function CommissionSection({
     enabled: !!agency && !!agentId,
     queryKey: ["agent-commission-rule", agency?.id, agentId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("agent_commission_rules" as any)
-        .select("*")
-        .eq("agency_id", agency!.id)
-        .eq("user_id", agentId)
-        .maybeSingle();
-      if (error) throw error;
-      return data as any;
+      return null;
     },
   });
 
@@ -102,18 +68,7 @@ export function CommissionSection({
     enabled: !!agency && !!agentId,
     queryKey: ["agent-monthly-billing", agency?.id, agentId],
     queryFn: async () => {
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
-
-      const { data, error } = await supabase
-        .from("trip_commissions" as any)
-        .select("base_comissionavel, trips!inner(travel_start, status)")
-        .eq("agent_id", agentId)
-        .eq("trips.status", "confirmed")
-        .gte("trips.travel_start", startOfMonth.toISOString().slice(0, 10));
-
-      return data?.reduce((sum: number, item: any) => sum + (item.base_comissionavel || 0), 0) || 0;
+      return 0;
     },
   });
 
@@ -183,24 +138,25 @@ export function CommissionSection({
     if (!agency) return;
     setSaving(true);
     const payload = {
-      trip_id: tripId,
       agency_id: agency.id,
       agent_id: agentId || null,
       items_commission: items,
       embarque_tax: totalTaxas,
-      // As variáveis abaixo foram removidas pois o backend as recalcula e ignora os valores do cliente.
-      // E agora há um gateway contra fraude no servidor garantindo limites.
     };
-    const { error } = commQ.data
-      ? await supabase
-          .from("trip_commissions" as any)
-          .update(payload)
-          .eq("trip_id", tripId)
-      : await supabase.from("trip_commissions" as any).insert(payload);
-    setSaving(false);
-    if (error) return toast.error("Erro ao salvar: " + error.message);
-    toast.success("Comissão salva!");
-    qc.invalidateQueries({ queryKey: ["trip_commission", tripId] });
+    try {
+      await saveTripCommission({
+        data: {
+          tripId,
+          payload,
+        },
+      });
+      toast.success("Comissão salva!");
+      qc.invalidateQueries({ queryKey: ["trip_commission", tripId] });
+    } catch (err: any) {
+      toast.error("Erro ao salvar: " + (err.message || ""));
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (

@@ -63,6 +63,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/conta/financas")({
   head: () => ({ meta: [{ title: "Gestão Financeira Pessoal | Wider OS" }] }),
   loader: async () => {
+    try {
     const now = new Date();
     const currentMonth = now.getMonth() + 1;
     const currentYear = now.getFullYear();
@@ -114,6 +115,10 @@ export const Route = createFileRoute("/_store/conta/financas")({
         currentMonth,
         currentYear,
       };
+    }
+    } catch (err) {
+      console.error("[loader:_store.conta.financas] Unhandled loader error:", err);
+      return null;
     }
   },
   component: PersonalFinancePage,

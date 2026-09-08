@@ -1,6 +1,6 @@
 import postgres from "postgres";
 
-const password = "EEaR6399!@#2026";
+const password = process.env.SUPABASE_DB_PASSWORD || "";
 const sql = postgres({
   host: "aws-0-sa-east-1.pooler.supabase.com",
   port: 6543,

@@ -58,6 +58,7 @@ export const Route = createFileRoute("/_store/empregos/")({
  ],
  }),
  loader: async () => {
+   try {
  const [banners, hotpages, jobs] = await Promise.all([
  listActiveBanners({ data: { placement: "empregos" } }).catch(() => []),
  listHotpages({ data: { module: "empregos" } }).catch(() => []),
@@ -65,6 +66,10 @@ export const Route = createFileRoute("/_store/empregos/")({
  ]);
 
  return { banners, hotpages, jobs };
+   } catch (err) {
+     console.error("[loader:_store.empregos.index] Unhandled error:", err);
+     return null;
+   }
  },
  component: JobsMasterPage,
 });

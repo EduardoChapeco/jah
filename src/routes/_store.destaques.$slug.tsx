@@ -233,6 +233,7 @@ export const Route = createFileRoute("/_store/destaques/$slug")({
  ],
  }),
  loader: async ({ params }) => {
+   try {
  const hotpageRes = await getHotpageBySlug({ data: { slug: params.slug } }).catch(() => null);
  const targetNiche = hotpageRes?.module && hotpageRes.module !== "home" && hotpageRes.module !== "ofertas"
  ? hotpageRes.module
@@ -256,6 +257,10 @@ export const Route = createFileRoute("/_store/destaques/$slug")({
  classifieds: classifiedsRes || [],
  slug: params.slug,
  };
+   } catch (err) {
+     console.error("[loader:_store.destaques.$slug] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: DedicatedHotpageView,
 });

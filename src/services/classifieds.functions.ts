@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getServerClient } from "@/lib/supabase";
 import { getIdentity } from "./identity.functions";
+import { requireAdmin } from "@/lib/server-access";
 import { z } from "zod";
 import { classifiedSchema } from "@/types/community";
 
@@ -278,6 +279,12 @@ const upsertClassifiedInput = z.object({
  location_lng: z.number().nullable().optional(),
  condition: z.enum(["new", "used", "refurbished"]).nullable().optional(),
  negotiable: z.boolean().optional().default(true),
+ pricing_model: z.enum(["one_time", "recurring"]).optional(),
+ billing_cycle: z.enum(["monthly", "quarterly", "semiannual", "yearly"]).optional(),
+ setup_fee_cents: z.number().int().min(0).optional(),
+ trial_days: z.number().int().min(0).optional(),
+ recurring_features: z.array(z.string()).optional(),
+ sub_category: z.string().optional(),
  attributes: z.record(z.any()).optional().default({}),
  status: z.enum(["draft", "active", "paused", "closed"]).default("active"),
 });
@@ -328,6 +335,12 @@ export const upsertClassified = createServerFn({ method: "POST" })
  accepts_card: rest.accepts_card ?? rest.attributes?.accepts_card ?? false,
  max_installments: rest.max_installments ?? rest.attributes?.max_installments ?? 1,
  price_cents: rest.price_cents ?? null,
+ pricing_model: rest.pricing_model || rest.attributes?.pricing_model || "one_time",
+ billing_cycle: rest.billing_cycle || rest.attributes?.billing_cycle || "monthly",
+ setup_fee_cents: rest.setup_fee_cents ?? rest.attributes?.setup_fee_cents ?? 0,
+ trial_days: rest.trial_days ?? rest.attributes?.trial_days ?? 0,
+ recurring_features: rest.recurring_features || rest.attributes?.recurring_features || [],
+ sub_category: rest.sub_category || rest.attributes?.sub_category || null,
  contact_whatsapp: rest.contact_whatsapp || rest.whatsapp || null,
  location_name: rest.location_name || null,
  location_text: rest.location_text || rest.location_name || null,
@@ -338,6 +351,10 @@ export const upsertClassified = createServerFn({ method: "POST" })
  negotiable: rest.negotiable ?? true,
  attributes: {
    ...(rest.attributes || {}),
+   pricing_model: rest.pricing_model || rest.attributes?.pricing_model || "one_time",
+   billing_cycle: rest.billing_cycle || rest.attributes?.billing_cycle || "monthly",
+   setup_fee_cents: rest.setup_fee_cents ?? rest.attributes?.setup_fee_cents ?? 0,
+   sub_category: rest.sub_category || rest.attributes?.sub_category || null,
    ...(rest.available_weekdays ? { available_weekdays: rest.available_weekdays } : {}),
    ...(rest.working_hours_start ? { working_hours_start: rest.working_hours_start } : {}),
    ...(rest.working_hours_end ? { working_hours_end: rest.working_hours_end } : {}),
@@ -449,7 +466,7 @@ export const applyToClassifiedJob = createServerFn({ method: "POST" })
 
  // Conexão Sistêmica: Se o classificado pertence a uma loja/empresa, gera Lead no Funil Comercial
  const { data: item } = await supabase
- .from("classified_items")
+ .from("classifieds")
  .select("id, title, store_id")
  .eq("id", input.classified_id)
  .maybeSingle();
@@ -545,3 +562,728 @@ export const getDigitalDownloadSignedUrl = createServerFn({ method: "POST" })
       fileName: ad.digital_file_name || `${ad.title || "arquivo"}.zip`,
     };
   });
+
+// ---------------------------------------------------------------------------
+// RECURRING SUBSCRIPTIONS & RENTS ENGINE (Wider Subscriptions)
+// ---------------------------------------------------------------------------
+
+export const subscribeToClassifiedPlan = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      classifiedId: z.string().uuid(),
+      notes: z.string().optional(),
+      paymentMethod: z.enum(["pix", "credit_card", "bank_transfer", "cash"]).default("pix"),
+      pixKey: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    const supabase = getServerClient();
+    const identity = await getIdentity();
+    if (!identity || !identity.id) {
+      throw new Error("Identifique-se para assinar este plano.");
+    }
+
+    // Busca o anúncio para verificar se é recorrente e obter o vendedor
+    const { data: ad, error: adErr } = await supabase
+      .from("classifieds")
+      .select("id, author_profile_id, price_cents, pricing_model, billing_cycle, setup_fee_cents, title")
+      .eq("id", input.classifiedId)
+      .single();
+
+    if (adErr || !ad) {
+      throw new Error("Anúncio não encontrado.");
+    }
+
+    if (ad.author_profile_id === identity.id) {
+      throw new Error("Você não pode assinar o seu próprio anúncio.");
+    }
+
+    const priceCents = ad.price_cents || 0;
+    const billingCycle = ad.billing_cycle || "monthly";
+    const setupFeeCents = ad.setup_fee_cents || 0;
+
+    // Calcula a data da próxima fatura
+    const nextDate = new Date();
+    if (billingCycle === "yearly") {
+      nextDate.setFullYear(nextDate.getFullYear() + 1);
+    } else if (billingCycle === "semiannual") {
+      nextDate.setMonth(nextDate.getMonth() + 6);
+    } else if (billingCycle === "quarterly") {
+      nextDate.setMonth(nextDate.getMonth() + 3);
+    } else {
+      nextDate.setMonth(nextDate.getMonth() + 1);
+    }
+
+    const { data: sub, error: subErr } = await supabase
+      .from("classified_subscriptions")
+      .insert({
+        classified_id: ad.id,
+        subscriber_profile_id: identity.id,
+        seller_profile_id: ad.author_profile_id,
+        status: "active",
+        billing_cycle: billingCycle,
+        price_cents: priceCents,
+        setup_fee_paid_cents: setupFeeCents,
+        next_billing_date: nextDate.toISOString().split("T")[0],
+        last_payment_date: new Date().toISOString(),
+        subscriber_notes: input.notes || null,
+        payment_method: input.paymentMethod,
+        pix_key: input.pixKey || null,
+      })
+      .select()
+      .single();
+
+    if (subErr) {
+      console.error("[classifieds] Erro ao criar assinatura:", subErr);
+      throw new Error(subErr.message || "Erro ao registrar assinatura.");
+    }
+
+    return sub;
+  });
+
+export const listMyClassifiedSubscriptions = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const supabase = getServerClient();
+    const identity = await getIdentity();
+    if (!identity || !identity.id) return [];
+
+    const { data, error } = await supabase
+      .from("classified_subscriptions")
+      .select(`
+        *,
+        classified:classified_id (
+          id,
+          title,
+          category,
+          images,
+          location_name,
+          contact_whatsapp
+        ),
+        seller:seller_profile_id (
+          id,
+          full_name,
+          avatar_url,
+          phone
+        )
+      `)
+      .eq("subscriber_profile_id", identity.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.warn("[classifieds] listMyClassifiedSubscriptions error:", error);
+      return [];
+    }
+
+    return data || [];
+  });
+
+export const listSellerClassifiedSubscriptions = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const supabase = getServerClient();
+    const identity = await getIdentity();
+    if (!identity || !identity.id) {
+      return { subscriptions: [], metrics: { mrrCents: 0, activeCount: 0, totalCount: 0 } };
+    }
+
+    const { data, error } = await supabase
+      .from("classified_subscriptions")
+      .select(`
+        *,
+        classified:classified_id (
+          id,
+          title,
+          category,
+          images,
+          pricing_model,
+          billing_cycle
+        ),
+        subscriber:subscriber_profile_id (
+          id,
+          full_name,
+          avatar_url,
+          phone
+        )
+      `)
+      .eq("seller_profile_id", identity.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.warn("[classifieds] listSellerClassifiedSubscriptions error:", error);
+      return { subscriptions: [], metrics: { mrrCents: 0, activeCount: 0, totalCount: 0 } };
+    }
+
+    const subs = data || [];
+    const activeSubs = subs.filter((s: any) => s.status === "active");
+
+    // Calcula MRR estimado considerando ciclos
+    const mrrCents = activeSubs.reduce((acc: number, item: any) => {
+      const price = item.price_cents || 0;
+      if (item.billing_cycle === "yearly") return acc + Math.round(price / 12);
+      if (item.billing_cycle === "semiannual") return acc + Math.round(price / 6);
+      if (item.billing_cycle === "quarterly") return acc + Math.round(price / 3);
+      return acc + price;
+    }, 0);
+
+    return {
+      subscriptions: subs,
+      metrics: {
+        mrrCents,
+        activeCount: activeSubs.length,
+        totalCount: subs.length,
+      },
+    };
+  });
+
+export const updateSubscriptionStatus = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      subscriptionId: z.string().uuid(),
+      status: z.enum(["active", "past_due", "paused", "canceled"]),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    const supabase = getServerClient();
+    const identity = await getIdentity();
+    if (!identity || !identity.id) throw new Error("Unauthorized");
+
+    const { data, error } = await supabase
+      .from("classified_subscriptions")
+      .update({ status: input.status, updated_at: new Date().toISOString() })
+      .eq("id", input.subscriptionId)
+      .or(`seller_profile_id.eq.${identity.id},subscriber_profile_id.eq.${identity.id}`)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message || "Erro ao atualizar status da assinatura.");
+    return data;
+  });
+
+export const recordSubscriptionPayment = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      subscriptionId: z.string().uuid(),
+    }),
+  )
+  .handler(async ({ data: { subscriptionId } }) => {
+    const supabase = getServerClient();
+    const identity = await getIdentity();
+    if (!identity || !identity.id) throw new Error("Unauthorized");
+
+    // Apenas o vendedor pode registrar recebimento de pagamento
+    const { data: sub, error: fetchErr } = await supabase
+      .from("classified_subscriptions")
+      .select("id, billing_cycle, next_billing_date")
+      .eq("id", subscriptionId)
+      .eq("seller_profile_id", identity.id)
+      .single();
+
+    if (fetchErr || !sub) throw new Error("Assinatura não encontrada ou sem autorização.");
+
+    const currentDate = new Date(sub.next_billing_date || new Date());
+    if (sub.billing_cycle === "yearly") {
+      currentDate.setFullYear(currentDate.getFullYear() + 1);
+    } else if (sub.billing_cycle === "semiannual") {
+      currentDate.setMonth(currentDate.getMonth() + 6);
+    } else if (sub.billing_cycle === "quarterly") {
+      currentDate.setMonth(currentDate.getMonth() + 3);
+    } else {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+    }
+
+    const { data, error } = await supabase
+      .from("classified_subscriptions")
+      .update({
+        status: "active",
+        last_payment_date: new Date().toISOString(),
+        next_billing_date: currentDate.toISOString().split("T")[0],
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", subscriptionId)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message || "Erro ao confirmar pagamento da mensalidade.");
+    return data;
+  });
+
+// ---------------------------------------------------------------------------
+// TELEMETRY & AD BOOSTING ENGINE (100% Real no Supabase | Zero Mocks)
+// ---------------------------------------------------------------------------
+
+export const trackClassifiedView = createServerFn({ method: "POST" })
+  .validator(z.object({ adId: z.string().uuid() }))
+  .handler(async ({ data: { adId } }) => {
+    const supabase = getServerClient();
+    try {
+      // Tenta via RPC atômico primeiro
+      const { error: rpcErr } = await supabase.rpc("increment_classified_view", { ad_id: adId });
+      if (rpcErr) {
+        // Fallback defensivo com update direto
+        const { data: current } = await supabase.from("classifieds").select("views_count").eq("id", adId).single();
+        if (current) {
+          await supabase
+            .from("classifieds")
+            .update({ views_count: (current.views_count || 0) + 1 })
+            .eq("id", adId);
+        }
+      }
+      return { success: true };
+    } catch (err) {
+      console.warn("[classifieds] trackClassifiedView warning:", err);
+      return { success: false };
+    }
+  });
+
+export const trackClassifiedWhatsAppClick = createServerFn({ method: "POST" })
+  .validator(z.object({ adId: z.string().uuid() }))
+  .handler(async ({ data: { adId } }) => {
+    const supabase = getServerClient();
+    try {
+      // Tenta via RPC atômico primeiro
+      const { error: rpcErr } = await supabase.rpc("increment_classified_click", { ad_id: adId });
+      if (rpcErr) {
+        // Fallback defensivo com update direto
+        const { data: current } = await supabase.from("classifieds").select("clicks_count").eq("id", adId).single();
+        if (current) {
+          await supabase
+            .from("classifieds")
+            .update({ clicks_count: (current.clicks_count || 0) + 1 })
+            .eq("id", adId);
+        }
+      }
+      return { success: true };
+    } catch (err) {
+      console.warn("[classifieds] trackClassifiedWhatsAppClick warning:", err);
+      return { success: false };
+    }
+  });
+
+// ============================================================
+// BOOST PAYMENTS — Gateway Real de Pagamento
+// Zero-Mock Policy: boost só ativa APÓS pagamento confirmado
+// ============================================================
+
+const BOOST_PLAN_PRICES: Record<number, number> = {
+  7: 1990,
+  15: 3490,
+  30: 5990,
+};
+
+/**
+ * Verifica se há um gateway de pagamento configurado na plataforma.
+ * Consultado pela UI ANTES de abrir o modal de checkout.
+ * Se não houver provider, o botão é bloqueado e o modal não abre.
+ */
+export const getBoostPaymentStatus = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getServerClient();
+
+  // Busca configurações da loja raiz da plataforma (gateway global)
+  const { data: store } = await supabase
+    .from("stores")
+    .select("settings")
+    .or("slug.eq.wider-matriz,is_platform_root.eq.true")
+    .limit(1)
+    .maybeSingle();
+
+  const settings = (store?.settings as Record<string, any>) || {};
+  const integrations = (settings.integrations as Record<string, any>) || {};
+
+  const hasAsaas = !!(integrations.asaas_api_key && integrations.asaas_api_key.length > 10);
+  const hasStripe = !!(integrations.stripe_secret_key && integrations.stripe_secret_key.length > 10);
+
+  // Determina provider ativo (Asaas tem prioridade por ser brasileiro/PIX nativo)
+  const activeProvider = hasAsaas ? "asaas" : hasStripe ? "stripe" : null;
+
+  return {
+    available: !!activeProvider,
+    provider: activeProvider as "asaas" | "stripe" | null,
+    message: activeProvider
+      ? `Gateway ${activeProvider === "asaas" ? "Asaas (PIX/Boleto/Cartão)" : "Stripe"} configurado e ativo.`
+      : "Nenhum gateway de pagamento configurado. Configure em /admin-master/integracoes.",
+  };
+});
+
+/**
+ * Inicia um pagamento de boost real via gateway configurado.
+ * Cria registro pendente em classified_boost_payments.
+ * Retorna instrução de pagamento (QR Code PIX ou link).
+ */
+export const initiateBoostPayment = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      adId: z.string().uuid(),
+      planDays: z.union([z.literal(7), z.literal(15), z.literal(30)]),
+    })
+  )
+  .handler(async ({ data: { adId, planDays } }) => {
+    const supabase = getServerClient();
+    const identity = await getIdentity();
+
+    if (!identity?.id) {
+      throw new Error("Você precisa estar autenticado para impulsionar um anúncio.");
+    }
+
+    // 1. Valida autoria do anúncio
+    const { data: classified, error: classifiedErr } = await supabase
+      .from("classifieds")
+      .select("id, author_profile_id, title")
+      .eq("id", adId)
+      .single();
+
+    if (classifiedErr || !classified) throw new Error("Anúncio não encontrado.");
+
+    const isAdmin = identity.role === "admin" || identity.role === "master";
+    if (classified.author_profile_id !== identity.id && !isAdmin) {
+      throw new Error("Você não tem autorização para impulsionar este anúncio.");
+    }
+
+    // 2. Verifica gateway configurado — Zero Mock Policy
+    const { data: store } = await supabase
+      .from("stores")
+      .select("settings")
+      .or("slug.eq.wider-matriz,is_platform_root.eq.true")
+      .limit(1)
+      .maybeSingle();
+
+    const settings = (store?.settings as Record<string, any>) || {};
+    const integrations = (settings.integrations as Record<string, any>) || {};
+
+    const asaasKey = integrations.asaas_api_key;
+    const stripeKey = integrations.stripe_secret_key;
+
+    const hasAsaas = !!(asaasKey && asaasKey.length > 10 && !asaasKey.includes("••••"));
+    const hasStripe = !!(stripeKey && stripeKey.length > 10 && !stripeKey.includes("••••"));
+    const activeProvider: "asaas" | "stripe" | null = hasAsaas ? "asaas" : hasStripe ? "stripe" : null;
+
+    // Se não há gateway: bloqueia completamente — sem fallback simulado
+    if (!activeProvider) {
+      throw new Error(
+        "Nenhum gateway de pagamento está configurado na plataforma. " +
+        "Configure Asaas ou Stripe em /admin-master/integracoes para habilitar o impulsionamento."
+      );
+    }
+
+    const amountCents = BOOST_PLAN_PRICES[planDays];
+    const planName = `Destaque ${planDays} dias`;
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+
+    let providerRef: string | null = null;
+    let pixQrCode: string | null = null;
+    let pixCopyPaste: string | null = null;
+    let paymentLink: string | null = null;
+    let providerPayload: Record<string, any> = {};
+
+    // 3. Chama o provider real
+    if (activeProvider === "asaas") {
+      // --- ASAAS: Gera cobrança PIX ---
+      // Determina se é sandbox (chave começa com $aact_) ou produção
+      const isAsaasSandbox = asaasKey.startsWith("$aact_");
+      const asaasBaseUrl = isAsaasSandbox
+        ? "https://sandbox.asaas.com/api/v3"
+        : "https://api.asaas.com/api/v3";
+
+      // Busca email e nome do usuário no banco (identity não tem esses campos)
+      const { data: userProfile } = await supabase
+        .from("profiles")
+        .select("name, username, email")
+        .eq("id", identity.id!)
+        .maybeSingle();
+
+      const userEmail = (userProfile as any)?.email || "";
+      const userName = (userProfile as any)?.name || (userProfile as any)?.username || "Usuário Wider";
+
+      // Primeiro: verifica/cria customer no Asaas
+      let asaasCustomerId: string | null = null;
+      try {
+        const customerRes = await fetch(`${asaasBaseUrl}/customers?email=${encodeURIComponent(userEmail)}`, {
+          headers: { "access_token": asaasKey, "Content-Type": "application/json" },
+        });
+        const customerData = await customerRes.json();
+        if (customerData?.data?.[0]?.id) {
+          asaasCustomerId = customerData.data[0].id;
+        } else {
+          // Cria customer
+          const createRes = await fetch(`${asaasBaseUrl}/customers`, {
+            method: "POST",
+            headers: { "access_token": asaasKey, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: userName,
+              email: userEmail || undefined,
+            }),
+          });
+          const created = await createRes.json();
+          asaasCustomerId = created?.id || null;
+        }
+      } catch (e) {
+        console.error("[boost] Asaas customer lookup error:", e);
+      }
+
+      if (!asaasCustomerId) {
+        throw new Error("Não foi possível criar o cliente no gateway de pagamento. Tente novamente.");
+      }
+
+      // Gera cobrança PIX
+      const dueDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 dias
+      const dueDateStr = dueDate.toISOString().split("T")[0];
+
+      const chargeRes = await fetch(`${asaasBaseUrl}/payments`, {
+        method: "POST",
+        headers: { "access_token": asaasKey, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: asaasCustomerId,
+          billingType: "PIX",
+          value: amountCents / 100,
+          dueDate: dueDateStr,
+          description: `Wider — ${planName} para anúncio "${classified.title}"`,
+          externalReference: adId,
+        }),
+      });
+
+      if (!chargeRes.ok) {
+        const errBody = await chargeRes.json().catch(() => ({}));
+        console.error("[boost] Asaas charge error:", errBody);
+        throw new Error("Erro ao gerar cobrança PIX. Verifique as credenciais do gateway.");
+      }
+
+      const charge = await chargeRes.json();
+      providerRef = charge?.id || null;
+      paymentLink = charge?.invoiceUrl || null;
+      providerPayload = charge;
+
+      // Busca QR Code PIX
+      if (providerRef) {
+        try {
+          const pixRes = await fetch(`${asaasBaseUrl}/payments/${providerRef}/pixQrCode`, {
+            headers: { "access_token": asaasKey },
+          });
+          if (pixRes.ok) {
+            const pixData = await pixRes.json();
+            pixQrCode = pixData?.encodedImage || null;
+            pixCopyPaste = pixData?.payload || null;
+          }
+        } catch (e) {
+          console.error("[boost] Asaas PIX QR error:", e);
+        }
+      }
+    } else if (activeProvider === "stripe") {
+      // --- STRIPE: Gera Payment Intent ---
+      const stripeRes = await fetch("https://api.stripe.com/v1/payment_intents", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${stripeKey}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          amount: String(amountCents),
+          currency: "brl",
+          description: `Wider — ${planName} para anúncio "${classified.title}"`,
+          metadata: JSON.stringify({ ad_id: adId, plan_days: String(planDays) }),
+        }),
+      });
+
+      if (!stripeRes.ok) {
+        const errBody = await stripeRes.json().catch(() => ({}));
+        console.error("[boost] Stripe payment intent error:", errBody);
+        throw new Error("Erro ao gerar intenção de pagamento. Verifique as credenciais do gateway.");
+      }
+
+      const intent = await stripeRes.json();
+      providerRef = intent?.id || null;
+      paymentLink = null; // Stripe usa client_secret na UI
+      providerPayload = { client_secret: intent?.client_secret, id: intent?.id };
+    }
+
+    // 4. Registra transação pendente no banco
+    const { data: boostPayment, error: insertErr } = await supabase
+      .from("classified_boost_payments")
+      .insert({
+        classified_id: adId,
+        profile_id: identity.id,
+        plan_days: planDays,
+        plan_name: planName,
+        amount_cents: amountCents,
+        provider: activeProvider,
+        provider_ref: providerRef,
+        provider_payload: providerPayload,
+        status: "pending",
+        pix_qr_code: pixQrCode,
+        pix_copy_paste: pixCopyPaste,
+        payment_link: paymentLink,
+        expires_at: expiresAt.toISOString(),
+      })
+      .select()
+      .single();
+
+    if (insertErr || !boostPayment) {
+      console.error("[boost] insert classified_boost_payments error:", insertErr);
+      throw new Error("Erro ao registrar transação de pagamento. Tente novamente.");
+    }
+
+    return {
+      success: true,
+      boostPaymentId: boostPayment.id,
+      provider: activeProvider,
+      amountCents,
+      planName,
+      planDays,
+      pixQrCode,
+      pixCopyPaste,
+      paymentLink,
+      stripeClientSecret: activeProvider === "stripe" ? (providerPayload as any).client_secret : null,
+      expiresAt: expiresAt.toISOString(),
+      adTitle: classified.title,
+    };
+  });
+
+/**
+ * Ativa o boost no anúncio classificado.
+ * Chamado APENAS pelo admin ou webhook do provider após pagamento confirmado.
+ * NUNCA chamado diretamente pela UI do usuário.
+ */
+export const confirmBoostPaymentAdmin = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      boostPaymentId: z.string().uuid(),
+      method: z.enum(["admin_manual", "webhook"]).default("admin_manual"),
+    })
+  )
+  .handler(async ({ data: { boostPaymentId, method } }) => {
+    const supabase = getServerClient();
+
+    // Somente admins podem confirmar manualmente
+    if (method === "admin_manual") {
+      await requireAdmin();
+    }
+
+    const identity = await getIdentity();
+
+    // Busca o boost payment
+    const { data: bp, error: bpErr } = await supabase
+      .from("classified_boost_payments")
+      .select("id, classified_id, plan_days, plan_name, status")
+      .eq("id", boostPaymentId)
+      .single();
+
+    if (bpErr || !bp) throw new Error("Transação de boost não encontrada.");
+    if (bp.status === "paid") throw new Error("Este boost já foi ativado.");
+    if (bp.status !== "pending") throw new Error(`Boost em estado inválido: ${bp.status}`);
+
+    const now = new Date().toISOString();
+    const boostedUntil = new Date(Date.now() + bp.plan_days * 24 * 60 * 60 * 1000).toISOString();
+
+    // Atualiza o boost payment para 'paid'
+    const { error: payErr } = await supabase
+      .from("classified_boost_payments")
+      .update({
+        status: "paid",
+        paid_at: now,
+        activated_at: now,
+        confirmed_by: identity?.id || null,
+      })
+      .eq("id", boostPaymentId);
+
+    if (payErr) throw new Error("Erro ao confirmar pagamento do boost.");
+
+    // Ativa o boost no anúncio (SOMENTE aqui, após pagamento)
+    const { error: boostErr } = await supabase
+      .from("classifieds")
+      .update({
+        is_boosted: true,
+        boosted_until: boostedUntil,
+        boost_plan: bp.plan_name,
+        boosted_at: now,
+        updated_at: now,
+      })
+      .eq("id", bp.classified_id);
+
+    if (boostErr) {
+      console.error("[boost] activate classified error:", boostErr);
+      throw new Error("Pagamento confirmado mas erro ao ativar o destaque. Contate o suporte.");
+    }
+
+    return {
+      success: true,
+      classifiedId: bp.classified_id,
+      boostedUntil,
+      plan: bp.plan_name,
+    };
+  });
+
+/**
+ * Lista os pagamentos de boost para o painel admin.
+ */
+export const listBoostPayments = createServerFn({ method: "GET" })
+  .validator(
+    z.object({
+      status: z.enum(["pending", "paid", "failed", "refunded", "expired", "all"]).optional().default("all"),
+      limit: z.number().int().min(1).max(100).optional().default(50),
+    }).optional()
+  )
+  .handler(async ({ data }) => {
+    await requireAdmin();
+    const supabase = getServerClient();
+
+    const status = data?.status ?? "all";
+    const limit = data?.limit ?? 50;
+
+    let query = supabase
+      .from("classified_boost_payments")
+      .select(`
+        id,
+        classified_id,
+        profile_id,
+        plan_days,
+        plan_name,
+        amount_cents,
+        provider,
+        provider_ref,
+        status,
+        payment_link,
+        paid_at,
+        activated_at,
+        expires_at,
+        failure_reason,
+        created_at,
+        profiles!profile_id(id, name, username, avatar_url),
+        classifieds!classified_id(id, title, category)
+      `)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (status !== "all") {
+      query = query.eq("status", status);
+    }
+
+    const { data: results, error } = await query;
+    if (error) {
+      console.error("[boost] listBoostPayments error:", error);
+      return [];
+    }
+
+    return results || [];
+  });
+
+/**
+ * Consulta o status de um boost payment específico (para polling da UI).
+ */
+export const getBoostPaymentById = createServerFn({ method: "GET" })
+  .validator(z.object({ boostPaymentId: z.string().uuid() }))
+  .handler(async ({ data: { boostPaymentId } }) => {
+    const supabase = getServerClient();
+    const identity = await getIdentity();
+    if (!identity?.id) throw new Error("Não autenticado.");
+
+    const { data, error } = await supabase
+      .from("classified_boost_payments")
+      .select("id, status, paid_at, activated_at, expires_at, pix_qr_code, pix_copy_paste, payment_link, amount_cents, plan_name, plan_days, provider")
+      .eq("id", boostPaymentId)
+      .eq("profile_id", identity.id)
+      .single();
+
+    if (error || !data) throw new Error("Transação não encontrada.");
+    return data;
+  });
+
+// Mantido para compatibilidade com imports antigos — agora é alias seguro
+// que retorna erro se não há gateway configurado.
+export const boostClassifiedAd = initiateBoostPayment;

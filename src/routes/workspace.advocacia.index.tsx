@@ -1029,7 +1029,7 @@ function WorkspaceAdvocaciaPage() {
  <label className="text-xs font-bold text-muted-foreground uppercase font-mono">
  Modalidade de Honorários
  </label>
- <div className="grid grid-cols-3 gap-2">
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
  {[
  { id: "fixed", label: "Fixo" },
  { id: "success_percentage", label: "Êxito %" },

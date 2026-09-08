@@ -47,6 +47,7 @@ export const Route = createFileRoute("/_store/turismo/")({
  ],
  }),
  loader: async () => {
+   try {
  const [banners, hotpages, tourismItems] = await Promise.all([
  listActiveBanners({ data: { placement: "turismo" } }).catch(() => []),
  listHotpages({ data: { module: "turismo" } }).catch(() => []),
@@ -54,6 +55,10 @@ export const Route = createFileRoute("/_store/turismo/")({
  ]);
 
  return { banners, hotpages, tourismItems };
+   } catch (err) {
+     console.error("[loader:_store.turismo.index] Unhandled error:", err);
+     return null;
+   }
  },
  component: TourismMasterPage,
 });

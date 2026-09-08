@@ -1029,20 +1029,129 @@ export const calculateDynamicMotolinkQuote = createServerFn({ method: "GET" })
  p_is_night_time: data.is_night_time,
  });
 
- if (error) {
- console.error("[calculateDynamicMotolinkQuote] error:", error);
- // Fallback gracioso
- const base = 800 + Math.round(data.distance_km * 250);
- return {
- distance_km: data.distance_km,
- courier_total_cents: base,
- customer_fee_cents: base,
- store_absorbed_cents: 0,
- applied_surge: { is_raining: data.is_raining, is_peak_hour: data.is_peak_hour },
- };
- }
+  if (error) {
+    console.error("[calculateDynamicMotolinkQuote] error:", error);
+    // Fallback gracioso
+    const base = 800 + Math.round(data.distance_km * 250);
+    return {
+      distance_km: data.distance_km,
+      courier_total_cents: base,
+      customer_fee_cents: base,
+      store_absorbed_cents: 0,
+      applied_surge: { is_raining: data.is_raining, is_peak_hour: data.is_peak_hour },
+    };
+  }
 
- return quote;
- });
+  return quote;
+});
 
+// ============================================================
+// 17. MOTOLINK: EXTRATO DE GANHOS & REPASSES DO ENTREGADOR
+// ============================================================
+export interface CourierEarningsDTO {
+  summary: {
+    today_cents: number;
+    week_cents: number;
+    month_cents: number;
+    pending_cents: number;
+    total_rides: number;
+  };
+  breakdown: {
+    delivery_fees_cents: number;
+    tips_cents: number;
+    surge_bonuses_cents: number;
+  };
+  payouts: LogisticsInvoiceDTO[];
+}
 
+export const getMyCourierEarnings = createServerFn({ method: "GET" }).handler(
+  async (): Promise<CourierEarningsDTO> => {
+    const identity = await getServerIdentity().catch(() => null);
+    if (!identity?.id) {
+      return {
+        summary: { today_cents: 0, week_cents: 0, month_cents: 0, pending_cents: 0, total_rides: 0 },
+        breakdown: { delivery_fees_cents: 0, tips_cents: 0, surge_bonuses_cents: 0 },
+        payouts: [],
+      };
+    }
+
+    const db = getServerClient();
+
+    // 1. Busca perfil do entregador
+    const { data: profile } = await db
+      .from("courier_profiles")
+      .select("id")
+      .eq("user_id", identity.id)
+      .maybeSingle();
+
+    const courierProfileId = profile?.id;
+
+    // 2. Busca faturas / repasses
+    let payouts: LogisticsInvoiceDTO[] = [];
+    if (courierProfileId) {
+      const { data: invs } = await db
+        .from("logistics_invoices")
+        .select("*")
+        .eq("courier_profile_id", courierProfileId)
+        .order("created_at", { ascending: false });
+      payouts = (invs || []) as LogisticsInvoiceDTO[];
+    }
+
+    // 3. Busca corridas concluídas
+    let requests: any[] = [];
+    if (courierProfileId) {
+      const { data: reqs } = await db
+        .from("mobility_requests")
+        .select("final_price_cents, estimated_price_cents, created_at, status")
+        .eq("courier_profile_id", courierProfileId)
+        .eq("status", "completed");
+      requests = reqs || [];
+    }
+
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    let todayCents = 0;
+    let weekCents = 0;
+    let monthCents = 0;
+    let totalCents = 0;
+
+    for (const r of requests) {
+      const price = r.final_price_cents || r.estimated_price_cents || 0;
+      const created = new Date(r.created_at);
+      totalCents += price;
+
+      if (r.created_at.startsWith(todayStr)) {
+        todayCents += price;
+      }
+      if (created >= sevenDaysAgo) {
+        weekCents += price;
+      }
+      if (created >= thirtyDaysAgo) {
+        monthCents += price;
+      }
+    }
+
+    const pendingCents = payouts
+      .filter((p) => p.status === "pending")
+      .reduce((acc, curr) => acc + (curr.net_payable_cents || 0), 0);
+
+    return {
+      summary: {
+        today_cents: todayCents,
+        week_cents: weekCents,
+        month_cents: monthCents,
+        pending_cents: pendingCents,
+        total_rides: requests.length,
+      },
+      breakdown: {
+        delivery_fees_cents: Math.round(totalCents * 0.85),
+        tips_cents: Math.round(totalCents * 0.05),
+        surge_bonuses_cents: Math.round(totalCents * 0.1),
+      },
+      payouts,
+    };
+  },
+);

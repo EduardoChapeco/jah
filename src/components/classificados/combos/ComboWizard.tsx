@@ -13,7 +13,7 @@ import {
   Package, Search, Plus, Minus, Trash2, ArrowLeft, ArrowRight, Check,
   Image, Replace, AlertTriangle, ChevronDown, ChevronUp,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { listAdminProducts } from "@/services/admin-catalog.functions";
 import { useQuery } from "@tanstack/react-query";
 import { useCreateCombo, useUpdateCombo, useUpsertComboItems, ProductCombo, ComboItem } from "@/hooks/useCombos";
 import { toast } from "sonner";
@@ -71,14 +71,14 @@ export default function ComboWizard({ open, onOpenChange, companyId, editCombo, 
     queryKey: ["combo-products", companyId],
     enabled: open,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("id, name, price, photos, is_available")
-        .eq("company_id", companyId)
-        .eq("is_available", true)
-        .order("name");
-      if (error) throw error;
-      return data || [];
+      const res = await listAdminProducts();
+      return (res || []).map((p: any) => ({
+        id: p.id,
+        name: p.title || p.name || "",
+        price: ((p.priceCents ?? p.price_cents ?? p.price ?? 0) as number) / 100,
+        photos: p.media ? p.media.map((m: any) => m.url) : (p.photos || []),
+        is_available: p.status === "active" || p.is_available === true,
+      }));
     },
   });
 

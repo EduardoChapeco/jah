@@ -50,6 +50,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export const Route = createFileRoute("/workspace/pedidos/frota")({
  head: () => ({ meta: [{ title: "Frota & Despacho de Entregas | Wider OS" }] }),
  loader: async () => {
+   try {
  const [dispatches, priceTables, pendingOrders, couriers] = await Promise.all([
  listDispatches().catch(() => []),
  listLogisticsPriceTables().catch(() => []),
@@ -57,6 +58,10 @@ export const Route = createFileRoute("/workspace/pedidos/frota")({
  listCouriers({ data: {} }).catch(() => []),
  ]);
  return { dispatches, priceTables, pendingOrders, couriers };
+   } catch (err) {
+     console.error("[loader:workspace.pedidos.frota] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: FrotaEntregasPage,
 });

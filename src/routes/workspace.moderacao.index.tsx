@@ -117,7 +117,7 @@ function ModerationQueuePage() {
  <div>
  <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
  <ShieldAlert className="size-5 text-destructive" />
- <span>Central de Moderação & Trust & Safety</span>
+ <span>Moderação</span>
  </h1>
  <p className="text-xs text-muted-foreground mt-0.5">
  Gerencie denúncias de usuários, faça curadoria de conteúdo e aplique sanções a violações

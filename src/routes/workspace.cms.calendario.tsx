@@ -38,7 +38,12 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/workspace/cms/calendario")({
  head: () => ({ meta: [{ title: "Calendário Editorial & Agendamento | Wider OS" }] }),
  loader: async () => {
+   try {
  return await listScheduledPosts();
+   } catch (err) {
+     console.error("[loader:workspace.cms.calendario] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: CalendarioEditorialPage,
 });

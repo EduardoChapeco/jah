@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { X, Search, Plus, ImageIcon, ShoppingBag, AlignLeft, Star, Zap, Store, LayoutTemplate, SlidersHorizontal, ArrowRight, Sliders, Grid, Film, CheckCircle2, Plane, Flame, Calendar, UtensilsCrossed, Shirt, Home, Link2, HelpCircle, Clock, Layers, MapPin, Mail, UserCheck } from 'lucide-react';
+import { X, Search, Plus, ImageIcon, ShoppingBag, AlignLeft, Star, Zap, Store, LayoutTemplate, SlidersHorizontal, ArrowRight, Sliders, Grid, Film, CheckCircle2, Plane, Flame, Calendar, UtensilsCrossed, Shirt, Home, Link2, HelpCircle, Clock, Layers, MapPin, Mail, UserCheck, Route, Landmark, Map, Tags, Timer, FileText, ChevronDown, CheckSquare, MousePointer2, CreditCard, DollarSign, MessageCircle, Briefcase, Table as TableIcon, ClipboardList, Images } from 'lucide-react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -142,6 +142,16 @@ const CATEGORY_TREE: CategoryDefinition[] = [
  ],
  },
  {
+ id: "blocos",
+ label: "Blocos Individuais",
+ icon: Layers,
+ subcategories: [
+ { id: "blocos_viagem", label: "Viagem & Turismo", templateIds: [] },
+ { id: "blocos_negocios", label: "Negócios & E-commerce", templateIds: [] },
+ { id: "blocos_basico", label: "Básicos & Utilitários", templateIds: [] },
+ ],
+ },
+ {
  id: "social",
  label: "Social e Depoimentos",
  icon: Star,
@@ -150,6 +160,66 @@ const CATEGORY_TREE: CategoryDefinition[] = [
  { id: "social_news", label: "Captura de Leads", templateIds: ["newsletter_capture"] },
  ],
  },
+];
+
+// ── Catálogo de Blocos Individuais transplantado de cloudblock/BlockLibrary.tsx ──
+// Fonte: projetos-referencias/cloudblock/src/components/editor/BlockLibrary.tsx
+// Adaptação: usa onInsertSingleBlock do editor JAH ao invés de useEditor() do cloudblock
+
+interface SingleBlockDef {
+ type: string;
+ icon: any;
+ label: string;
+ template: Record<string, any>;
+}
+
+const SINGLE_BLOCKS: Record<"viagem" | "negocios" | "basico", SingleBlockDef[]> = {
+ viagem: [
+  { type: "itinerary", icon: Route, label: "Roteiro Completo", template: { title: "Meu Roteiro", destination: "Rio de Janeiro", startDate: new Date().toISOString(), endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), travelersCount: 2, showMap: true, mapCenter: { lat: -22.9068, lng: -43.1729 }, mapZoom: 12, days: [{ id: crypto.randomUUID(), dayNumber: 1, title: "Chegada e Exploração", description: "Primeiro dia na cidade", activities: [] }] } },
+  { type: "destinationHeader", icon: MapPin, label: "Info Destino", template: { name: "Nome do Destino", country: "País", backgroundImage: "", temperature: [{ day: "SEG", value: "28°" }, { day: "TER", value: "29°" }] } },
+  { type: "daySection", icon: Calendar, label: "Dia do Roteiro", template: { dayNumber: 1, title: "Chegada", description: "Descrição das atividades." } },
+  { type: "attractionCard", icon: Landmark, label: "Card de Atração", template: { title: "Ponto Turístico", subtitle: "Localização", imageUrl: "" } },
+  { type: "map", icon: Map, label: "Mapa", template: { address: "Digite o endereço", zoom: 15 } },
+  { type: "transport", icon: Plane, label: "Voo/Transporte", template: { title: "Detalhes do Transporte", transportType: "aereo", tripType: "ida-volta", origin: "Origem", destination: "Destino", company: "Cia Aérea", departureTime: "08:00 - 10:00", returnOrigin: "Destino", returnDestination: "Origem", returnTime: "18:00 - 20:00" } },
+  { type: "review", icon: Star, label: "Avaliações", template: { title: "Cliente Satisfeito", comment: "Viagem incrível!", rating: 5, authorImage: "", imageShape: "circle" } },
+  { type: "highlightCard", icon: Star, label: "Card de Destaque", template: { title: "Nome do Destaque", description: "Hotel, restaurante ou atração.", rating: 4, imageUrl: "", buttonText: "Ver Ofertas", buttonLink: "#" } },
+  { type: "thingsToDo", icon: Images, label: "O que Fazer", template: { title: "O que Fazer", items: [{ id: "1", name: "Ponto Turístico 1", imageUrl: "", description: "Descrição", price: "R$ 85,00", rating: 4.8, link: "" }] } },
+ ],
+ negocios: [
+  { type: "product", icon: ShoppingBag, label: "Produto", template: { name: "Nome do Produto", description: "Descrição do produto", price: 9990, image_url: "", stock: 10, rating: 4.5 } },
+  { type: "service", icon: Briefcase, label: "Serviço", template: { name: "Nome do Serviço", description: "Descrição do serviço", price: 15000, duration_minutes: 60, image_url: "" } },
+  { type: "chatWidget", icon: MessageCircle, label: "Chat Widget", template: { welcomeMessage: "Olá! Como posso ajudar?", position: "bottom-right", primaryColor: "#6366f1" } },
+  { type: "quotation", icon: ClipboardList, label: "Formulário de Cotação", template: { title: "Solicite sua Cotação", description: "Escolha o tipo de serviço", quotationTypes: [{ id: "1", type: "passagem_aerea", icon: "plane", label: "Passagem Aérea", enabled: true }, { id: "2", type: "cruzeiro", icon: "ship", label: "Cruzeiro", enabled: true }, { id: "3", type: "viagem_terrestre", icon: "car", label: "Viagem Terrestre", enabled: true }, { id: "4", type: "visto", icon: "file-text", label: "Visto", enabled: true }, { id: "5", type: "seguro_viagem", icon: "shield", label: "Seguro Viagem", enabled: true }, { id: "6", type: "passeios", icon: "map", label: "Passeios", enabled: true }], customFields: [], successMessage: "Cotação enviada! Entraremos em contato em breve.", buttonText: "Enviar Cotação" } },
+  { type: "faq", icon: HelpCircle, label: "FAQ", template: { title: "Perguntas Frequentes", items: [{ id: "1", question: "Como funciona o processo de reserva?", answer: "Resposta detalhada aqui..." }, { id: "2", question: "Quais formas de pagamento são aceitas?", answer: "Resposta detalhada aqui..." }] } },
+  { type: "pricing", icon: DollarSign, label: "Preços / Pacote", template: { title: "Pacote Completo", price: "999", currency: "R$", period: "pessoa", operatorImage: "", installments: 12, installmentValue: "83,25", installmentDescription: "sem juros", paymentMethods: { creditCard: true, debitCard: false, boleto: true, pix: true }, features: ["Passagens aéreas", "Hotel 4 estrelas", "Café da manhã"] } },
+  { type: "hours", icon: Clock, label: "Horários", template: { title: "Horário de Funcionamento", schedule: [{ day: "Seg-Sex", hours: "9:00 - 18:00" }, { day: "Sáb", hours: "10:00 - 14:00" }] } },
+  { type: "tags", icon: Tags, label: "Tags", template: { tags: ["Wi-Fi Grátis", "Pet Friendly", "Estacionamento"] } },
+  { type: "payment", icon: CreditCard, label: "Pagamento PIX", template: { buttonText: "Realizar Pagamento", pixKey: "", entityType: "order", entityId: "" } },
+ ],
+ basico: [
+  { type: "banner", icon: ImageIcon, label: "Banner", template: { title: "Título do Banner", subtitle: "Subtítulo descritivo", buttonText: "Saiba Mais", buttonLink: "#", backgroundColor: "hsl(263, 70%, 50%)", backgroundImage: "" } },
+  { type: "text", icon: AlignLeft, label: "Texto Livre", template: { content: "Digite seu texto aqui..." } },
+  { type: "imageUpload", icon: ImageIcon, label: "Imagem Principal", template: { title: "Título Principal", imageUrl: "", buttonText: "Upload" } },
+  { type: "stories", icon: Images, label: "Stories", template: { stories: [{ id: "1", type: "image", url: "", thumbnail: "", title: "Story 1" }, { id: "2", type: "image", url: "", thumbnail: "", title: "Story 2" }] } },
+  { type: "links", icon: Link2, label: "Links Bio", template: { links: [{ id: "1", text: "Meu Link 1", url: "https://example.com", icon: "" }, { id: "2", text: "Meu Link 2", url: "https://example.com", icon: "" }] } },
+  { type: "video", icon: Film, label: "Vídeo", template: { title: "Meu Vídeo", videoUrl: "", youtubeUrl: "", vimeoUrl: "", thumbnail: "", autoplay: false } },
+  { type: "carousel", icon: Images, label: "Carrossel", template: { title: "Galeria", items: [{ id: "1", imageUrl: "", title: "Item 1", description: "Descrição", link: "" }, { id: "2", imageUrl: "", title: "Item 2", description: "Descrição", link: "" }], style: "cards" } },
+  { type: "buttons", icon: Zap, label: "Botões", template: { buttons: [{ id: "1", text: "Botão 1", url: "https://example.com", variant: "primary" }], layout: "vertical" } },
+  { type: "gallery", icon: Images, label: "Galeria", template: { images: ["", "", ""] } },
+  { type: "form", icon: FileText, label: "Formulário", template: { title: "Peça sua cotação", nameLabel: "Digite seu nome", buttonText: "Enviar", termsText: "Aceito os termos e condições" } },
+  { type: "countdown", icon: Timer, label: "Contador Regressivo", template: { title: "A OFERTA TERMINA EM", endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), backgroundColor: "hsl(0, 84%, 60%)" } },
+  { type: "divider", icon: AlignLeft, label: "Divisor", template: { style: "line", spacing: "md" } },
+  { type: "table", icon: TableIcon, label: "Tabela", template: { title: "Tabela", headers: ["Produto", "Utilização", "Taxa", "Valor"], rows: [{ id: "1", cells: ["Item 1", "08/12/2025", "-", "R$ 999,00"] }] } },
+  { type: "expandableText", icon: ChevronDown, label: "Texto Expansível", template: { title: "Clique para expandir", content: "Conteúdo detalhado aqui...", defaultExpanded: false } },
+  { type: "acceptCheckbox", icon: CheckSquare, label: "Caixa de Aceite", template: { label: "Li e aceito os termos e condições", required: true } },
+  { type: "floatingButtons", icon: MousePointer2, label: "Botões Flutuantes", template: { buttons: [{ id: "1", type: "whatsapp", label: "WhatsApp", value: "5511999999999", position: "bottom-right", backgroundColor: "#25D366", textColor: "#ffffff" }] } },
+ ],
+};
+
+const SINGLE_BLOCK_SUBCATEGORIES: { id: "viagem" | "negocios" | "basico"; label: string; icon: any }[] = [
+ { id: "viagem", label: "Viagem & Turismo", icon: Plane },
+ { id: "negocios", label: "Negócios & E-commerce", icon: ShoppingBag },
+ { id: "basico", label: "Básicos & Utilitários", icon: Layers },
 ];
 
 export function BuilderAddPanel3Col({
@@ -161,8 +231,11 @@ export function BuilderAddPanel3Col({
  const [selectedCatId, setSelectedCatId] = useState("hero");
  const [selectedSubId, setSelectedSubId] = useState("hero_destaque");
  const [searchQuery, setSearchQuery] = useState("");
+ const [singleBlockSub, setSingleBlockSub] = useState<"viagem" | "negocios" | "basico">("viagem");
 
  if (!isOpen) return null;
+
+ const isBlocosMode = selectedCatId === "blocos";
 
  const currentCategory =
  CATEGORY_TREE.find((c) => c.id === selectedCatId) || CATEGORY_TREE[0];
@@ -240,9 +313,24 @@ export function BuilderAddPanel3Col({
 
  <ScrollArea className="flex-1 py-1 px-1.5">
  <div className="space-y-0.5">
- {currentCategory.subcategories.map((sub) => {
+ {isBlocosMode
+ ? SINGLE_BLOCK_SUBCATEGORIES.map((sub) => (
+ <button
+ key={sub.id}
+ type="button"
+ onClick={() => setSingleBlockSub(sub.id)}
+ className={cn(
+ "w-full px-3 py-2 rounded-xl text-xs transition-all cursor-pointer text-left truncate block",
+ singleBlockSub === sub.id
+ ? "bg-primary text-primary-foreground font-bold shadow-2xs"
+ : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+ )}
+ >
+ {sub.label}
+ </button>
+ ))
+ : currentCategory.subcategories.map((sub) => {
  const isSelected = selectedSubId === sub.id;
-
  return (
  <button
  key={sub.id}
@@ -290,7 +378,27 @@ export function BuilderAddPanel3Col({
  {/* Lista de Seções com Visual Render */}
  <ScrollArea className="flex-1 p-3">
  <div className="space-y-3 pb-8">
- {displayedTemplates.length === 0 ? (
+ {isBlocosMode ? (
+  SINGLE_BLOCKS[singleBlockSub].map((block) => (
+  <div
+  key={block.type}
+  onClick={() => {
+  onInsertSingleBlock(block.type);
+  onClose();
+  }}
+  className="group rounded-2xl border border-border/70 bg-muted/20 hover:bg-muted/50 hover:border-primary/50 transition-all cursor-pointer overflow-hidden p-3 flex items-center gap-3 shadow-2xs"
+  >
+  <div className="size-10 rounded-xl bg-background border border-border/50 flex items-center justify-center text-muted-foreground">
+  <block.icon className="size-5" />
+  </div>
+  <div className="flex-1">
+  <p className="text-xs font-bold text-foreground">{block.label}</p>
+  <p className="text-[10px] text-muted-foreground">Inserir bloco individual</p>
+  </div>
+  <Plus className="size-4 text-muted-foreground group-hover:text-primary" />
+  </div>
+  ))
+ ) : displayedTemplates.length === 0 ? (
  <div className="p-8 text-center text-muted-foreground text-xs space-y-1">
  <LayoutTemplate className="size-6 mx-auto text-muted-foreground/50 mb-2" />
  <p className="font-semibold text-foreground">Nenhuma seção encontrada</p>

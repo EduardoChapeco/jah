@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ACCENT_COLORS, STORE_TYPES, type StepProps } from "./types";
 import { Pencil, Upload } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { listCategories } from "@/services/admin-catalog.functions";
 
 function toSlug(str: string) {
   return str
@@ -25,12 +25,12 @@ export function IdentityStep({ data, onChange }: StepProps) {
   const { data: categories } = useQuery({
     queryKey: ["ad-categories"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("ad_categories")
-        .select("id, name, slug")
-        .order("sort_order");
-      if (error) throw error;
-      return data || [];
+      const res = await listCategories();
+      return (res || []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+      }));
     },
   });
 

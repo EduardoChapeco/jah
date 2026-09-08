@@ -48,12 +48,17 @@ export const Route = createFileRoute("/_store/mapa")({
  ],
  }),
  loader: async () => {
+   try {
  const data = await getMomentsMap({ data: {} }).catch(() => ({
  moments: [],
  places: [],
  events: [],
  }));
  return { mapData: data };
+   } catch (err) {
+     console.error("[loader:_store.mapa] Unhandled error:", err);
+     return null;
+   }
  },
  component: FullscreenMapaPage,
 });

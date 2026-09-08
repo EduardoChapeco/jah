@@ -73,7 +73,12 @@ function ClaimReputacaoPage() {
  </div>
 
  <div className="flex items-center gap-2">
- <Button variant="outline" className="rounded-xl gap-1.5 text-xs h-10 min-h-[44px]" onClick={() => toast.success('Link do perfil copiado!')}>
+ <Button variant="outline" className="rounded-xl gap-1.5 text-xs h-10 min-h-[44px]" onClick={() => {
+                if (typeof navigator !== "undefined" && navigator.clipboard) {
+                  navigator.clipboard.writeText(window.location.href);
+                }
+                toast.success('Link do perfil copiado para a área de transferência!');
+              }}>
  <Share2 className="size-3.5" /> Compartilhar
  </Button>
  <Button asChild className="rounded-xl gap-1.5 text-xs h-10 min-h-[44px]">

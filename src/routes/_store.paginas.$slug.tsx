@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_store/paginas/$slug")({
  loader: async ({ params }) => {
+   try {
  const res = await getPublicExperienceDocumentBySlug({
  data: { slug: params.slug, document_type: "storefront" },
  });
@@ -23,6 +24,10 @@ export const Route = createFileRoute("/_store/paginas/$slug")({
  document: res.data.document,
  tree: res.data.tree,
  };
+   } catch (err) {
+     console.error("[loader:_store.paginas.$slug] Unhandled error:", err);
+     return null;
+   }
  },
  head: ({ loaderData }) => {
  if (!loaderData || !loaderData.document) return { meta: [{ title: "Página não encontrada" }] };

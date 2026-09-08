@@ -38,8 +38,13 @@ import { DestinationPicker } from "@/components/ui/destination-picker";
 export const Route = createFileRoute("/workspace/marketing/banners")({
  head: () => ({ meta: [{ title: "Banners da Loja | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const banners = await listActiveBanners({ data: { placement: "store" } }).catch(() => []);
  return { banners };
+   } catch (err) {
+     console.error("[loader:workspace.marketing.banners] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspaceStoreBannersPage,
 });

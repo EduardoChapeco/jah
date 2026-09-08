@@ -102,3 +102,31 @@ export const deleteTravelSupplier = createServerFn({ method: 'POST' })
  if (error) throw new Error('Erro ao remover fornecedor: ' + error.message);
  return { success: true };
  });
+
+export const searchTravelSuppliers = createServerFn({ method: 'GET' })
+  .validator((d: { search: string; kind?: string }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const identity = await getServerIdentity();
+      const storeId = identity.store_id;
+      const db = getServerClient();
+
+      let q = db
+        .from('travel_suppliers')
+        .select('id, name, kind, city, country, rating, phone, email, commission_rate')
+        .eq('store_id', storeId)
+        .ilike('name', `%${data.search}%`)
+        .order('name')
+        .limit(10);
+
+      if (data.kind && data.kind !== 'all') {
+        q = q.eq('kind', data.kind);
+      }
+
+      const { data: rows, error } = await q;
+      if (error) return [];
+      return rows || [];
+    } catch {
+      return [];
+    }
+  });

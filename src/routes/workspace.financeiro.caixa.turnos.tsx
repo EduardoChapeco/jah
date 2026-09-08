@@ -20,7 +20,12 @@ import { formatMoney } from "@/lib/money";
 export const Route = createFileRoute("/workspace/financeiro/caixa/turnos")({
  head: () => ({ meta: [{ title: "Turnos de Caixa | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  return await listRegisterHistory();
+   } catch (err) {
+     console.error("[loader:workspace.financeiro.caixa.turnos] Unhandled error:", err);
+     return null;
+   }
  },
  component: ShiftsPage,
 });

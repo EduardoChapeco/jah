@@ -24,7 +24,7 @@ import { DigitalFileDropzone } from "@/components/classifieds/digital-file-dropz
 import { ChoiceCard } from "@/components/ui/choice-card";
 import { SquircleCard } from "@/components/ui/squircle-card";
 import { CityCombobox, type StructuredLocationValue } from "@/components/ui/city-combobox";
-import { upsertClassified } from "@/services/classifieds.functions";
+import { upsertClassified, getPublicClassifiedById } from "@/services/classifieds.functions";
 import {
  CANONICAL_VEHICLE_BRANDS,
  CANONICAL_TRANSMISSIONS,
@@ -145,7 +145,7 @@ const NICHE_CARDS: NicheDefinition[] = [
  subtitle: "Automotivo & Náutico",
  description: "Carros de passeio, motocicletas, caminhões, utilitários e veículos comerciais.",
  icon: Car,
- badge: "Ficha Técnica",
+ badge: "Especificações",
  gradient: "from-amber-500/10 via-orange-500/5 to-transparent",
  },
  {
@@ -171,112 +171,300 @@ const NICHE_CARDS: NicheDefinition[] = [
  },
 ];
 
+// ─── Taxonomia Canônica Completa de Desapego ───────────────────────────────
+export const DESAPEGO_TAXONOMY = [
+  { id: "smartphones", label: "Smartphones & Celulares", desc: "iPhones, Samsung Galaxy, Xiaomi e marcas" },
+  { id: "computadores", label: "Notebooks & Computadores", desc: "Notebooks Dell, Apple Mac, PCs gamer e tablets" },
+  { id: "moveis", label: "Móveis & Decoração", desc: "Sofás, mesas, armários, camas e decoração" },
+  { id: "eletrodomesticos", label: "Eletrodomésticos & Cozinha", desc: "Geladeiras, fogões, micro-ondas e lavadoras" },
+  { id: "moda_brecho", label: "Roupas & Moda", desc: "Jaquetas, vestidos, camisas e calças" },
+  { id: "tenis_calcados", label: "Tênis & Calçados", desc: "Sneakers, tênis esportivos e calçados sociais" },
+  { id: "joias_relogios", label: "Joias & Relógios", desc: "Relógios automáticos, anéis e correntes" },
+  { id: "eletronicos", label: "Eletrônicos & Som", desc: "TVs, caixas JBL, fones e áudio" },
+  { id: "games_consoles", label: "Games & Consoles", desc: "PS5, Xbox, Nintendo Switch e jogos" },
+  { id: "instrumentos", label: "Instrumentos Musicais", desc: "Guitarras, violões, teclados e pedais" },
+  { id: "esportes_fitness", label: "Esportes & Ciclismo", desc: "Bicicletas, esteiras e artigos esportivos" },
+  { id: "bebes_criancas", label: "Bebês & Crianças", desc: "Carrinhos, berços, roupas e brinquedos" },
+  { id: "ferramentas", label: "Ferramentas & Garagem", desc: "Furadeiras, serras e oficina" },
+  { id: "outros", label: "Outros Desapegos", desc: "Livros, colecionáveis e itens variados" },
+];
+
 function NovoClassificadoPage() {
- const navigate = Route.useNavigate();
- const search = Route.useSearch();
- const selectedType = search?.tipo as ClassifiedNicheType | undefined;
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch();
+  const selectedType = search?.tipo as ClassifiedNicheType | undefined;
+  const editId = search?.editId as string | undefined;
 
- const activeNiche = useMemo(() => {
- return NICHE_CARDS.find((n) => n.id === selectedType);
- }, [selectedType]);
+  const [initialData, setInitialData] = useState<any>(null);
+  const [isLoadingEdit, setIsLoadingEdit] = useState<boolean>(!!editId);
 
- // Se nenhum tipo estiver selecionado, renderiza a Camada 2 (CreateTypePicker Full-Page)
- if (!activeNiche) {
- return (
- <CreateTypePicker
- onSelect={(typeId) =>
- navigate({ to: "/conta/classificados/novo", search: { tipo: typeId } })
- }
- />
- );
- }
+  useEffect(() => {
+    if (!editId) {
+      setInitialData(null);
+      setIsLoadingEdit(false);
+      return;
+    }
 
- // Se um tipo estiver selecionado, renderiza a Camada 3 (Specialized Editor + Live Truthful Preview)
- return (
- <SpecializedClassifiedEditor
- niche={activeNiche}
- onBack={() => navigate({ to: "/conta/classificados/novo", search: {} })}
- />
- );
+    let isMounted = true;
+    setIsLoadingEdit(true);
+    getPublicClassifiedById({ data: editId })
+      .then((res) => {
+        if (!isMounted) return;
+        if (res && res.classified) {
+          setInitialData(res.classified);
+        } else {
+          toast.error("Anúncio não encontrado para edição.");
+        }
+      })
+      .catch((err) => {
+        console.error("Erro ao carregar anúncio para edição:", err);
+        toast.error("Falha ao carregar anúncio.");
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingEdit(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [editId]);
+
+  const activeNiche = useMemo(() => {
+    if (selectedType) {
+      return NICHE_CARDS.find((n) => n.id === selectedType);
+    }
+    if (initialData) {
+      if (initialData.category === "real_estate") {
+        return initialData.deal_type === "temporada"
+          ? NICHE_CARDS.find((n) => n.id === "hospedagem")
+          : NICHE_CARDS.find((n) => n.id === "imovel");
+      }
+      if (initialData.category === "vehicle") {
+        return NICHE_CARDS.find((n) => n.id === "veiculo");
+      }
+      if (initialData.category === "job" || initialData.category === "job_offer") {
+        return NICHE_CARDS.find((n) => n.id === "vaga");
+      }
+      if (initialData.category === "service") {
+        return initialData.pricing_model === "recurring" || initialData.attributes?.niche === "assinatura"
+          ? NICHE_CARDS.find((n) => n.id === "assinatura")
+          : NICHE_CARDS.find((n) => n.id === "servico");
+      }
+      if (initialData.category === "sale") {
+        return initialData.is_digital || initialData.digital_file_url
+          ? NICHE_CARDS.find((n) => n.id === "digital")
+          : NICHE_CARDS.find((n) => n.id === "desapego");
+      }
+    }
+    return undefined;
+  }, [selectedType, initialData]);
+
+  if (isLoadingEdit) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
+        <Loader2 className="size-8 animate-spin text-primary" />
+        <p className="text-xs font-semibold text-muted-foreground">
+          Carregando dados do anúncio para edição...
+        </p>
+      </div>
+    );
+  }
+
+  if (!activeNiche) {
+    return (
+      <CreateTypePicker
+        onSelect={(typeId, sub) =>
+          navigate({
+            to: "/conta/classificados/novo",
+            search: { tipo: typeId, sub: sub || undefined, editId: editId || undefined },
+          })
+        }
+      />
+    );
+  }
+
+  return (
+    <SpecializedClassifiedEditor
+      niche={activeNiche}
+      initialData={initialData}
+      editId={editId}
+      initialSubcategory={search?.sub}
+      onBack={() =>
+        navigate({ to: "/conta/classificados/novo", search: { editId: editId || undefined } })
+      }
+    />
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CAMADA 2: CreateTypePicker (Full-Page 16:9 Vertical Stack)
 // ─────────────────────────────────────────────────────────────────────────────
-function CreateTypePicker({ onSelect }: { onSelect: (typeId: ClassifiedNicheType) => void }) {
- return (
- <div className="max-w-3xl mx-auto py-4 md:py-8 space-y-6">
- {/* Header Discreto */}
- <div className="space-y-1.5 text-center md:text-left">
- <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
- O que você quer anunciar?
- </h1>
- <p className="text-xs md:text-sm text-muted-foreground">
- Escolha uma categoria para abrir o editor especializado com ferramentas dedicadas.
- </p>
- </div>
+function CreateTypePicker({
+  onSelect,
+}: {
+  onSelect: (typeId: ClassifiedNicheType, sub?: string) => void;
+}) {
+  const [searchFilter, setSearchFilter] = useState("");
 
- {/* Stack Vertical de Cards 16:9 Confortáveis */}
- <div className="space-y-3.5">
- {NICHE_CARDS.map((niche) => {
- const Icon = niche.icon;
- return (
- <button
- key={niche.id}
- onClick={() => onSelect(niche.id)}
- className="w-full text-left group relative hover:border-primary/50 bg-card hover:bg-card/80 rounded-2xl p-5 md:p-6 transition-all duration-200 hover: cursor-pointer overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
- >
- {/* Background gradient sutil */}
- <div
- className={`absolute inset-0 bg-gradient-to-r ${niche.gradient} opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none`}
- />
+  const filteredNiches = useMemo(() => {
+    if (!searchFilter.trim()) return NICHE_CARDS;
+    const q = searchFilter.toLowerCase();
+    return NICHE_CARDS.filter(
+      (n) =>
+        n.title.toLowerCase().includes(q) ||
+        n.subtitle.toLowerCase().includes(q) ||
+        n.description.toLowerCase().includes(q)
+    );
+  }, [searchFilter]);
 
- <div className="relative z-10 flex items-start sm:items-center gap-4 flex-1">
- <div className="size-12 md:size-14 rounded-2xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
- <Icon className="size-6 md:size-7" />
- </div>
+  const filteredDesapegoItems = useMemo(() => {
+    if (!searchFilter.trim()) return [];
+    const q = searchFilter.toLowerCase();
+    return DESAPEGO_TAXONOMY.filter(
+      (d) =>
+        d.label.toLowerCase().includes(q) ||
+        d.desc.toLowerCase().includes(q)
+    );
+  }, [searchFilter]);
 
- <div className="space-y-1 flex-1">
- <div className="flex items-center gap-2">
- <h2 className="text-base md:text-lg font-bold text-foreground group-hover:text-primary transition-colors">
- {niche.title}
- </h2>
- <Badge variant="secondary" className="text-[10px] font-semibold">
- {niche.badge}
- </Badge>
- </div>
- <p className="text-xs text-foreground/80 font-medium">{niche.subtitle}</p>
- <p className="text-xs text-muted-foreground leading-relaxed">
- {niche.description}
- </p>
- </div>
- </div>
+  return (
+    <div className="max-w-3xl mx-auto py-4 md:py-8 space-y-6">
+      <div className="space-y-1.5 text-center md:text-left">
+        <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
+          O que você quer anunciar?
+        </h1>
+        <p className="text-xs md:text-sm text-muted-foreground">
+          Selecione o formato ideal ou busque o item específico para abrir o formulário dedicado.
+        </p>
+      </div>
 
- <div className="relative z-10 hidden sm:flex items-center justify-center size-9 rounded-full bg-muted/60 text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-all shrink-0">
- <ChevronRight className="size-5" />
- </div>
- </button>
- );
- })}
- </div>
- </div>
- );
+      <div className="relative">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Input
+          value={searchFilter}
+          onChange={(e) => setSearchFilter(e.target.value)}
+          placeholder="Buscar categoria ou produto (ex: Casa, iPhone, Carro, Móveis, Tênis, Assinatura)..."
+          className="pl-10 h-11 rounded-2xl text-xs sm:text-sm bg-card border-border/60 shadow-sm"
+        />
+        {searchFilter && (
+          <button
+            type="button"
+            onClick={() => setSearchFilter("")}
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+          >
+            Limpar
+          </button>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
+          Categorias Populares para Desapego Rápido
+        </span>
+        <div className="flex flex-wrap gap-1.5">
+          {DESAPEGO_TAXONOMY.slice(0, 8).map((cat) => (
+            <Badge
+              key={cat.id}
+              variant="outline"
+              onClick={() => onSelect("desapego", cat.id)}
+              className="text-xs py-1.5 px-3 rounded-xl gap-1.5 cursor-pointer hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all"
+            >
+              <span>{cat.label}</span>
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      {filteredDesapegoItems.length > 0 && (
+        <div className="space-y-2 pt-2">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-primary block">
+            Itens Específicos Encontrados ({filteredDesapegoItems.length})
+          </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {filteredDesapegoItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => onSelect("desapego", item.id)}
+                className="flex items-center gap-3 p-3.5 rounded-xl border border-border/60 bg-card hover:bg-muted/40 text-left transition-all cursor-pointer"
+              >
+                <div className="size-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <Tag className="size-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-foreground truncate">{item.label}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{item.desc}</p>
+                </div>
+                <ChevronRight className="size-4 text-muted-foreground" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-3.5 pt-1">
+        {filteredNiches.map((niche) => {
+          const Icon = niche.icon;
+          return (
+            <button
+              key={niche.id}
+              onClick={() => onSelect(niche.id)}
+              className="w-full text-left group relative hover:border-primary/50 bg-card hover:bg-card/80 rounded-2xl p-5 md:p-6 transition-all duration-200 cursor-pointer overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-border/50"
+            >
+              <div
+                className={`absolute inset-0 bg-gradient-to-r ${niche.gradient} opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none`}
+              />
+
+              <div className="relative z-10 flex items-start sm:items-center gap-4 flex-1">
+                <div className="size-12 md:size-14 rounded-2xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <Icon className="size-6 md:size-7" />
+                </div>
+
+                <div className="space-y-1 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base md:text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+                      {niche.title}
+                    </h2>
+                    <Badge variant="secondary" className="text-[10px] font-semibold">
+                      {niche.badge}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-foreground/80 font-medium">{niche.subtitle}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {niche.description}
+                  </p>
+                </div>
+              </div>
+
+              <div className="relative z-10 hidden sm:flex items-center justify-center size-9 rounded-full bg-muted/60 text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-all shrink-0">
+                <ChevronRight className="size-5" />
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CAMADA 3: Specialized Editor + Live Truthful Preview
 // ─────────────────────────────────────────────────────────────────────────────
 function SpecializedClassifiedEditor({
- niche,
- onBack,
+  niche,
+  onBack,
+  initialData,
+  editId,
+  initialSubcategory,
 }: {
- niche: NicheDefinition;
- onBack: () => void;
+  niche: NicheDefinition;
+  onBack: () => void;
+  initialData?: any;
+  editId?: string;
+  initialSubcategory?: string;
 }) {
  const navigate = useNavigate();
  const queryClient = useQueryClient();
  const [mobileTab, setMobileTab] = useState<"edit" | "preview">("edit");
- const [isAdvancedOpen, setIsAdvancedOpen] = useState(true);
  const [jobWorkSchedule, setJobWorkSchedule] = useState("integral_44h");
  const [jobAcceptedMethods, setJobAcceptedMethods] = useState<string[]>([
  "perfil_wider",
@@ -361,6 +549,111 @@ function SpecializedClassifiedEditor({
  "Caixa Original",
  "Nota Fiscal",
  ]);
+  // Specialized: Assinaturas & Recorrência
+  const [pricingModel, setPricingModel] = useState<"one_time" | "recurring">(
+    niche.id === "assinatura" ? "recurring" : "one_time"
+  );
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "quarterly" | "semiannual" | "yearly">("monthly");
+  const [setupFeeCents, setSetupFeeCents] = useState<number | undefined>(undefined);
+  const [trialDays, setTrialDays] = useState<number>(0);
+  const [recurringFeatures, setRecurringFeatures] = useState<string[]>([
+    "Acesso completo ao serviço",
+    "Suporte prioritário via WhatsApp",
+  ]);
+  const [newFeatureInput, setNewFeatureInput] = useState("");
+
+  // Specialized: Formas de Pagamento & Cancelamento (Zero Hardcoded)
+  const [acceptsPix, setAcceptsPix] = useState(true);
+  const [acceptsCard, setAcceptsCard] = useState(false);
+  const [maxInstallments, setMaxInstallments] = useState(12);
+  const [acceptsCash, setAcceptsCash] = useState(true);
+  const [acceptsTrade, setAcceptsTrade] = useState(false);
+  const [cancellationPolicy, setCancellationPolicy] = useState<"flexible" | "moderate" | "strict" | "negotiable">("flexible");
+
+  // Hydration effect for editing existing classified
+  useEffect(() => {
+    if (!initialData) return;
+    if (initialData.title) setTitle(initialData.title);
+    if (initialData.content) setDescription(initialData.content);
+    if (initialData.price_cents !== undefined) setPriceCents(initialData.price_cents ?? undefined);
+    if (initialData.negotiable !== undefined) setNegotiable(initialData.negotiable);
+    if (initialData.location_name || initialData.location_text) setLocationName(initialData.location_name || initialData.location_text);
+    if (initialData.contact_whatsapp || initialData.whatsapp) setWhatsapp(initialData.contact_whatsapp || initialData.whatsapp);
+    if (Array.isArray(initialData.images)) setImages(initialData.images);
+
+    if (initialData.attributes) {
+      if (initialData.attributes.accepts_pix !== undefined) setAcceptsPix(!!initialData.attributes.accepts_pix);
+      if (initialData.attributes.accepts_card !== undefined) setAcceptsCard(!!initialData.attributes.accepts_card);
+      if (initialData.attributes.max_installments) setMaxInstallments(initialData.attributes.max_installments);
+      if (initialData.attributes.accepts_cash !== undefined) setAcceptsCash(!!initialData.attributes.accepts_cash);
+      if (initialData.attributes.accepts_trade !== undefined) setAcceptsTrade(!!initialData.attributes.accepts_trade);
+      if (initialData.attributes.cancellation_policy) setCancellationPolicy(initialData.attributes.cancellation_policy);
+    } else if (initialData.accepts_card !== undefined) {
+      setAcceptsCard(!!initialData.accepts_card);
+    }
+
+    if (initialData.pricing_model === "recurring" || niche.id === "assinatura") {
+      setPricingModel("recurring");
+      if (initialData.billing_cycle) setBillingCycle(initialData.billing_cycle);
+      if (initialData.setup_fee_cents) setSetupFeeCents(initialData.setup_fee_cents);
+      if (initialData.trial_days) setTrialDays(initialData.trial_days);
+      if (Array.isArray(initialData.recurring_features)) setRecurringFeatures(initialData.recurring_features);
+    }
+
+    if (initialData.category === "real_estate") {
+      if (initialData.property_type) {
+        setHospPropertyType(initialData.property_type);
+        setRePropertyType(initialData.property_type);
+      }
+      if (initialData.max_guests) setHospGuests(String(initialData.max_guests));
+      if (initialData.bedrooms) {
+        setHospBedrooms(String(initialData.bedrooms));
+        setReBedrooms(String(initialData.bedrooms));
+      }
+      if (initialData.bathrooms) {
+        setHospBathrooms(String(initialData.bathrooms));
+        setReBathrooms(String(initialData.bathrooms));
+      }
+      if (initialData.cleaning_fee_cents) setHospCleaningFeeCents(initialData.cleaning_fee_cents);
+      if (initialData.attributes?.checkin_type) setHospCheckinType(initialData.attributes.checkin_type);
+      if (initialData.attributes?.checkin_time) setHospCheckinTime(initialData.attributes.checkin_time);
+      if (initialData.attributes?.checkout_time) setHospCheckoutTime(initialData.attributes.checkout_time);
+      if (Array.isArray(initialData.amenities)) {
+        setHospAmenities(initialData.amenities);
+        setReAmenities(initialData.amenities);
+      }
+      if (Array.isArray(initialData.attributes?.rules)) setHospRules(initialData.attributes.rules);
+      if (initialData.deal_type) setReDealType(initialData.deal_type);
+      if (initialData.area_sqm) setReAreaSqm(String(initialData.area_sqm));
+      if (initialData.suites) setReSuites(String(initialData.suites));
+      if (initialData.parking_spots) setReParking(String(initialData.parking_spots));
+      if (initialData.attributes?.condo_cents) setReCondoCents(initialData.attributes.condo_cents);
+      if (initialData.attributes?.iptu_cents) setReIptuCents(initialData.attributes.iptu_cents);
+      if (initialData.attributes?.furnished) setReFurnished(initialData.attributes.furnished);
+    }
+
+    if (initialData.category === "vehicle" && initialData.attributes) {
+      if (initialData.attributes.brand) setVehicleBrand(initialData.attributes.brand);
+      if (initialData.attributes.model) setVehicleModel(initialData.attributes.model);
+      if (initialData.attributes.version) setVehicleVersion(initialData.attributes.version);
+      if (initialData.attributes.year_fab) setVehicleYearFab(String(initialData.attributes.year_fab));
+      if (initialData.attributes.year_model) setVehicleYearModel(String(initialData.attributes.year_model));
+      if (initialData.attributes.mileage_km) setVehicleKm(String(initialData.attributes.mileage_km));
+      if (initialData.attributes.fuel_type) setVehicleFuel(initialData.attributes.fuel_type);
+      if (initialData.attributes.transmission) setVehicleTransmission(initialData.attributes.transmission);
+      if (initialData.attributes.color) setVehicleColor(initialData.attributes.color);
+      if (Array.isArray(initialData.attributes.features)) setVehicleFeatures(initialData.attributes.features);
+    }
+
+    if (initialData.sub_category || initialData.attributes?.desapego_subcategory) {
+      setDesapegoCategory((initialData.sub_category || initialData.attributes?.desapego_subcategory) as any);
+    } else if (initialSubcategory) {
+      setDesapegoCategory(initialSubcategory as any);
+    }
+    if (initialData.condition) setItemCondition(initialData.condition);
+  }, [initialData, initialSubcategory]);
+
+
  // Computadores Canônicos
  const [computerType, setComputerType] = useState("Notebook");
  const [computerBrand, setComputerBrand] = useState("Dell");
@@ -407,12 +700,7 @@ function SpecializedClassifiedEditor({
 
  // Specialized: Logística Avançada & Formas de Pagamento
  const [deliveryMode, setDeliveryMode] = useState<"both" | "pickup" | "local_delivery" | "shipping">("both");
- const [acceptsPix, setAcceptsPix] = useState(true);
- const [acceptsCard, setAcceptsCard] = useState(true);
- const [acceptsCash, setAcceptsCash] = useState(true);
- const [acceptsTrade, setAcceptsTrade] = useState(false);
- const [maxInstallments, setMaxInstallments] = useState("12");
- const [freeShippingLocal, setFreeShippingLocal] = useState(false);
+  const [freeShippingLocal, setFreeShippingLocal] = useState(false);
 
   // Specialized: Serviço
   const [serviceModality, setServiceModality] = useState<"presencial" | "remoto" | "domicilio">(
@@ -586,8 +874,18 @@ function SpecializedClassifiedEditor({
 
       const res = await upsertClassified({
         data: {
+          id: editId || undefined,
           category: niche.canonicalCategory,
           title: title.trim(),
+          pricing_model: niche.id === "assinatura" ? "recurring" : pricingModel,
+          billing_cycle: niche.id === "assinatura" ? billingCycle : undefined,
+          setup_fee_cents: setupFeeCents ?? undefined,
+          trial_days: trialDays ?? undefined,
+          recurring_features: recurringFeatures.length > 0 ? recurringFeatures : undefined,
+          accepts_card: acceptsCard,
+          max_installments: acceptsCard ? maxInstallments : undefined,
+          accepts_trade: acceptsTrade,
+          sub_category: niche.id === "desapego" ? desapegoCategory : undefined,
           content: description.trim(),
           price_cents: priceCents ?? null,
           deal_type:
@@ -649,12 +947,21 @@ function SpecializedClassifiedEditor({
         },
       });
 
-      toast.success("Anúncio publicado com sucesso!");
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["classifieds-master-list"] }),
-        queryClient.invalidateQueries({ queryKey: ["classifieds"] }),
-      ]).catch(() => null);
-      navigate({ to: "/classificados/$id", params: { id: res.id } });
+      if (editId) {
+        toast.success("Anúncio atualizado com sucesso!");
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["classifieds-master-list"] }),
+          queryClient.invalidateQueries({ queryKey: ["classifieds"] }),
+        ]).catch(() => null);
+        navigate({ to: "/classificados/$id", params: { id: editId } });
+      } else {
+        toast.success("Anúncio publicado com sucesso!");
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["classifieds-master-list"] }),
+          queryClient.invalidateQueries({ queryKey: ["classifieds"] }),
+        ]).catch(() => null);
+        navigate({ to: "/classificados/$id", params: { id: res.id } });
+      }
     } catch (err: any) {
       console.error("Erro ao publicar classificado:", err);
       toast.error(err?.message || "Erro ao publicar anúncio.");
@@ -667,69 +974,76 @@ function SpecializedClassifiedEditor({
 
  return (
  <div className="space-y-4">
- {/* ── Topbar Operacional Compacta ──────────────────────────── */}
- <div className="flex items-center justify-between pb-3">
- <div className="flex items-center gap-3">
- <Button
- type="button"
- variant="ghost"
- size="sm"
- onClick={onBack}
- className="rounded-xl text-xs gap-1.5 h-8 text-muted-foreground hover:text-foreground"
- >
- <ArrowLeft className="size-4" />
- <span>Trocar Categoria</span>
- </Button>
+ {/* ── Topbar Operacional Compacta & Sticky no Mobile ────────── */}
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border/60 -mx-3.5 px-3.5 py-2.5 sm:mx-0 sm:px-0 sm:py-0 sm:static sm:border-0 sm:bg-transparent flex items-center justify-between gap-2 pb-3">
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onBack}
+            className="rounded-xl text-xs gap-1.5 h-9 font-bold text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="size-4" />
+            <span>Retornar</span>
+          </Button>
 
- <div className="hidden sm:flex items-center gap-2">
- <span className="text-muted-foreground text-xs">/</span>
- <Badge variant="outline" className="text-xs font-semibold gap-1.5">
- <niche.icon className="size-3.5 text-primary" />
- <span>{niche.title}</span>
- </Badge>
- </div>
- </div>
+          <div className="hidden sm:flex items-center gap-2">
+            <span className="text-muted-foreground text-xs">/</span>
+            <Badge variant="outline" className="text-xs font-semibold gap-1.5">
+              <niche.icon className="size-3.5 text-primary" />
+              <span>{niche.title}</span>
+            </Badge>
+          </div>
+        </div>
 
- {/* Mobile Switcher & Publicar Action */}
- <div className="flex items-center gap-2">
- {/* Mobile Edit/Preview Tabs */}
- <div className="flex md:hidden bg-muted p-0.5 rounded-lg text-xs font-semibold">
- <button
- type="button"
- onClick={() => setMobileTab("edit")}
- className={`px-3 py-1 rounded-md transition-colors ${mobileTab === "edit" ? "bg-card text-foreground font-bold" : "text-muted-foreground"}`}
- >
- Editar
- </button>
- <button
- type="button"
- onClick={() => setMobileTab("preview")}
- className={`px-3 py-1 rounded-md transition-colors ${mobileTab === "preview" ? "bg-card text-foreground font-bold" : "text-muted-foreground"}`}
- >
- Prévia ({images.length})
- </button>
- </div>
+        {/* Mobile Switcher & Publicar / Salvar Action */}
+        <div className="flex items-center gap-2">
+          <div className="flex md:hidden bg-muted p-0.5 rounded-xl text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setMobileTab("edit")}
+              className={`px-3 py-1.5 rounded-lg transition-colors ${
+                mobileTab === "edit"
+                  ? "bg-card text-foreground font-bold shadow-sm"
+                  : "text-muted-foreground"
+              }`}
+            >
+              Editar
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileTab("preview")}
+              className={`px-3 py-1.5 rounded-lg transition-colors ${
+                mobileTab === "preview"
+                  ? "bg-card text-foreground font-bold shadow-sm"
+                  : "text-muted-foreground"
+              }`}
+            >
+              Prévia ({images.length})
+            </button>
+          </div>
 
- <Button
- onClick={handlePublish}
- disabled={isSubmitting || isUploadingMedia}
- size="sm"
- className="rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground h-9 px-4"
- >
- {isSubmitting ? (
- <>
- <Loader2 className="size-4 animate-spin" />
- <span>Publicando...</span>
- </>
- ) : (
- <>
- <Check className="size-4" />
- <span>Publicar Anúncio</span>
- </>
- )}
- </Button>
- </div>
- </div>
+          <Button
+            onClick={handlePublish}
+            disabled={isSubmitting || isUploadingMedia}
+            size="sm"
+            className="rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground h-9 px-4 shadow-sm"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                <span>{editId ? "Salvando..." : "Publicando..."}</span>
+              </>
+            ) : (
+              <>
+                <Check className="size-4" />
+                <span>{editId ? "Salvar Alterações" : "Publicar Anúncio"}</span>
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
 
  {/* ── Grid Principal: Editor (42%) + Truthful Preview (58%) ── */}
  <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
@@ -739,10 +1053,10 @@ function SpecializedClassifiedEditor({
  >
  {/* Section 1: Informações Fundamentais */}
  {/* Section 1: Informações Fundamentais */}
- <div className=" bg-card rounded-2xl p-5 space-y-4 ">
- <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
- <FileText className="size-4 text-primary" />
- <span>1. Informações do Anúncio</span>
+          <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground pb-2.5 border-b border-border/40">
+              <FileText className="size-4 text-primary shrink-0" />
+ <span>1. Informações Básicas do Anúncio</span>
  </div>
 
  <div className="space-y-1.5">
@@ -763,7 +1077,7 @@ function SpecializedClassifiedEditor({
  ? "Ex: Analista Financeiro Sênior (Híbrido)"
  : "Ex: iPhone 15 Pro Max 256GB Impecável na Caixa"
  }
- className="h-10 rounded-xl text-xs bg-background font-medium"
+ className="h-11 rounded-xl text-xs bg-background font-medium"
  />
  </div>
 
@@ -799,7 +1113,7 @@ function SpecializedClassifiedEditor({
  value={priceCents}
  onChange={setPriceCents}
  placeholder="0,00"
- className="h-10 rounded-xl text-xs bg-background"
+ className="h-11 rounded-xl text-xs bg-background"
  />
  </div>
 
@@ -825,63 +1139,15 @@ function SpecializedClassifiedEditor({
  </div>
  </div>
 
- <div className="bg-card rounded-2xl border border-border/70 overflow-hidden shadow-xs">
- <div 
- className="p-5 flex items-center justify-between cursor-pointer select-none bg-muted/20 hover:bg-muted/30 transition-colors"
- onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
- >
- <div className="flex items-center gap-3">
- <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
- <SlidersHorizontal className="size-4" />
- </div>
- <div>
- <div className="flex items-center gap-2">
- <span className="text-sm font-bold text-foreground">
-                    2. {niche.id === "imovel"
-                      ? "Características & Comodidades do Imóvel"
-                      : niche.id === "hospedagem"
-                      ? "Comodidades & Regras da Hospedagem"
-                      : niche.id === "veiculo"
-                      ? "Ficha do Veículo & Opcionais"
-                      : niche.id === "vaga"
-                      ? "Detalhes da Vaga & Benefícios"
-                      : niche.id === "servico"
-                      ? "Detalhes do Atendimento & Diferenciais"
-                      : "Especificações do Item & Garantia"}
-                  </span>
- <Badge variant="secondary" className="text-[10px] font-semibold bg-primary/15 text-primary border-primary/20">
- Modo Avançado
- </Badge>
- </div>
- <p className="text-[11px] text-muted-foreground mt-0.5">
- {niche.id === "imovel"
-                    ? "Informe mobília, vagas, quartos e facilidades para valorizar seu anúncio na busca."
-                    : niche.id === "hospedagem"
-                    ? "Detalhes da estadia, horários de check-in e comodidades inclusas."
-                    : niche.id === "veiculo"
-                    ? "Quilometragem, combustível, câmbio e opcionais de fábrica."
-                    : niche.id === "vaga"
-                    ? "Regime de contratação, modelo de trabalho e benefícios oferecidos."
-                    : niche.id === "servico"
-                    ? "Modalidade de atendimento, área de cobertura e garantia do serviço."
-                    : "Detalhes e estado de conservação do item anunciado."}
- </p>
- </div>
- </div>
- <Button variant="ghost" size="sm" className="h-8 px-2.5 rounded-lg text-xs gap-1.5 text-muted-foreground">
- <span>{isAdvancedOpen ? "Recolher" : "Expandir"}</span>
- {isAdvancedOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
- </Button>
- </div>
-
- {isAdvancedOpen && (
- <div className="p-5 pt-2 space-y-5 border-t border-border/50">
+ {/* Seção 2: Especificações Técnicas do Anúncio */}
+          <div className="space-y-6">
+            
  {/* Hospedagem & Temporada */}
  {niche.id === "hospedagem" && (
- <div className="bg-card rounded-2xl p-5 space-y-4">
- <div className="flex items-center justify-between">
- <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
- <Key className="size-4 text-primary" />
+              <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+                <div className="flex items-center justify-between pb-2.5 border-b border-border/40">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground">
+                    <Key className="size-4 text-primary shrink-0" />
  <span>2. Detalhes da Estadia & Check-in</span>
  </div>
  <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground">
@@ -893,7 +1159,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Tipo de Estadia</Label>
  <Select value={hospPropertyType} onValueChange={setHospPropertyType}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background font-medium">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background font-medium">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -911,7 +1177,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Modalidade de Check-in</Label>
  <Select value={hospCheckinType} onValueChange={(v: any) => setHospCheckinType(v)}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background font-medium">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background font-medium">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -923,14 +1189,14 @@ function SpecializedClassifiedEditor({
  </div>
  </div>
 
- <div className="grid grid-cols-3 gap-2">
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
  <div className="space-y-1">
  <Label className="text-[11px] text-muted-foreground">Hóspedes Máx.</Label>
  <Input
  value={hospGuests}
  onChange={(e) => setHospGuests(e.target.value)}
  placeholder="4"
- className="h-9 rounded-xl text-xs bg-background font-mono"
+ className="h-11 rounded-xl text-xs bg-background font-mono"
  />
  </div>
  <div className="space-y-1">
@@ -939,7 +1205,7 @@ function SpecializedClassifiedEditor({
  value={hospBedrooms}
  onChange={(e) => setHospBedrooms(e.target.value)}
  placeholder="1"
- className="h-9 rounded-xl text-xs bg-background font-mono"
+ className="h-11 rounded-xl text-xs bg-background font-mono"
  />
  </div>
  <div className="space-y-1">
@@ -948,7 +1214,7 @@ function SpecializedClassifiedEditor({
  value={hospBathrooms}
  onChange={(e) => setHospBathrooms(e.target.value)}
  placeholder="1"
- className="h-9 rounded-xl text-xs bg-background font-mono"
+ className="h-11 rounded-xl text-xs bg-background font-mono"
  />
  </div>
  </div>
@@ -960,7 +1226,7 @@ function SpecializedClassifiedEditor({
  value={hospCleaningFeeCents}
  onChange={setHospCleaningFeeCents}
  placeholder="0,00"
- className="h-9 rounded-xl text-xs bg-background"
+ className="h-11 rounded-xl text-xs bg-background"
  />
  </div>
  <div className="space-y-1">
@@ -969,7 +1235,7 @@ function SpecializedClassifiedEditor({
  value={hospCheckinTime}
  onChange={(e) => setHospCheckinTime(e.target.value)}
  placeholder="14:00"
- className="h-9 rounded-xl text-xs bg-background font-mono"
+ className="h-11 rounded-xl text-xs bg-background font-mono"
  />
  </div>
  <div className="space-y-1">
@@ -978,92 +1244,98 @@ function SpecializedClassifiedEditor({
  value={hospCheckoutTime}
  onChange={(e) => setHospCheckoutTime(e.target.value)}
  placeholder="11:00"
- className="h-9 rounded-xl text-xs bg-background font-mono"
+ className="h-11 rounded-xl text-xs bg-background font-mono"
  />
  </div>
  </div>
 
- {/* Comodidades Selecionáveis */}
- <div className="space-y-2 pt-2 border-t border-border/40">
- <Label className="text-xs text-foreground font-medium">Comodidades Disponíveis</Label>
- <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
- {[
- "Wi-Fi Alta Velocidade",
- "Ar-condicionado",
- "Lareira",
- "Jacuzzi / Hidro",
- "Cozinha Equipada",
- "Vista Panorâmica",
- "Pet Friendly",
- "Estacionamento Gratuito",
- "Churrasqueira",
- "Piscina Privativa",
- "Roupa de Cama & Banho",
- "Espaço Home Office",
- ].map((amenity) => {
- const active = hospAmenities.includes(amenity);
- return (
- <div
- key={amenity}
- onClick={() => toggleItem(hospAmenities, setHospAmenities, amenity)}
- className={`flex items-center gap-2 p-2 rounded-xl border text-xs cursor-pointer transition-all ${
- active
- ? "border-primary/50 bg-primary/10 text-foreground font-semibold"
- : "border-border/60 bg-background/50 text-muted-foreground hover:bg-muted/40"
- }`}
- >
- <Checkbox checked={active} />
- <span className="truncate">{amenity}</span>
- </div>
- );
- })}
- </div>
- </div>
+              {/* Comodidades Selecionáveis em Sub-Card com Borda Mínima */}
+              <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold text-foreground tracking-tight">Comodidades Disponíveis</Label>
+                  <span className="text-[10px] text-muted-foreground font-mono">{hospAmenities.length} selecionada(s)</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    "Wi-Fi Alta Velocidade",
+                    "Ar-condicionado",
+                    "Lareira",
+                    "Jacuzzi / Hidro",
+                    "Cozinha Equipada",
+                    "Vista Panorâmica",
+                    "Pet Friendly",
+                    "Estacionamento Gratuito",
+                    "Churrasqueira",
+                    "Piscina Privativa",
+                    "Roupa de Cama & Banho",
+                    "Espaço Home Office",
+                  ].map((amenity) => {
+                    const active = hospAmenities.includes(amenity);
+                    return (
+                      <div
+                        key={amenity}
+                        onClick={() => toggleItem(hospAmenities, setHospAmenities, amenity)}
+                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-xs cursor-pointer transition-all min-h-[44px] ${
+                          active
+                            ? "border-primary bg-primary/10 text-primary font-medium"
+                            : "border-border/50 bg-background text-foreground/80 hover:text-foreground hover:bg-muted/30"
+                        }`}
+                      >
+                        <Checkbox checked={active} />
+                        <span className="truncate">{amenity}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
 
- {/* Regras da Casa */}
- <div className="space-y-2 pt-2 border-t border-border/40">
- <Label className="text-xs text-foreground font-medium">Regras da Hospedagem</Label>
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
- {[
- "Permitido Pets",
- "Proibido Fumar",
- "Festas / Eventos Não Permitidos",
- "Silêncio após às 22h",
- ].map((rule) => {
- const active = hospRules.includes(rule);
- return (
- <div
- key={rule}
- onClick={() => toggleItem(hospRules, setHospRules, rule)}
- className={`flex items-center gap-2 p-2 rounded-xl border text-xs cursor-pointer transition-all ${
- active
- ? "border-primary/50 bg-primary/10 text-foreground font-semibold"
- : "border-border/60 bg-background/50 text-muted-foreground hover:bg-muted/40"
- }`}
- >
- <Checkbox checked={active} />
- <span className="truncate">{rule}</span>
- </div>
- );
- })}
- </div>
- </div>
+              {/* Regras da Casa em Sub-Card com Borda Mínima */}
+              <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold text-foreground tracking-tight">Regras da Hospedagem</Label>
+                  <span className="text-[10px] text-muted-foreground font-mono">{hospRules.length} ativa(s)</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[
+                    "Permitido Pets",
+                    "Proibido Fumar",
+                    "Festas / Eventos Não Permitidos",
+                    "Silêncio após às 22h",
+                  ].map((rule) => {
+                    const active = hospRules.includes(rule);
+                    return (
+                      <div
+                        key={rule}
+                        onClick={() => toggleItem(hospRules, setHospRules, rule)}
+                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-xs cursor-pointer transition-all min-h-[44px] ${
+                          active
+                            ? "border-primary bg-primary/10 text-primary font-medium"
+                            : "border-border/50 bg-background text-foreground/80 hover:text-foreground hover:bg-muted/30"
+                        }`}
+                      >
+                        <Checkbox checked={active} />
+                        <span className="truncate">{rule}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
  </div>
  )}
 
  {/* Imóvel */}
  {niche.id === "imovel" && (
- <div className=" bg-card rounded-2xl p-5 space-y-4 ">
- <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
- <HomeIcon className="size-4 text-primary" />
- <span>2. Ficha Técnica do Imóvel</span>
+              <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground pb-2.5 border-b border-border/40">
+                  <HomeIcon className="size-4 text-primary shrink-0" />
+ <span>2. Especificações do Imóvel</span>
  </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Operação</Label>
  <Select value={reDealType} onValueChange={(v: any) => setReDealType(v)}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1080,19 +1352,19 @@ function SpecializedClassifiedEditor({
  value={rePropertyType}
  onChange={(e) => setRePropertyType(e.target.value)}
  placeholder="Apartamento, Casa, etc."
- className="h-9 rounded-xl text-xs bg-background"
+ className="h-11 rounded-xl text-xs bg-background"
  />
  </div>
  </div>
 
- <div className="grid grid-cols-3 gap-2">
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
  <div className="space-y-1">
  <Label className="text-[11px] text-muted-foreground">Área Útil (m²)</Label>
  <Input
  value={reAreaSqm}
  onChange={(e) => setReAreaSqm(e.target.value)}
  placeholder="75"
- className="h-9 rounded-xl text-xs bg-background font-mono"
+ className="h-11 rounded-xl text-xs bg-background font-mono"
  />
  </div>
  <div className="space-y-1">
@@ -1101,7 +1373,7 @@ function SpecializedClassifiedEditor({
  value={reBedrooms}
  onChange={(e) => setReBedrooms(e.target.value)}
  placeholder="2"
- className="h-9 rounded-xl text-xs bg-background font-mono"
+ className="h-11 rounded-xl text-xs bg-background font-mono"
  />
  </div>
  <div className="space-y-1">
@@ -1110,7 +1382,7 @@ function SpecializedClassifiedEditor({
  value={reParking}
  onChange={(e) => setReParking(e.target.value)}
  placeholder="1"
- className="h-9 rounded-xl text-xs bg-background font-mono"
+ className="h-11 rounded-xl text-xs bg-background font-mono"
  />
  </div>
  </div>
@@ -1122,7 +1394,7 @@ function SpecializedClassifiedEditor({
  value={reCondoCents}
  onChange={setReCondoCents}
  placeholder="0,00"
- className="h-9 rounded-xl text-xs bg-background"
+ className="h-11 rounded-xl text-xs bg-background"
  />
  </div>
  <div className="space-y-1">
@@ -1131,7 +1403,7 @@ function SpecializedClassifiedEditor({
  value={reIptuCents}
  onChange={setReIptuCents}
  placeholder="0,00"
- className="h-9 rounded-xl text-xs bg-background"
+ className="h-11 rounded-xl text-xs bg-background"
  />
  </div>
  </div>
@@ -1139,74 +1411,11 @@ function SpecializedClassifiedEditor({
  )}
 
  {/* Veículo */}
- {niche.id === "vaga" && (
- <div className="rounded-2xl p-4 bg-muted/25 border border-border/60 space-y-3">
- <div className="flex items-center justify-between">
- <h3 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
- <Briefcase className="size-3.5 text-primary" />
- <span>Ficha da Oportunidade</span>
- </h3>
- <Badge variant="outline" className="text-[10px] font-medium text-primary border-primary/30">
- {jobRole || "Cargo a definir"}
- </Badge>
- </div>
-
- <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-1">
- <div>
- <span className="text-muted-foreground block text-[10px]">Escolaridade</span>
- <span className="font-semibold">{getEducationLabel(jobMinEducation)}</span>
- </div>
- <div>
- <span className="text-muted-foreground block text-[10px]">Experiência</span>
- <span className="font-semibold">{getExperienceLabel(jobExperienceLevel)}</span>
- </div>
- <div>
- <span className="text-muted-foreground block text-[10px]">Regime</span>
- <span className="font-semibold">{getRegimeLabel(jobRegime)}</span>
- </div>
- <div>
- <span className="text-muted-foreground block text-[10px]">Modelo</span>
- <span className="font-semibold">{getWorkplaceModelLabel(jobModel)}</span>
- </div>
- </div>
-
- {jobBenefits.length > 0 && (
- <div className="pt-2 border-t border-border/40">
- <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block mb-1.5">
- Benefícios Oferecidos
- </span>
- <div className="flex flex-wrap gap-1">
- {jobBenefits.map((b) => (
- <Badge key={b} variant="secondary" className="text-[10px] font-medium bg-primary/10 text-primary border-primary/20">
- ✓ {b}
- </Badge>
- ))}
- </div>
- </div>
- )}
-
- {jobSkills.length > 0 && (
- <div className="pt-2 border-t border-border/40">
- <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block mb-1.5">
- Habilidades Desejadas
- </span>
- <div className="flex flex-wrap gap-1">
- {jobSkills.map((s) => (
- <Badge key={s} variant="outline" className="text-[10px]">
- {s}
- </Badge>
- ))}
- </div>
- </div>
- )}
- </div>
- )}
-
- {niche.id === "veiculo" && (
- <div className=" bg-card rounded-2xl p-5 space-y-4 ">
+              {niche.id === "veiculo" && (
+            <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
  <Car className="size-4 text-primary" />
- <span>2. Ficha Técnica do Veículo</span>
+ <span>2. Especificações do Veículo</span>
  </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1216,7 +1425,7 @@ function SpecializedClassifiedEditor({
  value={vehicleBrand}
  onChange={(e) => setVehicleBrand(e.target.value)}
  placeholder="Ex: Honda, Toyota, VW"
- className="h-9 rounded-xl text-xs bg-background"
+ className="h-11 rounded-xl text-xs bg-background"
  />
  </div>
  <div className="space-y-1.5">
@@ -1225,19 +1434,19 @@ function SpecializedClassifiedEditor({
  value={vehicleModel}
  onChange={(e) => setVehicleModel(e.target.value)}
  placeholder="Ex: Civic, Corolla, Golf"
- className="h-9 rounded-xl text-xs bg-background"
+ className="h-11 rounded-xl text-xs bg-background"
  />
  </div>
  </div>
 
- <div className="grid grid-cols-3 gap-2">
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
  <div className="space-y-1">
  <Label className="text-[11px] text-muted-foreground">Ano Fab.</Label>
  <Input
  value={vehicleYearFab}
  onChange={(e) => setVehicleYearFab(e.target.value)}
  placeholder="2021"
- className="h-9 rounded-xl text-xs bg-background font-mono"
+ className="h-11 rounded-xl text-xs bg-background font-mono"
  />
  </div>
  <div className="space-y-1">
@@ -1246,7 +1455,7 @@ function SpecializedClassifiedEditor({
  value={vehicleYearModel}
  onChange={(e) => setVehicleYearModel(e.target.value)}
  placeholder="2022"
- className="h-9 rounded-xl text-xs bg-background font-mono"
+ className="h-11 rounded-xl text-xs bg-background font-mono"
  />
  </div>
  <div className="space-y-1">
@@ -1255,7 +1464,7 @@ function SpecializedClassifiedEditor({
  value={vehicleKm}
  onChange={(e) => setVehicleKm(e.target.value)}
  placeholder="45.000"
- className="h-9 rounded-xl text-xs bg-background font-mono"
+ className="h-11 rounded-xl text-xs bg-background font-mono"
  />
  </div>
  </div>
@@ -1264,7 +1473,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Câmbio</Label>
  <Select value={vehicleTransmission} onValueChange={setVehicleTransmission}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1277,7 +1486,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Combustível</Label>
  <Select value={vehicleFuel} onValueChange={setVehicleFuel}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1295,7 +1504,7 @@ function SpecializedClassifiedEditor({
 
  {/* Serviço Profissional */}
               {niche.id === "servico" && (
-                <div className="bg-card rounded-2xl p-5 space-y-4">
+            <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
                   <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
                     <Wrench className="size-4 text-primary" />
                     <span>2. Detalhes do Atendimento & Garantia</span>
@@ -1305,7 +1514,7 @@ function SpecializedClassifiedEditor({
                     <div className="space-y-1.5">
                       <Label className="text-xs text-foreground font-medium">Modalidade de Atendimento</Label>
                       <Select value={serviceModality} onValueChange={(v: any) => setServiceModality(v)}>
-                        <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+                        <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -1319,7 +1528,7 @@ function SpecializedClassifiedEditor({
                     <div className="space-y-1.5">
                       <Label className="text-xs text-foreground font-medium">Tipo de Cobrança</Label>
                       <Select value={servicePricingType} onValueChange={(v: any) => setServicePricingType(v)}>
-                        <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+                        <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -1338,7 +1547,7 @@ function SpecializedClassifiedEditor({
                         value={serviceArea}
                         onChange={(e) => setServiceArea(e.target.value)}
                         placeholder="Ex: Chapecó e raio de até 50km"
-                        className="h-9 rounded-xl text-xs bg-background"
+                        className="h-11 rounded-xl text-xs bg-background"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -1347,14 +1556,17 @@ function SpecializedClassifiedEditor({
                         value={serviceDuration}
                         onChange={(e) => setServiceDuration(e.target.value)}
                         placeholder="Ex: 2 a 4 horas / 1 dia útil"
-                        className="h-9 rounded-xl text-xs bg-background"
+                        className="h-11 rounded-xl text-xs bg-background"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2 pt-2 border-t border-border/40">
-                    <Label className="text-xs text-foreground font-medium">Diferenciais do Profissional</Label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                  <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-semibold text-foreground tracking-tight">Diferenciais do Profissional</Label>
+                      <span className="text-[10px] text-muted-foreground font-mono">{reAmenities.length} selecionado(s)</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {[
                         "Orçamento Gratuito",
                         "Emite Nota Fiscal (PJ)",
@@ -1370,10 +1582,10 @@ function SpecializedClassifiedEditor({
                           <div
                             key={diff}
                             onClick={() => toggleItem(reAmenities, setReAmenities, diff)}
-                            className={`flex items-center gap-2 p-2 rounded-xl border text-xs cursor-pointer transition-all ${
+                            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-xs cursor-pointer transition-all min-h-[44px] ${
                               active
-                                ? "border-primary/50 bg-primary/10 text-foreground font-semibold"
-                                : "border-border/60 bg-background/50 text-muted-foreground hover:bg-muted/40"
+                                ? "border-primary bg-primary/10 text-primary font-medium"
+                                : "border-border/50 bg-background text-foreground/80 hover:text-foreground hover:bg-muted/30"
                             }`}
                           >
                             <Checkbox checked={active} />
@@ -1388,7 +1600,7 @@ function SpecializedClassifiedEditor({
 
               {/* Desapego & Bens Físicos Avançado (Microfase 77B) */}
  {niche.id === "desapego" && (
- <div className="bg-card rounded-2xl p-5 space-y-5">
+            <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
  <Tag className="size-4 text-primary" />
@@ -1401,7 +1613,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Tipo de Item / Segmento</Label>
  <Select value={desapegoCategory} onValueChange={(v: any) => setDesapegoCategory(v)}>
- <SelectTrigger className="h-10 rounded-xl text-xs bg-background font-medium">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background font-medium">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1421,7 +1633,7 @@ function SpecializedClassifiedEditor({
  {desapegoCategory === "smartphones" && (
  <div className="p-4 rounded-xl bg-muted/20 border border-border/60 space-y-4">
  <div className="text-[11px] font-bold text-primary uppercase tracking-wider">
- Ficha Técnica Canônica de Smartphone
+ Especificações do Aparelho
  </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1434,7 +1646,7 @@ function SpecializedClassifiedEditor({
  else if (v === "Xiaomi") setPhoneModel("Redmi Note 13 Pro 5G");
  else if (v === "Motorola") setPhoneModel("Edge 50 Ultra");
  }}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1450,7 +1662,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Modelo da Linha</Label>
  <Select value={phoneModel} onValueChange={setPhoneModel}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1510,7 +1722,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Armazenamento Interno</Label>
  <Select value={phoneStorage} onValueChange={setPhoneStorage}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1532,7 +1744,7 @@ function SpecializedClassifiedEditor({
  value={phoneBatteryHealth}
  onChange={(e) => setPhoneBatteryHealth(e.target.value)}
  placeholder="Ex: 95"
- className="h-9 rounded-xl text-xs bg-background font-mono"
+ className="h-11 rounded-xl text-xs bg-background font-mono"
  />
  </div>
  </div>
@@ -1581,7 +1793,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Ambiente do Móvel</Label>
  <Select value={furnitureRoom} onValueChange={setFurnitureRoom}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1596,7 +1808,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Material Principal</Label>
  <Select value={furnitureMaterial} onValueChange={setFurnitureMaterial}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1617,7 +1829,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Gênero / Faixa</Label>
  <Select value={fashionGender} onValueChange={setFashionGender}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1631,7 +1843,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Tamanho da Peça</Label>
  <Select value={fashionSize} onValueChange={setFashionSize}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1653,7 +1865,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Estado de Conservação</Label>
  <Select value={itemCondition} onValueChange={(v: any) => setItemCondition(v)}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1671,7 +1883,7 @@ function SpecializedClassifiedEditor({
  value={itemWarranty}
  onChange={(e) => setItemWarranty(e.target.value)}
  placeholder="Ex: 3 meses de garantia, NF em mãos"
- className="h-9 rounded-xl text-xs bg-background"
+ className="h-11 rounded-xl text-xs bg-background"
  />
  </div>
  </div>
@@ -1680,7 +1892,7 @@ function SpecializedClassifiedEditor({
 
  {/* Serviço Profissional */}
  {niche.id === "servico" && (
- <div className="bg-card rounded-2xl p-5 space-y-4">
+            <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
  <Wrench className="size-4 text-primary" />
  <span>2. Escopo & Atendimento</span>
@@ -1690,7 +1902,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Modalidade de Atendimento</Label>
  <Select value={serviceModality} onValueChange={(v: any) => setServiceModality(v)}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1707,7 +1919,7 @@ function SpecializedClassifiedEditor({
  value={serviceArea}
  onChange={(e) => setServiceArea(e.target.value)}
  placeholder="Ex: Toda a cidade e região"
- className="h-9 rounded-xl text-xs bg-background"
+ className="h-11 rounded-xl text-xs bg-background"
  />
  </div>
  </div>
@@ -1716,7 +1928,7 @@ function SpecializedClassifiedEditor({
 
  {/* Oportunidade / Vaga Master InfoJobs & Gupy Style */}
  {niche.id === "vaga" && (
- <div className="space-y-5">
+            <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
  <Briefcase className="size-4 text-primary" />
@@ -1732,7 +1944,7 @@ function SpecializedClassifiedEditor({
  value={jobRole}
  onChange={(e) => setJobRole(e.target.value)}
  placeholder="Ex: Assistente Administrativo, Desenvolvedor Fullstack, Vendedor"
- className="h-10 rounded-xl text-xs bg-background"
+ className="h-11 rounded-xl text-xs bg-background"
  />
  </div>
 
@@ -1744,7 +1956,7 @@ function SpecializedClassifiedEditor({
  <Label className="text-xs text-foreground font-medium">Escolaridade Mínima Exigida *</Label>
  </div>
  <Select value={jobMinEducation} onValueChange={setJobMinEducation}>
- <SelectTrigger className="h-10 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1763,7 +1975,7 @@ function SpecializedClassifiedEditor({
  <Label className="text-xs text-foreground font-medium">Experiência Profissional Mínima *</Label>
  </div>
  <Select value={jobExperienceLevel} onValueChange={setJobExperienceLevel}>
- <SelectTrigger className="h-10 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1782,7 +1994,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Regime de Contratação</Label>
  <Select value={jobRegime} onValueChange={(v: any) => setJobRegime(v)}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1798,7 +2010,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Modelo de Trabalho</Label>
  <Select value={jobModel} onValueChange={(v: any) => setJobModel(v)}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1814,7 +2026,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Jornada de Trabalho</Label>
  <Select value={jobWorkSchedule} onValueChange={setJobWorkSchedule}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1832,7 +2044,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Faixa Salarial / Remuneração Estimada</Label>
  <Select value={jobSalaryRange} onValueChange={setJobSalaryRange}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -1919,7 +2131,7 @@ function SpecializedClassifiedEditor({
  }
  }}
  placeholder="Adicionar habilidade personalizada e pressionar Enter..."
- className="h-9 rounded-xl text-xs bg-background"
+ className="h-11 rounded-xl text-xs bg-background"
  />
  <Button
  type="button"
@@ -1994,7 +2206,7 @@ function SpecializedClassifiedEditor({
 
  {/* Produto Digital & Downloads */}
  {niche.id === "digital" && (
- <div className="bg-card rounded-2xl p-5 space-y-4">
+            <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
  <FileArchive className="size-4 text-primary" />
@@ -2009,7 +2221,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Tipo de Material Digital</Label>
  <Select value={digitalFileType} onValueChange={setDigitalFileType}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background font-medium">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background font-medium">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -2029,7 +2241,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Limite de Downloads por Comprador</Label>
  <Select value={digitalDownloadLimit} onValueChange={setDigitalDownloadLimit}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background font-medium">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background font-medium">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -2074,7 +2286,7 @@ function SpecializedClassifiedEditor({
  value={digitalPreviewUrl}
  onChange={(e) => setDigitalPreviewUrl(e.target.value)}
  placeholder="https://drive.google.com/..., https://notion.so/..., https://youtube.com/..."
- className="h-9 rounded-xl text-xs bg-background font-mono"
+ className="h-11 rounded-xl text-xs bg-background font-mono"
  />
  <p className="text-[10px] text-muted-foreground">
  Se você possui uma degustação, trailer ou página demonstrativa, cole o link aqui.
@@ -2083,13 +2295,11 @@ function SpecializedClassifiedEditor({
  </div>
  )}
  </div>
- )}
- </div>
 
- {/* Section 3 (Logística de Envio para Bens Físicos) */}
+          {/* Section 3 (Logística de Envio para Bens Físicos) */}
  {niche.id === "desapego" && (
  <div className="space-y-4">
- <div className="bg-card rounded-2xl p-5 space-y-4">
+            <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
  <Truck className="size-4 text-primary" />
@@ -2103,7 +2313,7 @@ function SpecializedClassifiedEditor({
  <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Modalidade de Envio / Retirada</Label>
  <Select value={deliveryMode} onValueChange={(v: any) => setDeliveryMode(v)}>
- <SelectTrigger className="h-10 rounded-xl text-xs bg-background font-medium">
+ <SelectTrigger className="h-11 rounded-xl text-xs bg-background font-medium">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -2129,103 +2339,232 @@ function SpecializedClassifiedEditor({
  </div>
  )}
 
- {/* Formas de Pagamento Aceitas (Bens Físicos e Produtos Digitais) */}
- {(niche.id === "desapego" || niche.id === "digital") && (
- <div className="bg-card rounded-2xl p-5 space-y-4">
- <div className="flex items-center justify-between">
- <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
- <CreditCard className="size-4 text-primary" />
- <span>Formas de Pagamento Aceitas</span>
- </div>
- </div>
+ {/* Assinaturas & Mensalidades (Planos Recorrentes) */}
+              {niche.id === "assinatura" && (
+            <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
+                      <RefreshCw className="size-4 text-primary" />
+                      <span>Configuração do Plano Recorrente</span>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] font-bold text-primary border-primary/30">
+                      Mensalidade
+                    </Badge>
+                  </div>
 
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
- <div
- className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
- acceptsPix ? "border-primary/50 bg-primary/5 text-foreground" : "border-border/80 bg-background/50 text-muted-foreground"
- }`}
- onClick={() => setAcceptsPix(!acceptsPix)}
- >
- <Checkbox checked={acceptsPix} onCheckedChange={(c) => setAcceptsPix(!!c)} />
- <div className="flex items-center gap-1.5 text-xs font-medium select-none">
- <QrCode className="size-3.5 text-primary" />
- <span>PIX Direto</span>
- </div>
- </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-foreground font-medium">Ciclo de Cobrança *</Label>
+                      <Select value={billingCycle} onValueChange={(v: any) => setBillingCycle(v)}>
+                        <SelectTrigger className="h-11 rounded-xl text-xs bg-background font-medium">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="monthly">Mensal (Todo mês)</SelectItem>
+                          <SelectItem value="quarterly">Trimestral (A cada 3 meses)</SelectItem>
+                          <SelectItem value="semiannual">Semestral (A cada 6 meses)</SelectItem>
+                          <SelectItem value="yearly">Anual (Plano anual com desconto)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
- <div
- className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
- acceptsCard ? "border-primary/50 bg-primary/5 text-foreground" : "border-border/80 bg-background/50 text-muted-foreground"
- }`}
- onClick={() => setAcceptsCard(!acceptsCard)}
- >
- <Checkbox checked={acceptsCard} onCheckedChange={(c) => setAcceptsCard(!!c)} />
- <div className="flex items-center gap-1.5 text-xs font-medium select-none">
- <CreditCard className="size-3.5 text-primary" />
- <span>Cartão de Crédito</span>
- </div>
- </div>
-
- {niche.id !== "digital" && (
- <>
- <div
- className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
- acceptsTrade ? "border-primary/50 bg-primary/5 text-foreground" : "border-border/80 bg-background/50 text-muted-foreground"
- }`}
- onClick={() => setAcceptsTrade(!acceptsTrade)}
- >
- <Checkbox checked={acceptsTrade} onCheckedChange={(c) => setAcceptsTrade(!!c)} />
- <div className="flex items-center gap-1.5 text-xs font-medium select-none">
- <RefreshCw className="size-3.5 text-primary" />
- <span>Aceita Troca</span>
- </div>
- </div>
-
- <div
- className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
- acceptsCash ? "border-primary/50 bg-primary/5 text-foreground" : "border-border/80 bg-background/50 text-muted-foreground"
- }`}
- onClick={() => setAcceptsCash(!acceptsCash)}
- >
- <Checkbox checked={acceptsCash} onCheckedChange={(c) => setAcceptsCash(!!c)} />
- <div className="flex items-center gap-1.5 text-xs font-medium select-none">
- <Banknote className="size-3.5 text-primary" />
- <span>Dinheiro</span>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-foreground font-medium">Taxa de Matrícula / Adesão (R$)</Label>
+                      <CurrencyField
+                        value={setupFeeCents}
+                        onChange={setSetupFeeCents}
+                        placeholder="0,00"
+                        className="h-11 rounded-xl text-xs bg-background"
+                      />
                     </div>
                   </div>
-                </>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-foreground font-medium">Período de Teste Grátis (Trial)</Label>
+                    <Select value={String(trialDays)} onValueChange={(v) => setTrialDays(Number(v))}>
+                      <SelectTrigger className="h-11 rounded-xl text-xs bg-background font-medium">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Sem teste grátis (Cobrança imediata)</SelectItem>
+                        <SelectItem value="7">7 dias grátis para experimentar</SelectItem>
+                        <SelectItem value="14">14 dias grátis para experimentar</SelectItem>
+                        <SelectItem value="30">30 dias grátis para experimentar</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2 pt-2 border-t border-border/40">
+                    <Label className="text-xs text-foreground font-medium">Benefícios Inclusos no Plano</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={newFeatureInput}
+                        onChange={(e) => setNewFeatureInput(e.target.value)}
+                        placeholder="Ex: Acesso livre às instalações"
+                        className="h-11 rounded-xl text-xs bg-background"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            if (newFeatureInput.trim()) {
+                              setRecurringFeatures([...recurringFeatures, newFeatureInput.trim()]);
+                              setNewFeatureInput("");
+                            }
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="rounded-xl text-xs h-10 px-3"
+                        onClick={() => {
+                          if (newFeatureInput.trim()) {
+                            setRecurringFeatures([...recurringFeatures, newFeatureInput.trim()]);
+                            setNewFeatureInput("");
+                          }
+                        }}
+                      >
+                        Adicionar
+                      </Button>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {recurringFeatures.map((feat, idx) => (
+                        <Badge
+                          key={idx}
+                          variant="secondary"
+                          className="text-xs px-2.5 py-1 rounded-lg gap-1.5 bg-primary/10 text-primary border border-primary/20"
+                        >
+                          <span>✓ {feat}</span>
+                          <button
+                            type="button"
+                            onClick={() => setRecurringFeatures(recurringFeatures.filter((_, i) => i !== idx))}
+                            className="hover:text-destructive text-primary/70 ml-1"
+                          >
+                            ×
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               )}
-            </div>
 
- {acceptsCard && (
- <div className="space-y-1.5 pt-1">
- <div className="flex items-center justify-between">
- <Label className="text-xs text-foreground font-medium">Parcelamento Máximo</Label>
- <span className="text-[11px] text-muted-foreground font-mono">Em até {maxInstallments}x</span>
- </div>
- <Select value={maxInstallments} onValueChange={setMaxInstallments}>
- <SelectTrigger className="h-9 rounded-xl text-xs bg-background font-medium">
- <SelectValue />
- </SelectTrigger>
- <SelectContent>
- <SelectItem value="1">1x (À Vista)</SelectItem>
- <SelectItem value="3">Até 3x</SelectItem>
- <SelectItem value="6">Até 6x</SelectItem>
- <SelectItem value="10">Até 10x</SelectItem>
- <SelectItem value="12">Até 12x</SelectItem>
- </SelectContent>
- </Select>
- </div>
- )}
- </div>
- )}
+              {/* Formas de Pagamento Aceitas & Política de Cancelamento (Todas as Categorias) */}
+              <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+                <div className="flex items-center justify-between pb-2.5 border-b border-border/40">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground">
+                    <CreditCard className="size-4 text-primary shrink-0" />
+                    <span>3. Pagamento & Políticas</span>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] font-bold">
+                    Negociação Transparente
+                  </Badge>
+                </div>
 
- {/* Section 3: Fotos & Mídias com Upload Seguro */}
- <div className=" bg-card rounded-2xl p-5 space-y-3 ">
- <div className="flex items-center justify-between">
+                <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground tracking-tight">Meios de Pagamento Aceitos</Label>
+                    <span className="text-[10px] text-muted-foreground font-mono">À vista ou parcelado</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div
+                      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border transition-all cursor-pointer min-h-[44px] ${
+                        acceptsPix ? "border-primary bg-primary/10 text-primary font-medium" : "border-border/60 bg-background text-foreground/80 hover:bg-muted/40"
+                      }`}
+                      onClick={() => setAcceptsPix(!acceptsPix)}
+                    >
+                      <Checkbox checked={acceptsPix} onCheckedChange={(c) => setAcceptsPix(!!c)} />
+                      <div className="flex items-center gap-1.5 text-xs select-none">
+                        <QrCode className="size-3.5 text-primary" />
+                        <span>PIX</span>
+                      </div>
+                    </div>
+
+                    <div
+                      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border transition-all cursor-pointer min-h-[44px] ${
+                        acceptsCard ? "border-primary bg-primary/10 text-primary font-medium" : "border-border/60 bg-background text-foreground/80 hover:bg-muted/40"
+                      }`}
+                      onClick={() => setAcceptsCard(!acceptsCard)}
+                    >
+                      <Checkbox checked={acceptsCard} onCheckedChange={(c) => setAcceptsCard(!!c)} />
+                      <div className="flex items-center gap-1.5 text-xs select-none">
+                        <CreditCard className="size-3.5 text-primary" />
+                        <span>Cartão</span>
+                      </div>
+                    </div>
+
+                    <div
+                      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border transition-all cursor-pointer min-h-[44px] ${
+                        acceptsCash ? "border-primary bg-primary/10 text-primary font-medium" : "border-border/60 bg-background text-foreground/80 hover:bg-muted/40"
+                      }`}
+                      onClick={() => setAcceptsCash(!acceptsCash)}
+                    >
+                      <Checkbox checked={acceptsCash} onCheckedChange={(c) => setAcceptsCash(!!c)} />
+                      <div className="flex items-center gap-1.5 text-xs select-none">
+                        <Banknote className="size-3.5 text-primary" />
+                        <span>Dinheiro</span>
+                      </div>
+                    </div>
+
+                    <div
+                      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border transition-all cursor-pointer min-h-[44px] ${
+                        acceptsTrade ? "border-primary bg-primary/10 text-primary font-medium" : "border-border/60 bg-background text-foreground/80 hover:bg-muted/40"
+                      }`}
+                      onClick={() => setAcceptsTrade(!acceptsTrade)}
+                    >
+                      <Checkbox checked={acceptsTrade} onCheckedChange={(c) => setAcceptsTrade(!!c)} />
+                      <div className="flex items-center gap-1.5 text-xs select-none">
+                        <RefreshCw className="size-3.5 text-primary" />
+                        <span>Trocas</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {acceptsCard && (
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs text-foreground font-medium">Parcelamento Máximo no Cartão</Label>
+                      <span className="text-[11px] text-muted-foreground font-mono">Em até {maxInstallments}x</span>
+                    </div>
+                    <Select value={String(maxInstallments)} onValueChange={(v) => setMaxInstallments(v)}>
+                      <SelectTrigger className="h-11 rounded-xl text-xs bg-background font-medium">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1x (À Vista)</SelectItem>
+                        <SelectItem value="3">Até 3x</SelectItem>
+                        <SelectItem value="6">Até 6x</SelectItem>
+                        <SelectItem value="10">Até 10x</SelectItem>
+                        <SelectItem value="12">Até 12x</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                <div className="space-y-1.5 pt-1 border-t border-border/40">
+                  <Label className="text-xs text-foreground font-medium">Política de Cancelamento / Devolução</Label>
+                  <Select value={cancellationPolicy} onValueChange={(v: any) => setCancellationPolicy(v)}>
+                    <SelectTrigger className="h-11 rounded-xl text-xs bg-background font-medium">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="flexible">Flexível: Cancelamento grátis até 24h antes</SelectItem>
+                      <SelectItem value="moderate">Moderado: Cancelamento com 50% de reembolso</SelectItem>
+                      <SelectItem value="strict">Rígido: Não reembolsável após confirmação</SelectItem>
+                      <SelectItem value="negotiable">A combinar diretamente com o anunciante</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Section 3: Fotos & Mídias com Upload Seguro */}
+          <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+ <div className="flex items-center justify-between pb-2.5 border-b border-border/40">
  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
  <ImagePlus className="size-4 text-primary" />
- <span>3. Galeria de Fotos e Vídeos</span>
+ <span>4. Fotos e Vídeos</span>
  </div>
  <span className="text-[11px] font-mono text-muted-foreground">
  {images.length} adicionada(s)
@@ -2240,16 +2579,16 @@ function SpecializedClassifiedEditor({
  folder="classifieds"
  aspect={4 / 3}
  enableCrop={true}
- lockAspect={true}
+ lockAspect={false}
  maxFiles={8}
  />
  </div>
 
  {/* Section 4: Localização Padronizada & WhatsApp */}
- <div className=" bg-card rounded-2xl p-5 space-y-4 ">
- <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
+          <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+ <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground pb-2.5 border-b border-border/40">
  <MapPin className="size-4 text-primary" />
- <span>4. Localização & Contato</span>
+ <span>5. Localização e Contato</span>
  </div>
 
  <CityCombobox
@@ -2282,9 +2621,9 @@ function SpecializedClassifiedEditor({
  <main
  className={`md:col-span-7 ${mobileTab === "preview" ? "block" : "hidden md:block"} sticky top-0`}
  >
- <div className=" bg-card rounded-2xl overflow-hidden ">
+ <div className="bg-card rounded-2xl overflow-hidden border border-border/60 shadow-2xs">
  {/* Header da Prévia */}
- <div className="bg-muted/50 px-4 py-2.5 flex items-center justify-between text-xs">
+ <div className="bg-muted/50 px-4 py-2.5 flex items-center justify-between text-xs border-b border-border/40">
  <span className="font-bold flex items-center gap-1.5 text-foreground">
  <Eye className="size-3.5 text-primary" />
  Prévia Fiel em Tempo Real
@@ -2550,7 +2889,7 @@ function SpecializedClassifiedEditor({
  </div>
  )}
 
- {/* Ficha Técnica na Prévia */}
+ {/* Especificações na Prévia */}
  {niche.id === "hospedagem" && (
  <div className="rounded-xl p-4 bg-muted/20 space-y-3">
  <h3 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
@@ -2623,7 +2962,7 @@ function SpecializedClassifiedEditor({
  {niche.id === "veiculo" && (
  <div className=" rounded-xl p-4 bg-muted/20 space-y-2">
  <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
- Ficha Técnica Automotiva
+ Especificações do Veículo
  </h3>
  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-1">
  <div>

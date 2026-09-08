@@ -605,13 +605,25 @@ export const getEmployerProfileInsights = createServerFn({ method: "GET" })
  date: r.created_at,
  }));
 
- return {
- company_name: cleanCompany,
- total_reviews: totalReviews,
- average_rating: Math.round(avgRating * 10) / 10,
- average_salary_cents: avgSalaryCents,
- salary_samples_count: salaryEntries.length,
- common_exit_reasons: Array.from(new Set(exitReasons)).slice(0, 5),
- recent_feedback: feedbackList,
- } as EmployerProfileInsightsDTO;
- });
+  return {
+    company_name: cleanCompany,
+    total_reviews: totalReviews,
+    average_rating: Math.round(avgRating * 10) / 10,
+    average_salary_cents: avgSalaryCents,
+    salary_samples_count: salaryEntries.length,
+    common_exit_reasons: Array.from(new Set(exitReasons)).slice(0, 5),
+    recent_feedback: feedbackList,
+  } as EmployerProfileInsightsDTO;
+});
+
+export const getCompanyDetails = createServerFn({ method: "GET" })
+  .validator(z.object({ companyId: z.string() }))
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const { data: company } = await supabase
+      .from("companies")
+      .select("*")
+      .eq("id", data.companyId)
+      .maybeSingle();
+    return company || null;
+  });

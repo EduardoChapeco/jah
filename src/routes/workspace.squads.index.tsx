@@ -41,6 +41,7 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/workspace/squads/")({
   head: () => ({ meta: [{ title: "Squads Agênticos Especializados | JAH" }] }),
   loader: async () => {
+    try {
     const store = await getStoreSettings().catch(() => null);
     const storeId = store?.id || "";
     let initialSquads: SquadWithDetails[] = [];
@@ -52,6 +53,10 @@ export const Route = createFileRoute("/workspace/squads/")({
       }
     }
     return { store, initialSquads };
+    } catch (err) {
+      console.error("[loader:workspace.squads.index] Unhandled loader error:", err);
+      return null;
+    }
   },
   component: SquadsWorkspacePage,
 });

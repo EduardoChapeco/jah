@@ -30,12 +30,17 @@ export const Route = createFileRoute(
 )({
  head: () => ({ meta: [{ title: "Inteligência Artificial & Chaves | Workspace" }] }),
  loader: async () => {
+   try {
  const store = await getStoreSettings().catch(() => null);
  const storeId = store?.id || "";
  const providers = storeId
  ? await listTenantAiProviders({ data: { store_id: storeId } }).catch(() => [])
  : [];
  return { store, initialProviders: providers };
+   } catch (err) {
+     console.error("[loader:workspace.configuracoes.inteligencia-artificial] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspaceAiSettingsPage,
 });
@@ -147,7 +152,7 @@ function WorkspaceAiSettingsPage() {
  <div>
  <div className="flex items-center gap-2">
  <h1 className="text-base sm:text-lg font-bold text-foreground tracking-tight">
- Provedores de Inteligência Artificial
+ Configurações de IA
  </h1>
  <Badge variant="outline" className="text-[10px] font-mono gap-1 text-primary">
  <Layers className="size-3" /> BYOK (Bring Your Own Key)

@@ -40,6 +40,7 @@ import { DestinationPicker } from "@/components/ui/destination-picker";
 export const Route = createFileRoute("/workspace/marketing/hotpages")({
  head: () => ({ meta: [{ title: "Destaques & Hotpages da Loja | Workspace" }] }),
  loader: async () => {
+   try {
  const [store, session] = await Promise.all([
  getStoreSettings().catch(() => null),
  getUserSession().catch(() => null),
@@ -47,6 +48,10 @@ export const Route = createFileRoute("/workspace/marketing/hotpages")({
  const initialModule = (store?.settings?.segment || store?.segment || store?.type || "home") as HotpageModule;
  const hotpages = await listHotpages({ data: { module: initialModule } }).catch(() => []);
  return { hotpages, session, store, initialModule };
+   } catch (err) {
+     console.error("[loader:workspace.marketing.hotpages] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspaceStoreHotpagesPage,
 });

@@ -28,6 +28,7 @@ import { getDeliveryProofsByOrderId, type DeliveryProof } from "@/services/dispa
 export const Route = createFileRoute("/_store/conta/pedidos/$id")({
  head: () => ({ meta: [{ title: "Detalhes do Pedido | Wider OS" }] }),
  loader: async ({ params }) => {
+   try {
  const [orderRes, instrRes, proofs] = await Promise.all([
  getCustomerOrder({ data: { orderId: params.id } }),
  getOrderPaymentInstructions({ data: { orderId: params.id } }).catch(() => ({
@@ -42,6 +43,10 @@ export const Route = createFileRoute("/_store/conta/pedidos/$id")({
  paymentInstructions: instrRes || { pix_key: null, payment_instructions: null },
  proofs: (proofs || []) as DeliveryProof[],
  };
+   } catch (err) {
+     console.error("[loader:_store.conta.pedidos.$id] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: CustomerOrderDetailPage,
 });

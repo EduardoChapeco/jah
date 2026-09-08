@@ -10,7 +10,12 @@ import { formatDate } from "@/lib/datetime";
 export const Route = createFileRoute("/_store/conta/trocas")({
  head: () => ({ meta: [{ title: "Trocas e Devoluções | Wider OS" }] }),
  loader: async () => {
+   try {
  return (await listCustomerRmas().catch(() => [])) || [];
+   } catch (err) {
+     console.error("[loader:_store.conta.trocas] Unhandled error:", err);
+     return null;
+   }
  },
  component: Page,
 });

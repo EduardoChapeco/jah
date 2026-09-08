@@ -16,6 +16,7 @@ import { getUserTokenWallet } from "@/services/tokens.functions";
 export const Route = createFileRoute("/_store/conta/tokens")({
  head: () => ({ meta: [{ title: "Tokens de Fidelidade | Wider OS" }] }),
  loader: async () => {
+   try {
  const session = await getUserSession().catch(() => null);
 
  const wallet = await getUserTokenWallet().catch(() => ({
@@ -30,6 +31,10 @@ export const Route = createFileRoute("/_store/conta/tokens")({
  }));
 
  return { wallet, session };
+   } catch (err) {
+     console.error("[loader:_store.conta.tokens] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: UserTokensPage,
 });

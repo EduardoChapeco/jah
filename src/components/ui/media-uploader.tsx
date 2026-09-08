@@ -5,6 +5,7 @@ import { uploadMediaUniversal } from "@/services/storage.functions";
 import { getBrowserClient } from "@/lib/supabase";
 import { toast } from "sonner";
 import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
+import { compressImage } from "@/lib/image-compression";
 
 export interface MediaData {
  id: string;
@@ -140,7 +141,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
  let failCount = 0;
 
  for (let i = 0; i < files.length; i++) {
- const file = files[i];
+ let file = files[i];
  const isImage = file.type.startsWith("image/");
  const isVideo = file.type.startsWith("video/");
 
@@ -148,6 +149,16 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
  toast.error(`Arquivo ${file.name} não é uma imagem ou vídeo válido.`);
  failCount++;
  continue;
+ }
+
+ // Compress images client-side before upload to speed up transmission and reduce bandwidth
+ if (isImage) {
+   try {
+     const compressed = await compressImage(file);
+     file = compressed.file;
+   } catch (compErr) {
+     console.warn("Compressão client-side pulada, enviando original:", compErr);
+   }
  }
 
  // Máximo 50MB para vídeo, 20MB para imagem

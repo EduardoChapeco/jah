@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const migrationsDir = path.resolve(__dirname, "../supabase/migrations");
-const password = process.env.SUPABASE_DB_PASSWORD || "EEaR6399!@#2026";
+const password = process.env.SUPABASE_DB_PASSWORD || "${process.env.SUPABASE_DB_PASSWORD || ""}";
 
 const configs = [
   {

@@ -77,6 +77,7 @@ export const Route = createFileRoute("/_store/gastronomia")({
  SearchSchema.parse(search),
  loaderDeps: ({ search }) => search,
  loader: async ({ deps: search }) => {
+   try {
  const [banners, hotpages, marketplaceFeed, productsRes] = await Promise.all([
  listActiveBanners({ data: { placement: "gastronomia" } }).catch(() => []),
  listHotpages({ data: { module: "gastronomia" } }).catch(() => []),
@@ -93,6 +94,10 @@ export const Route = createFileRoute("/_store/gastronomia")({
  marketplaceFeed,
  catalogProducts: productsRes.status === "ok" ? (productsRes as any).data ?? [] : (productsRes as any).data ?? [],
  };
+   } catch (err) {
+     console.error("[loader:_store.gastronomia] Unhandled error:", err);
+     return null;
+   }
  },
  component: GastronomiaVerticalPage,
  pendingComponent: PageSkeleton,

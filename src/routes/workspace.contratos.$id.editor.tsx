@@ -22,9 +22,14 @@ import { getContractById, sealAndIssueContract } from "@/services/contracts.func
 
 export const Route = createFileRoute("/workspace/contratos/$id/editor")({
  head: () => ({ meta: [{ title: "Editor de Contrato | Workspace Wider OS" }] }),
- loader: async ({ params }) => {
- return await getContractById({ data: params.id });
- },
+  loader: async ({ params }) => {
+    try {
+      return await getContractById({ data: params.id });
+    } catch (err) {
+      console.error("[loader:workspace.contratos.$id.editor] Unhandled error:", err);
+      return null;
+    }
+  },
  component: ContractEditorPage,
 });
 
@@ -117,9 +122,24 @@ function ContractEditorPage() {
  </div>
 
  <div className="flex items-center gap-3">
- <Button variant="outline" size="sm" onClick={() => toast.success("Rascunho salvo localmente.")}>
- <Save size={16} className="mr-2" /> Salvar Rascunho
- </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                try {
+                  localStorage.setItem(`contract_draft_${contract.id}`, JSON.stringify({
+                    content,
+                    signers,
+                    updatedAt: new Date().toISOString()
+                  }));
+                  toast.success("Rascunho salvo no armazenamento local!");
+                } catch {
+                  toast.error("Falha ao salvar rascunho localmente.");
+                }
+              }}
+            >
+              <Save size={16} className="mr-2" /> Salvar Rascunho
+            </Button>
  <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={handleSeal} disabled={isSealing}>
  <Lock size={16} className="mr-2" />
  {isSealing ? "Selando..." : "Selar e Enviar"}

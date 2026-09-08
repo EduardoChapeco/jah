@@ -48,12 +48,17 @@ import { formatDate } from "@/lib/datetime";
 export const Route = createFileRoute("/_store/conta/pagamentos")({
  head: () => ({ meta: [{ title: "Central de Pagamentos & Parcelas | Wider OS" }] }),
  loader: async () => {
+   try {
  const [plans, orders, receivables] = await Promise.all([
  getCustomerInstallments().catch(() => []),
  getCustomerOrderPayments().catch(() => []),
  listUserReceivables().catch(() => []),
  ]);
  return { plans, orders, receivables };
+   } catch (err) {
+     console.error("[loader:_store.conta.pagamentos] Unhandled error:", err);
+     return null;
+   }
  },
  component: CustomerInstallmentsPage,
 });

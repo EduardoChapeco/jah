@@ -75,8 +75,13 @@ import {
 export const Route = createFileRoute("/workspace/orcamentos/novo")({
  head: () => ({ meta: [{ title: "Novo Orçamento Comercial | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const store = await getStoreSettings().catch(() => null);
  return { store };
+   } catch (err) {
+     console.error("[loader:workspace.orcamentos.novo] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: NovoOrcamentoRouterPage,
 });

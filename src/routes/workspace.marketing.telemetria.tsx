@@ -35,6 +35,7 @@ export const Route = createFileRoute("/workspace/marketing/telemetria")({
  meta: [{ title: "Telemetria de Audiência, WhatsApp & Patrocinadores | Workspace Wider OS" }],
  }),
  loader: async () => {
+   try {
  const [sponsorData, whatsappAnalytics] = await Promise.all([
  getSponsorMetricsDashboard().catch(() => ({
  totalImpressions: 0,
@@ -54,6 +55,10 @@ export const Route = createFileRoute("/workspace/marketing/telemetria")({
  } as WhatsAppAnalyticsDTO)),
  ]);
  return { sponsorData, whatsappAnalytics };
+   } catch (err) {
+     console.error("[loader:workspace.marketing.telemetria] Unhandled error:", err);
+     return null;
+   }
  },
  component: WorkspaceTelemetriaPage,
 });

@@ -181,6 +181,7 @@ export const Route = createFileRoute("/workspace/pdv/")({
  }),
  head: () => ({ meta: [{ title: "Frente de Caixa (PDV) Pro | Wider OS" }] }),
  loader: async () => {
+   try {
  const activeRegister = await getActiveRegister();
  if (!activeRegister) {
  throw new Error("CAIXA_FECHADO");
@@ -197,6 +198,10 @@ export const Route = createFileRoute("/workspace/pdv/")({
  ]);
 
  return { activeRegister, catalog: catalog || [], priceTables: priceTables || [], store };
+   } catch (err) {
+     console.error("[loader:workspace.pdv.index] Unhandled loader error:", err);
+     return null;
+   }
  },
  errorComponent: ({ error }) => {
  if (isRedirect(error)) {
@@ -1146,7 +1151,7 @@ function PdvTerminal() {
 
  <div className="p-6 space-y-5">
  {/* Seletor de Meio de Pagamento */}
- <div className="grid grid-cols-4 gap-2">
+ <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
  {[
  { id: "cash", label: "Dinheiro", icon: Banknote },
  { id: "pix", label: "PIX", icon: QrCode },

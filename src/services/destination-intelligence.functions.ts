@@ -135,3 +135,20 @@ export const listDestinationReviews = createServerFn({ method: 'POST' })
  if (error) throw new Error(error.message);
  return (rows ?? []) as DestinationReview[];
  });
+
+export const getDestinationByName = createServerFn({ method: 'GET' })
+  .validator(z.object({ name: z.string() }))
+  .handler(async ({ data }) => {
+    try {
+      const supabase = getServerClient();
+      const { data: row } = await supabase
+        .from('destination_intelligence')
+        .select('*')
+        .ilike('destination', `%${data.name}%`)
+        .limit(1)
+        .maybeSingle();
+      return row || null;
+    } catch {
+      return null;
+    }
+  });

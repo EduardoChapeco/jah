@@ -37,8 +37,13 @@ import { formatDate } from "@/lib/datetime";
 export const Route = createFileRoute("/workspace/financeiro/comprovantes")({
  head: () => ({ meta: [{ title: "Comprovantes | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const res = await listPendingManualPayments();
  return res;
+   } catch (err) {
+     console.error("[loader:workspace.financeiro.comprovantes] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: ReceiptsPage,
 });

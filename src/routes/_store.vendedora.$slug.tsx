@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 export const Route = createFileRoute("/_store/vendedora/$slug")({
  loader: async ({ params }) => {
+   try {
  const res = await getPublicExperienceDocumentBySlug({
  data: { slug: params.slug, document_type: "seller_showcase" },
  });
@@ -15,6 +16,10 @@ export const Route = createFileRoute("/_store/vendedora/$slug")({
  document: res.data.document,
  tree: res.data.tree,
  };
+   } catch (err) {
+     console.error("[loader:_store.vendedora.$slug] Unhandled error:", err);
+     return null;
+   }
  },
  head: ({ loaderData }) => {
  if (!loaderData || !loaderData.document) return { meta: [{ title: "Vitrine não encontrada" }] };

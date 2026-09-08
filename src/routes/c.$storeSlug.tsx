@@ -21,6 +21,7 @@ export const Route = createFileRoute("/c/$storeSlug")({
  ],
  }),
  loader: async ({ params }) => {
+   try {
  const db = getServerClient();
  
  // 1. Busca loja pelo slug
@@ -50,6 +51,10 @@ export const Route = createFileRoute("/c/$storeSlug")({
  portalConfig,
  document: null,
  };
+   } catch (err) {
+     console.error("[loader:c.$storeSlug] Unhandled error:", err);
+     return null;
+   }
  },
  component: CustomerPortalWhitelabelPage,
 });

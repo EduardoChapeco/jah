@@ -36,6 +36,7 @@ export const Route = createFileRoute("/workspace")({
  return { session };
  },
  loader: async () => {
+   try {
  let session: any = null;
  try {
  session = await getUserSession();
@@ -61,6 +62,10 @@ export const Route = createFileRoute("/workspace")({
  }
 
  return { session };
+   } catch (err) {
+     console.error("[loader:workspace] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspaceLayout,
  errorComponent: WorkspaceErrorComponent,

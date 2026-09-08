@@ -46,8 +46,13 @@ import type {
 export const Route = createFileRoute('/workspace/turismo/reacomodacao')({
   head: () => ({ meta: [{ title: 'Casos ANAC 400 | Workspace' }] }),
   loader: async () => {
+    try {
     const store = await getStoreSettings().catch(() => null);
     return { store };
+    } catch (err) {
+      console.error("[loader:workspace.turismo.reacomodacao] Unhandled error:", err);
+      return null;
+    }
   },
   component: ReaccommodationPage,
 });

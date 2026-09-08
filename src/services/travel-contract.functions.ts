@@ -822,10 +822,43 @@ export const deleteTravelContract = createServerFn({ method: "POST" })
  .delete()
  .eq("id", data.id);
 
- if (error) {
- throw new Error(`Erro ao excluir contrato: ${error.message}`);
- }
+  if (error) {
+    throw new Error(`Erro ao excluir contrato: ${error.message}`);
+  }
 
- return { success: true };
- });
+  return { success: true };
+});
 
+export const createContractAddendum = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      contractId: z.string().uuid(),
+      title: z.string().min(2),
+      content: z.string().min(2),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+
+    const { data: addendum, error } = await supabase
+      .from("contract_addendums")
+      .insert({
+        contract_id: data.contractId,
+        title: data.title,
+        content: data.content,
+        status: "pending_signature",
+      })
+      .select("*")
+      .single();
+
+    if (error) throw new Error("Erro ao criar aditivo: " + error.message);
+
+    await supabase.from("contract_audit_chain").insert({
+      contract_id: data.contractId,
+      action: "ADDENDUM_CREATED",
+      metadata: { addendum_id: addendum.id, title: data.title, user_id: identity?.id },
+    });
+
+    return addendum;
+  });

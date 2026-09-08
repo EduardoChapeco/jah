@@ -63,6 +63,7 @@ export const Route = createFileRoute("/_store/empregos/$id")({
  ],
  }),
  loader: async ({ params }) => {
+   try {
  const [job, session] = await Promise.all([
  getPublicJobById({ data: { jobId: params.id } }).catch(() => null),
  getUserSession().catch(() => null),
@@ -76,6 +77,10 @@ export const Route = createFileRoute("/_store/empregos/$id")({
  }
 
  return { job, session, employerInsights };
+   } catch (err) {
+     console.error("[loader:_store.empregos.$id] Unhandled error:", err);
+     return null;
+   }
  },
  component: JobDetailPage,
 });

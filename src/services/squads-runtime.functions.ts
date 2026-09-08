@@ -16,8 +16,9 @@ async function getDb() {
     host: process.env.SUPABASE_DB_HOST || "aws-0-sa-east-1.pooler.supabase.com",
     port: Number(process.env.SUPABASE_DB_PORT) || 6543,
     database: process.env.SUPABASE_DB_NAME || "postgres",
+    user: process.env.SUPABASE_DB_USER || "postgres.jfuebqmltksyznovhlwa",
     username: process.env.SUPABASE_DB_USER || "postgres.jfuebqmltksyznovhlwa",
-    password: process.env.SUPABASE_DB_PASSWORD || "EEaR6399!@#2026",
+    password: process.env.SUPABASE_DB_PASSWORD || "",
     ssl: "require",
     max: 5,
     idle_timeout: 20,
@@ -532,5 +533,51 @@ export const approveSquadRunFn = createServerFn({ method: "POST" })
   .validator((d: { storeId: string; runId: string }) => d)
   .handler(async ({ data }) => {
     return approveSquadRun(data.storeId, data.runId);
+  });
+
+export const createCustomSquadFromArchitectFn = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      storeId: z.string(),
+      squadName: z.string().min(2),
+      description: z.string(),
+      pipeline: z.array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          role_label: z.string(),
+        }),
+      ),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const sql = await getDb();
+    try {
+      const slug = data.squadName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const [tpl] = await sql`
+        INSERT INTO squad_templates (
+          slug, name, description, department, icon_name, badge_label, cadence_default, approval_mode_default
+        ) VALUES (
+          ${slug}, ${data.squadName}, ${data.description}, 'Estratégia Agêntica', 'Bot', 'ARCHITECT', 'on_demand', 'human_in_the_loop'
+        )
+        ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name
+        RETURNING id;
+      `;
+
+      const templateId = tpl?.id;
+
+      const [squad] = await sql`
+        INSERT INTO store_squads (
+          store_id, squad_template_id, custom_name, operational_goal, status, cadence, approval_mode
+        ) VALUES (
+          ${data.storeId}, ${templateId}, ${data.squadName}, ${data.description}, 'active', 'on_demand', 'human_in_the_loop'
+        )
+        RETURNING *;
+      `;
+
+      return { success: true, squad };
+    } finally {
+      await sql.end();
+    }
   });
 

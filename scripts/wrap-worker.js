@@ -29,12 +29,12 @@ if (fs.existsSync(secretsPath)) {
 }
 
 const fallbackEnv = {
-  VITE_SUPABASE_URL: secrets.VITE_SUPABASE_URL || "https://jfuebqmltksyznovhlwa.supabase.co",
-  SUPABASE_URL: secrets.VITE_SUPABASE_URL || "https://jfuebqmltksyznovhlwa.supabase.co",
-  VITE_SUPABASE_ANON_KEY: secrets.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmdWVicW1sdGtzeXpub3ZobHdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzOTQxOTcsImV4cCI6MjEwMTk3MDE5N30.14RG8TsXNmyauTp1L-VA2UJNC6jrU9tYj8Vk4RXH0Hc",
-  SUPABASE_ANON_KEY: secrets.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmdWVicW1sdGtzeXpub3ZobHdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzOTQxOTcsImV4cCI6MjEwMTk3MDE5N30.14RG8TsXNmyauTp1L-VA2UJNC6jrU9tYj8Vk4RXH0Hc",
-  SUPABASE_SERVICE_ROLE_KEY: secrets.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmdWVicW1sdGtzeXpub3ZobHdhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NjM5NDE5NywiZXhwIjoyMTAxOTcwMTk3fQ.fQA4JVYOoEAuTltYvqNBeYArVKK6N9Zfz7fZiNXMoQs",
-  VITE_SITE_URL: "https://wider.pages.dev",
+  VITE_SUPABASE_URL: secrets.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://jfuebqmltksyznovhlwa.supabase.co",
+  SUPABASE_URL: secrets.SUPABASE_URL || process.env.SUPABASE_URL || "https://jfuebqmltksyznovhlwa.supabase.co",
+  VITE_SUPABASE_ANON_KEY: secrets.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || "",
+  SUPABASE_ANON_KEY: secrets.SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "",
+  SUPABASE_SERVICE_ROLE_KEY: secrets.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "",
+  VITE_SITE_URL: secrets.VITE_SITE_URL || process.env.VITE_SITE_URL || "https://wider.pages.dev",
 };
 
 const injection = `async fetch(cfReq, env, context) {

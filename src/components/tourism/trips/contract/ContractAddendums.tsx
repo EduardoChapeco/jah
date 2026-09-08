@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { createContractAddendum } from "@/services/travel-contract.functions";
 import { Plus } from "lucide-react";
 import { FormInput as Input } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
@@ -36,27 +36,13 @@ export function ContractAddendums({
 
   const createAddendum = useMutation({
     mutationFn: async ({ title, content }: { title: string; content: string }) => {
-      const { data, error } = await supabase
-        .from("contract_addendums")
-        .insert({
-          contract_id: contractId,
+      return await createContractAddendum({
+        data: {
+          contractId,
           title,
           content,
-          status: "pending_signature",
-        })
-        .select("*")
-        .single();
-      if (error) throw error;
-
-      // Cria log na cadeia de auditoria ledger
-      const { error: auditErr } = await supabase.from("contract_audit_chain").insert({
-        contract_id: contractId,
-        action: "ADDENDUM_CREATED",
-        metadata: { addendum_id: data.id, title },
+        },
       });
-      if (auditErr) console.warn("Erro ao registrar auditoria de aditivo:", auditErr);
-
-      return data;
     },
     onSuccess: () => {
       toast.success("Aditivo criado com sucesso e enviado para assinatura", { id: "addendum" });

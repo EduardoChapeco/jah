@@ -16,12 +16,17 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/admin-master/")({
  head: () => ({ meta: [{ title: "Dashboard Global | Admin Master" }] }),
  loader: async () => {
+   try {
  const [metrics, stores, invoices] = await Promise.all([
  getPlatformMetrics(),
  getPlatformStoresList(),
  getPlatformInvoicesList(),
  ]);
  return { metrics, stores, invoices };
+   } catch (err) {
+     console.error("[loader:admin-master.index] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: AdminMasterDashboard,
 });

@@ -117,7 +117,7 @@ function AdminKycPage() {
  <div>
  <h1 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
  <UserCheck className="size-6 text-info" />
- Verificação Facial & KYC Anti-Fraude
+ Verificação & KYC
  </h1>
  <p className="text-sm text-muted-foreground">
  Auditoria de selfies, provas de vida e documentos oficiais para emissão do selo de perfil autêntico.

@@ -42,9 +42,14 @@ import {
 export const Route = createFileRoute("/workspace/logistica/pudo")({
  head: () => ({ meta: [{ title: "Ponto de Retirada (PUDO) & Logística Reversa | Workspace" }] }),
  loader: async () => {
+   try {
  const packages = await listStorePudoPackages().catch(() => []);
  const safePackages = packages || [];
  return { packages: safePackages, defaultLocationId: safePackages[0]?.pudo_location_id ?? null };
+   } catch (err) {
+     console.error("[loader:workspace.logistica.pudo] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspacePudoLogisticsPage,
 });

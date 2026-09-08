@@ -53,6 +53,7 @@ export const Route = createFileRoute("/workspace/simulacao")({
     ],
   }),
   loader: async () => {
+    try {
     const [personas, status, store] = await Promise.all([
       fetchSyntheticArchetypes().catch(() => []),
       getSimLabStatus().catch(() => ({
@@ -67,6 +68,10 @@ export const Route = createFileRoute("/workspace/simulacao")({
       status,
       store,
     };
+    } catch (err) {
+      console.error("[loader:workspace.simulacao] Unhandled loader error:", err);
+      return null;
+    }
   },
   component: SimulacaoPage,
 });

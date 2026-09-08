@@ -31,8 +31,13 @@ import { WorkspaceDashboardSheet } from "@/components/workspace/workspace-dashbo
 export const Route = createFileRoute("/workspace/orcamentos/")({
   head: () => ({ meta: [{ title: "Orçamentos | Workspace Wider OS" }] }),
   loader: async () => {
+    try {
     const res = await listQuotes({ data: { limit: 50 } }).catch(() => ({ items: [], total: 0 }));
     return { initialData: res };
+    } catch (err) {
+      console.error("[loader:workspace.orcamentos.index] Unhandled error:", err);
+      return null;
+    }
   },
   component: QuotesListPage,
 });

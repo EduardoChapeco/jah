@@ -45,6 +45,7 @@ import {
 export const Route = createFileRoute("/workspace/turismo/frota/$id")({
  head: () => ({ meta: [{ title: "Editor de Assentos 2D | Frota & Turismo | Workspace Wider OS" }] }),
  loader: async ({ params }: { params: { id: string } }) => {
+   try {
  const store = await getStoreSettings().catch(() => null);
  const storeId = store?.id || "";
  const layout = storeId
@@ -56,6 +57,10 @@ export const Route = createFileRoute("/workspace/turismo/frota/$id")({
  store,
  layout,
  };
+   } catch (err) {
+     console.error("[loader:workspace.turismo.frota.$id] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: VehicleLayoutEditorPage,
 });

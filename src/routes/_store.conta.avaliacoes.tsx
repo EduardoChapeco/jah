@@ -14,7 +14,12 @@ import { formatDate } from "@/lib/datetime";
 export const Route = createFileRoute("/_store/conta/avaliacoes")({
  head: () => ({ meta: [{ title: "Minhas Avaliações | Wider OS" }] }),
  loader: async () => {
+   try {
  return (await listCustomerReviews().catch(() => [])) || [];
+   } catch (err) {
+     console.error("[loader:_store.conta.avaliacoes] Unhandled error:", err);
+     return null;
+   }
  },
  component: Page,
 });

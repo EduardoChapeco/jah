@@ -431,7 +431,7 @@ export default function LoyaltyDashboardPage() {
  </span>
  </div>
 
- <div className="grid grid-cols-5 gap-2">
+ <div className="grid grid-cols-5 sm:grid-cols-5 gap-2 justify-items-center">
  {Array.from({ length: targetStamps }).map((_, i) => {
  const isStamped = i < 3;
  return (

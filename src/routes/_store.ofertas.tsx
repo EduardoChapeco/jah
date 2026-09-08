@@ -55,6 +55,7 @@ export const Route = createFileRoute("/_store/ofertas")({
  SearchSchema.parse(search),
  loaderDeps: ({ search }) => search,
  loader: async ({ deps: { nicho } }) => {
+   try {
  const [dealsPage, banners, hotpages] = await Promise.all([
  getGlobalDealsPage({
  data:
@@ -64,6 +65,10 @@ export const Route = createFileRoute("/_store/ofertas")({
  listHotpages({ data: { module: "ofertas" } }).catch(() => []),
  ]);
  return { dealsPage, banners, hotpages };
+   } catch (err) {
+     console.error("[loader:_store.ofertas] Unhandled error:", err);
+     return null;
+   }
  },
  component: OfertasPage,
  pendingComponent: PageSkeleton,

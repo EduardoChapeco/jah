@@ -62,6 +62,7 @@ import { Route as StoreTurismoRouteImport } from './routes/_store.turismo'
 import { Route as AdminMasterIndexRouteImport } from './routes/admin-master.index'
 import { Route as AdminMasterAlgoritmoRouteImport } from './routes/admin-master.algoritmo'
 import { Route as AdminMasterBannersRouteImport } from './routes/admin-master.banners'
+import { Route as AdminMasterBoostPaymentsRouteImport } from './routes/admin-master.boost-payments'
 import { Route as AdminMasterBotoesRouteImport } from './routes/admin-master.botoes'
 import { Route as AdminMasterCarnesRouteImport } from './routes/admin-master.carnes'
 import { Route as AdminMasterConviteRouteImport } from './routes/admin-master.convite'
@@ -220,6 +221,8 @@ import { Route as WorkspaceLogisticaTabelasRouteImport } from './routes/workspac
 import { Route as WorkspaceLojasIndexRouteImport } from './routes/workspace.lojas.index'
 import { Route as WorkspaceMarketingAnunciosRouteImport } from './routes/workspace.marketing.anuncios'
 import { Route as WorkspaceMarketingBannersRouteImport } from './routes/workspace.marketing.banners'
+import { Route as WorkspaceMarketingBrandKitRouteImport } from './routes/workspace.marketing.brand-kit'
+import { Route as WorkspaceMarketingBriefingRouteImport } from './routes/workspace.marketing.briefing'
 import { Route as WorkspaceMarketingCanvasPecadosRouteImport } from './routes/workspace.marketing.canvas-pecados'
 import { Route as WorkspaceMarketingCarrinhosRouteImport } from './routes/workspace.marketing.carrinhos'
 import { Route as WorkspaceMarketingFidelidadeRouteImport } from './routes/workspace.marketing.fidelidade'
@@ -571,6 +574,12 @@ const AdminMasterBannersRoute = AdminMasterBannersRouteImport.update({
   path: '/banners',
   getParentRoute: () => AdminMasterRoute,
 } as any)
+const AdminMasterBoostPaymentsRoute =
+  AdminMasterBoostPaymentsRouteImport.update({
+    id: '/boost-payments',
+    path: '/boost-payments',
+    getParentRoute: () => AdminMasterRoute,
+  } as any)
 const AdminMasterBotoesRoute = AdminMasterBotoesRouteImport.update({
   id: '/botoes',
   path: '/botoes',
@@ -1392,6 +1401,18 @@ const WorkspaceMarketingBannersRoute =
     path: '/marketing/banners',
     getParentRoute: () => WorkspaceRoute,
   } as any)
+const WorkspaceMarketingBrandKitRoute =
+  WorkspaceMarketingBrandKitRouteImport.update({
+    id: '/marketing/brand-kit',
+    path: '/marketing/brand-kit',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceMarketingBriefingRoute =
+  WorkspaceMarketingBriefingRouteImport.update({
+    id: '/marketing/briefing',
+    path: '/marketing/briefing',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
 const WorkspaceMarketingCanvasPecadosRoute =
   WorkspaceMarketingCanvasPecadosRouteImport.update({
     id: '/marketing/canvas-pecados',
@@ -1935,6 +1956,7 @@ export interface FileRoutesByFullPath {
   '/turismo': typeof StoreTurismoRouteWithChildren
   '/admin-master/algoritmo': typeof AdminMasterAlgoritmoRoute
   '/admin-master/banners': typeof AdminMasterBannersRoute
+  '/admin-master/boost-payments': typeof AdminMasterBoostPaymentsRoute
   '/admin-master/botoes': typeof AdminMasterBotoesRoute
   '/admin-master/carnes': typeof AdminMasterCarnesRoute
   '/admin-master/convite': typeof AdminMasterConviteRoute
@@ -2075,6 +2097,8 @@ export interface FileRoutesByFullPath {
   '/workspace/logistica/tabelas': typeof WorkspaceLogisticaTabelasRoute
   '/workspace/marketing/anuncios': typeof WorkspaceMarketingAnunciosRouteWithChildren
   '/workspace/marketing/banners': typeof WorkspaceMarketingBannersRoute
+  '/workspace/marketing/brand-kit': typeof WorkspaceMarketingBrandKitRoute
+  '/workspace/marketing/briefing': typeof WorkspaceMarketingBriefingRoute
   '/workspace/marketing/canvas-pecados': typeof WorkspaceMarketingCanvasPecadosRoute
   '/workspace/marketing/carrinhos': typeof WorkspaceMarketingCarrinhosRoute
   '/workspace/marketing/fidelidade': typeof WorkspaceMarketingFidelidadeRoute
@@ -2225,6 +2249,7 @@ export interface FileRoutesByTo {
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/admin-master/algoritmo': typeof AdminMasterAlgoritmoRoute
   '/admin-master/banners': typeof AdminMasterBannersRoute
+  '/admin-master/boost-payments': typeof AdminMasterBoostPaymentsRoute
   '/admin-master/botoes': typeof AdminMasterBotoesRoute
   '/admin-master/carnes': typeof AdminMasterCarnesRoute
   '/admin-master/convite': typeof AdminMasterConviteRoute
@@ -2366,6 +2391,8 @@ export interface FileRoutesByTo {
   '/workspace/logistica/tabelas': typeof WorkspaceLogisticaTabelasRoute
   '/workspace/marketing/anuncios': typeof WorkspaceMarketingAnunciosRouteWithChildren
   '/workspace/marketing/banners': typeof WorkspaceMarketingBannersRoute
+  '/workspace/marketing/brand-kit': typeof WorkspaceMarketingBrandKitRoute
+  '/workspace/marketing/briefing': typeof WorkspaceMarketingBriefingRoute
   '/workspace/marketing/canvas-pecados': typeof WorkspaceMarketingCanvasPecadosRoute
   '/workspace/marketing/carrinhos': typeof WorkspaceMarketingCarrinhosRoute
   '/workspace/marketing/fidelidade': typeof WorkspaceMarketingFidelidadeRoute
@@ -2525,6 +2552,7 @@ export interface FileRoutesById {
   '/_store/turismo': typeof StoreTurismoRouteWithChildren
   '/admin-master/algoritmo': typeof AdminMasterAlgoritmoRoute
   '/admin-master/banners': typeof AdminMasterBannersRoute
+  '/admin-master/boost-payments': typeof AdminMasterBoostPaymentsRoute
   '/admin-master/botoes': typeof AdminMasterBotoesRoute
   '/admin-master/carnes': typeof AdminMasterCarnesRoute
   '/admin-master/convite': typeof AdminMasterConviteRoute
@@ -2666,6 +2694,8 @@ export interface FileRoutesById {
   '/workspace/logistica/tabelas': typeof WorkspaceLogisticaTabelasRoute
   '/workspace/marketing/anuncios': typeof WorkspaceMarketingAnunciosRouteWithChildren
   '/workspace/marketing/banners': typeof WorkspaceMarketingBannersRoute
+  '/workspace/marketing/brand-kit': typeof WorkspaceMarketingBrandKitRoute
+  '/workspace/marketing/briefing': typeof WorkspaceMarketingBriefingRoute
   '/workspace/marketing/canvas-pecados': typeof WorkspaceMarketingCanvasPecadosRoute
   '/workspace/marketing/carrinhos': typeof WorkspaceMarketingCarrinhosRoute
   '/workspace/marketing/fidelidade': typeof WorkspaceMarketingFidelidadeRoute
@@ -2826,6 +2856,7 @@ export interface FileRouteTypes {
     | '/turismo'
     | '/admin-master/algoritmo'
     | '/admin-master/banners'
+    | '/admin-master/boost-payments'
     | '/admin-master/botoes'
     | '/admin-master/carnes'
     | '/admin-master/convite'
@@ -2966,6 +2997,8 @@ export interface FileRouteTypes {
     | '/workspace/logistica/tabelas'
     | '/workspace/marketing/anuncios'
     | '/workspace/marketing/banners'
+    | '/workspace/marketing/brand-kit'
+    | '/workspace/marketing/briefing'
     | '/workspace/marketing/canvas-pecados'
     | '/workspace/marketing/carrinhos'
     | '/workspace/marketing/fidelidade'
@@ -3116,6 +3149,7 @@ export interface FileRouteTypes {
     | '/trocas-e-devolucoes'
     | '/admin-master/algoritmo'
     | '/admin-master/banners'
+    | '/admin-master/boost-payments'
     | '/admin-master/botoes'
     | '/admin-master/carnes'
     | '/admin-master/convite'
@@ -3257,6 +3291,8 @@ export interface FileRouteTypes {
     | '/workspace/logistica/tabelas'
     | '/workspace/marketing/anuncios'
     | '/workspace/marketing/banners'
+    | '/workspace/marketing/brand-kit'
+    | '/workspace/marketing/briefing'
     | '/workspace/marketing/canvas-pecados'
     | '/workspace/marketing/carrinhos'
     | '/workspace/marketing/fidelidade'
@@ -3415,6 +3451,7 @@ export interface FileRouteTypes {
     | '/_store/turismo'
     | '/admin-master/algoritmo'
     | '/admin-master/banners'
+    | '/admin-master/boost-payments'
     | '/admin-master/botoes'
     | '/admin-master/carnes'
     | '/admin-master/convite'
@@ -3556,6 +3593,8 @@ export interface FileRouteTypes {
     | '/workspace/logistica/tabelas'
     | '/workspace/marketing/anuncios'
     | '/workspace/marketing/banners'
+    | '/workspace/marketing/brand-kit'
+    | '/workspace/marketing/briefing'
     | '/workspace/marketing/canvas-pecados'
     | '/workspace/marketing/carrinhos'
     | '/workspace/marketing/fidelidade'
@@ -4062,6 +4101,13 @@ declare module '@tanstack/react-router' {
       path: '/banners'
       fullPath: '/admin-master/banners'
       preLoaderRoute: typeof AdminMasterBannersRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
+    '/admin-master/boost-payments': {
+      id: '/admin-master/boost-payments'
+      path: '/boost-payments'
+      fullPath: '/admin-master/boost-payments'
+      preLoaderRoute: typeof AdminMasterBoostPaymentsRouteImport
       parentRoute: typeof AdminMasterRoute
     }
     '/admin-master/botoes': {
@@ -5170,6 +5216,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceMarketingBannersRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/workspace/marketing/brand-kit': {
+      id: '/workspace/marketing/brand-kit'
+      path: '/marketing/brand-kit'
+      fullPath: '/workspace/marketing/brand-kit'
+      preLoaderRoute: typeof WorkspaceMarketingBrandKitRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/marketing/briefing': {
+      id: '/workspace/marketing/briefing'
+      path: '/marketing/briefing'
+      fullPath: '/workspace/marketing/briefing'
+      preLoaderRoute: typeof WorkspaceMarketingBriefingRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
     '/workspace/marketing/canvas-pecados': {
       id: '/workspace/marketing/canvas-pecados'
       path: '/marketing/canvas-pecados'
@@ -6074,6 +6134,7 @@ const AdminMasterSegurancaCertificadosRouteWithChildren =
 interface AdminMasterRouteChildren {
   AdminMasterAlgoritmoRoute: typeof AdminMasterAlgoritmoRoute
   AdminMasterBannersRoute: typeof AdminMasterBannersRoute
+  AdminMasterBoostPaymentsRoute: typeof AdminMasterBoostPaymentsRoute
   AdminMasterBotoesRoute: typeof AdminMasterBotoesRoute
   AdminMasterCarnesRoute: typeof AdminMasterCarnesRoute
   AdminMasterConviteRoute: typeof AdminMasterConviteRoute
@@ -6104,6 +6165,7 @@ interface AdminMasterRouteChildren {
 const AdminMasterRouteChildren: AdminMasterRouteChildren = {
   AdminMasterAlgoritmoRoute: AdminMasterAlgoritmoRoute,
   AdminMasterBannersRoute: AdminMasterBannersRoute,
+  AdminMasterBoostPaymentsRoute: AdminMasterBoostPaymentsRoute,
   AdminMasterBotoesRoute: AdminMasterBotoesRoute,
   AdminMasterCarnesRoute: AdminMasterCarnesRoute,
   AdminMasterConviteRoute: AdminMasterConviteRoute,
@@ -6236,6 +6298,8 @@ interface WorkspaceRouteChildren {
   WorkspaceLogisticaTabelasRoute: typeof WorkspaceLogisticaTabelasRoute
   WorkspaceMarketingAnunciosRoute: typeof WorkspaceMarketingAnunciosRouteWithChildren
   WorkspaceMarketingBannersRoute: typeof WorkspaceMarketingBannersRoute
+  WorkspaceMarketingBrandKitRoute: typeof WorkspaceMarketingBrandKitRoute
+  WorkspaceMarketingBriefingRoute: typeof WorkspaceMarketingBriefingRoute
   WorkspaceMarketingCanvasPecadosRoute: typeof WorkspaceMarketingCanvasPecadosRoute
   WorkspaceMarketingCarrinhosRoute: typeof WorkspaceMarketingCarrinhosRoute
   WorkspaceMarketingFidelidadeRoute: typeof WorkspaceMarketingFidelidadeRoute
@@ -6370,6 +6434,8 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceLogisticaTabelasRoute: WorkspaceLogisticaTabelasRoute,
   WorkspaceMarketingAnunciosRoute: WorkspaceMarketingAnunciosRouteWithChildren,
   WorkspaceMarketingBannersRoute: WorkspaceMarketingBannersRoute,
+  WorkspaceMarketingBrandKitRoute: WorkspaceMarketingBrandKitRoute,
+  WorkspaceMarketingBriefingRoute: WorkspaceMarketingBriefingRoute,
   WorkspaceMarketingCanvasPecadosRoute: WorkspaceMarketingCanvasPecadosRoute,
   WorkspaceMarketingCarrinhosRoute: WorkspaceMarketingCarrinhosRoute,
   WorkspaceMarketingFidelidadeRoute: WorkspaceMarketingFidelidadeRoute,

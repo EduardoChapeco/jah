@@ -26,8 +26,13 @@ import { NewVisaWizard } from '@/components/tourism/visas/new-visa-wizard';
 export const Route = createFileRoute('/workspace/turismo/vistos')({
  head: () => ({ meta: [{ title: 'Passaportes & Vistos Consulares | Workspace' }] }),
  loader: async () => {
+   try {
  const store = await getStoreSettings().catch(() => null);
  return { store };
+   } catch (err) {
+     console.error("[loader:workspace.turismo.vistos] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspaceVisasPage,
 });

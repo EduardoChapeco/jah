@@ -74,6 +74,7 @@ export const Route = createFileRoute("/_store/farmacia")({
  SearchSchema.parse(search),
  loaderDeps: ({ search }) => search,
  loader: async () => {
+   try {
  const [banners, hotpages, marketplaceFeed, productsRes] = await Promise.all([
  listActiveBanners({ data: { placement: "farmacia" } }).catch(() => []),
  listHotpages({ data: { module: "farmacia" } }).catch(() => []),
@@ -86,6 +87,10 @@ export const Route = createFileRoute("/_store/farmacia")({
  marketplaceFeed,
  catalogProducts: (productsRes as any).data ?? [],
  };
+   } catch (err) {
+     console.error("[loader:_store.farmacia] Unhandled error:", err);
+     return null;
+   }
  },
  component: FarmaciaVerticalPage,
  pendingComponent: PageSkeleton,

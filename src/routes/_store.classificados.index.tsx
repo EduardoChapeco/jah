@@ -28,12 +28,15 @@ import {
   ListDashes,
   Flame,
   ArrowRight,
+  WhatsappLogo,
 } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { SlidersHorizontal } from "lucide-react";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
@@ -45,9 +48,10 @@ import {
 import { formatMoney } from "@/lib/money";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
-import { getPublicClassifieds } from "@/services/classifieds.functions";
+import { getPublicClassifieds, trackClassifiedWhatsAppClick } from "@/services/classifieds.functions";
 import { CANONICAL_CITIES } from "@/lib/constants/cities";
 import { resolveClassifiedNiche } from "@/lib/classifieds/semantics";
+import { trackAndOpenWhatsApp } from "@/lib/whatsapp";
 
 function isVideoUrl(url?: string | null): boolean {
   if (!url) return false;
@@ -162,6 +166,32 @@ const VEHICLE_FUEL_OPTIONS = [
   { id: "diesel", label: "Diesel" },
 ];
 
+
+const DESAPEGO_SUB_OPTIONS = [
+  { id: "todos", label: "Todos Desapegos" },
+  { id: "smartphones", label: "Smartphones" },
+  { id: "computadores", label: "Notebooks & PCs" },
+  { id: "moveis", label: "Móveis" },
+  { id: "eletrodomesticos", label: "Eletrodomésticos" },
+  { id: "games", label: "Games" },
+  { id: "moda_brecho", label: "Roupas & Calçados" },
+];
+
+const SERVICE_MODALITY_OPTIONS = [
+  { id: "todos", label: "Todas Modalidades" },
+  { id: "presencial", label: "Presencial" },
+  { id: "domicilio", label: "A Domicílio" },
+  { id: "remoto", label: "Online / Remoto" },
+];
+
+const JOB_REGIME_OPTIONS = [
+  { id: "todos", label: "Todos Regimes" },
+  { id: "CLT", label: "CLT" },
+  { id: "PJ", label: "PJ / Freelancer" },
+  { id: "Estágio", label: "Estágio" },
+  { id: "remoto", label: "Home Office" },
+];
+
 function ClassifiedsMasterPage() {
   const { banners, hotpages, classifieds: initialClassifieds } = Route.useLoaderData();
   const [selectedCategory, setSelectedCategory] = useState("todos");
@@ -183,6 +213,13 @@ function ClassifiedsMasterPage() {
 
   // Faceta de Produtos Digitais
   const [onlyInstantDigital, setOnlyInstantDigital] = useState(false);
+  // Facetas Especializadas de Desapego, Serviços e Vagas
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string>("todos");
+  const [selectedServiceModality, setSelectedServiceModality] = useState<string>("todos");
+  const [selectedJobRegime, setSelectedJobRegime] = useState<string>("todos");
+  const [onlyBoosted, setOnlyBoosted] = useState<boolean>(false);
+  const [mobileFilterSheetOpen, setMobileFilterSheetOpen] = useState<boolean>(false);
+
 
   const toggleAmenity = (id: string) => {
     setSelectedAmenities((prev) =>
@@ -294,339 +331,75 @@ function ClassifiedsMasterPage() {
   });
 
   return (
-    <div className="w-full space-y-6 pb-20">
-      {/* 1. Banners Contextuais no Topo */}
-      {banners && banners.length > 0 && (
-        <section aria-label="Banners de Classificados">
-          <BannerHeroCarousel banners={banners} />
-        </section>
-      )}
+    <div className="w-full flex flex-col lg:flex-row items-start gap-6 xl:gap-8 pb-20">
+      {/* ── COLUNA ESQUERDA (DESKTOP STICKY SIDEBAR DEDICADA AO LADO DA SIDEBAR GLOBAL) ── */}
+      <aside className="hidden lg:flex flex-col w-72 shrink-0 space-y-4 sticky top-4 self-start">
+        {/* CTA Publicar Anúncio */}
+        <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
+          <Link
+            to="/conta/classificados/novo"
+            className="w-full h-11 rounded-xl bg-foreground text-background font-bold text-sm flex items-center justify-center gap-2 hover:bg-foreground/90 transition-all cursor-pointer shadow-sm"
+          >
+            <Plus size={18} weight="bold" />
+            <span>Publicar Anúncio</span>
+          </Link>
 
-      {/* 2. Hotpages Horizontal Rail */}
-      {(hotpages?.length > 0 || CLASSIFIEDS_HOTPAGES.length > 0) && (
-        <section aria-label="Destaques de Classificados">
-          <HotpagesRail
-            hotpages={(hotpages && hotpages.length > 0 ? hotpages : CLASSIFIEDS_HOTPAGES) as any}
-            activeSlug={selectedCategory}
-            onSelect={(slug) => {
-              if (slug === "real_estate_temporada") {
-                setSelectedCategory("real_estate");
-                setSelectedDealType("temporada");
-              } else {
-                setSelectedCategory(slug);
-                setSelectedDealType("todos");
-              }
-            }}
-          />
-        </section>
-      )}
+          <Link
+            to="/conta/classificados"
+            className="text-xs text-center text-muted-foreground hover:text-foreground font-mono block transition-colors"
+          >
+            Gerenciar Meus Anúncios →
+          </Link>
+        </div>
 
-      {/* 3. Layout Desktop Two-Column (Sidebar à esquerda + Feed/Grid à direita) */}
-      <div className="w-full flex flex-col lg:flex-row items-start gap-8">
-        {/* ── COLUNA ESQUERDA (DESKTOP STICKY SIDEBAR) ── */}
-        <aside className="hidden lg:flex flex-col w-72 shrink-0 space-y-6 sticky top-20 self-start">
-          {/* CTA Publicar Anúncio */}
-          <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
-            <Link
-              to="/conta/classificados/novo"
-              className="w-full h-11 rounded-xl bg-foreground text-background font-bold text-sm flex items-center justify-center gap-2 hover:bg-foreground/90 transition-all cursor-pointer shadow-sm"
-            >
-              <Plus size={18} weight="bold" />
-              <span>Publicar Anúncio</span>
-            </Link>
+        {/* Categorias Principais */}
+        <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2">
+          <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
+            Categorias
+          </span>
+          <div className="flex flex-col space-y-1">
+            {CLASSIFIED_CHIPS.map((chip) => {
+              const Icon = chip.icon;
+              const isSelected = selectedCategory === chip.id;
+              const count = chip.id === "todos" 
+                ? (classifieds || []).length 
+                : (classifieds || []).filter((c: any) => c.category === chip.id).length;
 
-            <Link
-              to="/conta/classificados"
-              className="text-xs text-center text-muted-foreground hover:text-foreground font-mono block transition-colors"
-            >
-              Gerenciar Meus Anúncios →
-            </Link>
+              return (
+                <button
+                  key={chip.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory(chip.id);
+                    if (chip.id !== "real_estate") setSelectedDealType("todos");
+                  }}
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all text-left cursor-pointer ${
+                    isSelected
+                      ? "bg-foreground text-background font-bold shadow-sm"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Icon className="size-4 shrink-0" />
+                    <span>{chip.label}</span>
+                  </div>
+                  <span className="font-mono text-[10px] opacity-70">
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
+        </div>
 
-          {/* Categorias Principais */}
-          <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2">
-            <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
-              Categorias
-            </span>
-            <div className="flex flex-col space-y-1">
-              {CLASSIFIED_CHIPS.map((chip) => {
-                const Icon = chip.icon;
-                const isSelected = selectedCategory === chip.id;
-                const count = chip.id === "todos" 
-                  ? (classifieds || []).length 
-                  : (classifieds || []).filter((c: any) => c.category === chip.id).length;
-
-                return (
-                  <button
-                    key={chip.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedCategory(chip.id);
-                      if (chip.id !== "real_estate") setSelectedDealType("todos");
-                    }}
-                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all text-left ${
-                      isSelected
-                        ? "bg-foreground text-background font-bold shadow-sm"
-                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Icon className="size-4 shrink-0" />
-                      <span>{chip.label}</span>
-                    </div>
-                    <span className="font-mono text-[10px] opacity-70">
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Subfiltro de Imóveis & Facetas de Comodidades (quando ativo) */}
-          {selectedCategory === "real_estate" && (
-            <>
-              <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2">
-                <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
-                  Finalidade
-                </span>
-                <div className="flex flex-col space-y-1">
-                  {REAL_ESTATE_DEAL_TYPES.map((dt) => {
-                    const isSelected = selectedDealType === dt.id;
-                    return (
-                      <button
-                        key={dt.id}
-                        type="button"
-                        onClick={() => setSelectedDealType(dt.id)}
-                        className={`px-3 py-2 rounded-lg text-xs font-mono text-left transition-all ${
-                          isSelected
-                            ? "bg-foreground text-background font-bold"
-                            : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-                        }`}
-                      >
-                        {dt.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Facetas de Imóveis */}
-              <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2.5">
-                <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
-                  Facilidades do Imóvel
-                </span>
-                <div className="grid grid-cols-1 gap-1.5">
-                  {REAL_ESTATE_FACETS.map((facet) => {
-                    const isChecked = selectedAmenities.includes(facet.id);
-                    return (
-                      <button
-                        key={facet.id}
-                        type="button"
-                        onClick={() => toggleAmenity(facet.id)}
-                        className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all text-left ${
-                          isChecked
-                            ? "bg-primary/10 text-primary font-bold border border-primary/30"
-                            : "bg-muted/30 text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent"
-                        }`}
-                      >
-                        <span>{facet.label}</span>
-                        {isChecked && <Check className="size-3.5" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Facetas de Veículos & Autos (quando ativo) */}
-          {selectedCategory === "vehicle" && (
-            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
+        {/* Subfiltro de Imóveis & Facetas de Comodidades (quando ativo) */}
+        {selectedCategory === "real_estate" && (
+          <>
+            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2">
               <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
-                Especificações do Veículo
+                Finalidade
               </span>
-
-              {/* Câmbio */}
-              <div className="space-y-1">
-                <span className="text-[10px] text-muted-foreground uppercase font-mono">Câmbio</span>
-                <div className="grid grid-cols-3 gap-1">
-                  {VEHICLE_GEARBOX_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setVehicleGearbox(opt.id)}
-                      className={`py-1.5 px-1 rounded-lg text-[11px] font-mono text-center transition-all ${
-                        vehicleGearbox === opt.id
-                          ? "bg-foreground text-background font-bold"
-                          : "bg-muted/30 text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      {opt.label.replace("Todos Câmbios", "Todos")}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Combustível */}
-              <div className="space-y-1 pt-1">
-                <span className="text-[10px] text-muted-foreground uppercase font-mono">Combustível</span>
-                <div className="flex flex-wrap gap-1">
-                  {VEHICLE_FUEL_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setVehicleFuel(opt.id)}
-                      className={`py-1 px-2 rounded-lg text-[11px] font-mono transition-all ${
-                        vehicleFuel === opt.id
-                          ? "bg-foreground text-background font-bold"
-                          : "bg-muted/30 text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      {opt.label.replace("Todos Combustíveis", "Todos")}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Único Dono */}
-              <div className="flex items-center justify-between pt-1">
-                <Label htmlFor="single-owner" className="text-xs text-foreground cursor-pointer">
-                  Apenas Único Dono
-                </Label>
-                <Switch
-                  id="single-owner"
-                  checked={onlySingleOwner}
-                  onCheckedChange={setOnlySingleOwner}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Facetas de Produtos Digitais (quando ativo) */}
-          {selectedCategory === "digital" && (
-            <div className="rounded-2xl border border-indigo-500/30 bg-indigo-500/5 p-4 space-y-3">
-              <span className="text-[11px] font-bold font-mono uppercase text-indigo-600 dark:text-indigo-400 tracking-wider block">
-                Entrega Instantânea
-              </span>
-              <p className="text-xs text-foreground/80 leading-relaxed">
-                Arquivos, templates, planilhas e e-books com link assinado e liberação imediata.
-              </p>
-              <div className="flex items-center justify-between pt-1">
-                <Label htmlFor="instant-digital" className="text-xs text-foreground cursor-pointer font-medium">
-                  Somente Download Imediato
-                </Label>
-                <Switch
-                  id="instant-digital"
-                  checked={onlyInstantDigital}
-                  onCheckedChange={setOnlyInstantDigital}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Filtro de Cidades */}
-          <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2">
-            <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
-              Cidade / Região
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              <button
-                type="button"
-                onClick={() => setSelectedCity("todos")}
-                className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all ${
-                  selectedCity === "todos"
-                    ? "bg-foreground text-background font-bold"
-                    : "bg-muted/40 text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Todas
-              </button>
-              {CANONICAL_CITIES.slice(0, 5).map((city) => {
-                const isSelected = selectedCity === city.name;
-                return (
-                  <button
-                    key={city.id}
-                    type="button"
-                    onClick={() => setSelectedCity(isSelected ? "todos" : city.name)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all ${
-                      isSelected
-                        ? "bg-foreground text-background font-bold"
-                        : "bg-muted/40 text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {city.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Preferências de Negócio */}
-          <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
-            <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
-              Condições
-            </span>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="trade-switch" className="text-xs text-foreground cursor-pointer">
-                Aceita Troca
-              </Label>
-              <Switch
-                id="trade-switch"
-                checked={onlyTrade}
-                onCheckedChange={setOnlyTrade}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="card-switch" className="text-xs text-foreground cursor-pointer">
-                Parcela no Cartão
-              </Label>
-              <Switch
-                id="card-switch"
-                checked={onlyInstallments}
-                onCheckedChange={setOnlyInstallments}
-              />
-            </div>
-          </div>
-
-          {/* Aviso Proeminente de Segurança Antifraude (Diretriz Inviolável de BigTech) */}
-          <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 space-y-2">
-            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold text-xs uppercase tracking-wider">
-              <ShieldAlert className="size-4 shrink-0" />
-              <span>Negocie com Segurança</span>
-            </div>
-            <p className="text-xs text-foreground/80 leading-relaxed">
-              <strong>Não pague antecipadamente:</strong> Para bens físicos, veículos e imóveis, inspecione pessoalmente antes de efetuar transferências. Em produtos digitais, o download com link assinado é liberado de forma segura na confirmação.
-            </p>
-          </div>
-        </aside>
-
-        {/* ── COLUNA DIREITA (CONTEÚDO PRINCIPAL) ── */}
-        <main className="flex-1 min-w-0 w-full space-y-5">
-          {/* Barra de Busca e Controle de Visualização */}
-          <DiscoveryControlBar
-            search={search}
-            onSearchChange={setSearch}
-            searchPlaceholder="Buscar casa, apê, carro, chalé, desapego..."
-            categories={CLASSIFIED_CHIPS}
-            activeCategory={selectedCategory}
-            onSelectCategory={(id) => {
-              setSelectedCategory(id);
-              if (id !== "real_estate") setSelectedDealType("todos");
-            }}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            allowedViewModes={["grid", "list", "feed"]}
-            resultsCount={filtered.length}
-          />
-
-          {/* Filtros Mobile (Apenas em telas menores que lg) */}
-          <div className="lg:hidden space-y-3">
-            {selectedCategory === "real_estate" && (
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-                <span className="text-xs font-bold text-muted-foreground font-mono uppercase mr-1">
-                  Finalidade:
-                </span>
+              <div className="flex flex-col space-y-1">
                 {REAL_ESTATE_DEAL_TYPES.map((dt) => {
                   const isSelected = selectedDealType === dt.id;
                   return (
@@ -634,10 +407,10 @@ function ClassifiedsMasterPage() {
                       key={dt.id}
                       type="button"
                       onClick={() => setSelectedDealType(dt.id)}
-                      className={`px-3 py-1 rounded-xl text-xs font-bold font-mono transition-all shrink-0 ${
+                      className={`px-3 py-2 rounded-lg text-xs font-mono text-left transition-all cursor-pointer ${
                         isSelected
-                          ? "bg-foreground text-background"
-                          : "bg-muted/60 text-muted-foreground hover:text-foreground"
+                          ? "bg-foreground text-background font-bold"
+                          : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
                       }`}
                     >
                       {dt.label}
@@ -645,68 +418,926 @@ function ClassifiedsMasterPage() {
                   );
                 })}
               </div>
-            )}
+            </div>
 
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-              <button
-                type="button"
-                onClick={() => setSelectedCity("todos")}
-                className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all shrink-0 ${
-                  selectedCity === "todos"
-                    ? "bg-foreground text-background font-bold"
-                    : "bg-muted/40 text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Todas Cidades
-              </button>
-              {CANONICAL_CITIES.slice(0, 6).map((city) => {
-                const isSelected = selectedCity === city.name;
-                return (
+            {/* Facetas de Imóveis */}
+            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2.5">
+              <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
+                Facilidades do Imóvel
+              </span>
+              <div className="grid grid-cols-1 gap-1.5">
+                {REAL_ESTATE_FACETS.map((facet) => {
+                  const isChecked = selectedAmenities.includes(facet.id);
+                  return (
+                    <button
+                      key={facet.id}
+                      type="button"
+                      onClick={() => toggleAmenity(facet.id)}
+                      className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all text-left cursor-pointer ${
+                        isChecked
+                          ? "bg-primary/10 text-primary font-bold border border-primary/30"
+                          : "bg-muted/30 text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent"
+                      }`}
+                    >
+                      <span>{facet.label}</span>
+                      {isChecked && <Check className="size-3.5" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Facetas de Veículos & Autos (quando ativo) */}
+        {selectedCategory === "vehicle" && (
+          <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
+            <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
+              Especificações do Veículo
+            </span>
+
+            {/* Câmbio */}
+            <div className="space-y-1">
+              <span className="text-[10px] text-muted-foreground">Câmbio</span>
+              <div className="flex flex-wrap gap-1">
+                {VEHICLE_GEARBOX_OPTIONS.map((opt) => (
                   <button
-                    key={city.id}
+                    key={opt.id}
                     type="button"
-                    onClick={() => setSelectedCity(isSelected ? "todos" : city.name)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all shrink-0 ${
-                      isSelected
+                    onClick={() => setVehicleGearbox(opt.id)}
+                    className={`px-2 py-1 rounded-md text-[11px] font-mono transition-all cursor-pointer ${
+                      vehicleGearbox === opt.id
                         ? "bg-foreground text-background font-bold"
                         : "bg-muted/40 text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    {city.name}
+                    {opt.label}
                   </button>
-                );
-              })}
+                ))}
+              </div>
+            </div>
+
+            {/* Combustível */}
+            <div className="space-y-1 pt-1">
+              <span className="text-[10px] text-muted-foreground">Combustível</span>
+              <div className="flex flex-wrap gap-1">
+                {VEHICLE_FUEL_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setVehicleFuel(opt.id)}
+                    className={`px-2 py-1 rounded-md text-[11px] font-mono transition-all cursor-pointer ${
+                      vehicleFuel === opt.id
+                        ? "bg-foreground text-background font-bold"
+                        : "bg-muted/40 text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Único Dono */}
+            <div className="flex items-center justify-between pt-1">
+              <Label htmlFor="single-owner" className="text-xs text-foreground cursor-pointer">
+                Apenas Único Dono
+              </Label>
+              <Switch
+                id="single-owner"
+                checked={onlySingleOwner}
+                onCheckedChange={setOnlySingleOwner}
+              />
             </div>
           </div>
+        )}
 
-          {/* 4. Lista / Grade / Feed de Anúncios */}
-          {filtered.length === 0 ? (
-            <div className="py-20 text-center space-y-3 bg-card rounded-2xl border border-border/60 p-8">
-              <Home className="size-10 text-muted-foreground/40 mx-auto" />
-              <h2 className="text-sm font-bold text-foreground">
-                Nenhum anúncio encontrado com estes filtros
-              </h2>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                Tente alterar os termos da busca ou selecionar outra categoria.
-              </p>
+        {/* Facetas de Produtos Digitais (quando ativo) */}
+        {selectedCategory === "digital" && (
+          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+            <span className="text-[11px] font-bold font-mono uppercase text-primary tracking-wider block">
+              Entrega Instantânea
+            </span>
+            <p className="text-xs text-foreground/80 leading-relaxed">
+              Arquivos, templates, planilhas e e-books com link assinado e liberação imediata.
+            </p>
+            <div className="flex items-center justify-between pt-1">
+              <Label htmlFor="instant-digital" className="text-xs text-foreground cursor-pointer font-medium">
+                Somente Download Imediato
+              </Label>
+              <Switch
+                id="instant-digital"
+                checked={onlyInstantDigital}
+                onCheckedChange={setOnlyInstantDigital}
+              />
             </div>
-          ) : viewMode === "list" ? (
-            /* ── MODO LISTA ── */
-            <section className="flex flex-col space-y-3 w-full">
-              {filtered.map((item: any) => {
-                const img = item.images?.[0];
-                const isTemporada = item.deal_type === "temporada";
-                const isAluguel = item.deal_type === "aluguel";
-                const itemNiche = resolveClassifiedNiche(item);
+          </div>
+        )}
 
-                return (
+        {/* Filtro de Cidades */}
+        <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2">
+          <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
+            Cidade / Região
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              onClick={() => setSelectedCity("todos")}
+              className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
+                selectedCity === "todos"
+                  ? "bg-foreground text-background font-bold"
+                  : "bg-muted/40 text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Todas
+            </button>
+            {CANONICAL_CITIES.slice(0, 5).map((city) => {
+              const isSelected = selectedCity === city.name;
+              return (
+                <button
+                  key={city.id}
+                  type="button"
+                  onClick={() => setSelectedCity(isSelected ? "todos" : city.name)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
+                    isSelected
+                      ? "bg-foreground text-background font-bold"
+                      : "bg-muted/40 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {city.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Preferências de Negócio */}
+        <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
+          <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
+            Condições
+          </span>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="trade-switch" className="text-xs text-foreground cursor-pointer">
+              Aceita Troca
+            </Label>
+            <Switch
+              id="trade-switch"
+              checked={onlyTrade}
+              onCheckedChange={setOnlyTrade}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="card-switch" className="text-xs text-foreground cursor-pointer">
+              Parcela no Cartão
+            </Label>
+            <Switch
+              id="card-switch"
+              checked={onlyInstallments}
+              onCheckedChange={setOnlyInstallments}
+            />
+          </div>
+        </div>
+
+        {/* Aviso Proeminente de Segurança Antifraude */}
+        <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 space-y-2">
+          <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold text-xs uppercase tracking-wider">
+            <ShieldAlert className="size-4 shrink-0" />
+            <span>Negocie com Segurança</span>
+          </div>
+          <p className="text-xs text-foreground/80 leading-relaxed">
+            <strong>Não pague antecipadamente:</strong> Para bens físicos, veículos e imóveis, inspecione pessoalmente antes de efetuar transferências. Em produtos digitais, o download com link assinado é liberado de forma segura na confirmação.
+          </p>
+        </div>
+      </aside>
+
+      {/* ── COLUNA DIREITA (CONTEÚDO PRINCIPAL: BANNERS, HOTPAGES, BUSCA E ANÚNCIOS) ── */}
+      <main className="flex-1 min-w-0 w-full space-y-6">
+        {/* 1. Banners Contextuais no Topo da Área de Conteúdo */}
+        {banners && banners.length > 0 && (
+          <section aria-label="Banners de Classificados">
+            <BannerHeroCarousel banners={banners} />
+          </section>
+        )}
+
+        {/* 2. Hotpages Horizontal Rail */}
+        {(hotpages?.length > 0 || CLASSIFIEDS_HOTPAGES.length > 0) && (
+          <section aria-label="Destaques de Classificados">
+            <HotpagesRail
+              hotpages={(hotpages && hotpages.length > 0 ? hotpages : CLASSIFIEDS_HOTPAGES) as any}
+              activeSlug={selectedCategory}
+              onSelect={(slug) => {
+                if (slug === "real_estate_temporada") {
+                  setSelectedCategory("real_estate");
+                  setSelectedDealType("temporada");
+                } else {
+                  setSelectedCategory(slug);
+                  setSelectedDealType("todos");
+                }
+              }}
+            />
+          </section>
+        )}
+
+        {/* 3. Barra de Busca e Controle de Visualização */}
+        <DiscoveryControlBar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Buscar carro, casa, chalé, notebook, serviço..."
+          categories={CLASSIFIED_CHIPS}
+          activeCategory={selectedCategory}
+          onSelectCategory={(id) => {
+            setSelectedCategory(id);
+            if (id !== "real_estate") setSelectedDealType("todos");
+          }}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          allowedViewModes={["grid", "list", "feed"]}
+          resultsCount={filtered.length}
+          fastFilters={[
+            {
+              id: "boosted",
+              label: "Destaques",
+              icon: Flame,
+              active: onlyBoosted,
+              onToggle: () => setOnlyBoosted(!onlyBoosted),
+            },
+            {
+              id: "trade",
+              label: "Aceita Troca",
+              active: onlyTrade,
+              onToggle: () => setOnlyTrade(!onlyTrade),
+            },
+            {
+              id: "card",
+              label: "Cartão",
+              active: onlyInstallments,
+              onToggle: () => setOnlyInstallments(!onlyInstallments),
+            },
+          ]}
+        />
+
+        {/* ── BARRA DE FILTROS CONTEXTUAIS POR NICHO NO MOBILE (Apple HIG & 3 Toques) ── */}
+        <div className="lg:hidden space-y-2 pt-0.5">
+          {/* Linha de Ação Rápida + Pílulas Contextuais por Nicho */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+            {/* Botão Gatilho da Sheet de Filtros Completos */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setMobileFilterSheetOpen(true)}
+              className="rounded-full h-9 px-3.5 text-xs gap-1.5 font-bold shrink-0 border-border/70 bg-card hover:bg-muted/50 cursor-pointer shadow-2xs"
+            >
+              <SlidersHorizontal className="size-3.5" />
+              <span>Filtros</span>
+              {(selectedCity !== "todos" || onlyTrade || onlyInstallments || onlyBoosted || selectedAmenities.length > 0 || vehicleGearbox !== "todos" || selectedSubcategory !== "todos") && (
+                <span className="size-2 rounded-full bg-primary" />
+              )}
+            </Button>
+
+            {/* Pílula: Apenas Destaques */}
+            <button
+              type="button"
+              onClick={() => setOnlyBoosted(!onlyBoosted)}
+              className={`h-9 px-3 rounded-full text-xs font-bold shrink-0 cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 ${
+                onlyBoosted
+                  ? "bg-amber-500 text-black shadow-xs font-bold"
+                  : "bg-muted/40 text-muted-foreground hover:text-foreground border border-border/40"
+              }`}
+            >
+              <Flame size={13} weight={onlyBoosted ? "fill" : "bold"} />
+              <span>Destaques</span>
+            </button>
+
+            {/* Pílulas Contextuais: IMÓVEIS & HOSPEDAGEM */}
+            {selectedCategory === "real_estate" && (
+              <>
+                {REAL_ESTATE_DEAL_TYPES.map((dt) => {
+                  const isSelected = selectedDealType === dt.id;
+                  return (
+                    <button
+                      key={dt.id}
+                      type="button"
+                      onClick={() => setSelectedDealType(dt.id)}
+                      className={`h-9 px-3 rounded-full text-xs font-medium shrink-0 cursor-pointer transition-all active:scale-95 ${
+                        isSelected
+                          ? "bg-foreground text-background font-bold shadow-xs"
+                          : "bg-muted/40 text-muted-foreground hover:text-foreground border border-border/40"
+                      }`}
+                    >
+                      {dt.label}
+                    </button>
+                  );
+                })}
+                {REAL_ESTATE_FACETS.map((facet) => {
+                  const isChecked = selectedAmenities.includes(facet.id);
+                  return (
+                    <button
+                      key={facet.id}
+                      type="button"
+                      onClick={() => toggleAmenity(facet.id)}
+                      className={`h-9 px-3 rounded-full text-xs font-medium shrink-0 cursor-pointer transition-all active:scale-95 flex items-center gap-1 ${
+                        isChecked
+                          ? "bg-primary text-primary-foreground font-bold shadow-xs"
+                          : "bg-muted/40 text-muted-foreground hover:text-foreground border border-border/40"
+                      }`}
+                    >
+                      <span>{facet.label}</span>
+                      {isChecked && <Check className="size-3" />}
+                    </button>
+                  );
+                })}
+              </>
+            )}
+
+            {/* Pílulas Contextuais: VEÍCULOS & AUTOS */}
+            {selectedCategory === "vehicle" && (
+              <>
+                {VEHICLE_GEARBOX_OPTIONS.map((opt) => {
+                  const isSelected = vehicleGearbox === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setVehicleGearbox(opt.id)}
+                      className={`h-9 px-3 rounded-full text-xs font-medium shrink-0 cursor-pointer transition-all active:scale-95 ${
+                        isSelected
+                          ? "bg-foreground text-background font-bold shadow-xs"
+                          : "bg-muted/40 text-muted-foreground hover:text-foreground border border-border/40"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+                {VEHICLE_FUEL_OPTIONS.slice(1).map((opt) => {
+                  const isSelected = vehicleFuel === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setVehicleFuel(isSelected ? "todos" : opt.id)}
+                      className={`h-9 px-3 rounded-full text-xs font-medium shrink-0 cursor-pointer transition-all active:scale-95 ${
+                        isSelected
+                          ? "bg-foreground text-background font-bold shadow-xs"
+                          : "bg-muted/40 text-muted-foreground hover:text-foreground border border-border/40"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setOnlySingleOwner(!onlySingleOwner)}
+                  className={`h-9 px-3 rounded-full text-xs font-medium shrink-0 cursor-pointer transition-all active:scale-95 ${
+                    onlySingleOwner
+                      ? "bg-primary text-primary-foreground font-bold shadow-xs"
+                      : "bg-muted/40 text-muted-foreground hover:text-foreground border border-border/40"
+                  }`}
+                >
+                  Único Dono
+                </button>
+              </>
+            )}
+
+            {/* Pílulas Contextuais: DESAPEGOS & TECH */}
+            {selectedCategory === "sale" && (
+              <>
+                {DESAPEGO_SUB_OPTIONS.map((opt) => {
+                  const isSelected = selectedSubcategory === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setSelectedSubcategory(opt.id)}
+                      className={`h-9 px-3 rounded-full text-xs font-medium shrink-0 cursor-pointer transition-all active:scale-95 ${
+                        isSelected
+                          ? "bg-foreground text-background font-bold shadow-xs"
+                          : "bg-muted/40 text-muted-foreground hover:text-foreground border border-border/40"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setOnlyTrade(!onlyTrade)}
+                  className={`h-9 px-3 rounded-full text-xs font-medium shrink-0 cursor-pointer transition-all active:scale-95 ${
+                    onlyTrade
+                      ? "bg-foreground text-background font-bold shadow-xs"
+                      : "bg-muted/40 text-muted-foreground hover:text-foreground border border-border/40"
+                  }`}
+                >
+                  Aceita Troca
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOnlyInstallments(!onlyInstallments)}
+                  className={`h-9 px-3 rounded-full text-xs font-medium shrink-0 cursor-pointer transition-all active:scale-95 ${
+                    onlyInstallments
+                      ? "bg-foreground text-background font-bold shadow-xs"
+                      : "bg-muted/40 text-muted-foreground hover:text-foreground border border-border/40"
+                  }`}
+                >
+                  Parcela no Cartão
+                </button>
+              </>
+            )}
+
+            {/* Pílulas Contextuais: SERVIÇOS */}
+            {selectedCategory === "service" && (
+              <>
+                {SERVICE_MODALITY_OPTIONS.map((opt) => {
+                  const isSelected = selectedServiceModality === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setSelectedServiceModality(opt.id)}
+                      className={`h-9 px-3 rounded-full text-xs font-medium shrink-0 cursor-pointer transition-all active:scale-95 ${
+                        isSelected
+                          ? "bg-foreground text-background font-bold shadow-xs"
+                          : "bg-muted/40 text-muted-foreground hover:text-foreground border border-border/40"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </>
+            )}
+
+            {/* Pílulas Contextuais: VAGAS */}
+            {(selectedCategory === "job" || selectedCategory === "job_offer") && (
+              <>
+                {JOB_REGIME_OPTIONS.map((opt) => {
+                  const isSelected = selectedJobRegime === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setSelectedJobRegime(opt.id)}
+                      className={`h-9 px-3 rounded-full text-xs font-medium shrink-0 cursor-pointer transition-all active:scale-95 ${
+                        isSelected
+                          ? "bg-foreground text-background font-bold shadow-xs"
+                          : "bg-muted/40 text-muted-foreground hover:text-foreground border border-border/40"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </>
+            )}
+
+            {/* Pílulas Contextuais: DIGITAIS */}
+            {selectedCategory === "digital" && (
+              <button
+                type="button"
+                onClick={() => setOnlyInstantDigital(!onlyInstantDigital)}
+                className={`h-9 px-3 rounded-full text-xs font-medium shrink-0 cursor-pointer transition-all active:scale-95 ${
+                  onlyInstantDigital
+                    ? "bg-primary text-white font-bold shadow-xs"
+                    : "bg-muted/40 text-muted-foreground hover:text-foreground border border-border/40"
+                }`}
+              >
+                Download Imediato
+              </button>
+            )}
+          </div>
+
+          {/* Linha de Cidades Rápidas */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+            <button
+              type="button"
+              onClick={() => setSelectedCity("todos")}
+              className={`h-8 px-2.5 rounded-lg text-xs font-mono transition-all shrink-0 cursor-pointer ${
+                selectedCity === "todos"
+                  ? "bg-foreground text-background font-bold"
+                  : "bg-muted/30 text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Todas Cidades
+            </button>
+            {CANONICAL_CITIES.slice(0, 6).map((city) => {
+              const isSelected = selectedCity === city.name;
+              return (
+                <button
+                  key={city.id}
+                  type="button"
+                  onClick={() => setSelectedCity(isSelected ? "todos" : city.name)}
+                  className={`h-8 px-2.5 rounded-lg text-xs font-mono transition-all shrink-0 cursor-pointer ${
+                    isSelected
+                      ? "bg-foreground text-background font-bold"
+                      : "bg-muted/30 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {city.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── MODAL FULL DE FILTROS AVANÇADOS (MOBILE) ── */}
+        <Dialog open={mobileFilterSheetOpen} onOpenChange={setMobileFilterSheetOpen}>
+          <DialogContent className="max-w-md rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/40">
+              <DialogTitle className="text-base font-bold">Filtros</DialogTitle>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSelectedCity("todos");
+                  setSelectedDealType("todos");
+                  setSelectedAmenities([]);
+                  setVehicleGearbox("todos");
+                  setVehicleFuel("todos");
+                  setOnlySingleOwner(false);
+                  setSelectedSubcategory("todos");
+                  setSelectedServiceModality("todos");
+                  setSelectedJobRegime("todos");
+                  setOnlyTrade(false);
+                  setOnlyInstallments(false);
+                  setOnlyBoosted(false);
+                }}
+                className="text-xs text-muted-foreground hover:text-foreground h-8 px-2"
+              >
+                Limpar Todos
+              </Button>
+            </DialogHeader>
+
+            {/* Seções de Filtro em Cards Limpos */}
+            <div className="space-y-4 text-xs">
+              {/* Cidades */}
+              <div className="space-y-2">
+                <span className="font-bold font-mono uppercase text-muted-foreground block text-[10px] tracking-wider">
+                  Cidade / Região
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCity("todos")}
+                    className={`px-3 py-1.5 rounded-xl font-mono text-xs cursor-pointer ${
+                      selectedCity === "todos"
+                        ? "bg-foreground text-background font-bold"
+                        : "bg-muted/40 text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Todas
+                  </button>
+                  {CANONICAL_CITIES.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setSelectedCity(selectedCity === c.name ? "todos" : c.name)}
+                      className={`px-3 py-1.5 rounded-xl font-mono text-xs cursor-pointer ${
+                        selectedCity === c.name
+                          ? "bg-foreground text-background font-bold"
+                          : "bg-muted/40 text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Condições Comerciais */}
+              <div className="space-y-2 pt-2 border-t border-border/40">
+                <span className="font-bold font-mono uppercase text-muted-foreground block text-[10px] tracking-wider">
+                  Condições
+                </span>
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="sheet-boosted" className="text-xs cursor-pointer">
+                      Apenas Destaques
+                    </Label>
+                    <Switch
+                      id="sheet-boosted"
+                      checked={onlyBoosted}
+                      onCheckedChange={setOnlyBoosted}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="sheet-trade" className="text-xs cursor-pointer">
+                      Aceita Troca
+                    </Label>
+                    <Switch
+                      id="sheet-trade"
+                      checked={onlyTrade}
+                      onCheckedChange={setOnlyTrade}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="sheet-card" className="text-xs cursor-pointer">
+                      Parcela no Cartão
+                    </Label>
+                    <Switch
+                      id="sheet-card"
+                      checked={onlyInstallments}
+                      onCheckedChange={setOnlyInstallments}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Botão Fixo de Aplicação */}
+            <div className="pt-2 border-t border-border/40">
+              <Button
+                type="button"
+                onClick={() => setMobileFilterSheetOpen(false)}
+                className="w-full h-11 rounded-xl font-bold text-xs bg-foreground text-background hover:bg-foreground/90 cursor-pointer shadow-sm"
+              >
+                Ver {filtered.length} {filtered.length === 1 ? "Anúncio" : "Anúncios"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* 4. Lista / Grade / Feed de Anúncios */}
+        {filtered.length === 0 ? (
+          <div className="py-20 text-center space-y-3 bg-card rounded-2xl border border-border/60 p-8">
+            <Home className="size-10 text-muted-foreground/40 mx-auto" />
+            <h2 className="text-sm font-bold text-foreground">
+              Nenhum anúncio encontrado com estes filtros
+            </h2>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              Tente alterar os termos da busca ou selecionar outra categoria.
+            </p>
+          </div>
+        ) : viewMode === "list" ? (
+          /* ── MODO LISTA ── */
+          <section className="flex flex-col space-y-3 w-full">
+            {filtered.map((item: any) => {
+              const img = item.images?.[0];
+              const isTemporada = item.deal_type === "temporada";
+              const isAluguel = item.deal_type === "aluguel";
+              const itemNiche = resolveClassifiedNiche(item);
+              const targetPhone = item.contact_whatsapp || item.whatsapp || item.profiles?.phone;
+
+              return (
+                <div
+                  key={item.id}
+                  className="group flex flex-col sm:flex-row items-stretch justify-between rounded-2xl border border-border/60 bg-card hover:border-foreground/30 hover:shadow-xs transition-all overflow-hidden p-0 w-full"
+                >
                   <Link
-                    key={item.id}
                     to="/classificados/$id"
                     params={{ id: item.id }}
-                    className="group flex flex-col sm:flex-row items-stretch justify-between rounded-2xl border border-border/60 bg-card hover:border-foreground/30 transition-all overflow-hidden p-0 cursor-pointer w-full"
+                    className="relative w-full sm:w-60 md:w-72 h-48 sm:h-auto min-h-[160px] overflow-hidden bg-muted/40 shrink-0 flex items-center justify-center cursor-pointer"
                   >
-                    <div className="relative w-full sm:w-56 md:w-64 h-44 sm:h-auto min-h-[140px] overflow-hidden bg-muted/40 shrink-0 flex items-center justify-center">
+                    {img ? (
+                      <img
+                        src={img}
+                        alt={item.title}
+                        className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="size-full bg-gradient-to-br from-primary/10 via-muted/40 to-muted flex items-center justify-center">
+                        <Tag size={28} className="text-primary/30" />
+                      </div>
+                    )}
+                    <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 flex-wrap z-10">
+                      <Badge className="bg-background/95 backdrop-blur-md text-foreground font-mono text-[9px] uppercase font-bold px-1.5 py-0.5 rounded-md">
+                        {itemNiche.shortLabel}
+                      </Badge>
+                      {(item.is_boosted || item.attributes?.is_boosted) && (
+                        <Badge className="bg-amber-500 text-black font-mono text-[9px] font-bold px-1.5 py-0.5 rounded-md">
+                          Destaque
+                        </Badge>
+                      )}
+                    </div>
+                  </Link>
+
+                  <div className="flex-1 min-w-0 p-4 sm:p-5 flex flex-col justify-between space-y-3">
+                    <Link to="/classificados/$id" params={{ id: item.id }} className="space-y-1.5 block cursor-pointer">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {(item.attributes?.accepts_trade || item.accepts_trade) && (
+                          <Badge variant="secondary" className="text-[9px] font-mono px-1.5 py-0 rounded-md">
+                            Aceita Troca
+                          </Badge>
+                        )}
+                        {(item.attributes?.accepts_card || item.accepts_card) && (
+                          <Badge variant="outline" className="text-[9px] font-mono px-1.5 py-0 rounded-md">
+                            Cartão até {item.attributes?.max_installments || 12}x
+                          </Badge>
+                        )}
+                      </div>
+
+                      <h3 className="font-bold text-sm sm:text-base text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                        {item.title}
+                      </h3>
+
+                      <div className="flex items-baseline gap-2 pt-0.5">
+                        <span className="text-lg sm:text-xl font-black text-foreground font-mono">
+                          {formatMoney(item.price_cents || 0)}
+                          {isAluguel && <span className="text-[10px] font-normal text-muted-foreground">/mês</span>}
+                          {isTemporada && <span className="text-[10px] font-normal text-muted-foreground">/dia</span>}
+                        </span>
+                      </div>
+                    </Link>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/40">
+                      <span className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono truncate">
+                        <MapPin size={12} weight="bold" className="shrink-0 text-primary" />
+                        <span className="truncate">{item.location_name || item.location_text || "Regional"}</span>
+                      </span>
+
+                      <div className="flex items-center gap-2">
+                        {targetPhone && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              trackClassifiedWhatsAppClick({ data: { adId: item.id } }).catch(() => {});
+                                trackAndOpenWhatsApp(targetPhone, `Olá! Vi o anúncio "${item.title}" no Wider e gostaria de saber mais.`, {
+                                classifiedId: item.id,
+                                classifiedTitle: item.title,
+                              });
+                            }}
+                            className="h-8 px-2.5 rounded-xl text-xs gap-1.5 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10 cursor-pointer"
+                          >
+                            <WhatsappLogo size={15} weight="fill" />
+                            <span className="hidden sm:inline">WhatsApp</span>
+                          </Button>
+                        )}
+
+                        <Button
+                          asChild
+                          size="sm"
+                          className="h-8 px-3 rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 transition-all cursor-pointer"
+                        >
+                          <Link to="/classificados/$id" params={{ id: item.id }}>
+                            <span>Ver Detalhes</span>
+                            <ArrowRight size={13} className="ml-1" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </section>
+        ) : viewMode === "feed" ? (
+          /* ── MODO FEED (Trilhos Horizontais de Categorias com Cards Amplos) ── */
+          <section className="space-y-10">
+            {["real_estate", "vehicle", "sale", "service"].map((catKey) => {
+              const catItems = filtered.filter((i: any) => i.category === catKey);
+              if (catItems.length === 0) return null;
+
+              const catTitle =
+                catKey === "real_estate"
+                  ? "Imóveis & Moradia"
+                  : catKey === "vehicle"
+                  ? "Veículos & Autos"
+                  : catKey === "sale"
+                  ? "Desapegos & Tech"
+                  : "Serviços & B2B";
+
+              return (
+                <HorizontalRail
+                  key={catKey}
+                  title={catTitle}
+                  hideHeader={true}
+                  badge={`${catItems.length} ${catItems.length === 1 ? "anúncio" : "anúncios"}`}
+                  actionLabel="Ver todos"
+                  onAction={() => {
+                    setSelectedCategory(catKey);
+                    setViewMode("grid");
+                  }}
+                >
+                  {catItems.map((item: any) => {
+                    const img = item.images?.[0];
+                    const isTemporada = item.deal_type === "temporada";
+                    const isAluguel = item.deal_type === "aluguel";
+                    const targetPhone = item.contact_whatsapp || item.whatsapp || item.profiles?.phone;
+
+                    return (
+                      <div key={item.id} className="w-72 sm:w-80 shrink-0">
+                        <div className="group rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 hover:shadow-md transition-all flex flex-col justify-between h-full">
+                          <Link
+                            to="/classificados/$id"
+                            params={{ id: item.id }}
+                            className="flex-1 flex flex-col cursor-pointer"
+                          >
+                            <div className="relative aspect-16/10 w-full overflow-hidden bg-muted/40 flex items-center justify-center">
+                              {img ? (
+                                <img
+                                  src={img}
+                                  alt={item.title}
+                                  className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <div className="size-full bg-gradient-to-br from-primary/10 via-muted/40 to-muted flex items-center justify-center">
+                                  <Tag size={28} className="text-primary/30" />
+                                </div>
+                              )}
+                              <div className="absolute top-2.5 left-2.5 flex items-center gap-1">
+                                {item.deal_type && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-[9px] uppercase font-mono font-bold px-2 py-0.5 bg-black/70 text-white backdrop-blur-md border-none rounded-md"
+                                  >
+                                    {isTemporada ? "Temporada" : isAluguel ? "Aluguel" : "Venda"}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="p-4 space-y-1.5 flex-1 flex flex-col justify-between">
+                              <div>
+                                <span className="text-lg sm:text-xl font-black text-foreground font-mono block">
+                                  {formatMoney(item.price_cents || 0)}
+                                  {isAluguel && <span className="text-[10px] font-normal text-muted-foreground">/mês</span>}
+                                  {isTemporada && <span className="text-[10px] font-normal text-muted-foreground">/dia</span>}
+                                </span>
+
+                                <h3 className="text-xs sm:text-sm font-bold text-foreground line-clamp-2 leading-tight group-hover:underline mt-1">
+                                  {item.title}
+                                </h3>
+                              </div>
+
+                              <div className="pt-2 text-[11px] text-muted-foreground font-mono flex items-center justify-between">
+                                <span className="flex items-center gap-1 truncate">
+                                  <MapPin size={11} weight="bold" className="shrink-0 text-primary" />
+                                  <span className="truncate">{item.location_name || item.location_text || "Regional"}</span>
+                                </span>
+                              </div>
+                            </div>
+                          </Link>
+
+                          {/* Quick Actions no Feed */}
+                          <div className="px-4 pb-3 pt-1 flex items-center gap-2 border-t border-border/40">
+                            {targetPhone && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  trackClassifiedWhatsAppClick({ data: { adId: item.id } }).catch(() => {});
+                                trackAndOpenWhatsApp(targetPhone, `Olá! Vi o anúncio "${item.title}" no Wider e gostaria de falar com você.`, {
+                                    classifiedId: item.id,
+                                    classifiedTitle: item.title,
+                                  });
+                                }}
+                                className="h-8 px-2.5 rounded-xl text-xs gap-1 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10 cursor-pointer"
+                                title="Chamar no WhatsApp"
+                              >
+                                <WhatsappLogo size={15} weight="fill" />
+                                <span className="hidden sm:inline">WhatsApp</span>
+                              </Button>
+                            )}
+
+                            <Button
+                              asChild
+                              size="sm"
+                              className="flex-1 h-8 rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 transition-all cursor-pointer"
+                            >
+                              <Link to="/classificados/$id" params={{ id: item.id }}>
+                                <span>Ver Anúncio</span>
+                                <ArrowRight size={13} className="ml-1" />
+                              </Link>
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </HorizontalRail>
+              );
+            })}
+          </section>
+        ) : (
+          /* ── MODO GRADE (Cards Grandes, Imersivos e com Ações Rápidas) ── */
+          <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
+            {filtered.map((item: any) => {
+              const img = item.images?.[0];
+              const isTemporada = item.deal_type === "temporada";
+              const isAluguel = item.deal_type === "aluguel";
+              const itemNiche = resolveClassifiedNiche(item);
+              const targetPhone = item.contact_whatsapp || item.whatsapp || item.profiles?.phone;
+
+              return (
+                <div
+                  key={item.id}
+                  className="group rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 hover:shadow-md transition-all flex flex-col justify-between"
+                >
+                  <Link
+                    to="/classificados/$id"
+                    params={{ id: item.id }}
+                    className="flex-1 flex flex-col cursor-pointer"
+                  >
+                    <div className="relative aspect-16/10 w-full overflow-hidden bg-muted/40 flex items-center justify-center">
                       {img ? (
                         <img
                           src={img}
@@ -720,9 +1351,17 @@ function ClassifiedsMasterPage() {
                         </div>
                       )}
                       <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 flex-wrap z-10">
-                        <Badge className="bg-background/95 backdrop-blur-md text-foreground font-mono text-[9px] uppercase font-bold px-1.5 py-0.5 rounded-md">
+                        <Badge className="bg-background/95 backdrop-blur-md text-foreground font-mono text-[10px] uppercase font-bold px-2 py-0.5 rounded-lg border border-border/40 shadow-xs">
                           {itemNiche.shortLabel}
                         </Badge>
+                        {item.deal_type && (
+                          <Badge
+                            variant="secondary"
+                            className="text-[9px] uppercase font-mono font-bold px-1.5 py-0.5 bg-black/70 text-white backdrop-blur-md border-none rounded-md"
+                          >
+                            {isTemporada ? "Temporada" : isAluguel ? "Aluguel" : "Venda"}
+                          </Badge>
+                        )}
                         {(item.is_boosted || item.attributes?.is_boosted) && (
                           <Badge className="bg-amber-500 text-black font-mono text-[9px] font-bold px-1.5 py-0.5 rounded-md">
                             Destaque
@@ -731,208 +1370,68 @@ function ClassifiedsMasterPage() {
                       </div>
                     </div>
 
-                    <div className="flex-1 min-w-0 p-4 sm:p-5 flex flex-col justify-between space-y-2">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {(item.attributes?.accepts_trade || item.accepts_trade) && (
-                            <Badge variant="secondary" className="text-[9px] font-mono px-1.5 py-0 rounded-md">
-                              Aceita Troca
-                            </Badge>
-                          )}
-                        </div>
-
-                        <h3 className="font-bold text-sm sm:text-base text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
-                          {item.title}
-                        </h3>
-
-                        <div className="flex items-baseline gap-2 pt-0.5">
-                          <span className="text-base sm:text-lg font-black text-foreground font-mono">
-                            {formatMoney(item.price_cents || 0)}
-                            {isAluguel && <span className="text-[10px] font-normal text-muted-foreground">/mês</span>}
-                            {isTemporada && <span className="text-[10px] font-normal text-muted-foreground">/dia</span>}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between text-xs text-muted-foreground font-mono pt-2">
-                        <span className="flex items-center gap-1.5 truncate">
-                          <MapPin size={12} weight="bold" className="shrink-0 text-primary" />
-                          <span className="truncate">{item.location_name || item.location_text || "Regional"}</span>
-                        </span>
-                        <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors hidden sm:inline">
-                          Ver Anúncio →
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </section>
-          ) : viewMode === "feed" ? (
-            /* ── MODO FEED (Trilhos Horizontais de Categorias) ── */
-            <section className="space-y-10">
-              {["real_estate", "vehicle", "sale", "service"].map((catKey) => {
-                const catItems = filtered.filter((i: any) => i.category === catKey);
-                if (catItems.length === 0) return null;
-
-                const catTitle =
-                  catKey === "real_estate"
-                    ? "Imóveis & Moradia"
-                    : catKey === "vehicle"
-                    ? "Veículos & Autos"
-                    : catKey === "sale"
-                    ? "Desapegos & Tech"
-                    : "Serviços & B2B";
-
-                return (
-                  <HorizontalRail
-                    key={catKey}
-                    title={catTitle}
-                    hideHeader={true}
-                    badge={`${catItems.length} ${catItems.length === 1 ? "anúncio" : "anúncios"}`}
-                    actionLabel="Ver todos"
-                    onAction={() => {
-                      setSelectedCategory(catKey);
-                      setViewMode("grid");
-                    }}
-                  >
-                    {catItems.map((item: any) => {
-                      const img = item.images?.[0];
-                      const isTemporada = item.deal_type === "temporada";
-                      const isAluguel = item.deal_type === "aluguel";
-
-                      return (
-                        <div key={item.id} className="w-56 sm:w-64 shrink-0">
-                          <Link
-                            to="/classificados/$id"
-                            params={{ id: item.id }}
-                            className="group rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 transition-all flex flex-col justify-between cursor-pointer h-full"
-                          >
-                            <div>
-                              <div className="relative aspect-4/3 w-full overflow-hidden bg-muted/40 flex items-center justify-center">
-                                {img ? (
-                                  <img
-                                    src={img}
-                                    alt={item.title}
-                                    className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                    loading="lazy"
-                                  />
-                                ) : (
-                                  <div className="size-full bg-gradient-to-br from-primary/10 via-muted/40 to-muted flex items-center justify-center">
-                                    <Tag size={24} className="text-primary/30" />
-                                  </div>
-                                )}
-                                <div className="absolute top-2 left-2 flex items-center gap-1">
-                                  {item.deal_type && (
-                                    <Badge
-                                      variant="secondary"
-                                      className="text-[9px] uppercase font-mono font-bold px-1.5 py-0 bg-black/60 text-white backdrop-blur-md border-none"
-                                    >
-                                      {isTemporada ? "Temporada" : isAluguel ? "Aluguel" : "Venda"}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="p-3 space-y-1">
-                                <span className="text-base font-black text-foreground font-mono block">
-                                  {formatMoney(item.price_cents || 0)}
-                                  {isAluguel && <span className="text-[10px] font-normal text-muted-foreground">/mês</span>}
-                                  {isTemporada && <span className="text-[10px] font-normal text-muted-foreground">/dia</span>}
-                                </span>
-
-                                <h3 className="text-xs font-bold text-foreground line-clamp-2 leading-tight group-hover:underline">
-                                  {item.title}
-                                </h3>
-                              </div>
-                            </div>
-
-                            <div className="px-3 pb-2.5 text-[10px] text-muted-foreground font-mono flex items-center justify-between pt-1.5 mt-1">
-                              <span className="flex items-center gap-1 truncate">
-                                <MapPin size={10} weight="bold" className="shrink-0 text-foreground" />
-                                <span className="truncate">{item.location_name || item.location_text || "Regional"}</span>
-                              </span>
-                            </div>
-                          </Link>
-                        </div>
-                      );
-                    })}
-                  </HorizontalRail>
-                );
-              })}
-            </section>
-          ) : (
-            /* ── MODO GRADE (Cards Compactos e Limpos) ── */
-            <section className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-              {filtered.map((item: any) => {
-                const img = item.images?.[0];
-                const isTemporada = item.deal_type === "temporada";
-                const isAluguel = item.deal_type === "aluguel";
-
-                return (
-                  <Link
-                    key={item.id}
-                    to="/classificados/$id"
-                    params={{ id: item.id }}
-                    className="group rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 transition-all flex flex-col justify-between cursor-pointer"
-                  >
-                    <div>
-                      <div className="relative aspect-4/3 w-full overflow-hidden bg-muted/40 flex items-center justify-center">
-                        {img ? (
-                          <img
-                            src={img}
-                            alt={item.title}
-                            className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="size-full bg-gradient-to-br from-primary/10 via-muted/40 to-muted flex items-center justify-center">
-                            <Tag size={24} className="text-primary/30" />
-                          </div>
-                        )}
-                        <div className="absolute top-2 left-2 flex items-center gap-1">
-                          {item.deal_type && (
-                            <Badge
-                              variant="secondary"
-                              className="text-[9px] uppercase font-mono font-bold px-1.5 py-0 bg-black/60 text-white backdrop-blur-md border-none"
-                            >
-                              {isTemporada ? "Temporada" : isAluguel ? "Aluguel" : "Venda"}
-                            </Badge>
-                          )}
-                          {(item.is_boosted || item.attributes?.is_boosted) && (
-                            <Badge className="bg-amber-500 text-black font-mono text-[9px] font-bold px-1.5 py-0.5 rounded-md">
-                              Destaque
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="p-3 space-y-1">
-                        <span className="text-base font-black text-foreground font-mono block">
+                    <div className="p-4 sm:p-5 space-y-2 flex-1 flex flex-col justify-between">
+                      <div>
+                        <span className="text-xl sm:text-2xl font-black text-foreground font-mono block">
                           {formatMoney(item.price_cents || 0)}
-                          {isAluguel && <span className="text-[10px] font-normal text-muted-foreground">/mês</span>}
-                          {isTemporada && <span className="text-[10px] font-normal text-muted-foreground">/dia</span>}
+                          {isAluguel && <span className="text-xs font-normal text-muted-foreground">/mês</span>}
+                          {isTemporada && <span className="text-xs font-normal text-muted-foreground">/dia</span>}
                         </span>
 
-                        <h3 className="text-xs font-bold text-foreground line-clamp-2 leading-tight group-hover:underline">
+                        <h3 className="text-sm sm:text-base font-bold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors mt-1">
                           {item.title}
                         </h3>
                       </div>
-                    </div>
 
-                    <div className="px-3 pb-2.5 text-[10px] text-muted-foreground font-mono flex items-center justify-between pt-1.5 mt-1">
-                      <span className="flex items-center gap-1 truncate">
-                        <MapPin size={10} weight="bold" className="shrink-0 text-foreground" />
-                        <span className="truncate">{item.location_name || item.location_text || "Regional"}</span>
-                      </span>
+                      <div className="pt-2 text-xs text-muted-foreground font-mono flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 truncate">
+                          <MapPin size={13} weight="bold" className="shrink-0 text-primary" />
+                          <span className="truncate">{item.location_name || item.location_text || "Regional"}</span>
+</span>
+                      </div>
                     </div>
                   </Link>
-                );
-              })}
-            </section>
-          )}
-        </main>
-      </div>
+
+                  {/* Ações Rápidas do Card */}
+                  <div className="p-3 bg-muted/20 border-t border-border/40 flex items-center gap-2">
+                    {targetPhone && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          trackClassifiedWhatsAppClick({ data: { adId: item.id } }).catch(() => {});
+                                trackAndOpenWhatsApp(targetPhone, `Olá! Vi o anúncio "${item.title}" no Wider e gostaria de falar com você.`, {
+                            classifiedId: item.id,
+                            classifiedTitle: item.title,
+                          });
+                        }}
+                        className="h-8 px-2.5 rounded-xl text-xs gap-1 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10 cursor-pointer"
+                        title="Chamar no WhatsApp"
+                      >
+                        <WhatsappLogo size={15} weight="fill" />
+                        <span className="hidden sm:inline">WhatsApp</span>
+                      </Button>
+                    )}
+
+                    <Button
+                      asChild
+                      size="sm"
+                      className="flex-1 h-8 rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 transition-all cursor-pointer"
+                    >
+                      <Link to="/classificados/$id" params={{ id: item.id }}>
+                        <span>Ver Anúncio</span>
+                        <ArrowRight size={13} className="ml-1" />
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </section>
+        )}
+      </main>
     </div>
   );
 }

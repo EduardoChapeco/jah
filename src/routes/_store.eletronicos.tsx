@@ -68,6 +68,7 @@ export const Route = createFileRoute("/_store/eletronicos")({
  validateSearch: (search: Record<string, unknown>): EletronicosSearch => SearchSchema.parse(search),
  loaderDeps: ({ search }) => search,
  loader: async () => {
+   try {
  const [banners, hotpages, marketplaceFeed, productsRes] = await Promise.all([
  listActiveBanners({ data: { placement: "eletronicos" } }).catch(() => []),
  listHotpages({ data: { module: "eletronicos" } }).catch(() => []),
@@ -80,6 +81,10 @@ export const Route = createFileRoute("/_store/eletronicos")({
  marketplaceFeed,
  catalogProducts: (productsRes as any).data ?? [],
  };
+   } catch (err) {
+     console.error("[loader:_store.eletronicos] Unhandled error:", err);
+     return null;
+   }
  },
  component: EletronicosVerticalPage,
  pendingComponent: PageSkeleton,

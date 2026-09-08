@@ -18,7 +18,12 @@ import { getStockMovements } from "@/services/stock.functions";
 export const Route = createFileRoute("/workspace/estoque/movimentos")({
  head: () => ({ meta: [{ title: "Movimentos de estoque | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  return (await getStockMovements({ data: { limit: 100 } })) || [];
+   } catch (err) {
+     console.error("[loader:workspace.estoque.movimentos] Unhandled error:", err);
+     return null;
+   }
  },
  component: MovementsPage,
 });

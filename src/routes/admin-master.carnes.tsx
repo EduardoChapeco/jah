@@ -150,7 +150,7 @@ function AdminMasterCarnesPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <Receipt className="h-6 w-6 text-primary" />
-            Governança Bilateral de Carnês & Inadimplência
+            Governança de Carnês
           </h1>
           <p className="text-muted-foreground text-sm max-w-2xl mt-1">
             Supervisão da carteira de crédito direto da rede. Audite conciliações, acompanhe a inadimplência entre lojas e clientes e intervenha em disputas comerciais.
@@ -492,11 +492,11 @@ function AdminMasterCarnesPage() {
             {/* Escolha da Ação Master */}
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-foreground">Ação Governamental Master *</Label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <Button
                   type="button"
                   variant={interventionAction === "force_approve" ? "default" : "outline"}
-                  className="h-9 text-xs rounded-xl"
+                  className="h-10 text-xs rounded-xl"
                   onClick={() => setInterventionAction("force_approve")}
                 >
                   Forçar Aprovação
@@ -504,7 +504,7 @@ function AdminMasterCarnesPage() {
                 <Button
                   type="button"
                   variant={interventionAction === "force_reject" ? "default" : "outline"}
-                  className="h-9 text-xs rounded-xl"
+                  className="h-10 text-xs rounded-xl"
                   onClick={() => setInterventionAction("force_reject")}
                 >
                   Forçar Recusa
@@ -512,7 +512,7 @@ function AdminMasterCarnesPage() {
                 <Button
                   type="button"
                   variant={interventionAction === "reopen" ? "default" : "outline"}
-                  className="h-9 text-xs rounded-xl"
+                  className="h-10 text-xs rounded-xl"
                   onClick={() => setInterventionAction("reopen")}
                 >
                   Reabrir Parcela

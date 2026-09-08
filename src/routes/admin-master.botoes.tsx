@@ -69,8 +69,13 @@ export const Route = createFileRoute("/admin-master/botoes")({
  }),
  head: () => ({ meta: [{ title: "Cards Herói, Chips & Hotpages | Admin Master" }] }),
  loader: async () => {
+   try {
  const hotpages = await listHotpages({ data: { module: "all" } }).catch(() => []);
  return { hotpages };
+   } catch (err) {
+     console.error("[loader:admin-master.botoes] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: AdminMasterHotpagesPage,
 });

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getCompanyDetails } from "@/services/jobs.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,8 +37,7 @@ export default function JobAdDetail({ ad, profile, isFavorited, onFavorite, onSh
     queryKey: ["job-company", ad.company_id],
     enabled: !!ad.company_id,
     queryFn: async () => {
-      const { data } = await supabase.from("companies").select("*").eq("id", ad.company_id).maybeSingle();
-      return data;
+      return await getCompanyDetails({ data: { companyId: ad.company_id } });
     },
   });
 

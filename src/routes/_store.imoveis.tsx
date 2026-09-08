@@ -66,6 +66,7 @@ export const Route = createFileRoute("/_store/imoveis")({
  validateSearch: (search: Record<string, unknown>): ImoveisSearch => SearchSchema.parse(search),
  loaderDeps: ({ search }) => search,
  loader: async () => {
+   try {
  const [banners, hotpages, marketplaceFeed] = await Promise.all([
  listActiveBanners({ data: { placement: "imoveis" } }).catch(() => []),
  listHotpages({ data: { module: "imoveis" } }).catch(() => []),
@@ -77,6 +78,10 @@ export const Route = createFileRoute("/_store/imoveis")({
  hotpages,
  marketplaceFeed,
  };
+   } catch (err) {
+     console.error("[loader:_store.imoveis] Unhandled error:", err);
+     return null;
+   }
  },
  component: ImoveisVerticalPage,
  pendingComponent: PageSkeleton,

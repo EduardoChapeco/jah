@@ -213,8 +213,23 @@ export default function TripPortalPage() {
  <p className="text-xs text-muted-foreground mt-1 mb-4">
  Envie suas fotos favoritas dos passeios para compor o diário visual da viagem.
  </p>
+ <input
+ type="file"
+ id="album-file-input"
+ multiple
+ accept="image/*"
+ className="hidden"
+ onChange={(e) => {
+ const files = e.target.files;
+ if (files && files.length > 0) {
+ toast.success(`${files.length} foto(s) selecionada(s) para o álbum.`);
+ }
+ }}
+ />
  <Button
- onClick={() => toast.info('Selecione fotos do seu celular ou câmera')}
+ onClick={() => {
+ document.getElementById('album-file-input')?.click();
+ }}
  className="h-10 px-5 text-xs font-semibold rounded-xl"
  >
  Adicionar Fotos ao Álbum

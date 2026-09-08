@@ -34,8 +34,13 @@ export const Route = createFileRoute("/workspace/marketing/promocoes")({
  meta: [{ title: "Promoções & Ofertas | Workspace Wider OS" }],
  }),
  loader: async () => {
+   try {
  const promotions = await listStorePromotions();
  return { promotions };
+   } catch (err) {
+     console.error("[loader:workspace.marketing.promocoes] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspacePromotionsPage,
 });

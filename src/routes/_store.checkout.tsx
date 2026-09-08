@@ -45,6 +45,7 @@ export const Route = createFileRoute("/_store/checkout")({
  },
  loaderDeps: ({ search: { store } }) => ({ store }),
  loader: async ({ deps: { store } }) => {
+   try {
  const [
  cart,
  globalCarts,
@@ -85,6 +86,10 @@ export const Route = createFileRoute("/_store/checkout")({
  userProfile: userProfile || null,
  userAddresses: userAddresses || [],
  };
+   } catch (err) {
+     console.error("[loader:_store.checkout] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: CheckoutPage,
 });

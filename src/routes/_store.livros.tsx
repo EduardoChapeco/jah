@@ -67,6 +67,7 @@ export const Route = createFileRoute("/_store/livros")({
  validateSearch: (search: Record<string, unknown>): LivrosSearch => SearchSchema.parse(search),
  loaderDeps: ({ search }) => search,
  loader: async () => {
+   try {
  const [banners, hotpages, marketplaceFeed, productsRes] = await Promise.all([
  listActiveBanners({ data: { placement: "livros" } }).catch(() => []),
  listHotpages({ data: { module: "livros" } }).catch(() => []),
@@ -79,6 +80,10 @@ export const Route = createFileRoute("/_store/livros")({
  marketplaceFeed,
  catalogProducts: (productsRes as any).data ?? [],
  };
+   } catch (err) {
+     console.error("[loader:_store.livros] Unhandled error:", err);
+     return null;
+   }
  },
  component: LivrosVerticalPage,
  pendingComponent: PageSkeleton,

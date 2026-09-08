@@ -39,7 +39,12 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/workspace/pedidos/trocas")({
  head: () => ({ meta: [{ title: "Trocas e Devoluções | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  return await listExchanges();
+   } catch (err) {
+     console.error("[loader:workspace.pedidos.trocas] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: ExchangesDashboardPage,
 });

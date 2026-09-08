@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/conta/metricas")({
- head: () => ({ meta: [{ title: "Painel Profissional & Insights | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Métricas | Wider OS" }] }),
  loader: async (): Promise<{ analytics: MemberAnalyticsDTO | null }> => {
  try {
  const analytics = await getMemberAnalyticsInsights({ data: {} });
@@ -75,7 +75,7 @@ function MemberMetricsPage() {
  <div>
  <div className="flex items-center gap-2">
  <h1 className="text-lg sm:text-xl font-black text-foreground tracking-tight">
- Painel Profissional & Insights
+ Métricas
  </h1>
  <Badge className="bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-mono">
  OFICIAL

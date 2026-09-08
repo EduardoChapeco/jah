@@ -109,7 +109,7 @@ function AdminDenunciasPage() {
  <div>
  <h1 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
  <AlertTriangle className="size-6 text-amber-500" />
- Central de Denúncias & Trust & Safety
+ Denúncias & Moderação
  </h1>
  <p className="text-sm text-muted-foreground">
  Auditoria global de conteúdos sinalizados, histórico de infrações e sanções disciplinares.

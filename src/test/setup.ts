@@ -1,4 +1,22 @@
 import { vi, beforeEach } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
+import dotenv from "dotenv";
+
+const secretsPath = path.resolve(process.cwd(), ".env.secrets");
+if (fs.existsSync(secretsPath)) {
+  const parsed = dotenv.parse(fs.readFileSync(secretsPath));
+  for (const k in parsed) {
+    if (!process.env[k]) {
+      process.env[k] = parsed[k];
+    }
+  }
+  if (!process.env.SUPABASE_DB_HOST) {
+    process.env.SUPABASE_DB_HOST = "db.jfuebqmltksyznovhlwa.supabase.co";
+    process.env.SUPABASE_DB_PORT = "5432";
+    process.env.SUPABASE_DB_USER = "postgres";
+  }
+}
 
 const createChainableMock = () => {
  const mock: any = vi.fn(() => mock);

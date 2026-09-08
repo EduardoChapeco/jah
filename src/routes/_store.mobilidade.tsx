@@ -52,6 +52,7 @@ export const Route = createFileRoute("/_store/mobilidade")({
     ],
   }),
   loader: async () => {
+    try {
     const { getUserSession } = await import("@/services/auth.functions");
     const session = await getUserSession().catch(() => null);
     const role = session?.role || session?.user?.user_metadata?.role;
@@ -61,6 +62,10 @@ export const Route = createFileRoute("/_store/mobilidade")({
       throw redirect({ to: "/classificados" });
     }
     return {};
+    } catch (err) {
+      console.error("[loader:_store.mobilidade] Unhandled loader error:", err);
+      return null;
+    }
   },
   component: MobilityPage,
 });
@@ -764,15 +769,20 @@ function MobilityPage() {
  <Check className="size-3 text-emerald-500 shrink-0" />
  <span>Notificações de status da corrida</span>
  </div>
- </div>
-
  <Button
  size="sm"
- onClick={() => toast.success("Adicione à tela inicial através do menu do seu navegador.")}
+ onClick={() => {
+ if (typeof window !== "undefined" && (window as any).deferredPrompt) {
+ (window as any).deferredPrompt.prompt();
+ } else {
+ toast.info("Para instalar no celular, toque em 'Compartilhar' ou no menu do navegador e escolha 'Adicionar à Tela de Início'.");
+ }
+ }}
  className="w-full h-9 rounded-xl font-bold text-xs bg-foreground text-background hover:bg-foreground/90"
  >
  Instalar Agora
  </Button>
+ </div>
  </div>
  )}
  </div>

@@ -22,8 +22,13 @@ import { formatDate } from "@/lib/datetime";
 export const Route = createFileRoute("/workspace/financeiro/pagamentos")({
  head: () => ({ meta: [{ title: "Pagamentos | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const res = await listPayments();
  return res || [];
+   } catch (err) {
+     console.error("[loader:workspace.financeiro.pagamentos] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: AdminPaymentsPage,
 });

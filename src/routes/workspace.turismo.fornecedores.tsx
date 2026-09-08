@@ -31,8 +31,13 @@ import { NewSupplierWizard } from '@/components/tourism/suppliers/new-supplier-w
 export const Route = createFileRoute('/workspace/turismo/fornecedores')({
  head: () => ({ meta: [{ title: 'Fornecedores & Tarifários de DMCs | Workspace' }] }),
  loader: async () => {
+   try {
  const store = await getStoreSettings().catch(() => null);
  return { store };
+   } catch (err) {
+     console.error("[loader:workspace.turismo.fornecedores] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspaceSuppliersPage,
 });

@@ -10,8 +10,13 @@ import { formatMoney } from "@/lib/money";
 export const Route = createFileRoute("/workspace/configuracoes/parceiros")({
  head: () => ({ meta: [{ title: "Configurações de Parceiros | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const profile = await getMyCommissionProfile();
  return { initialProfile: profile };
+   } catch (err) {
+     console.error("[loader:workspace.configuracoes.parceiros] Unhandled error:", err);
+     return null;
+   }
  },
  component: ConfigParceirosPage,
 });

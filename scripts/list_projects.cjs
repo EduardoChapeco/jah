@@ -3,7 +3,7 @@ const { execSync } = require("child_process");
 try {
   console.log("Projects for new token:");
   execSync("npx supabase projects list", {
-    env: { ...process.env, SUPABASE_ACCESS_TOKEN: "<REMOVED_TOKEN>" },
+    env: { ...process.env, SUPABASE_ACCESS_TOKEN: process.env.SUPABASE_ACCESS_TOKEN || "" },
     stdio: "inherit",
   });
 } catch (error) {

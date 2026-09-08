@@ -71,6 +71,7 @@ export const Route = createFileRoute("/_store/bebidas")({
  SearchSchema.parse(search),
  loaderDeps: ({ search }) => search,
  loader: async () => {
+   try {
  const [banners, hotpages, marketplaceFeed, productsRes] = await Promise.all([
  listActiveBanners({ data: { placement: "bebidas" } }).catch(() => []),
  listHotpages({ data: { module: "bebidas" } }).catch(() => []),
@@ -83,6 +84,10 @@ export const Route = createFileRoute("/_store/bebidas")({
  marketplaceFeed,
  catalogProducts: (productsRes as any).data ?? [],
  };
+   } catch (err) {
+     console.error("[loader:_store.bebidas] Unhandled error:", err);
+     return null;
+   }
  },
  component: BebidasVerticalPage,
  pendingComponent: PageSkeleton,

@@ -17,8 +17,13 @@ import {
 export const Route = createFileRoute("/workspace/lojas/")({
  head: () => ({ meta: [{ title: "Minhas Lojas & Negócios | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const stores = await getMyStoresList();
  return { stores };
+   } catch (err) {
+     console.error("[loader:workspace.lojas.index] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspaceLojasPage,
 });

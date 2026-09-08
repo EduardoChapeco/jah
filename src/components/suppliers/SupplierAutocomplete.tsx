@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { searchTravelSuppliers } from "@/services/travel-suppliers.functions";
 import { Search, Star, MapPin, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormInput as Input } from "@/components/ui/input";
@@ -79,22 +79,13 @@ export function SupplierAutocomplete({
     enabled: isOpen && debouncedSearch.length >= 2,
     queryKey: ["supplier_search", agencyId, debouncedSearch, filterKind],
     queryFn: async () => {
-      let query = supabase
-        .from("suppliers")
-        .select("id, name, kind, city, country, rating, phone, email, commission_rate")
-        .eq("agency_id", agencyId)
-        .eq("is_active", true)
-        .ilike("name", `%${debouncedSearch}%`)
-        .order("name")
-        .limit(10);
-
-      if (filterKind) {
-        query = query.eq("kind", filterKind as any);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return (data ?? []) as SupplierOption[];
+      const res = await searchTravelSuppliers({
+        data: {
+          search: debouncedSearch,
+          kind: filterKind || undefined,
+        },
+      });
+      return (res ?? []) as SupplierOption[];
     },
     staleTime: 30_000,
   });

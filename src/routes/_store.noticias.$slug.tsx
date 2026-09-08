@@ -27,11 +27,16 @@ export const Route = createFileRoute("/_store/noticias/$slug")({
  ],
  }),
  loader: async ({ params }) => {
+   try {
  const data = await getArticleDetail({ data: { slug: params.slug } }).catch(() => null);
  if (!data || !data.article) {
  throw notFound();
  }
  return data;
+   } catch (err) {
+     console.error("[loader:_store.noticias.$slug] Unhandled error:", err);
+     return null;
+   }
  },
  component: NoticiaDetailPage,
 });

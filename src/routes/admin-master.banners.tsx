@@ -42,8 +42,13 @@ export const Route = createFileRoute("/admin-master/banners")({
  validateSearch: (search: Record<string, unknown>) => SearchSchema.parse(search),
  head: () => ({ meta: [{ title: "Banners & Vitrines | Admin Master" }] }),
  loader: async () => {
+   try {
  const banners = await listActiveBanners({ data: { placement: "all" } }).catch(() => []);
  return { banners };
+   } catch (err) {
+     console.error("[loader:admin-master.banners] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: AdminMasterBannersPage,
 });

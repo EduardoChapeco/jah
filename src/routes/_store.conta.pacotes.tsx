@@ -346,7 +346,7 @@ function CustomerPassesPage() {
  Nenhum horário livre encontrado para esta data. Selecione outro dia.
  </div>
  ) : (
- <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar pr-1">
+ <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar pr-1">
  {availableSlots.map((slot: string) => {
  const timeStr = format(new Date(slot), "HH:mm");
  const isSelected = selectedSlot === slot;

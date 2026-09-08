@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  fetchRoomingList,
+  createRoomRecord,
+  updateRoomRecord,
+  deleteRoomRecord,
+} from "@/services/rooming";
 import { toast } from "sonner";
 import { BedDouble, Plus, Trash2, Check, X, Users, Hotel } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -74,12 +79,7 @@ export function RoomingList({
   const { data: rooms = [], isLoading } = useQuery({
     queryKey: ["rooming_list", cardId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("boarding_rooming_list")
-        .select("*")
-        .eq("card_id", cardId)
-        .order("order_index");
-      if (error) throw error;
+      const data = await fetchRoomingList(cardId);
       return (data ?? []).map((r) => ({
         ...r,
         passengers: (r.passengers as RoomPassenger[]) ?? [],
@@ -89,7 +89,7 @@ export function RoomingList({
 
   const createMut = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("boarding_rooming_list").insert({
+      await createRoomRecord({
         card_id: cardId,
         agency_id: agencyId,
         room_number: roomNumber,
@@ -98,10 +98,9 @@ export function RoomingList({
         checkin_date: checkinDate || null,
         checkout_date: checkoutDate || null,
         notes: notes || null,
-        passengers: passengers.filter((p) => p.name.trim()),
+        passengers: passengers.filter((p) => p.name.trim()) as any,
         order_index: rooms.length,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Quarto adicionado!");
@@ -113,19 +112,15 @@ export function RoomingList({
 
   const updateMut = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("boarding_rooming_list")
-        .update({
-          room_number: roomNumber,
-          room_type: roomType,
-          hotel_name: hotelName || null,
-          checkin_date: checkinDate || null,
-          checkout_date: checkoutDate || null,
-          notes: notes || null,
-          passengers: passengers.filter((p) => p.name.trim()),
-        })
-        .eq("id", id);
-      if (error) throw error;
+      await updateRoomRecord(id, {
+        room_number: roomNumber,
+        room_type: roomType,
+        hotel_name: hotelName || null,
+        checkin_date: checkinDate || null,
+        checkout_date: checkoutDate || null,
+        notes: notes || null,
+        passengers: passengers.filter((p) => p.name.trim()) as any,
+      });
     },
     onSuccess: () => {
       toast.success("Quarto atualizado!");
@@ -137,19 +132,14 @@ export function RoomingList({
 
   const confirmMut = useMutation({
     mutationFn: async ({ id, confirmed }: { id: string; confirmed: boolean }) => {
-      const { error } = await supabase
-        .from("boarding_rooming_list")
-        .update({ is_confirmed: confirmed })
-        .eq("id", id);
-      if (error) throw error;
+      await updateRoomRecord(id, { is_confirmed: confirmed });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["rooming_list", cardId] }),
   });
 
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("boarding_rooming_list").delete().eq("id", id);
-      if (error) throw error;
+      await deleteRoomRecord(id);
     },
     onSuccess: () => {
       toast.success("Quarto removido.");

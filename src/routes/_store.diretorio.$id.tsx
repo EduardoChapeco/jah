@@ -33,11 +33,77 @@ export const Route = createFileRoute("/_store/diretorio/$id")({
     ],
   }),
   loader: async ({ params }) => {
-    const listing = await getPublicDirectoryById({ data: { listingId: params.id } }).catch(
-      () => null
-    );
+    try {
+      const listing = await getPublicDirectoryById({ data: { listingId: params.id } }).catch(
+        () => null
+      );
 
-    if (!listing) {
+      if (!listing) {
+        return {
+          listing: null,
+          catalog: [],
+          categories: [],
+          jobs: [],
+          hotpages: [],
+          banners: [],
+          posts: [],
+          reviews: [],
+          sponsors: [],
+        };
+      }
+
+      const targetStore = listing.store_id || listing.id;
+
+      const [
+        catalogRes,
+        jobsRes,
+        hotpagesRes,
+        bannersRes,
+        postsRes,
+        reviewsRes,
+        sponsorsRes,
+      ] = await Promise.all([
+        getStorePublicCatalog({ data: targetStore ? { storeId: targetStore } : undefined }).catch(
+          () => null
+        ),
+        listPublicJobs({ data: {} }).catch(() => null),
+        listHotpages({ data: { module: "home" } }).catch(() => []),
+        listActiveBanners({ data: { placement: "store" } }).catch(() => []),
+        targetStore
+          ? getMuralFeed({ data: { store_id: targetStore, limit: 12 } }).catch(() => null)
+          : Promise.resolve(null),
+        targetStore
+          ? listStorePublicReviews({ data: { storeId: targetStore } }).catch(() => [])
+          : Promise.resolve([]),
+        targetStore
+          ? listStorePublicSponsors({ data: { storeId: targetStore } }).catch(() => [])
+          : Promise.resolve([]),
+      ]);
+
+      const rawJobs = Array.isArray(jobsRes) ? jobsRes : (jobsRes as any)?.jobs || [];
+      const storeJobs = rawJobs.filter((j: any) => {
+        if (!targetStore) return false;
+        return (
+          j.store_id === targetStore ||
+          j.company_name?.toLowerCase() === (listing.business_name || listing.name)?.toLowerCase()
+        );
+      });
+
+      const storePosts = (postsRes as any)?.items || [];
+
+      return {
+        listing,
+        catalog: catalogRes?.products || [],
+        categories: catalogRes?.categories || [],
+        jobs: storeJobs,
+        hotpages: Array.isArray(hotpagesRes) ? hotpagesRes : [],
+        banners: Array.isArray(bannersRes) ? bannersRes : [],
+        posts: storePosts,
+        reviews: Array.isArray(reviewsRes) ? reviewsRes : [],
+        sponsors: Array.isArray(sponsorsRes) ? sponsorsRes : [],
+      };
+    } catch (err) {
+      console.error("[loader:_store.diretorio.$id] Unhandled error:", err);
       return {
         listing: null,
         catalog: [],
@@ -50,80 +116,28 @@ export const Route = createFileRoute("/_store/diretorio/$id")({
         sponsors: [],
       };
     }
-
-    const targetStore = listing.store_id || listing.id;
-
-    const [
-      catalogRes,
-      jobsRes,
-      hotpagesRes,
-      bannersRes,
-      postsRes,
-      reviewsRes,
-      sponsorsRes,
-    ] = await Promise.all([
-      getStorePublicCatalog({ data: targetStore ? { storeId: targetStore } : undefined }).catch(
-        () => null
-      ),
-      listPublicJobs({ data: {} }).catch(() => null),
-      listHotpages({ data: { module: "home" } }).catch(() => []),
-      listActiveBanners({ data: { placement: "store" } }).catch(() => []),
-      targetStore
-        ? getMuralFeed({ data: { store_id: targetStore, limit: 12 } }).catch(() => null)
-        : Promise.resolve(null),
-      targetStore
-        ? listStorePublicReviews({ data: { storeId: targetStore } }).catch(() => [])
-        : Promise.resolve([]),
-      targetStore
-        ? listStorePublicSponsors({ data: { storeId: targetStore } }).catch(() => [])
-        : Promise.resolve([]),
-    ]);
-
-    const rawJobs = Array.isArray(jobsRes) ? jobsRes : (jobsRes as any)?.jobs || [];
-    const storeJobs = rawJobs.filter((j: any) => {
-      if (!targetStore) return false;
-      return (
-        j.store_id === targetStore ||
-        j.company_name?.toLowerCase() === (listing.business_name || listing.name)?.toLowerCase()
-      );
-    });
-
-    const storePosts = (postsRes as any)?.items || [];
-
-    return {
-      listing,
-      catalog: catalogRes?.products || [],
-      categories: catalogRes?.categories || [],
-      jobs: storeJobs,
-      hotpages: Array.isArray(hotpagesRes) ? hotpagesRes : [],
-      banners: Array.isArray(bannersRes) ? bannersRes : [],
-      posts: storePosts,
-      reviews: Array.isArray(reviewsRes) ? reviewsRes : [],
-      sponsors: Array.isArray(sponsorsRes) ? sponsorsRes : [],
-    };
   },
   component: CanonicalDirectoryDetailPage,
 });
 
 function CanonicalDirectoryDetailPage() {
-  const {
-    listing,
-    catalog,
-    categories,
-    jobs,
-    hotpages,
-    banners,
-    posts,
-    reviews,
-    sponsors,
-  } = Route.useLoaderData();
+  const data = Route.useLoaderData();
+  const listing = data?.listing ?? null;
+  const catalog = data?.catalog ?? [];
+  const categories = data?.categories ?? [];
+  const jobs = data?.jobs ?? [];
+  const hotpages = data?.hotpages ?? [];
+  const banners = data?.banners ?? [];
+  const posts = data?.posts ?? [];
+  const reviews = data?.reviews ?? [];
+  const sponsors = data?.sponsors ?? [];
 
   if (!listing) {
     return (
       <div className="w-full max-w-3xl mx-auto py-24 text-center space-y-4">
         <Compass size={48} className="text-muted-foreground/40 mx-auto" />
         <h1 className="text-xl font-bold text-foreground">
-          Empresa ou profissional não encontrado
+          Cadastro Não Encontrado
         </h1>
         <p className="text-sm text-muted-foreground max-w-md mx-auto">
           Este cadastro pode ter sido alterado ou desativado temporariamente.

@@ -26,8 +26,13 @@ export const Route = createFileRoute("/_store/conta/candidaturas")({
  meta: [{ title: "Minhas Candidaturas & Processos Seletivos | Wider OS" }],
  }),
  loader: async () => {
+   try {
  const applications = await listMyJobApplications().catch(() => []);
  return { applications };
+   } catch (err) {
+     console.error("[loader:_store.conta.candidaturas] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: MinhasCandidaturasPage,
 });

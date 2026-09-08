@@ -72,6 +72,7 @@ export const Route = createFileRoute("/_store/perfil-da-loja")({
   },
 
   loader: async ({ location }) => {
+    try {
     const search = (location.search || {}) as any;
     const targetStore = search.storeId || search.slug;
 
@@ -135,6 +136,10 @@ export const Route = createFileRoute("/_store/perfil-da-loja")({
           ? (docRes.data as any).tree
           : null,
     };
+    } catch (err) {
+      console.error("[loader:_store.perfil-da-loja] Unhandled error:", err);
+      return null;
+    }
   },
 
   component: StorePerfilPage,

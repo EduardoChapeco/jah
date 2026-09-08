@@ -119,7 +119,7 @@ function SecurityAndDevicesPage() {
  </Link>
  </div>
  <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
- Dispositivos & Segurança
+ Segurança
  </h1>
  </div>
 
@@ -170,7 +170,7 @@ function SecurityAndDevicesPage() {
  {device.device_name || "Navegador Web"}
  </p>
  {device.is_trusted && (
- <Badge variant="outline" className="text-[10px] bg-green-500/10 text-green-600 border-green-500/30 px-1.5 py-0">
+ <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30 px-1.5 py-0">
  Confiável
  </Badge>
  )}
@@ -204,7 +204,7 @@ function SecurityAndDevicesPage() {
  size="sm"
  disabled={loadingDeviceId === device.id}
  onClick={() => handleTrustDevice(device.id)}
- className="h-8 text-[11px] rounded-lg gap-1.5 text-green-600 border-green-500/30 hover:bg-green-500/10"
+ className="h-8 text-[11px] rounded-lg gap-1.5 text-primary border-primary/30 hover:bg-primary/10"
  >
  <CheckCircle2 className="size-3" />
  Confiar
@@ -255,7 +255,7 @@ function SecurityAndDevicesPage() {
  <div
  className={`size-9 rounded-xl flex items-center justify-center shrink-0 ${
  isSuccess
- ? "bg-green-500/10 text-green-600"
+ ? "bg-primary/10 text-primary"
  : isFailed
  ? "bg-red-500/10 text-red-600"
  : "bg-amber-500/10 text-amber-600"

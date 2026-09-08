@@ -27,7 +27,12 @@ import { formatDateTime } from "@/lib/datetime";
 export const Route = createFileRoute("/workspace/marketing/carrinhos")({
  head: () => ({ meta: [{ title: "Carrinhos Abandonados | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  return await listAbandonedCarts();
+   } catch (err) {
+     console.error("[loader:workspace.marketing.carrinhos] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: AbandonedCartsPage,
 });

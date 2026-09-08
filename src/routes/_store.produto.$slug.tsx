@@ -236,6 +236,7 @@ export const Route = createFileRoute("/_store/produto/$slug")({
  };
  },
  loader: async ({ params }) => {
+   try {
  const [productRes, templateRes] = await Promise.all([
  getProductBySlug({ data: { slug: params.slug } }),
  getPublicExperienceDocumentBySlug({
@@ -246,6 +247,10 @@ export const Route = createFileRoute("/_store/produto/$slug")({
  productResult: productRes,
  templateTree: (templateRes as any)?.tree || [],
  };
+   } catch (err) {
+     console.error("[loader:_store.produto.$slug] Unhandled loader error:", err);
+     return null;
+   }
  },
  pendingComponent: PageSkeleton,
  component: ProductPage,

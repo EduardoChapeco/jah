@@ -46,6 +46,7 @@ import {
 export const Route = createFileRoute("/workspace/turismo/grupos/$id/embarque")({
  head: () => ({ meta: [{ title: "Central de Embarque & Check-in | Workspace" }] }),
  loader: async ({ params }: { params: { id: string } }) => {
+   try {
  const store = await getStoreSettings().catch(() => null);
  const storeId = store?.id || "";
  const [tour, overview] = await Promise.all([
@@ -61,6 +62,10 @@ export const Route = createFileRoute("/workspace/turismo/grupos/$id/embarque")({
  tour,
  initialOverview: overview,
  };
+   } catch (err) {
+     console.error("[loader:workspace.turismo.grupos.$id.embarque] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: GroupTourBoardingPage,
 });

@@ -25,12 +25,17 @@ import {
 export const Route = createFileRoute("/m/excursao/$token")({
  head: () => ({ meta: [{ title: "Confirmação de Passageiro | Wider OS" }] }),
  loader: async ({ params }: { params: { token: string } }) => {
+   try {
  const formData = await getPublicPassengerForm({ data: { token: params.token } }).catch(
  (err) => {
  return { error: err?.message || "Link inválido ou expirado" };
  }
  );
  return { formData };
+   } catch (err) {
+     console.error("[loader:m.excursao.$token] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: PublicPassengerRegistrationPage,
 });

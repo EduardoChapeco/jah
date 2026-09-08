@@ -543,17 +543,56 @@ export const getGroupTourBudgetSummary = createServerFn({ method: "GET" })
 // ─── 6. Excluir Excursão / Viagem em Grupo ────────────────────────────────────
 
 export const deleteGroupTour = createServerFn({ method: "POST" })
- .validator(z.object({ id: z.string().min(1) }))
- .handler(async ({ data }) => {
- const supabase = getServerClient();
- const identity = await getServerIdentity();
- if (!identity?.id) throw new Error("Não autorizado.");
+  .validator(z.object({ id: z.string().min(1) }))
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity?.id) throw new Error("Não autorizado.");
 
- let query = supabase.from("tourism_experiences").delete().eq("id", data.id);
- if (identity.store_id) query = query.eq("store_id", identity.store_id);
- else query = query.eq("author_profile_id", identity.id);
+    let query = supabase.from("tourism_experiences").delete().eq("id", data.id);
+    if (identity.store_id) query = query.eq("store_id", identity.store_id);
+    else query = query.eq("author_profile_id", identity.id);
 
- const { error } = await query;
- if (error) throw new Error("Erro ao excluir excursão: " + error.message);
- return { success: true };
- });
+    const { error } = await query;
+    if (error) throw new Error("Erro ao excluir excursão: " + error.message);
+    return { success: true };
+  });
+
+export const listGroupTours = createServerFn({ method: "GET" })
+  .validator(z.object({ search: z.string().optional() }).optional())
+  .handler(async ({ data }): Promise<GroupTourDTO[]> => {
+    const supabase = getServerClient();
+    let q = supabase
+      .from("tourism_experiences")
+      .select("*")
+      .eq("category", "group_tour")
+      .order("created_at", { ascending: false });
+
+    if (data?.search && data.search.trim()) {
+      q = q.ilike("title", `%${data.search.trim()}%`);
+    }
+
+    const { data: rows, error } = await q;
+    if (error || !rows) return [];
+
+    return rows.map((row) => ({
+      id: row.id,
+      store_id: row.store_id,
+      title: row.title,
+      destination: row.destination || row.location || "Destino",
+      departure_city: row.departure_city || "Origem",
+      departure_date: row.departure_date ? new Date(row.departure_date).toISOString().split("T")[0] : "",
+      departure_time: row.departure_time || "06:00",
+      return_date: row.return_date ? new Date(row.return_date).toISOString().split("T")[0] : "",
+      return_time: row.return_time || "20:00",
+      total_seats: row.total_seats || 46,
+      seats: Array.isArray(row.seats) ? row.seats : [],
+      rooms: Array.isArray(row.rooms) ? row.rooms : [],
+      price_cents: Number(row.price_cents) || 0,
+      included_items: row.included_items || [],
+      status: (row.status as any) || "open",
+      cover_image_url: row.cover_image_url || null,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+    }));
+  });

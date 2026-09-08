@@ -55,8 +55,13 @@ import { getStoreSettings } from '@/services/store.functions';
 export const Route = createFileRoute('/workspace/simlab/focus-group')({
   head: () => ({ meta: [{ title: 'Console de Amostragem Sintética & Focus Group | JAH' }] }),
   loader: async () => {
+    try {
     const store = await getStoreSettings().catch(() => null);
     return { store };
+    } catch (err) {
+      console.error("[loader:workspace.simlab.focus-group] Unhandled loader error:", err);
+      return null;
+    }
   },
   component: FocusGroupPage,
 });
@@ -677,7 +682,7 @@ function FocusGroupPage() {
           <form onSubmit={handleSaveKey} className="space-y-4">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-foreground">Provedor de IA</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setKeyProvider('gemini')}

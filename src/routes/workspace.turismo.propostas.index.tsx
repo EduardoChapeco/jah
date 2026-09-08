@@ -54,11 +54,16 @@ export const Route = createFileRoute("/workspace/turismo/propostas/")({
   new: search.new === true || search.new === "true" || undefined,
  }),
  loader: async () => {
+   try {
  const [proposals, store] = await Promise.all([
  listAgencyTravelProposals().catch(() => []),
  getStoreSettings().catch(() => null),
  ]);
  return { proposals: proposals || [], store };
+   } catch (err) {
+     console.error("[loader:workspace.turismo.propostas.index] Unhandled error:", err);
+     return null;
+   }
  },
  component: WorkspaceProposalsIndexPage,
 });

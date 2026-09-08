@@ -44,11 +44,16 @@ export const Route = createFileRoute("/_store/diretorio/")({
  ],
  }),
  loader: async () => {
+   try {
  const [banners, hotpages] = await Promise.all([
  listActiveBanners({ data: { placement: "diretorio" } }).catch(() => []),
  listHotpages({ data: { module: "diretorio" } }).catch(() => []),
  ]);
  return { banners, hotpages };
+   } catch (err) {
+     console.error("[loader:_store.diretorio.index] Unhandled error:", err);
+     return null;
+   }
  },
  component: DirectoryPage,
 });

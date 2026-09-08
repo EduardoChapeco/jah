@@ -734,7 +734,7 @@ function AdminMasterMarcaPage() {
  onValueChange={(v) => setPreviewTab(v as any)}
  className="w-full"
  >
- <TabsList className="w-full grid grid-cols-3 h-8 p-0.5 bg-muted/40 rounded-xl">
+ <TabsList className="w-full grid grid-cols-3 sm:grid-cols-3 h-8 p-0.5 bg-muted/40 rounded-xl">
  <TabsTrigger value="topbar" className="text-[11px] rounded-lg">
  Barra de Topo
  </TabsTrigger>
@@ -975,7 +975,7 @@ function AdminMasterMarcaPage() {
  </div>
 
  {/* ── Barra de Ação Flutuante Sticky (Salvar Alterações) ── */}
- <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-xl border-t border-border/60 p-4">
+ <div className="fixed bottom-0 left-0 md:left-64 right-0 z-40 bg-background/80 backdrop-blur-xl border-t border-border/60 p-4">
  <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
  <div className="flex items-center gap-2">
  <span className="text-xs sm:text-sm font-semibold text-foreground">

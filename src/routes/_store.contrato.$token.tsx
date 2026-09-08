@@ -39,8 +39,13 @@ export const Route = createFileRoute("/_store/contrato/$token")({
  ],
  }),
  loader: async ({ params }) => {
+   try {
  const contract = await getPublicTravelContractByToken({ data: { token: params.token } });
  return { contract };
+   } catch (err) {
+     console.error("[loader:_store.contrato.$token] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: PublicTravelContractSignaturePage,
 });
@@ -154,7 +159,7 @@ function PublicTravelContractSignaturePage() {
  Instrumento Particular de Intermediação de Serviços Turísticos
  </span>
  <h1 className="text-xl sm:text-2xl font-black text-slate-900">
- CONTRATO DE PRESTAÇÃO DE SERVIÇOS TURÍSTICOS
+ Contrato de Prestação de Serviços
  </h1>
  <p className="text-xs text-slate-500 font-mono">
  Código Único do Contrato: #{contract.public_token}

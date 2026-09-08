@@ -36,8 +36,13 @@ export const Route = createFileRoute("/_store/proposta/$token")({
  ],
  }),
  loader: async ({ params }) => {
+   try {
  const proposal = await getPublicTravelProposalByToken({ data: { token: params.token } });
  return { proposal };
+   } catch (err) {
+     console.error("[loader:_store.proposta.$token] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: PublicTravelProposalPage,
 });

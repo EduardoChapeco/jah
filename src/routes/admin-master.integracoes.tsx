@@ -1,4 +1,20 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import {
+  getPublicApiGovernanceSettings,
+  savePublicApiGovernanceSettings,
+  lookupCep,
+  lookupCnpj,
+  parseAddressWithAI,
+  pingPublicApis,
+  type PublicApiGovernanceDTO,
+  type ApiPingResult,
+  type ResolvedAddressDTO,
+  type CnpjCompanyDTO,
+  DEFAULT_PUBLIC_API_GOVERNANCE,
+} from "@/services/public-apis.functions";
+import { formatCep, formatCnpj, formatPhone } from "@/lib/document-validator";
+import { MapLibreCanvas } from "@/components/mobility/maplibre-canvas";
+import { Check, Compass, Navigation, Search, Sparkles, Building2, Globe2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Plug, MapPin, CreditCard, Mail, Truck, Sliders, Eye, EyeOff, CheckCircle2, AlertCircle, Clock, ShieldCheck, RefreshCw, Save, Radio, Layers, Plus, Trash2, Terminal, Activity, Zap } from 'lucide-react';
@@ -289,7 +305,7 @@ function AdminMasterIntegracoesPage() {
  <Zap className="size-5" />
  </div>
  <h1 className="text-2xl font-black tracking-tight text-foreground">
- Orquestrador de APIs & Pools de Chaves
+ Integrações & APIs
  </h1>
  </div>
  <p className="text-xs text-muted-foreground mt-1">
@@ -343,7 +359,7 @@ function AdminMasterIntegracoesPage() {
  }`}
  >
  <MapPin className="size-4" />
- <span>Mapas (OSM & Google)</span>
+ <span>Mapas & APIs Públicas (OSM)</span>
  </button>
 
  <button
@@ -523,59 +539,494 @@ function AdminMasterIntegracoesPage() {
 
  {/* ── ABA 3: MAPAS (OSM vs GOOGLE) ── */}
  {activeTab === "maps" && (
- <form onSubmit={handleSave} className="space-y-6">
- <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-6">
- <div className="flex items-center justify-between pb-4 border-b border-border/40">
- <div>
- <h3 className="text-sm font-bold text-foreground">Provedor de Mapas Ativo</h3>
- <p className="text-xs text-muted-foreground mt-0.5">
- Por padrão, o Wider utiliza OpenStreetMap / MapLibre (100% gratuito e open-source).
- </p>
- </div>
- <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 gap-1 font-bold text-xs">
- <CheckCircle2 className="size-3" /> MapLibre OpenStreetMap Ativo
- </Badge>
- </div>
+        <div className="space-y-6">
+          {/* Header & Status Canônico */}
+          <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-4 shadow-2xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/40">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-bold text-foreground">
+                    Mapas Reais (OpenStreetMap / MapLibre) & APIs Públicas Zero-Cost
+                  </h2>
+                  <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 gap-1 font-bold text-[11px]">
+                    <CheckCircle2 className="size-3" /> MapLibre Ativo (Zero Key)
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground max-w-2xl">
+                  A Wider utiliza cartografia real OpenStreetMap com renderização em Retina 2x via CARTO Voyager e Dark Matter.
+                  Nenhuma chave paga é obrigatória. Suporte a autopreenchimento de endereços via BrasilAPI v2, ViaCEP, consulta oficial de CNPJ e inteligência geográfica.
+                </p>
+              </div>
 
- <div className="space-y-4">
- <div className="space-y-1.5">
- <Label htmlFor="google_maps_api_key" className="text-xs font-bold">
- Chave Google Maps API (Opcional)
- </Label>
- <div className="relative">
- <Input
- id="google_maps_api_key"
- type={visibleKeys["google_maps"] ? "text" : "password"}
- value={formData.google_maps_api_key || ""}
- onChange={(e) => handleInputChange("google_maps_api_key", e.target.value)}
- placeholder="AIzaSy..."
- className="h-10 text-xs font-mono pr-10 rounded-xl"
- />
- <button
- type="button"
- onClick={() => toggleVisibility("google_maps")}
- className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
- >
- {visibleKeys["google_maps"] ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
- </button>
- </div>
- <span className="text-[11px] text-muted-foreground">
- Se preenchido, você pode habilitar o Google Maps como provedor primário de geocodificação.
- </span>
- </div>
- </div>
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground gap-1">
+                  <Globe2 className="size-3 text-primary" /> Tiles Globais HTTPS
+                </Badge>
+                <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground gap-1">
+                  <ShieldCheck className="size-3 text-emerald-500" /> RLS Protegido
+                </Badge>
+              </div>
+            </div>
 
- <div className="flex justify-end pt-4">
- <Button type="submit" disabled={isSubmitting} className="rounded-xl font-bold text-xs h-9 gap-1.5">
- <Save className="size-3.5" />
- <span>Salvar Configuração de Mapas</span>
- </Button>
- </div>
- </div>
- </form>
- )}
+            {/* Seleção do Estilo Visual Canônico */}
+            <div className="space-y-3">
+              <Label className="text-xs font-bold text-foreground block">
+                Tema / Camada de Mapa Padrão
+              </Label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  {
+                    id: "carto_voyager",
+                    name: "CARTO Voyager (Retina 2x)",
+                    desc: "Estilo claro, alta legibilidade e contraste. Padrão diurno recomendando.",
+                    badge: "100% Gratuito",
+                  },
+                  {
+                    id: "carto_dark",
+                    name: "CARTO Dark Matter (Retina 2x)",
+                    desc: "Estilo escuro ultra moderno para visualização noturna elegante.",
+                    badge: "100% Gratuito",
+                  },
+                  {
+                    id: "osm_standard",
+                    name: "OpenStreetMap Standard",
+                    desc: "Camada clássica OSM com dados cartográficos abertos completos.",
+                    badge: "100% Gratuito",
+                  },
+                ].map((style) => {
+                  const isSelected = govSettings.defaultMapProvider === style.id;
+                  return (
+                    <button
+                      key={style.id}
+                      type="button"
+                      onClick={() =>
+                        setGovSettings((prev) => ({
+                          ...prev,
+                          defaultMapProvider: style.id as any,
+                        }))
+                      }
+                      className={`p-4 rounded-2xl border text-left transition-all cursor-pointer select-none space-y-1.5 ${
+                        isSelected
+                          ? "bg-primary/5 border-primary ring-1 ring-primary shadow-2xs"
+                          : "bg-muted/20 border-border/70 hover:border-foreground/30 hover:bg-muted/40"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-foreground leading-tight">
+                          {style.name}
+                        </span>
+                        <Badge variant="secondary" className="text-[10px] font-semibold">
+                          {style.badge}
+                        </Badge>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                        {style.desc}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
- {/* ── ABA 4: PAGAMENTOS (ASAAS & STRIPE) ── */}
+            {/* Chaves Opcionais de Terceiros */}
+            <div className="pt-2 border-t border-border/40 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="google_maps_api_key" className="text-xs font-bold text-foreground">
+                  Chave Google Maps API (Opcional)
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="google_maps_api_key"
+                    type={visibleKeys["google_maps"] ? "text" : "password"}
+                    value={formData.google_maps_api_key || ""}
+                    onChange={(e) => handleInputChange("google_maps_api_key", e.target.value)}
+                    placeholder="AIzaSy..."
+                    className="h-10 text-xs font-mono pr-10 rounded-xl"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => toggleVisibility("google_maps")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {visibleKeys["google_maps"] ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+                <span className="text-[10px] text-muted-foreground">
+                  Se preenchida, permite ativar serviços proprietários da Google como fallback secundário.
+                </span>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="mapbox_token" className="text-xs font-bold text-foreground">
+                  Token Mapbox GL (Opcional)
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="mapbox_token"
+                    type={visibleKeys["mapbox"] ? "text" : "password"}
+                    value={formData.mapbox_token || ""}
+                    onChange={(e) => handleInputChange("mapbox_token", e.target.value)}
+                    placeholder="pk.eyJ1..."
+                    className="h-10 text-xs font-mono pr-10 rounded-xl"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => toggleVisibility("mapbox")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {visibleKeys["mapbox"] ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+                <span className="text-[10px] text-muted-foreground">
+                  Opcional. Permite usar estilos vetoriais customizados do Mapbox Studio.
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* ── SEÇÃO 2: MATRIZ DE GOVERNANÇA (TOGGLES LIGA/DESLIGA) ── */}
+          <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-5 shadow-2xs">
+            <div className="flex items-center justify-between pb-3 border-b border-border/40">
+              <div>
+                <h3 className="text-sm font-bold text-foreground">
+                  Governança & Controle de Autopreenchimento
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Ative ou desative cada integração individualmente de acordo com a política da sua rede.
+                </p>
+              </div>
+              <Button
+                type="button"
+                onClick={handleSaveGov}
+                disabled={isSavingGov}
+                className="rounded-xl font-bold text-xs h-9 gap-1.5"
+              >
+                {isSavingGov ? <RefreshCw className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
+                <span>Salvar Governança</span>
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {[
+                {
+                  id: "isMapServiceActive",
+                  title: "Serviço de Mapas Ativo (Global)",
+                  desc: "Renderiza mapas interativos reais em mobilidade, vitrines e onboarding.",
+                  checked: govSettings.isMapServiceActive,
+                  onChange: (checked: boolean) =>
+                    setGovSettings((prev) => ({ ...prev, isMapServiceActive: checked })),
+                },
+                {
+                  id: "isCepAutoFillActive",
+                  title: "Autopreenchimento de Endereço por CEP",
+                  desc: "Consulta BrasilAPI v2 com coordenadas geográficas e fallback para ViaCEP.",
+                  checked: govSettings.isCepAutoFillActive,
+                  onChange: (checked: boolean) =>
+                    setGovSettings((prev) => ({ ...prev, isCepAutoFillActive: checked })),
+                },
+                {
+                  id: "isCnpjLookupActive",
+                  title: "Consulta Oficial de CNPJ (Receita Federal)",
+                  desc: "Busca em tempo real de Razão Social, Nome Fantasia, CNAE e Endereço da empresa.",
+                  checked: govSettings.isCnpjLookupActive,
+                  onChange: (checked: boolean) =>
+                    setGovSettings((prev) => ({ ...prev, isCnpjLookupActive: checked })),
+                },
+                {
+                  id: "isCpfValidationActive",
+                  title: "Validação Rigorosa de CPF (Módulo 11)",
+                  desc: "Verificação algorítmica matemática oficial contra dígitos incorretos e fraudes.",
+                  checked: govSettings.isCpfValidationActive,
+                  onChange: (checked: boolean) =>
+                    setGovSettings((prev) => ({ ...prev, isCpfValidationActive: checked })),
+                },
+                {
+                  id: "isBirthDateValidationActive",
+                  title: "Validação de Maioridade (18+ Anos)",
+                  desc: "Checagem de idade mínima para cadastro de motoristas, entregadores e lojas.",
+                  checked: govSettings.isBirthDateValidationActive,
+                  onChange: (checked: boolean) =>
+                    setGovSettings((prev) => ({ ...prev, isBirthDateValidationActive: checked })),
+                },
+                {
+                  id: "isAiAddressParserActive",
+                  title: "Autopreenchimento Inteligente com IA / NLP",
+                  desc: "Permite colar endereços livres e decompõe com precisão cirúrgica no mapa.",
+                  checked: govSettings.isAiAddressParserActive,
+                  onChange: (checked: boolean) =>
+                    setGovSettings((prev) => ({ ...prev, isAiAddressParserActive: checked })),
+                },
+              ].map((item) => (
+                <div
+                  key={item.id}
+                  className="p-4 rounded-2xl bg-muted/20 border border-border/70 flex items-start justify-between gap-3"
+                >
+                  <div className="space-y-1 min-w-0">
+                    <span className="text-xs font-bold text-foreground block">
+                      {item.title}
+                    </span>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      {item.desc}
+                    </p>
+                  </div>
+                  <Switch checked={item.checked} onCheckedChange={item.onChange} className="shrink-0 mt-0.5" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── SEÇÃO 3: MONITOR DE LATÊNCIA & PING TEST EM TEMPO REAL ── */}
+          <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-4 shadow-2xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/40">
+              <div>
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <Activity className="size-4 text-primary" />
+                  Monitor de Latência em Tempo Real (Ping Test)
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Mede a disponibilidade e o tempo de resposta das APIs públicas em milissegundos.
+                </p>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleRunPingTest}
+                disabled={isPinging}
+                className="rounded-xl font-bold text-xs h-9 gap-1.5 shrink-0"
+              >
+                <RefreshCw className={`size-3.5 ${isPinging ? "animate-spin" : ""}`} />
+                <span>{isPinging ? "Testando Endpoints..." : "Testar Conectividade Agora"}</span>
+              </Button>
+            </div>
+
+            {pingResults.length === 0 ? (
+              <div className="p-6 text-center border border-dashed border-border rounded-xl bg-muted/10 space-y-2">
+                <Clock className="size-6 text-muted-foreground mx-auto" />
+                <p className="text-xs font-semibold text-foreground">Nenhum teste executado nesta sessão</p>
+                <p className="text-[11px] text-muted-foreground max-w-md mx-auto">
+                  Clique no botão acima para enviar requisições de teste em paralelo para a BrasilAPI, ViaCEP, Carto CDN e Nominatim.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {pingResults.map((ping) => (
+                  <div
+                    key={ping.id}
+                    className="p-3.5 rounded-xl bg-muted/30 border border-border/70 space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-foreground truncate pr-2">
+                        {ping.name}
+                      </span>
+                      <Badge
+                        className={`text-[10px] font-mono uppercase font-bold ${
+                          ping.status === "online"
+                            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                            : ping.status === "degraded"
+                            ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                            : "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30"
+                        }`}
+                      >
+                        {ping.status}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between text-xs font-mono text-muted-foreground pt-1 border-t border-border/40">
+                      <span>HTTP {ping.httpStatus}</span>
+                      <span className="font-bold text-foreground">{ping.latencyMs} ms</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── SEÇÃO 4: SANDBOX & LABORATÓRIO INTERATIVO AO VIVO ── */}
+          <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-6 shadow-2xs">
+            <div>
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Sparkles className="size-4 text-primary" />
+                Laboratório de Teste Interativo (Live Sandbox)
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Simule consultas ao vivo de CEP, CNPJ e decomposição inteligente de endereço com retorno em tempo real.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Testador 1: CEP com visualização no mapa */}
+              <div className="p-4 rounded-2xl bg-muted/20 border border-border/70 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <MapPin className="size-3.5 text-primary" />
+                    Teste de Autopreenchimento de CEP
+                  </span>
+                  {cepResult && (
+                    <Badge variant="outline" className="text-[10px] font-mono">
+                      {cepResult.provider}
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <Input
+                    value={sandboxCep}
+                    onChange={(e) => setSandboxCep(e.target.value)}
+                    placeholder="89800000"
+                    maxLength={9}
+                    className="h-9 text-xs font-mono bg-card rounded-xl"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleTestCepLookup}
+                    disabled={isSearchingCep}
+                    className="h-9 rounded-xl font-bold text-xs shrink-0"
+                  >
+                    {isSearchingCep ? <RefreshCw className="size-3.5 animate-spin" /> : <Search className="size-3.5" />}
+                    <span>Consultar</span>
+                  </Button>
+                </div>
+
+                {cepResult && (
+                  <div className="space-y-3 pt-2">
+                    <div className="p-3 bg-card rounded-xl border border-border/70 text-xs space-y-1 font-mono">
+                      <div className="font-bold text-foreground">{cepResult.street || "(Logradouro Geral)"}</div>
+                      <div className="text-muted-foreground">
+                        {cepResult.neighborhood && `${cepResult.neighborhood}, `}
+                        {cepResult.city} - {cepResult.state}
+                      </div>
+                      {cepResult.latitude && cepResult.longitude && (
+                        <div className="text-primary text-[11px] pt-1">
+                          📍 Coordenadas: {cepResult.latitude}, {cepResult.longitude}
+                        </div>
+                      )}
+                    </div>
+
+                    {cepResult.latitude && cepResult.longitude && (
+                      <div className="h-[180px] w-full rounded-xl overflow-hidden border border-border/70">
+                        <MapLibreCanvas
+                          center={{ lat: cepResult.latitude, lng: cepResult.longitude }}
+                          zoom={15}
+                          markers={[
+                            {
+                              id: "cep-marker",
+                              lat: cepResult.latitude,
+                              lng: cepResult.longitude,
+                              title: cepResult.fullAddress,
+                            },
+                          ]}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Testador 2: CNPJ Oficial da Receita */}
+              <div className="p-4 rounded-2xl bg-muted/20 border border-border/70 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <Building2 className="size-3.5 text-primary" />
+                    Teste de Consulta Oficial de CNPJ
+                  </span>
+                  {cnpjResult && (
+                    <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px] font-bold">
+                      {cnpjResult.registrationStatus}
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <Input
+                    value={sandboxCnpj}
+                    onChange={(e) => setSandboxCnpj(e.target.value)}
+                    placeholder="00000000000191"
+                    maxLength={18}
+                    className="h-9 text-xs font-mono bg-card rounded-xl"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleTestCnpjLookup}
+                    disabled={isSearchingCnpj}
+                    className="h-9 rounded-xl font-bold text-xs shrink-0"
+                  >
+                    {isSearchingCnpj ? <RefreshCw className="size-3.5 animate-spin" /> : <Search className="size-3.5" />}
+                    <span>Consultar</span>
+                  </Button>
+                </div>
+
+                {cnpjResult && (
+                  <div className="p-3 bg-card rounded-xl border border-border/70 text-xs space-y-1.5 font-mono">
+                    <div className="font-bold text-foreground">{cnpjResult.corporateName}</div>
+                    {cnpjResult.tradeName && cnpjResult.tradeName !== cnpjResult.corporateName && (
+                      <div className="text-[11px] text-muted-foreground">Fantasia: {cnpjResult.tradeName}</div>
+                    )}
+                    <div className="text-[11px] text-muted-foreground">
+                      CNAE: {cnpjResult.mainCnae.code} — {cnpjResult.mainCnae.description}
+                    </div>
+                    <div className="text-[11px] text-foreground pt-1 border-t border-border/40">
+                      🏢 {cnpjResult.address.street}, {cnpjResult.address.number} - {cnpjResult.address.neighborhood}, {cnpjResult.address.city} - {cnpjResult.address.state}
+                    </div>
+                    {cnpjResult.phone && <div className="text-[10px] text-muted-foreground">📞 {cnpjResult.phone}</div>}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Testador 3: Parser de Endereço Livre com IA / NLP */}
+            <div className="p-4 rounded-2xl bg-muted/20 border border-border/70 space-y-3">
+              <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <Sparkles className="size-3.5 text-primary" />
+                Teste de Parser de Endereço Inteligente (Colar Texto Livre)
+              </span>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  value={sandboxNlp}
+                  onChange={(e) => setSandboxNlp(e.target.value)}
+                  placeholder="Cole um endereço completo..."
+                  className="h-9 text-xs bg-card rounded-xl flex-1"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleTestNlpLookup}
+                  disabled={isParsingNlp}
+                  className="h-9 rounded-xl font-bold text-xs shrink-0"
+                >
+                  {isParsingNlp ? <RefreshCw className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
+                  <span>Decompor com Precisão</span>
+                </Button>
+              </div>
+
+              {nlpResult && (
+                <div className="p-3 bg-card rounded-xl border border-border/70 text-xs grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono">
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block">Rua:</span>
+                    <span className="font-bold text-foreground truncate block">{nlpResult.street || "-"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block">Número:</span>
+                    <span className="font-bold text-foreground truncate block">{nlpResult.number || "S/N"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block">Cidade / UF:</span>
+                    <span className="font-bold text-foreground truncate block">{nlpResult.city} - {nlpResult.state}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block">CEP:</span>
+                    <span className="font-bold text-foreground truncate block">{nlpResult.cep ? formatCep(nlpResult.cep) : "-"}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── ABA 4: PAGAMENTOS (ASAAS & STRIPE) ── */}
  {activeTab === "payments" && (
  <form onSubmit={handleSave} className="space-y-6">
  <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-6">

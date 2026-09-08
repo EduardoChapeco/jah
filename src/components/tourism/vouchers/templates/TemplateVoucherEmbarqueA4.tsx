@@ -1,7 +1,7 @@
 import { type Voucher } from "@/services/vouchers";
 import { type BrandKit, type CompanyProfile } from "@/lib/agency-context";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getDestinationByName } from "@/services/destination-intelligence.functions";
 import { Languages, DollarSign, Plug, Clock, Compass } from "lucide-react";
 
 interface Props {
@@ -56,14 +56,7 @@ export default function TemplateVoucherEmbarqueA4({
     queryKey: ["destination-info-voucher", v.destination],
     queryFn: async () => {
       if (!v.destination) return null;
-      const { data, error } = await supabase
-        .from("destination_info")
-        .select("*")
-        .ilike("destination", `%${v.destination}%`)
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
+      return await getDestinationByName({ data: { name: v.destination } });
     },
     enabled: !!v.destination,
   });

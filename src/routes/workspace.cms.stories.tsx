@@ -47,6 +47,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export const Route = createFileRoute("/workspace/cms/stories")({
  head: () => ({ meta: [{ title: "Stories & Collabs (CMS) | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const [storiesRes, collabsRes] = await Promise.all([
  listAdminStories().catch(() => []),
  listStoreCollabs().catch(() => []),
@@ -55,6 +56,10 @@ export const Route = createFileRoute("/workspace/cms/stories")({
  stories: storiesRes || [],
  collabs: collabsRes || [],
  };
+   } catch (err) {
+     console.error("[loader:workspace.cms.stories] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: CmsStoriesPage,
 });

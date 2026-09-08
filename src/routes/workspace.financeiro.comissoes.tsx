@@ -28,8 +28,13 @@ import { formatMoney } from "@/lib/money";
 export const Route = createFileRoute("/workspace/financeiro/comissoes")({
  head: () => ({ meta: [{ title: "Comissões | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const [commissions, sellers] = await Promise.all([listCommissions(), listSellers()]);
  return { commissions, sellers };
+   } catch (err) {
+     console.error("[loader:workspace.financeiro.comissoes] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: CommissionsPage,
 });

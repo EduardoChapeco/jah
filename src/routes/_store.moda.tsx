@@ -70,6 +70,7 @@ export const Route = createFileRoute("/_store/moda")({
  SearchSchema.parse(search),
  loaderDeps: ({ search }) => search,
  loader: async () => {
+   try {
  const [banners, hotpages, marketplaceFeed, productsRes] = await Promise.all([
  listActiveBanners({ data: { placement: "moda" } }).catch(() => []),
  listHotpages({ data: { module: "moda" } }).catch(() => []),
@@ -82,6 +83,10 @@ export const Route = createFileRoute("/_store/moda")({
  marketplaceFeed,
  catalogProducts: (productsRes as any).data ?? [],
  };
+   } catch (err) {
+     console.error("[loader:_store.moda] Unhandled error:", err);
+     return null;
+   }
  },
  component: ModaVerticalPage,
  pendingComponent: PageSkeleton,

@@ -7,7 +7,12 @@ import { getOrderForReceipt } from "@/services/order.functions";
 export const Route = createFileRoute("/workspace_/pedidos/$id/recibo")({
  head: () => ({ meta: [{ title: "Recibo" }] }),
  loader: async ({ params }: { params: { id: string } }) => {
+   try {
  return await getOrderForReceipt({ data: { id: params.id } });
+   } catch (err) {
+     console.error("[loader:workspace_.pedidos.$id.recibo] Unhandled error:", err);
+     return null;
+   }
  },
  component: ReceiptPrintPage,
 });

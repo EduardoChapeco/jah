@@ -130,7 +130,7 @@ function CustomerAgendaPage() {
  </Badge>
  </div>
  <h1 className="text-2xl font-bold tracking-tight text-foreground">
- Minha Agenda & Agendamentos
+ Agendamentos
  </h1>
  <p className="text-xs text-muted-foreground">
  Consulte horários marcados, profissionais de beleza, consultas e serviços agendados.

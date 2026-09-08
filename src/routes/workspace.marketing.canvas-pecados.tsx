@@ -31,8 +31,13 @@ import { SevenSinHookDTO } from "@/types/squads-and-onboarding";
 export const Route = createFileRoute("/workspace/marketing/canvas-pecados")({
   head: () => ({ meta: [{ title: "Canvas dos 7 Pecados Capitais | Wider OS" }] }),
   loader: async () => {
+    try {
     const store = await getStoreSettings().catch(() => null);
     return { store };
+    } catch (err) {
+      console.error("[loader:workspace.marketing.canvas-pecados] Unhandled loader error:", err);
+      return null;
+    }
   },
   component: SevenSinsCanvasPage,
 });
@@ -115,7 +120,7 @@ export function SevenSinsCanvasPage() {
                 </span>
               </div>
               <h1 className="text-2xl font-semibold tracking-tight mt-1 text-foreground">
-                O Canvas dos 7 Pecados Capitais & SimLab V2
+                Canvas de Conversão
               </h1>
               <p className="text-sm text-muted-foreground mt-0.5">
                 Crie anúncios e mensagens de WhatsApp ativando os 7 gatilhos subconscientes de compra e teste antes com personas sintéticas.

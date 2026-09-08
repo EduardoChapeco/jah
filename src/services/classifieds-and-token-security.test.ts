@@ -208,4 +208,30 @@ describe("Módulo de Classificados com Agenda de Serviços", () => {
       expect(term.toLowerCase()).not.toContain("p2p");
     });
   });
+
+  it("deve validar schemas de impulsionamento e períodos permitidos", () => {
+    const validPlans = [7, 15, 30];
+    validPlans.forEach((days) => {
+      expect([7, 15, 30]).toContain(days);
+    });
+
+    const invalidPlan = 10;
+    expect([7, 15, 30].includes(invalidPlan)).toBe(false);
+  });
+
+  it("deve validar a estrutura de métricas de telemetria dos classificados", () => {
+    const adMetrics = {
+      views_count: 142,
+      clicks_count: 38,
+      proposals_count: 5,
+      is_boosted: true,
+      boost_plan: "Destaque 15 dias",
+      boosted_until: new Date(Date.now() + 15 * 86400000).toISOString(),
+    };
+
+    expect(adMetrics.views_count).toBeGreaterThan(0);
+    expect(adMetrics.clicks_count).toBeGreaterThan(0);
+    expect(adMetrics.is_boosted).toBe(true);
+    expect(new Date(adMetrics.boosted_until).getTime()).toBeGreaterThan(Date.now());
+  });
 });

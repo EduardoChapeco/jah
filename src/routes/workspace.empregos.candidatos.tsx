@@ -43,8 +43,13 @@ import { formatMoney } from "@/lib/money";
 export const Route = createFileRoute("/workspace/empregos/candidatos")({
  head: () => ({ meta: [{ title: "Gestão de Candidaturas & RH | Workspace" }] }),
  loader: async () => {
+   try {
  const apps = await listStoreJobApplications();
  return apps || [];
+   } catch (err) {
+     console.error("[loader:workspace.empregos.candidatos] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspaceCandidatesPage,
 });

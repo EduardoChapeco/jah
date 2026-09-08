@@ -46,11 +46,16 @@ export const Route = createFileRoute("/_store/agendar/")({
  ],
  }),
  loader: async () => {
+   try {
  const [banners, hotpages] = await Promise.all([
  listActiveBanners({ data: { placement: "agenda" } }).catch(() => []),
  listHotpages({ data: { module: "agenda" } }).catch(() => []),
  ]);
  return { banners, hotpages };
+   } catch (err) {
+     console.error("[loader:_store.agendar.index] Unhandled error:", err);
+     return null;
+   }
  },
  component: BookingIndexPage,
 });
@@ -409,7 +414,7 @@ function BookingIndexPage() {
 
  <div className="space-y-1.5">
  <label className="text-xs font-semibold text-foreground">Horários Disponíveis</label>
- <div className="grid grid-cols-4 gap-1.5 max-h-36 overflow-y-auto p-1 rounded-xl bg-background no-scrollbar">
+ <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 max-h-44 overflow-y-auto p-1.5 rounded-xl bg-background no-scrollbar">
  {TIME_SLOTS.map((slot) => {
  const isSlotSelected = scheduledTime === slot;
  return (
@@ -418,7 +423,7 @@ function BookingIndexPage() {
  type="button"
  onClick={() => setScheduledTime(slot)}
  className={cn(
- "py-1.5 px-2 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer",
+ "h-11 flex items-center justify-center px-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer",
  isSlotSelected
  ? "bg-primary text-primary-foreground "
  : "bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground"

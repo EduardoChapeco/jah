@@ -11,6 +11,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/gift-card/$claimToken")({
  head: () => ({ meta: [{ title: "Resgatar Vale-Presente" }] }),
  loader: async ({ params: { claimToken } }) => {
+   try {
  // Check if user is logged in using isomorphic server function
  const user = await getUserSession();
 
@@ -30,6 +31,10 @@ export const Route = createFileRoute("/_store/gift-card/$claimToken")({
  error: (e instanceof Error ? e.message : String(e)) || "Cartão-presente inválido.",
  };
  }
+   } catch (err) {
+     console.error("[loader:_store.gift-card.$claimToken] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: ClaimGiftCardPage,
 });

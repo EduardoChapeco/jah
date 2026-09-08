@@ -33,7 +33,7 @@ import {
 export const Route = createFileRoute("/_store/entrega/$token")({
  head: () => ({ meta: [{ title: "Painel do Entregador | Wider OS" }] }),
  loader: async ({ params }) => {
- return await getDeliveryByToken({ data: { token: params.token } });
+  return await getDeliveryByToken({ data: { token: params.token } }).catch(() => null);
  },
  component: DeliveryCourierPage,
 });
@@ -223,7 +223,7 @@ function DeliveryCourierPage() {
  </div>
 
  {/* Ações Rápidas de Navegação & Contato */}
- <div className="grid grid-cols-3 gap-2 pt-2">
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
  <Button
  type="button"
  variant="outline"

@@ -45,8 +45,13 @@ export const Route = createFileRoute("/admin-master/vitrines")({
  validateSearch: (search: Record<string, unknown>) => SearchSchema.parse(search),
  head: () => ({ meta: [{ title: "Vitrines & Seções CMS | Admin Master" }] }),
  loader: async () => {
+   try {
  const surfaces = await listAllSurfaces().catch(() => []);
  return { surfaces };
+   } catch (err) {
+     console.error("[loader:admin-master.vitrines] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: AdminMasterVitrinesPage,
 });

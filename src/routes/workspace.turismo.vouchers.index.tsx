@@ -38,8 +38,13 @@ export const Route = createFileRoute("/workspace/turismo/vouchers/")({
     meta: [{ title: "Central de Vouchers & Boarding Passes | Workspace Wider OS" }],
   }),
   loader: async () => {
+    try {
     const store = await getStoreSettings().catch(() => null);
     return { store };
+    } catch (err) {
+      console.error("[loader:workspace.turismo.vouchers.index] Unhandled loader error:", err);
+      return null;
+    }
   },
   component: WorkspaceVouchersPage,
 });

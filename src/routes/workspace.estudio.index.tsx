@@ -67,6 +67,7 @@ export const Route = createFileRoute("/workspace/estudio/")({
  };
  },
  loader: async () => {
+   try {
     // Studio desativado no MVP — apenas platform_admin pode acessar
     const { getUserSession } = await import("@/services/auth.functions");
     const session = await getUserSession().catch(() => null);
@@ -76,6 +77,10 @@ export const Route = createFileRoute("/workspace/estudio/")({
       throw redirect({ to: "/workspace" });
     }
     return {};
+   } catch (err) {
+     console.error("[loader:workspace.estudio.index] Unhandled loader error:", err);
+     return null;
+   }
   },
  component: StudioWorkspacePage,
 });
@@ -434,10 +439,52 @@ function StudioWorkspacePage() {
  ) : (
  <div className="space-y-2">
  <Label className="text-xs font-bold text-foreground">Trilhas de Vídeo</Label>
+ <input
+ type="file"
+ id="studio-video-file-input"
+ accept="video/mp4,video/webm"
+ className="hidden"
+ onChange={(e) => {
+ const f = e.target.files?.[0];
+ if (f) {
+ setVideoTracks((prev) => [
+ ...prev,
+ {
+ id: `track-${Date.now()}`,
+ name: f.name.slice(0, 16),
+ type: "video",
+ clips: [{ id: `clip-${Date.now()}`, name: f.name, start: 0, duration: 15 }],
+ },
+ ]);
+ toast.success(`Vídeo "${f.name}" importado para a timeline!`);
+ }
+ }}
+ />
+ <input
+ type="file"
+ id="studio-audio-file-input"
+ accept="audio/*"
+ className="hidden"
+ onChange={(e) => {
+ const f = e.target.files?.[0];
+ if (f) {
+ setVideoTracks((prev) => [
+ ...prev,
+ {
+ id: `track-${Date.now()}`,
+ name: f.name.slice(0, 16),
+ type: "audio",
+ clips: [{ id: `clip-${Date.now()}`, name: f.name, start: 0, duration: 15 }],
+ },
+ ]);
+ toast.success(`Áudio "${f.name}" adicionado à trilha sonora!`);
+ }
+ }}
+ />
  <Button
  type="button"
  variant="outline"
- onClick={() => toast.info("Selecione um arquivo de vídeo do seu dispositivo.")}
+ onClick={() => document.getElementById('studio-video-file-input')?.click()}
  className="w-full h-9 rounded-xl font-semibold text-xs justify-start gap-2"
  >
  <Film className="size-4 text-primary" />
@@ -446,7 +493,7 @@ function StudioWorkspacePage() {
  <Button
  type="button"
  variant="outline"
- onClick={() => toast.info("Selecione uma trilha de áudio ou efeito sonoro.")}
+ onClick={() => document.getElementById('studio-audio-file-input')?.click()}
  className="w-full h-9 rounded-xl font-semibold text-xs justify-start gap-2"
  >
  <Music className="size-4 text-emerald-500" />
@@ -562,15 +609,33 @@ function StudioWorkspacePage() {
  00:{currentTime.toString().padStart(2, "0")} / 00:{videoDuration}
  </span>
  </div>
- <Button
- size="sm"
- variant="ghost"
- onClick={() => toast.info("Corte na posição atual do cursor.")}
- className="h-8 text-xs gap-1.5"
- >
- <Scissors className="size-3.5" />
- <span>Dividir (Split)</span>
- </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setVideoTracks((prev) =>
+                  prev.map((tr, idx) => {
+                    if (idx === 0 && tr.clips.length > 0) {
+                      const first = tr.clips[0];
+                      const splitTime = Math.max(1, Math.min(currentTime, first.duration - 1));
+                      return {
+                        ...tr,
+                        clips: [
+                          { id: `${first.id}-a`, name: `${first.name} (P1)`, start: first.start, duration: splitTime },
+                          { id: `${first.id}-b`, name: `${first.name} (P2)`, start: first.start + splitTime, duration: Math.max(1, first.duration - splitTime) },
+                        ],
+                      };
+                    }
+                    return tr;
+                  })
+                );
+                toast.success(`Trilha dividida aos ${currentTime.toFixed(1)}s`);
+              }}
+              className="h-8 text-xs gap-1.5"
+            >
+              <Scissors className="size-3.5" />
+              <span>Dividir (Split)</span>
+            </Button>
  </div>
 
  {/* Trilhas Visuais */}

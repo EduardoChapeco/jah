@@ -43,8 +43,13 @@ import { exportElementAsPdf } from "@/lib/pdf-export";
 export const Route = createFileRoute("/workspace/turismo/grupos/$id")({
  head: () => ({ meta: [{ title: "Gestão da Excursão & Ônibus | Workspace" }] }),
  loader: async ({ params }) => {
+   try {
  const tour = await getGroupTourById({ data: { id: params.id } });
  return { tour };
+   } catch (err) {
+     console.error("[loader:workspace.turismo.grupos.$id] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspaceGroupTourDetailPage,
 });
@@ -351,7 +356,7 @@ function WorkspaceGroupTourDetailPage() {
  Agência Nacional de Transportes Terrestres (ANTT) / DER
  </span>
  <h1 className="text-xl font-black uppercase text-slate-900">
- MANIFESTO OFICIAL DE PASSAGEIROS PARA TRANSPORTE RODOVIÁRIO
+ Manifesto de Passageiros
  </h1>
  <p className="text-xs font-mono text-slate-600">
  Viagem: {tour.title} • Origem: {tour.departure_city} ➔ Destino: {tour.destination}

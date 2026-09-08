@@ -11,7 +11,14 @@ import {
 
 export const Route = createFileRoute("/_store/faq")({
  head: () => ({ meta: [{ title: "Perguntas frequentes" }] }),
- loader: () => getPublicFaqs(),
+ loader: async () => {
+   try {
+     return await getPublicFaqs();
+   } catch (err) {
+     console.error("[loader:_store.faq] Unhandled error:", err);
+     return [];
+   }
+ },
  component: Page,
 });
 

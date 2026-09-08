@@ -1269,3 +1269,143 @@ export const deleteEventDocument = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { success: true };
   });
+
+// ---------------------------------------------------------------------------
+// EVENT STORE & MERCHANDISE (LOJA DO EVENTO / PERSONA NEXUS FUSION)
+// ---------------------------------------------------------------------------
+
+export const listEventStoreProducts = createServerFn({ method: "GET" })
+  .validator(z.object({ eventId: z.string().uuid() }))
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+
+    const { data: prods, error } = await supabase
+      .from("event_store_products")
+      .select("*")
+      .eq("event_id", data.eventId)
+      .eq("store_id", identity.store_id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.warn("Aviso ao buscar produtos do evento:", error.message);
+      return [];
+    }
+    return prods || [];
+  });
+
+export const upsertEventStoreProduct = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid().optional(),
+      eventId: z.string().uuid(),
+      subpanelId: z.string().uuid().optional().nullable(),
+      nome: z.string().min(2),
+      descricao: z.string().optional().nullable(),
+      priceCents: z.number().int().min(0).default(0),
+      estoqueAtual: z.number().int().min(0).default(0),
+      imagemUrl: z.string().optional().nullable(),
+      isBundle: z.boolean().default(false),
+      bundleItems: z.array(z.any()).default([]),
+      ativo: z.boolean().default(true),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager"]);
+
+    const payload = {
+      store_id: identity.store_id,
+      event_id: data.eventId,
+      subpanel_id: data.subpanelId,
+      nome: data.nome,
+      descricao: data.descricao,
+      price_cents: data.priceCents,
+      estoque_atual: data.estoqueAtual,
+      imagem_url: data.imagemUrl,
+      is_bundle: data.isBundle,
+      bundle_items: data.bundleItems,
+      ativo: data.ativo,
+      updated_at: new Date().toISOString(),
+    };
+
+    let result;
+    if (data.id) {
+      const { data: updated, error } = await supabase
+        .from("event_store_products")
+        .update(payload)
+        .eq("id", data.id)
+        .eq("store_id", identity.store_id)
+        .select()
+        .single();
+      if (error) throw new Error("Erro ao atualizar produto do evento: " + error.message);
+      result = updated;
+    } else {
+      const { data: created, error } = await supabase
+        .from("event_store_products")
+        .insert(payload)
+        .select()
+        .single();
+      if (error) throw new Error("Erro ao criar produto do evento: " + error.message);
+      result = created;
+    }
+
+    await logAuditAction(
+      identity,
+      data.id ? "UPDATE" : "INSERT",
+      "event_store_products",
+      result.id,
+      result,
+    );
+
+    return result;
+  });
+
+export const deleteEventStoreProduct = createServerFn({ method: "POST" })
+  .validator(z.object({ productId: z.string().uuid() }))
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager"]);
+
+    const { error } = await supabase
+      .from("event_store_products")
+      .delete()
+      .eq("id", data.productId)
+      .eq("store_id", identity.store_id);
+
+    if (error) throw new Error("Erro ao excluir produto: " + error.message);
+
+    await logAuditAction(identity, "DELETE", "event_store_products", data.productId, {});
+
+    return { success: true };
+  });
+
+// ---------------------------------------------------------------------------
+// EVENT AUDIT LOGS (GOVERNANÇA & TRILHA IMUTÁVEL / PERSONA NEXUS FUSION)
+// ---------------------------------------------------------------------------
+
+export const getEventAuditLogs = createServerFn({ method: "GET" })
+  .validator(z.object({ eventId: z.string().uuid() }))
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager"]);
+
+    const { data: logs, error } = await supabase
+      .from("audit_logs")
+      .select("*, profiles!audit_logs_user_id_fkey(full_name)")
+      .eq("store_id", identity.store_id)
+      .or(`entity_id.eq.${data.eventId},entity_type.in.(events,tickets,ticket_lots,event_store_products,event_staff_allocations)`)
+      .order("created_at", { ascending: false })
+      .limit(60);
+
+    if (error) {
+      console.warn("Aviso ao buscar logs de auditoria do evento:", error.message);
+      return [];
+    }
+
+    return logs || [];
+  });
+

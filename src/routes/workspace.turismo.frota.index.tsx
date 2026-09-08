@@ -53,6 +53,7 @@ import {
 export const Route = createFileRoute("/workspace/turismo/frota/")({
  head: () => ({ meta: [{ title: "Frota & Ônibus | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const store = await getStoreSettings().catch(() => null);
  const storeId = store?.id || "";
  const layouts = storeId
@@ -62,6 +63,10 @@ export const Route = createFileRoute("/workspace/turismo/frota/")({
  store,
  initialLayouts: layouts || [],
  };
+   } catch (err) {
+     console.error("[loader:workspace.turismo.frota.index] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: VehicleLayoutsListPage,
 });

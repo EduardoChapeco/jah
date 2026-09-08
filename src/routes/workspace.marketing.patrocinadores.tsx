@@ -35,8 +35,13 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/workspace/marketing/patrocinadores")({
  head: () => ({ meta: [{ title: "Gestão de Patrocinadores & Anunciantes | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const sponsors = await listWorkspaceSponsors().catch(() => []);
  return { sponsors };
+   } catch (err) {
+     console.error("[loader:workspace.marketing.patrocinadores] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspacePatrocinadoresPage,
 });

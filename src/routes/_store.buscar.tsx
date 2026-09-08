@@ -34,6 +34,7 @@ export const Route = createFileRoute("/_store/buscar")({
  head: () => ({ meta: [{ title: "Buscar na Plataforma" }] }),
  validateSearch: SearchSchema,
  loader: async ({ location }) => {
+   try {
  const q = (location.search as { q?: string }).q;
  if (!q || q.trim().length < 2) return { result: null, query: q ?? "" };
  try {
@@ -42,6 +43,10 @@ export const Route = createFileRoute("/_store/buscar")({
  } catch {
  return { result: null, query: q };
  }
+   } catch (err) {
+     console.error("[loader:_store.buscar] Unhandled loader error:", err);
+     return null;
+   }
  },
  pendingComponent: PageSkeleton,
  component: SearchPage,
@@ -260,16 +265,18 @@ function SearchPage() {
 
  const [selectedStoreMarker, setSelectedStoreMarker] = useState<any | null>(null);
 
- // Marcadores do Mapa
+ // Marcadores do Mapa — apenas lojas com coordenadas reais
  const mapMarkers: MapMarkerItem[] = useMemo(() => {
- return filteredStores.map((s, idx) => ({
- id: s.id,
- title: s.name,
- lat: -27.1004 + ((idx % 3) * 0.004 - 0.004),
- lng: -52.6152 + ((idx % 4) * 0.005 - 0.006),
- category: "store",
- image_url: s.logo_url,
- }));
+ return filteredStores
+  .filter((s) => s.latitude && s.longitude)
+  .map((s) => ({
+  id: s.id,
+  title: s.name,
+  lat: s.latitude,
+  lng: s.longitude,
+  category: "store",
+  image_url: s.logo_url,
+  }));
  }, [filteredStores]);
 
  return (
@@ -295,14 +302,8 @@ function SearchPage() {
  {/* ── 2. Estado Inicial (Sugestões, Termos em Alta e Categorias Rápidas) ── */}
  {!input && !hasResults && (
  <div className="space-y-6 pt-2">
- {/* Termos Populares / Em Alta */}
+ {/* Termos Populares — sem label de seção */}
  <div className="space-y-3">
- <div className="flex items-center gap-2">
- <Layers className="size-4 text-primary" />
- <h2 className="text-xs font-bold font-mono uppercase tracking-wider text-muted-foreground">
- Buscas Populares na Cidade
- </h2>
- </div>
  <div className="flex flex-wrap gap-2">
  {[
  "Pizza Artesanal",
@@ -333,9 +334,6 @@ function SearchPage() {
 
  {/* Atalhos Rápidos para Verticais */}
  <div className="space-y-3 pt-2">
- <h2 className="text-xs font-bold font-mono uppercase tracking-wider text-muted-foreground">
- Explorar por Departamento
- </h2>
  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
  {[
  { to: "/mercado", label: "Mercado & Feira", icon: ShoppingBag, color: "text-emerald-600 bg-emerald-500/10" },

@@ -42,6 +42,7 @@ import { KanbanColumnCustomizerModal } from "@/components/workspace/kanban/kanba
 export const Route = createFileRoute("/workspace/tarefas")({
   head: () => ({ meta: [{ title: "Tarefas | Workspace Wider OS" }] }),
   loader: async () => {
+    try {
     const store = await getStoreSettings().catch(() => null);
     const storeId = store?.id || "";
     const [tasks, digest, stages] = await Promise.all([
@@ -55,6 +56,10 @@ export const Route = createFileRoute("/workspace/tarefas")({
       initialDigest: digest,
       initialStages: (stages || []) as KanbanStageDTO[],
     };
+    } catch (err) {
+      console.error("[loader:workspace.tarefas] Unhandled loader error:", err);
+      return null;
+    }
   },
   component: WorkspaceTasksPage,
 });

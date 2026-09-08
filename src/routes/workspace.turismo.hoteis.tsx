@@ -93,12 +93,17 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/workspace/turismo/hoteis")({
  head: () => ({ meta: [{ title: "Banco de Hotéis & Resorts | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const [hotels, destinations, store] = await Promise.all([
  listHotelsBank().catch(() => []),
  listDestinations().catch(() => []),
  getStoreSettings().catch(() => null),
  ]);
  return { hotels: hotels || [], destinations: destinations || [], store };
+   } catch (err) {
+     console.error("[loader:workspace.turismo.hoteis] Unhandled error:", err);
+     return null;
+   }
  },
  component: WorkspaceHotelsPage,
 });
@@ -1554,7 +1559,7 @@ function WorkspaceHotelsPage() {
  </div>
  </div>
 
- <div className="grid grid-cols-3 gap-2">
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
  <div className="space-y-1">
  <Label className="text-[10px] font-semibold text-foreground">Adultos</Label>
  <Input

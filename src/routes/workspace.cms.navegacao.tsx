@@ -14,8 +14,13 @@ import { Card, CardContent } from "@/components/ui/card";
 export const Route = createFileRoute("/workspace/cms/navegacao")({
  head: () => ({ meta: [{ title: "Menus de Navegação | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const res = await getNavigationMenus();
  return res || [];
+   } catch (err) {
+     console.error("[loader:workspace.cms.navegacao] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: CmsNavigationPage,
 });

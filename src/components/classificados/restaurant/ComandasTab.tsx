@@ -17,6 +17,7 @@ import { useCompanyProducts, useCatalogSections } from "@/hooks/useCompanies";
 import { useAuth } from "@/hooks/useAuth";
 import { Plus, Receipt, AlertTriangle, Search, Send, ShoppingCart, Users, Percent, CreditCard, Banknote, Smartphone, X } from "lucide-react";
 import { toast } from "sonner";
+import { updateRestaurantTableStatus } from "@/services/pdv.functions";
 
 const statusLabels: Record<string, string> = { open: "Aberta", closed: "Fechada", cancelled: "Cancelada" };
 const statusColors: Record<string, string> = { open: "bg-green-100 text-green-800", closed: "bg-muted text-muted-foreground", cancelled: "bg-red-100 text-red-800" };
@@ -114,8 +115,16 @@ export default function ComandasTab({ companyId }: Props) {
 
     // Update table status if selected
     if (table) {
-      const { supabase } = await import("@/integrations/supabase/client");
-      await supabase.from("restaurant_tables").update({ status: "occupied", current_comanda_id: comanda.id }).eq("id", table.id);
+      try {
+        await updateRestaurantTableStatus({
+          data: {
+            tableId: table.id,
+            status: "occupied",
+          },
+        });
+      } catch (err) {
+        console.warn("[ComandasTab] Erro ao atualizar status da mesa:", err);
+      }
     }
 
     toast.success("Comanda aberta");
@@ -260,8 +269,16 @@ export default function ComandasTab({ companyId }: Props) {
     // Free the table
     const table = tables.find((t: any) => (t as any).current_comanda_id === selectedComanda.id);
     if (table) {
-      const { supabase } = await import("@/integrations/supabase/client");
-      await supabase.from("restaurant_tables").update({ status: "available", current_comanda_id: null }).eq("id", (table as any).id);
+      try {
+        await updateRestaurantTableStatus({
+          data: {
+            tableId: (table as any).id,
+            status: "available",
+          },
+        });
+      } catch (err) {
+        console.warn("[ComandasTab] Erro ao liberar mesa:", err);
+      }
     }
 
     toast.success("Comanda fechada!");

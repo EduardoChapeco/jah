@@ -38,6 +38,7 @@ export const Route = createFileRoute("/workspace/turismo/grupos/")({
     meta: [{ title: "Grupos Terrestres & Excursões | Workspace Wider OS" }],
   }),
   loader: async () => {
+    try {
     const store = await getStoreSettings().catch(() => null);
     const storeId = store?.id || "";
     const [tours, layouts] = await Promise.all([
@@ -45,6 +46,10 @@ export const Route = createFileRoute("/workspace/turismo/grupos/")({
       storeId ? listVehicleLayouts({ data: { store_id: storeId } }).catch(() => []) : [],
     ]);
     return { tours: tours || [], layouts: layouts || [], store };
+    } catch (err) {
+      console.error("[loader:workspace.turismo.grupos.index] Unhandled error:", err);
+      return null;
+    }
   },
   component: WorkspaceGroupToursIndexPage,
 });

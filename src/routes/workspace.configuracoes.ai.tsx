@@ -111,7 +111,7 @@ function AIConfigurationPage() {
  <div>
  <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
  <Cpu className="size-5 text-primary" />
- <span>Secret Vault & Roteador de IA (BYOK)</span>
+ <span>Inteligência Artificial</span>
  </h1>
  <p className="text-xs text-muted-foreground mt-0.5">
  Gerencie chaves criptografadas de provedores de Inteligência Artificial e automação.

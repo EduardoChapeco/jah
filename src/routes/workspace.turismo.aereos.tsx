@@ -209,7 +209,7 @@ export default function FlightsPage() {
 
             <div className="space-y-1.5">
               <Label>Cia Aérea (IATA + Nome)</Label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-3 gap-2">
                 <Input
                   placeholder="LA"
                   value={airlineCode}
@@ -246,7 +246,7 @@ export default function FlightsPage() {
 
             <div className="space-y-1.5">
               <Label>Origem (IATA + Cidade)</Label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-3 gap-2">
                 <Input
                   placeholder="GRU"
                   value={originIata}
@@ -265,7 +265,7 @@ export default function FlightsPage() {
 
             <div className="space-y-1.5">
               <Label>Destino (IATA + Cidade)</Label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-3 gap-2">
                 <Input
                   placeholder="MIA"
                   value={destinationIata}

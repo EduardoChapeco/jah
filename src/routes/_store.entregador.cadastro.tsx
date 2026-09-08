@@ -33,6 +33,7 @@ import {
 } from "@/services/courier-verification.functions";
 import { getLegalDocumentBySlug } from "@/services/legal.functions";
 import { toast } from "sonner";
+import { formatCpf, validateCpfMod11 } from "@/lib/document-validator";
 
 export const Route = createFileRoute("/_store/entregador/cadastro")({
   head: () => ({
@@ -46,11 +47,16 @@ export const Route = createFileRoute("/_store/entregador/cadastro")({
     ],
   }),
   loader: async () => {
+    try {
     const [existingApp, legalDoc] = await Promise.all([
       getMyCourierApplicationStatus().catch(() => null),
       getLegalDocumentBySlug({ data: { slug: "entregadores" } }).catch(() => null),
     ]);
     return { existingApp, legalDoc };
+    } catch (err) {
+      console.error("[loader:_store.entregador.cadastro] Unhandled loader error:", err);
+      return null;
+    }
   },
   component: CourierOnboardingPage,
 });
@@ -97,6 +103,11 @@ function CourierOnboardingPage() {
       return;
     }
 
+    if (!validateCpfMod11(form.cpf)) {
+      toast.error("CPF do condutor inválido. Por favor, verifique os 11 dígitos informados.");
+      return;
+    }
+
     startTransition(async () => {
       try {
         const res = await submitCourierApplication({
@@ -137,7 +148,7 @@ function CourierOnboardingPage() {
         <div className="mx-auto max-w-2xl px-4 sm:px-6 space-y-6">
           <div className="space-y-1">
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-              Status do Credenciamento de Parceiro
+              Credenciamento de Parceiro
             </h1>
             <p className="text-xs text-muted-foreground font-mono">
               Inscrição: #{application.id.slice(0, 8).toUpperCase()}
@@ -236,7 +247,7 @@ function CourierOnboardingPage() {
             <span className="text-foreground">Cadastro de Parceiro</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Seja um Entregador ou Motorista Parceiro
+            Seja um Parceiro
           </h1>
           <p className="text-xs text-muted-foreground leading-relaxed">
             Tenha liberdade absoluta de horários, escolha de clientes e chamados, sem punitividade por recusa de viagens.
@@ -244,7 +255,7 @@ function CourierOnboardingPage() {
         </div>
 
         {/* Indicador de Passos */}
-        <div className="grid grid-cols-3 gap-2 border-y border-border/40 py-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 border-y border-border/40 py-3">
           <button
             type="button"
             onClick={() => setStep(1)}
@@ -333,12 +344,18 @@ function CourierOnboardingPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="cpf" className="text-xs font-semibold">CPF do Condutor</Label>
+                  <Label htmlFor="cpf" className="text-xs font-semibold">CPF do Condutor *</Label>
                   <Input
                     id="cpf"
                     value={form.cpf}
-                    onChange={(e) => update("cpf", e.target.value)}
+                    onChange={(e) => update("cpf", formatCpf(e.target.value))}
+                    onBlur={() => {
+                      if (form.cpf && !validateCpfMod11(form.cpf)) {
+                        toast.error("CPF do condutor inválido. Verifique os dígitos digitados.");
+                      }
+                    }}
                     placeholder="000.000.000-00"
+                    maxLength={14}
                     className="h-10 rounded-xl text-xs font-mono"
                     required
                   />

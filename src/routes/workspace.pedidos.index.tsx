@@ -35,11 +35,16 @@ import { formatDateTime } from "@/lib/datetime";
 export const Route = createFileRoute("/workspace/pedidos/")({
  head: () => ({ meta: [{ title: "Emissões & Vendas | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const [orders, store] = await Promise.all([
  listOrders().catch(() => []),
  getStoreSettings().catch(() => null),
  ]);
  return { orders: orders || [], store };
+   } catch (err) {
+     console.error("[loader:workspace.pedidos.index] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: AdminOrdersPage,
 });

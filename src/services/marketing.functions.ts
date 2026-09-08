@@ -153,3 +153,101 @@ export const generateMatchTimeOffers = createServerFn({ method: "GET" }).handler
  };
  });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CAMPAIGNS (eventos_campanhas)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CampaignInsertSchema = z.object({
+  nome: z.string().min(1),
+  descricao: z.string().optional(),
+  tipo: z.string(),
+  status: z.string().default("draft"),
+  publico_alvo: z.string().optional(),
+  orcamento: z.number().nullable().optional(),
+  data_inicio: z.string().nullable().optional(),
+  data_fim: z.string().nullable().optional(),
+  config: z.record(z.any()).optional(),
+});
+
+export const createCampaign = createServerFn({ method: "POST" })
+  .validator(CampaignInsertSchema)
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity?.empresa_id) throw new Error("Empresa nao identificada");
+
+    const { data: camp, error } = await supabase
+      .from("eventos_campanhas")
+      .insert({ empresa_id: identity.empresa_id, ...data })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return camp;
+  });
+
+export const updateCampaignStatus = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid(), status: z.string() }))
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity?.empresa_id) throw new Error("Empresa nao identificada");
+
+    const { error } = await supabase
+      .from("eventos_campanhas")
+      .update({ status: data.status })
+      .eq("id", data.id)
+      .eq("empresa_id", identity.empresa_id);
+
+    if (error) throw error;
+    return { ok: true };
+  });
+
+export const deleteCampaign = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity?.empresa_id) throw new Error("Empresa nao identificada");
+
+    const { error } = await supabase
+      .from("eventos_campanhas")
+      .delete()
+      .eq("id", data.id)
+      .eq("empresa_id", identity.empresa_id);
+
+    if (error) throw error;
+    return { ok: true };
+  });
+
+export const duplicateCampaign = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity?.empresa_id) throw new Error("Empresa nao identificada");
+
+    const { data: orig, error: fetchErr } = await supabase
+      .from("eventos_campanhas")
+      .select("*")
+      .eq("id", data.id)
+      .eq("empresa_id", identity.empresa_id)
+      .single();
+
+    if (fetchErr || !orig) throw fetchErr ?? new Error("Campanha nao encontrada");
+
+    const { error } = await supabase.from("eventos_campanhas").insert({
+      empresa_id: identity.empresa_id,
+      nome: orig.nome + " (copia)",
+      descricao: orig.descricao,
+      tipo: orig.tipo,
+      status: "draft",
+      orcamento: orig.orcamento,
+      publico_alvo: orig.publico_alvo,
+      config: orig.config,
+    });
+
+    if (error) throw error;
+    return { ok: true };
+  });

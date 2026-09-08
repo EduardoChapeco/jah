@@ -290,12 +290,34 @@ export function getSemanticBadges(classified: any): Array<{ label: string; icon:
  }
  }
 
- // Meio de pagamento PIX universal
- if (attrs.accepts_pix !== false) {
- badges.push({ label: "Aceita PIX", icon: QrCode, variant: "secondary" });
- }
+  // Formas reais de pagamento configuradas pelo anunciante
+  const paymentMethods = Array.isArray(attrs.payment_methods) ? attrs.payment_methods : [];
+  if (attrs.accepts_pix === true || paymentMethods.includes("pix")) {
+    badges.push({ label: "Aceita PIX", icon: QrCode, variant: "secondary" });
+  }
+  if (attrs.accepts_card === true || paymentMethods.includes("card")) {
+    const maxInst = attrs.max_installments || 12;
+    badges.push({ label: `Cartão até ${maxInst}x`, icon: CreditCard, variant: "outline" });
+  }
+  if (attrs.accepts_cash === true || paymentMethods.includes("cash")) {
+    badges.push({ label: "Dinheiro / À Vista", icon: CreditCard, variant: "outline" });
+  }
 
- return badges;
+  // Política de cancelamento
+  if (attrs.cancellation_policy) {
+    const pol = attrs.cancellation_policy;
+    const polLabel =
+      pol === "flexible"
+        ? "Cancelamento Grátis (Flexível)"
+        : pol === "moderate"
+        ? "Cancelamento Moderado"
+        : pol === "strict"
+        ? "Cancelamento Rígido"
+        : "Sem Cancelamento";
+    badges.push({ label: polLabel, icon: ShieldCheck, variant: "outline" });
+  }
+
+  return badges;
 }
 
 /**

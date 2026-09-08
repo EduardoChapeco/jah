@@ -34,8 +34,13 @@ export const Route = createFileRoute("/workspace/configuracoes/privacidade-loja"
     meta: [{ title: "Privacidade da Loja & Marketplace | Workspace Wider" }],
   }),
   loader: async () => {
+    try {
     const settings = await getStorePrivacySettings().catch(() => null);
     return { settings };
+    } catch (err) {
+      console.error("[loader:workspace.configuracoes.privacidade-loja] Unhandled loader error:", err);
+      return null;
+    }
   },
   component: StorePrivacySettingsPage,
 });
@@ -100,7 +105,7 @@ function StorePrivacySettingsPage() {
           <span className="text-foreground">Privacidade & Canais</span>
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          Privacidade da Loja & Marketplace Seletivo
+          Privacidade da Loja
         </h1>
         <p className="text-xs text-muted-foreground">
           Controle quem pode visualizar sua empresa, configure proteção por senha e escolha se quer vender no marketplace ou apenas na vitrine direta.

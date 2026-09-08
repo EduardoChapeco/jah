@@ -64,11 +64,16 @@ export const Route = createFileRoute("/_store/agenda")({
  ],
  }),
  loader: async () => {
+   try {
  const [banners, hotpages] = await Promise.all([
  listActiveBanners({ data: { placement: "agenda" } }).catch(() => []),
  listHotpages({ data: { module: "agenda" } }).catch(() => []),
  ]);
  return { banners, hotpages };
+   } catch (err) {
+     console.error("[loader:_store.agenda] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: AgendaPage,
 });

@@ -208,21 +208,11 @@ function AfiliadosPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
-      {/* ─── Hero Minimalista Apple HIG ──────────────────────────── */}
-      <div className="border-b border-border/40 bg-card/40 pt-10 pb-12 px-4 sm:px-6">
-        <div className="max-w-4xl mx-auto space-y-3 text-center">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold">
-            <Coins className="size-3.5" />
-            <span>Ecossistema de Tokens & Criadores</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-            Programa de Parceiros & Criadores
-          </h1>
-
-          <p className="text-sm text-muted-foreground max-w-xl mx-auto leading-relaxed">
-            Indique novos membros, lojas locais e serviços. Acumule tokens com telemetria criptográfica e saldo em vesting futuro.
-          </p>
+      {/* ─── Header Limpo ───────────────────────────────────────── */}
+      <div className="border-b border-border/40 bg-card/40 px-4 sm:px-6 py-5">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-base font-bold tracking-tight text-foreground">Parceiros</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Indique pessoas e negócios. Ganhe tokens a cada nova entrada.</p>
         </div>
       </div>
 

@@ -66,6 +66,7 @@ export const Route = createFileRoute("/_store/limpeza")({
  validateSearch: (search: Record<string, unknown>): LimpezaSearch => SearchSchema.parse(search),
  loaderDeps: ({ search }) => search,
  loader: async () => {
+   try {
  const [banners, hotpages, marketplaceFeed, productsRes] = await Promise.all([
  listActiveBanners({ data: { placement: "limpeza" } }).catch(() => []),
  listHotpages({ data: { module: "limpeza" } }).catch(() => []),
@@ -78,6 +79,10 @@ export const Route = createFileRoute("/_store/limpeza")({
  marketplaceFeed,
  catalogProducts: (productsRes as any).data ?? [],
  };
+   } catch (err) {
+     console.error("[loader:_store.limpeza] Unhandled error:", err);
+     return null;
+   }
  },
  component: LimpezaVerticalPage,
  pendingComponent: PageSkeleton,

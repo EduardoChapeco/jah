@@ -9,12 +9,44 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: (key: string) => store[key] || null,
+    setItem: (key: string, value: string) => { store[key] = value.toString(); },
+    clear: () => { store = {}; },
+    removeItem: (key: string) => { delete store[key]; }
+  };
+})();
+
+if (typeof globalThis.window === "undefined") {
+  Object.defineProperty(globalThis, "window", {
+    value: {
+      localStorage: localStorageMock,
+    },
+    configurable: true,
+    writable: true,
+  });
+}
+if (typeof globalThis.screen === "undefined") {
+  Object.defineProperty(globalThis, "screen", {
+    value: {
+      width: 1920,
+      height: 1080,
+    },
+    configurable: true,
+    writable: true,
+  });
+}
+
 import { submitPublicCapture } from "./publicCaptureService";
 
 describe("public capture integration flow", () => {
   beforeEach(() => {
     rpcMock.mockReset();
-    window.localStorage.clear();
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.clear();
+    }
   });
 
   it("submissão válida", async () => {

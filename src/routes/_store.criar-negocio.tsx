@@ -32,6 +32,8 @@ import { BusinessHoursEditor } from "@/components/commerce/business-hours-editor
 import { getPresetForSegment, type WeeklySchedule } from "@/lib/business-hours";
 import { setTenantContext } from "@/services/identity.functions";
 import { provisionBusiness } from "@/services/onboarding.functions";
+import { lookupCnpj } from "@/services/public-apis.functions";
+import { formatCnpj, formatCpf, formatCep, cleanDocument, validateCnpjMod11 } from "@/lib/document-validator";
 import { uploadStoreMedia } from "@/services/storage.functions";
 import { getUserSession } from "@/services/auth.functions";
 import { getPublicLogisticsPresentation } from "@/services/master.functions";
@@ -65,6 +67,7 @@ export const Route = createFileRoute("/_store/criar-negocio")({
  return { session };
  },
  loader: async ({ location }) => {
+   try {
  let session: any = null;
  try {
  session = await getUserSession();
@@ -81,6 +84,10 @@ export const Route = createFileRoute("/_store/criar-negocio")({
 
  const logisticsInfo = await getPublicLogisticsPresentation().catch(() => null);
  return { logisticsInfo, session };
+   } catch (err) {
+     console.error("[loader:_store.criar-negocio] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: CriarNegocioPage,
 });
@@ -435,7 +442,7 @@ function CriarNegocioPage() {
  Etapa 1 • Escolha seu Nicho
  </Badge>
  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
- Qual é o modelo do seu negócio?
+ Criar Negócio
  </h1>
  <p className="text-xs sm:text-sm text-muted-foreground">
  Selecione o segmento principal para configurarmos automaticamente o catálogo, estoque, PDV e regras operacionais.

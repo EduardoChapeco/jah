@@ -194,7 +194,7 @@ export function QuickCreateModal({
  const Icon = item.icon;
  const CardContent = (
  <div
- className={`w-full p-4 rounded-2xl bg-card hover:bg-muted/40 transition-all duration-200 active:scale-[0.99] flex items-center justify-between gap-3 group cursor-pointer ${item.borderHover} `}
+ className={`w-full p-4 rounded-2xl bg-card border border-border/60 hover:bg-muted/40 transition-all duration-200 active:scale-[0.99] flex items-center justify-between gap-3 group cursor-pointer shadow-2xs ${item.borderHover}`}
  >
  <div className="flex items-start gap-3.5 min-w-0">
  <div

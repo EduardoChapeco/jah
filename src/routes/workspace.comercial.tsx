@@ -85,6 +85,7 @@ import { LeadFlightGridSheet } from "@/components/commercial/lead-flight-grid-sh
 export const Route = createFileRoute("/workspace/comercial")({
   head: () => ({ meta: [{ title: "Pipeline Comercial & Funil de Oportunidades | Workspace" }] }),
   loader: async () => {
+    try {
     const [leadsRes, teamRes, store] = await Promise.all([
       listLeads().catch(() => []),
       listTeamMembers().catch(() => []),
@@ -95,6 +96,10 @@ export const Route = createFileRoute("/workspace/comercial")({
       team: teamRes || [],
       store,
     };
+    } catch (err) {
+      console.error("[loader:workspace.comercial] Unhandled loader error:", err);
+      return null;
+    }
   },
   component: WorkspaceComercialPage,
 });
@@ -1110,7 +1115,7 @@ function WorkspaceComercialPage() {
                   <Plane className="size-3.5 text-primary" />
                   <span>Passageiros (Pax)</span>
                 </h4>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div className="space-y-1">
                     <Label className="text-[11px] font-semibold">Adultos (ADT)</Label>
                     <Input
@@ -1468,7 +1473,7 @@ function WorkspaceComercialPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-muted/20 border border-border/60">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 rounded-xl bg-muted/20 border border-border/60">
                       <div className="space-y-1">
                         <Label className="text-[11px] font-semibold">Adultos</Label>
                         <Input

@@ -47,8 +47,13 @@ import type { HotpageDTO, HotpageModule } from "@/services/hotpage.functions";
 export const Route = createFileRoute("/admin-master/hubs")({
  head: () => ({ meta: [{ title: "Gestão de Hubs & Categorias Globais | Admin Master" }] }),
  loader: async () => {
+   try {
  const hubs = await listAllAdminHubs().catch(() => []);
  return { hubs };
+   } catch (err) {
+     console.error("[loader:admin-master.hubs] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: AdminMasterHubsPage,
 });

@@ -69,6 +69,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/workspace/marketing/vitrine")({
  head: () => ({ meta: [{ title: "Sites, Vitrines & Hotpages | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const [docs, storefrontRes, biolinkRes] = await Promise.all([
  listExperienceDocuments().catch(() => []),
  getOrCreateStorefrontExperienceDocument().catch(() => ({ documentId: "" })),
@@ -80,6 +81,10 @@ export const Route = createFileRoute("/workspace/marketing/vitrine")({
  primaryStorefrontId: storefrontRes?.documentId || "",
  primaryBiolinkId: biolinkRes?.documentId || "",
  };
+   } catch (err) {
+     console.error("[loader:workspace.marketing.vitrine] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspaceSitesHubPage,
 });

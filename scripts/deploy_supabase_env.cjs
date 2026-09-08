@@ -3,11 +3,11 @@ const { execSync } = require("child_process");
 try {
   const env = {
     ...process.env,
-    SUPABASE_ACCESS_TOKEN: "<REMOVED_TOKEN>",
+    SUPABASE_ACCESS_TOKEN: process.env.SUPABASE_ACCESS_TOKEN || "",
   };
 
   console.log("Linking project mirhhypunfwbxnmpcnjs...");
-  execSync('npx supabase link --project-ref mirhhypunfwbxnmpcnjs --password "EEaR6399!@#2026"', {
+  execSync('npx supabase link --project-ref mirhhypunfwbxnmpcnjs --password "${process.env.SUPABASE_DB_PASSWORD || ""}"', {
     stdio: "inherit",
     env,
   });

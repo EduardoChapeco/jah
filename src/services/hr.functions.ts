@@ -600,3 +600,102 @@ export const getMyEmployeeRecord = createServerFn({ method: "GET" }).handler(asy
 
   return null;
 });
+
+// ---------------------------------------------------------------------------
+// 6. DOCUMENTOS CORPORATIVOS, MANUAIS & POLÍTICAS
+// ---------------------------------------------------------------------------
+export interface CompanyDocumentDTO {
+  id: string;
+  store_id: string;
+  title: string;
+  description: string | null;
+  category: "politica" | "manual" | "procedimento" | "formulario" | "geral";
+  file_url: string | null;
+  file_name: string | null;
+  file_type: string | null;
+  file_size: number | null;
+  is_required_reading: boolean;
+  version: string;
+  created_at: string;
+  has_read?: boolean;
+}
+
+export const listCompanyDocuments = createServerFn({ method: "GET" })
+  .validator(
+    z
+      .object({
+        storeId: z.string().uuid().optional(),
+        category: z.enum(["politica", "manual", "procedimento", "formulario", "geral"]).optional(),
+      })
+      .optional(),
+  )
+  .handler(async ({ data }): Promise<CompanyDocumentDTO[]> => {
+    const identity = await getServerIdentity().catch(() => null);
+    const db = getServerClient();
+
+    const targetStoreId = data?.storeId || identity?.store_id;
+
+    try {
+      let query = db
+        .from("company_documents")
+        .select("*, company_document_reads(id, employee_id)")
+        .order("created_at", { ascending: false });
+
+      if (targetStoreId) {
+        query = query.eq("store_id", targetStoreId);
+      }
+      if (data?.category) {
+        query = query.eq("category", data.category);
+      }
+
+      const { data: rows, error } = await query;
+      if (error || !rows) return [];
+
+      return rows.map((r: any) => ({
+        id: r.id,
+        store_id: r.store_id,
+        title: r.title,
+        description: r.description,
+        category: r.category,
+        file_url: r.file_url,
+        file_name: r.file_name,
+        file_type: r.file_type,
+        file_size: r.file_size,
+        is_required_reading: r.is_required_reading,
+        version: r.version,
+        created_at: r.created_at,
+        has_read: (r.company_document_reads || []).some(
+          (read: any) => read.employee_id === identity?.id,
+        ),
+      }));
+    } catch {
+      return [];
+    }
+  });
+
+export const acknowledgeCompanyDocumentRead = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      documentId: z.string().uuid(),
+      employeeId: z.string(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const db = getServerClient();
+    const { error } = await db
+      .from("company_document_reads")
+      .upsert(
+        {
+          document_id: data.documentId,
+          employee_id: data.employeeId,
+          read_at: new Date().toISOString(),
+        },
+        { onConflict: "document_id,employee_id" },
+      );
+
+    if (error) {
+      throw new Error(`Erro ao confirmar leitura: ${error.message}`);
+    }
+
+    return { success: true };
+  });

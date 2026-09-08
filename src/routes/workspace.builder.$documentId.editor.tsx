@@ -26,6 +26,7 @@ import { builderRegistry } from "@/lib/builder-registry";
 export const Route = createFileRoute("/workspace/builder/$documentId/editor")({
  head: () => ({ meta: [{ title: "Editor Visual de Páginas | Workspace Wider OS" }] }),
  loader: async ({ params }) => {
+   try {
  const [docData, categories, collections, productsRes] = await Promise.all([
  getExperienceDocument({ data: { id: params.documentId } }),
  listCategories().catch(() => []),
@@ -43,6 +44,10 @@ export const Route = createFileRoute("/workspace/builder/$documentId/editor")({
  collections: collections || [],
  products: realProducts,
  };
+   } catch (err) {
+     console.error("[loader:workspace.builder.$documentId.editor] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: BuilderEditorPage,
 });

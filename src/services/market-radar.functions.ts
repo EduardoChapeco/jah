@@ -16,8 +16,9 @@ async function getDb() {
     host: process.env.SUPABASE_DB_HOST || "aws-0-sa-east-1.pooler.supabase.com",
     port: Number(process.env.SUPABASE_DB_PORT) || 6543,
     database: process.env.SUPABASE_DB_NAME || "postgres",
+    user: process.env.SUPABASE_DB_USER || "postgres.jfuebqmltksyznovhlwa",
     username: process.env.SUPABASE_DB_USER || "postgres.jfuebqmltksyznovhlwa",
-    password: process.env.SUPABASE_DB_PASSWORD || "EEaR6399!@#2026",
+    password: process.env.SUPABASE_DB_PASSWORD || "",
     ssl: "require",
     max: 5,
     idle_timeout: 20,
@@ -649,4 +650,154 @@ export async function updateStoreBrandDna(
   } finally {
     await sql.end();
   }
+}
+
+// ── 6. EXTRATOR DE BRAND DNA COGNITIVO COM IA (THE IDENTITY ENGINEER) ────────
+export async function extractBrandDnaWithAi(
+  storeId: string,
+  briefing: {
+    name: string;
+    segment: string;
+    targetAudience: string;
+    tone: string;
+    differentials: string;
+  }
+): Promise<BrandDnaProfileDTO> {
+  const geminiKey = await getNextActiveKey("gemini");
+  const groqKey = !geminiKey ? await getNextActiveKey("groq") : null;
+
+  const systemInstruction = `Você é o "The Identity Engineer", especialista em arquétipos junguianos, estrategista de marca e posicionamento de mercado.
+Sua missão é transformar o briefing do cliente em um Brand DNA denso, acionável e psicológico.
+Retorne EXCLUSIVAMENTE um JSON estrito no seguinte formato:
+{
+  "archetype": "O Criador | O Herói | O Mago | O Fora da Lei | O Sábio | O Cuidador | O Soberano | O Amante | O Explorador",
+  "archetype_justification": "justificativa psicológica de 2 frases sobre por que esse arquétipo conecta com a dor do cliente",
+  "tone_of_voice": "descrição concisa do tom",
+  "tone_rules": ["regra prática 1 para copywriters", "regra prática 2", "regra prática 3"],
+  "content_pillars": ["pilar de conteúdo 1", "pilar de conteúdo 2", "pilar de conteúdo 3"],
+  "forbidden_words": ["palavra proibida 1", "palavra proibida 2", "palavra proibida 3"],
+  "color_palette": { "primary": "#18181b", "secondary": "#71717a", "accent": "#3b82f6", "background": "#ffffff", "text": "#09090b" },
+  "swot_analysis": {
+    "strengths": ["ponto forte 1", "ponto forte 2"],
+    "weaknesses": ["fraqueza 1", "fraqueza 2"],
+    "opportunities": ["oportunidade 1", "oportunidade 2"],
+    "threats": ["ameaça 1", "ameaça 2"]
+  },
+  "seven_sins_triggers": {
+    "gula": "gancho de desejo irresistível",
+    "avareza": "gancho de economia inteligente / ROI",
+    "luxuria": "gancho de estética e acabamento impecável",
+    "ira": "gancho contra a ineficiência de soluções genéricas",
+    "inveja": "gancho de status e exclusividade",
+    "preguica": "gancho de facilidade extrema em poucos toques",
+    "soberba": "gancho de pertencimento a um padrão superior"
+  }
+}`;
+
+  const prompt = `Loja: ${briefing.name}
+Segmento: ${briefing.segment}
+Público Alvo: ${briefing.targetAudience}
+Tom Desejado: ${briefing.tone}
+Diferenciais Competitivos: ${briefing.differentials}`;
+
+  let extractedData: any = null;
+
+  if (geminiKey) {
+    try {
+      const gRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey.rawKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemInstruction }] },
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.3,
+              responseMimeType: "application/json",
+            },
+          }),
+          signal: AbortSignal.timeout(20000),
+        }
+      );
+      if (gRes.ok) {
+        const d = await gRes.json();
+        const text = d?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) extractedData = JSON.parse(text);
+      }
+    } catch (e: any) {
+      console.warn("[market-radar] Gemini extractor error:", e.message);
+    }
+  } else if (groqKey) {
+    try {
+      const grRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${groqKey.rawKey}`,
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-70b-versatile",
+          messages: [
+            { role: "system", content: systemInstruction },
+            { role: "user", content: prompt },
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.3,
+        }),
+        signal: AbortSignal.timeout(20000),
+      });
+      if (grRes.ok) {
+        const grData = await grRes.json();
+        const text = grData?.choices?.[0]?.message?.content;
+        if (text) extractedData = JSON.parse(text);
+      }
+    } catch (e: any) {
+      console.warn("[market-radar] Groq extractor error:", e.message);
+    }
+  }
+
+  // Fallback determinístico calibrado
+  if (!extractedData) {
+    extractedData = {
+      archetype: briefing.tone.toLowerCase().includes("rebel") || briefing.tone.toLowerCase().includes("ousad") ? "O Fora da Lei" : "O Criador",
+      archetype_justification: `Com base no segmento de ${briefing.segment}, a marca ${briefing.name} opera com forte apelo à originalidade e soluções que empoderam seu público (${briefing.targetAudience}).`,
+      tone_of_voice: briefing.tone || "Elegante, autêntico e de alta resolução",
+      tone_rules: [
+        "Elimine jargões vazios e clichês publicitários",
+        `Destaque sempre o diferencial: "${briefing.differentials || 'Qualidade artesanal e precisão'}"`,
+        "Comunique benefícios práticos antes de especificações técnicas",
+      ],
+      content_pillars: [
+        `Bastidores e Engenharia de ${briefing.segment}`,
+        "Transformação e Resultados dos Clientes",
+        "Padrão de Excelência & Inovação",
+      ],
+      forbidden_words: ["Baratinho", "Garantido 100%", "Sem compromisso"],
+      color_palette: {
+        primary: "#18181b",
+        secondary: "#71717a",
+        accent: "#3b82f6",
+        background: "#ffffff",
+        text: "#09090b",
+      },
+      swot_analysis: {
+        strengths: [briefing.differentials || "Autoridade e atendimento exclusivo", "Flexibilidade e proximidade local"],
+        weaknesses: ["Escala de distribuição inicial", "Volume de tráfego orgânico"],
+        opportunities: ["Explorar vulnerabilidades de concorrentes padronizados", "Fidelização via cashback e ecossistema Wider"],
+        threats: ["Pressão de preços por marketplaces massivos", "Custo crescente de anúncios pagos"],
+      },
+      seven_sins_triggers: {
+        gula: `Experimente o que há de melhor em ${briefing.segment}`,
+        avareza: "Investimento inteligente com benefícios e retorno imediato",
+        luxuria: "Padrão de acabamento que encanta desde o primeiro olhar",
+        ira: "Chega de perder tempo com soluções lentas e genéricas",
+        inveja: "A preferência comprovada dos clientes mais criteriosos",
+        preguica: "Experiência sem atrito resolvida em poucos toques",
+        soberba: `Faça parte do seleto círculo de clientes da ${briefing.name}`,
+      },
+    };
+  }
+
+  return updateStoreBrandDna(storeId, extractedData);
 }

@@ -38,11 +38,16 @@ export const Route = createFileRoute("/workspace/turismo/contratos/")({
     meta: [{ title: "Contratos Turísticos & Assinatura Digital | Workspace Wider OS" }],
   }),
   loader: async () => {
+    try {
     const [contracts, store] = await Promise.all([
       listAgencyTravelContracts().catch(() => []),
       getStoreSettings().catch(() => null),
     ]);
     return { contracts: contracts || [], store };
+    } catch (err) {
+      console.error("[loader:workspace.turismo.contratos.index] Unhandled error:", err);
+      return null;
+    }
   },
   component: WorkspaceContractsIndexPage,
 });

@@ -107,6 +107,18 @@ function resolveCreateContext(pathname: string): CreateContext {
 export function MobileNav({ session }: MobileNavProps) {
   const location = useLocation();
   const navigate = useNavigate();
+
+  const isFormPage =
+    location.pathname.includes("/classificados/novo") ||
+    location.pathname.endsWith("/novo") ||
+    location.pathname.endsWith("/editar") ||
+    location.pathname.includes("/catalogo/produtos/novo") ||
+    location.pathname.includes("/marketing/anuncios/novo");
+
+  if (isFormPage) {
+    return null;
+  }
+
   const { globalCarts, cart } = useCartContext();
 
   const isAuthenticated = Boolean(session?.user || session?.id);
@@ -167,37 +179,122 @@ export function MobileNav({ session }: MobileNavProps) {
 
   const hasActiveOrders = activeOrdersCount > 0;
 
-  // ── Gestos do Avatar / Botão Perfil (1 toque, long press, double tap) ──────
-  const lastTapRef = useRef<number>(0);
-  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [isLongPressing, setIsLongPressing] = useState(false);
+  const userMeta = user?.user_metadata || {};
+  const username =
+    userMeta?.username ||
+    user?.username ||
+    (typeof user?.email === "string" ? user.email.split("@")[0] : null);
+  const userId = session?.user?.id || user?.id;
+  const publicProfileTarget = username || userId;
 
-  const handleAvatarTouchStart = useCallback(() => {
-    setIsLongPressing(true);
+  // ── Gestos do Avatar / Botão Perfil (1 toque: público | segurar 500ms: editar | 2 toques: central /conta) ──
+  const lastTapTimeRef = useRef<number>(0);
+  const singleTapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const didLongPressRef = useRef<boolean>(false);
+  const pointerStartPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isPressing, setIsPressing] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (singleTapTimerRef.current) clearTimeout(singleTapTimerRef.current);
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    };
+  }, []);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    pointerStartPosRef.current = { x: e.clientX, y: e.clientY };
+    didLongPressRef.current = false;
+    setIsPressing(true);
+
+    // Temporizador de clique segurado (500ms) → editar perfil
     longPressTimerRef.current = setTimeout(() => {
-      // Long press (500ms) → editar perfil
-      setIsLongPressing(false);
+      didLongPressRef.current = true;
+      setIsPressing(false);
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        try {
+          navigator.vibrate(50);
+        } catch {}
+      }
+      toast.info("Abrindo edição do perfil...", { duration: 1500 });
       navigate({ to: "/conta/perfil" });
     }, 500);
   }, [navigate]);
 
-  const handleAvatarTouchEnd = useCallback(() => {
-    setIsLongPressing(false);
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!longPressTimerRef.current && !isPressing) return;
+    const dx = Math.abs(e.clientX - pointerStartPosRef.current.x);
+    const dy = Math.abs(e.clientY - pointerStartPosRef.current.y);
+    if (dx > 10 || dy > 10) {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+      setIsPressing(false);
+    }
+  }, [isPressing]);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    setIsPressing(false);
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
     }
-    const now = Date.now();
-    const delta = now - lastTapRef.current;
-    if (delta < 320 && delta > 0) {
-      // Double tap → central da conta
-      navigate({ to: "/conta" });
-    } else {
-      // Single tap → perfil público
-      lastTapRef.current = now;
-      navigate({ to: "/conta/perfil" });
+
+    if (didLongPressRef.current) {
+      didLongPressRef.current = false;
+      return;
     }
-  }, [navigate]);
+
+    const now = Date.now();
+    const delta = now - lastTapTimeRef.current;
+
+    // 2 cliques rápidos (< 280ms) → central da conta (/conta)
+    if (delta < 280 && delta > 0 && singleTapTimerRef.current) {
+      clearTimeout(singleTapTimerRef.current);
+      singleTapTimerRef.current = null;
+      lastTapTimeRef.current = 0;
+
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        try {
+          navigator.vibrate([25, 40, 25]);
+        } catch {}
+      }
+      toast.info("Acessando Central da Conta...", { duration: 1200 });
+      navigate({ to: "/conta" });
+      return;
+    }
+
+    // 1 toque → perfil público (/membro/$id)
+    lastTapTimeRef.current = now;
+    if (singleTapTimerRef.current) {
+      clearTimeout(singleTapTimerRef.current);
+    }
+
+    singleTapTimerRef.current = setTimeout(() => {
+      singleTapTimerRef.current = null;
+      lastTapTimeRef.current = 0;
+
+      if (publicProfileTarget) {
+        navigate({
+          to: "/membro/$id",
+          params: { id: String(publicProfileTarget) },
+        });
+      } else {
+        navigate({ to: "/conta/perfil" });
+      }
+    }, 280);
+  }, [navigate, publicProfileTarget]);
+
+  const handlePointerCancel = useCallback(() => {
+    setIsPressing(false);
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    didLongPressRef.current = false;
+  }, []);
 
   // ── Contexto do botão + ───────────────────────────────────────────────────
   const createCtx = resolveCreateContext(location.pathname);
@@ -458,17 +555,19 @@ export function MobileNav({ session }: MobileNavProps) {
           {isAuthenticated ? (
             <button
               type="button"
-              aria-label="Perfil (1 toque: perfil, segurar: editar, 2 toques: conta)"
-              onTouchStart={handleAvatarTouchStart}
-              onTouchEnd={handleAvatarTouchEnd}
-              onMouseDown={handleAvatarTouchStart}
-              onMouseUp={handleAvatarTouchEnd}
+              aria-label="Perfil (1 toque: perfil público, segurar: editar perfil, 2 toques: central da conta)"
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerCancel}
+              onContextMenu={(e) => e.preventDefault()}
+              style={{ touchAction: "manipulation", WebkitTouchCallout: "none" }}
               className={cn(
-                "h-11 w-11 shrink-0 rounded-2xl flex items-center justify-center transition-all cursor-pointer relative active:scale-95",
+                "h-11 w-11 shrink-0 rounded-2xl flex items-center justify-center transition-all cursor-pointer relative select-none",
                 isProfileActive
                   ? "ring-2 ring-foreground ring-offset-2 ring-offset-background"
                   : "ring-1 ring-border/80",
-                isLongPressing && "scale-90 opacity-75"
+                isPressing ? "scale-90 opacity-75 ring-2 ring-primary" : "active:scale-95"
               )}
             >
               {userAvatar ? (

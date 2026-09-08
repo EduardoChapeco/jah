@@ -25,8 +25,13 @@ import { toggleAmbassadorStatus } from "@/services/stories.functions";
 export const Route = createFileRoute("/workspace/master/influencers")({
  head: () => ({ meta: [{ title: "Influenciadores & Embaixadores | Master" }] }),
  loader: async () => {
+   try {
  const res = await listCreatorProfiles();
  return res || [];
+   } catch (err) {
+     console.error("[loader:workspace.master.influencers] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: MasterInfluencersPage,
 });

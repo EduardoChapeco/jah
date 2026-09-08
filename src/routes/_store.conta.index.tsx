@@ -40,23 +40,23 @@ export const Route = createFileRoute("/_store/conta/")({
 });
 
 const ACCOUNT_SECTIONS = [
- { to: "/conta/financas", label: "Gestão Financeira & Gastos", icon: Wallet, badge: "Novo" },
- { to: "/conta/contratos", label: "Meus Contratos & Certificados", icon: FileText, badge: "Assinados" },
- { to: "/conta/carnes", label: "Carnês & Parcelamentos", icon: CreditCard, badge: "Parcelas" },
- { to: "/conta/pedidos", label: "Meus Pedidos & Compras", icon: ShoppingBag, badge: null },
- { to: "/conta/verificacao", label: "Verificação de Identidade (KYC)", icon: ShieldCheck, badge: "Oficial" },
- { to: "/conta/colaborador", label: "Espaço do Colaborador (Ponto & Holerite)", icon: Briefcase, badge: "RH" },
- { to: "/conta/mobilidade", label: "Minhas Corridas & Entregas", icon: Car, badge: "Mobilidade" },
- { to: "/conta/agendamentos", label: "Minha Agenda & Horários", icon: Calendar, badge: "Serviços" },
- { to: "/conta/pacotes", label: "Meus Pacotes & Sessões", icon: Ticket, badge: null },
- { to: "/conta/viagens", label: "Minhas Viagens & Roteiros", icon: Plane, badge: null },
- { to: "/conta/salvos", label: "Itens Salvos & Favoritos", icon: Bookmark, badge: null },
- { to: "/conta/classificados", label: "Meus Desapegos & Anúncios", icon: Layers, badge: null },
- { to: "/conta/pagamentos", label: "Formas de Pagamento", icon: CreditCard, badge: null },
- { to: "/conta/tokens", label: "Meus Tokens & Cashback", icon: Coins, badge: "Fidelidade" },
- { to: "/conta/gift-cards", label: "Vales-Presente & Cupons", icon: Gift, badge: null },
- { to: "/conta/seguranca", label: "Segurança & Senha", icon: Lock, badge: "Proteção" },
- { to: "/conta/suporte", label: "Ajuda & Central de Atendimento", icon: HelpCircle, badge: null },
+ { to: "/conta/financas", label: "Finanças", icon: Wallet },
+ { to: "/conta/contratos", label: "Contratos", icon: FileText },
+ { to: "/conta/carnes", label: "Carnês", icon: CreditCard },
+ { to: "/conta/pedidos", label: "Pedidos", icon: ShoppingBag },
+ { to: "/conta/verificacao", label: "Verificação", icon: ShieldCheck },
+ { to: "/conta/colaborador", label: "Colaborador", icon: Briefcase },
+ { to: "/conta/mobilidade", label: "Mobilidade", icon: Car },
+ { to: "/conta/agendamentos", label: "Agendamentos", icon: Calendar },
+ { to: "/conta/pacotes", label: "Pacotes", icon: Ticket },
+ { to: "/conta/viagens", label: "Viagens", icon: Plane },
+ { to: "/conta/salvos", label: "Salvos", icon: Bookmark },
+ { to: "/conta/classificados", label: "Anúncios", icon: Layers },
+ { to: "/conta/pagamentos", label: "Pagamentos", icon: CreditCard },
+ { to: "/conta/tokens", label: "Tokens", icon: Coins },
+ { to: "/conta/gift-cards", label: "Gift Cards", icon: Gift },
+ { to: "/conta/seguranca", label: "Segurança", icon: Lock },
+ { to: "/conta/suporte", label: "Ajuda", icon: HelpCircle },
 ];
 
 function AccountDashboardPage() {
@@ -281,11 +281,6 @@ function AccountDashboardPage() {
  </div>
 
  <div className="flex items-center gap-2">
- {sec.badge && (
- <Badge variant="outline" className="text-[10px] font-medium text-muted-foreground">
- {sec.badge}
- </Badge>
- )}
  <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-transform group-hover:translate-x-0.5" />
  </div>
  </Link>

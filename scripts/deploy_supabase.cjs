@@ -9,10 +9,10 @@ try {
   }
 
   console.log("Logging in with token...");
-  execSync("npx supabase login --token <REMOVED_TOKEN>", { stdio: "inherit" });
+  execSync("npx supabase login --token ${process.env.SUPABASE_ACCESS_TOKEN || ""}", { stdio: "inherit" });
 
   console.log("Linking project mirhhypunfwbxnmpcnjs...");
-  execSync('npx supabase link --project-ref mirhhypunfwbxnmpcnjs --password "EEaR6399!@#2026"', {
+  execSync('npx supabase link --project-ref mirhhypunfwbxnmpcnjs --password "${process.env.SUPABASE_DB_PASSWORD || ""}"', {
     stdio: "inherit",
   });
 

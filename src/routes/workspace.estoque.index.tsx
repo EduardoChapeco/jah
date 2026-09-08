@@ -47,8 +47,13 @@ import { StockAuditDialog } from "@/components/admin/stock-audit-dialog";
 export const Route = createFileRoute("/workspace/estoque/")({
  head: () => ({ meta: [{ title: "Estoque Operacional | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const res = await getStockLevels({ data: {} }).catch(() => []);
  return res || [];
+   } catch (err) {
+     console.error("[loader:workspace.estoque.index] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: AdminStockPage,
 });

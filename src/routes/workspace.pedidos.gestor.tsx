@@ -56,6 +56,7 @@ import { getStoreSettings } from "@/services/store.functions";
 export const Route = createFileRoute("/workspace/pedidos/gestor")({
  head: () => ({ meta: [{ title: "KDS - Gestor de Pedidos em Tempo Real | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const { getUserSession } = await import("@/services/auth.functions");
  const [session, res, store] = await Promise.all([
  getUserSession().catch(() => null),
@@ -67,6 +68,10 @@ export const Route = createFileRoute("/workspace/pedidos/gestor")({
  const initialOrders = (res || []).filter((o: any) => !["draft", "cancelled", "refunded"].includes(o.status));
  
  return { initialOrders, storeId, store };
+   } catch (err) {
+     console.error("[loader:workspace.pedidos.gestor] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: KDSPage,
 });

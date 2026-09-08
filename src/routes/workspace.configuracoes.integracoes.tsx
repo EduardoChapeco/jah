@@ -31,11 +31,16 @@ import {
 export const Route = createFileRoute("/workspace/configuracoes/integracoes")({
  head: () => ({ meta: [{ title: "Integrações & APIs | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const [integrations, secrets] = await Promise.all([
  listIntegrationSettings().catch(() => []),
  listConfiguredSecrets().catch(() => []),
  ]);
  return { integrations, secrets };
+   } catch (err) {
+     console.error("[loader:workspace.configuracoes.integracoes] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: IntegrationsPage,
 });

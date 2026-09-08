@@ -53,7 +53,12 @@ export const Route = createFileRoute("/_store/doacoes")({
  validateSearch: (search: Record<string, unknown>): DoacoesSearch => SearchSchema.parse(search),
  loaderDeps: ({ search }) => search,
  loader: async () => {
+   try {
  return {};
+   } catch (err) {
+     console.error("[loader:_store.doacoes] Unhandled error:", err);
+     return null;
+   }
  },
  component: DoacoesPage,
  pendingComponent: PageSkeleton,

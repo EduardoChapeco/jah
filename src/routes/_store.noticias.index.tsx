@@ -38,6 +38,7 @@ export const Route = createFileRoute("/_store/noticias/")({
  ],
  }),
  loader: async () => {
+   try {
  const [articles, banners, hotpages, sponsors] = await Promise.all([
  listPublicArticles({ data: { limit: 40 } }).catch(() => []),
  listActiveBanners({ data: { placement: "noticias" } }).catch(() => []),
@@ -45,6 +46,10 @@ export const Route = createFileRoute("/_store/noticias/")({
  listWorkspaceSponsors().catch(() => []),
  ]);
  return { articles, banners, hotpages, sponsors };
+   } catch (err) {
+     console.error("[loader:_store.noticias.index] Unhandled error:", err);
+     return null;
+   }
  },
  component: NoticiasFeedPage,
 });

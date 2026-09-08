@@ -163,7 +163,7 @@ function TourismDetailPage() {
  return (
  <div className="w-full max-w-3xl mx-auto py-24 text-center space-y-4">
  <Compass size={48} className="text-muted-foreground/40 mx-auto" />
- <h1 className="text-xl font-bold text-foreground">Experiência turística não encontrada</h1>
+ <h1 className="text-xl font-bold text-foreground">Experiência Não Encontrada</h1>
  <p className="text-sm text-muted-foreground max-w-md mx-auto">
  Este roteiro ou hospedagem pode ter sido desativado pelo anfitrião.
  </p>
@@ -191,7 +191,7 @@ function TourismDetailPage() {
  };
 
  return (
- <div className="w-full max-w-4xl mx-auto space-y-8 pb-6 px-4 sm:px-0">
+ <div className="w-full max-w-6xl mx-auto space-y-8 pb-6 px-4 sm:px-0">
  {/* ── 1. Top Navigation & Breadcrumb ── */}
  <div className="flex items-center justify-between pt-2">
  <Link

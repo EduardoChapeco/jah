@@ -47,6 +47,13 @@ export function AppShell({ children, session, brandSettings }: AppShellProps) {
  location.pathname.startsWith("/membro/") ||
  location.pathname.startsWith("/conta/perfil");
 
+ const isFormPage =
+ location.pathname.includes("/classificados/novo") ||
+ location.pathname.endsWith("/novo") ||
+ location.pathname.endsWith("/editar") ||
+ location.pathname.includes("/catalogo/produtos/novo") ||
+ location.pathname.includes("/marketing/anuncios/novo");
+
  // Em páginas imersivas de mapa, o mapa ocupa 100dvh sem header/footer interferindo
  if (isFullBleedPage) {
  return (
@@ -61,8 +68,8 @@ export function AppShell({ children, session, brandSettings }: AppShellProps) {
 
  return (
  <div className="h-screen w-full max-w-full bg-background text-foreground selection:bg-primary selection:text-primary-foreground font-sans antialiased relative flex flex-col overflow-hidden">
- {/* ── Barra de Topo Horizontal (Invariável no Desktop, Ocultada no Mobile em Perfil Imersivo) ── */}
- <div className={isProfilePage ? "hidden sm:block" : ""}>
+ {/* ── Barra de Topo Horizontal (Ocultada no Mobile em Telas Full de Formulário e Perfil) ── */}
+ <div className={isProfilePage || isFormPage ? "hidden sm:block" : ""}>
  <TopBar
  session={session}
  brandSettings={brandSettings}
@@ -79,9 +86,13 @@ export function AppShell({ children, session, brandSettings }: AppShellProps) {
  {/* Viewport Central com Container Canônico Único (DESIGN.md Seção 4) */}
  <main
  ref={mainRef}
- className="flex-1 flex flex-col min-w-0 h-full w-full max-w-full overflow-y-auto no-scrollbar overflow-x-hidden px-4 sm:px-6 py-4 sm:py-6 pb-24 md:pb-8"
+ className={`flex-1 flex flex-col min-w-0 h-full w-full max-w-full overflow-y-auto no-scrollbar overflow-x-hidden ${
+ isFormPage
+ ? "px-3.5 sm:px-6 py-3 sm:py-6 pb-20 md:pb-8"
+ : "px-4 sm:px-6 py-4 sm:py-6 pb-24 md:pb-8"
+ }`}
  >
- <div className="w-full max-w-6xl mx-auto flex flex-col items-stretch min-w-0 flex-1">
+ <div className={`w-full mx-auto flex flex-col items-stretch min-w-0 flex-1 ${isFormPage ? "max-w-7xl" : "max-w-6xl"}`}>
  {children}
  </div>
  </main>

@@ -67,6 +67,7 @@ import { formatMoney } from "@/lib/money";
 export const Route = createFileRoute("/workspace/financeiro/caixa/")({
  head: () => ({ meta: [{ title: "Fluxo de Caixa & Turnos | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const [registerRes, historyRes] = await Promise.all([
  getActiveRegister().catch(() => null),
  listRegisterHistory().catch(() => []),
@@ -75,6 +76,10 @@ export const Route = createFileRoute("/workspace/financeiro/caixa/")({
  register: registerRes,
  history: historyRes || [],
  };
+   } catch (err) {
+     console.error("[loader:workspace.financeiro.caixa.index] Unhandled loader error:", err);
+     return null;
+   }
  },
  errorComponent: ({ error }) => <CashRegisterError error={error} />,
  component: CashRegisterManagerPage,

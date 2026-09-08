@@ -42,11 +42,16 @@ export const Route = createFileRoute("/_store/conta/viagens")({
  ],
  }),
  loader: async () => {
+   try {
  const [trips, agencyTrips] = await Promise.all([
  listCustomerTrips().catch(() => []),
  listCustomerAgencyTrips().catch(() => []),
  ]);
  return { trips, agencyTrips };
+   } catch (err) {
+     console.error("[loader:_store.conta.viagens] Unhandled error:", err);
+     return null;
+   }
  },
  component: CustomerTripsPage,
 });

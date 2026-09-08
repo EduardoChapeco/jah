@@ -72,6 +72,7 @@ export const Route = createFileRoute("/_store/construcao")({
  SearchSchema.parse(search),
  loaderDeps: ({ search }) => search,
  loader: async () => {
+   try {
  const [banners, hotpages, marketplaceFeed, productsRes] = await Promise.all([
  listActiveBanners({ data: { placement: "construcao" } }).catch(() => []),
  listHotpages({ data: { module: "construcao" } }).catch(() => []),
@@ -84,6 +85,10 @@ export const Route = createFileRoute("/_store/construcao")({
  marketplaceFeed,
  catalogProducts: (productsRes as any).data ?? [],
  };
+   } catch (err) {
+     console.error("[loader:_store.construcao] Unhandled error:", err);
+     return null;
+   }
  },
  component: ConstrucaoVerticalPage,
  pendingComponent: PageSkeleton,

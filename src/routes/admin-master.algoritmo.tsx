@@ -131,7 +131,7 @@ export default function AdminAlgorithmSettingsPage() {
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
  <div>
  <h1 className="text-xl font-bold tracking-tight text-foreground">
- Motor Algorítmico & Recomendação Urbana
+ Algoritmo & Recomendações
  </h1>
  <p className="text-xs text-muted-foreground mt-0.5">
  Controle central dos pesos do algoritmo de ranking (Wider Pulse). Ajustes entram em vigor imediatamente na vitrine pública.

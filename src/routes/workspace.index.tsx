@@ -51,6 +51,7 @@ import { formatMoney } from "@/lib/money";
 export const Route = createFileRoute("/workspace/")({
  head: () => ({ meta: [{ title: "Painel de Controle & Visão Geral | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  let session: any = null;
  try {
  session = await getUserSession();
@@ -93,6 +94,10 @@ export const Route = createFileRoute("/workspace/")({
  memberships,
  dashboardMetrics,
  };
+   } catch (err) {
+     console.error("[loader:workspace.index] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspaceDashboardPage,
 });

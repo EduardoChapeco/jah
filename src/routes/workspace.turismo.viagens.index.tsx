@@ -39,11 +39,16 @@ export const Route = createFileRoute("/workspace/turismo/viagens/")({
     meta: [{ title: "Viagens & Reservas Confirmadas | Workspace Wider OS" }],
   }),
   loader: async () => {
+    try {
     const [trips, store] = await Promise.all([
       listStoreTrips({ data: { status: "all" } }).catch(() => []),
       getStoreSettings().catch(() => null),
     ]);
     return { trips: trips || [], store };
+    } catch (err) {
+      console.error("[loader:workspace.turismo.viagens.index] Unhandled error:", err);
+      return null;
+    }
   },
   component: WorkspaceTripsListPage,
 });

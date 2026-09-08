@@ -22,9 +22,14 @@ import { getWaitlistDemandCounts } from "@/services/waitlist.functions";
 export const Route = createFileRoute("/workspace/estoque/alertas")({
  head: () => ({ meta: [{ title: "Alertas de Estoque | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const res = await getStockLevels({ data: {} });
  // Filter for low stock (on_hand <= 5) or out of stock
  return (res || []).filter((v: any) => v.stock_on_hand <= 5);
+   } catch (err) {
+     console.error("[loader:workspace.estoque.alertas] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: StockAlertsPage,
 });

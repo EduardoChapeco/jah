@@ -52,7 +52,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useTenant } from '@/contexts/TenantContext';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  listRestaurantTables,
+  saveRestaurantTable,
+  deleteRestaurantTable,
+  updateRestaurantTableStatus,
+} from '@/services/pdv.functions';
 import { cn } from '@/lib/utils';
 
 interface RestaurantTable {
@@ -102,54 +107,36 @@ export default function OSMesasPage() {
   const { data: tables = [], isLoading, refetch } = useQuery({
     queryKey: ['restaurant-tables', tenant?.id],
     queryFn: async () => {
-      if (!tenant?.id) return [];
-      const { data, error } = await supabase
-        .from('restaurant_tables')
-        .select('*')
-        .eq('tenant_id', tenant.id)
-        .eq('is_active', true)
-        .order('number');
-      
-      if (error) throw error;
-      return data as RestaurantTable[];
+      const res = await listRestaurantTables();
+      return (res || []).map((t: any) => ({
+        id: t.id,
+        tenant_id: tenant?.id || '',
+        number: t.table_number || t.number || 0,
+        name: t.table_name || t.name || null,
+        capacity: t.capacity || 4,
+        section: t.zone || t.section || null,
+        shape: (t.shape as any) || 'square',
+        status: (t.status as any) || 'available',
+        is_active: t.is_active ?? true,
+      })) as RestaurantTable[];
     },
-    enabled: !!tenant?.id,
+    enabled: true,
   });
   
   // Create/Update mutation
   const saveMutation = useMutation({
     mutationFn: async (data: typeof formData & { id?: string }) => {
-      if (!tenant?.id) throw new Error('Tenant não encontrado');
-      
-      if (data.id) {
-        // Update
-        const { error } = await supabase
-          .from('restaurant_tables')
-          .update({
-            number: data.number,
-            name: data.name || null,
-            capacity: data.capacity,
-            section: data.section || null,
-            shape: data.shape,
-          })
-          .eq('id', data.id);
-        
-        if (error) throw error;
-      } else {
-        // Create
-        const { error } = await supabase
-          .from('restaurant_tables')
-          .insert({
-            tenant_id: tenant.id,
-            number: data.number,
-            name: data.name || null,
-            capacity: data.capacity,
-            section: data.section || null,
-            shape: data.shape,
-          });
-        
-        if (error) throw error;
-      }
+      return await saveRestaurantTable({
+        data: {
+          id: data.id,
+          tableNumber: data.number,
+          tableName: data.name || `Mesa ${data.number}`,
+          zone: data.section || 'Salão Principal',
+          capacity: data.capacity,
+          shape: (data.shape as any) || 'square',
+          status: 'available',
+        }
+      });
     },
     onSuccess: () => {
       toast({ title: selectedTable ? 'Mesa atualizada!' : 'Mesa criada!' });
@@ -168,12 +155,7 @@ export default function OSMesasPage() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('restaurant_tables')
-        .update({ is_active: false })
-        .eq('id', id);
-      
-      if (error) throw error;
+      return await deleteRestaurantTable({ data: { tableId: id } });
     },
     onSuccess: () => {
       toast({ title: 'Mesa removida!' });
@@ -185,12 +167,12 @@ export default function OSMesasPage() {
   // Update status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase
-        .from('restaurant_tables')
-        .update({ status })
-        .eq('id', id);
-      
-      if (error) throw error;
+      return await updateRestaurantTableStatus({
+        data: {
+          tableId: id,
+          status: status as any,
+        }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['restaurant-tables'] });

@@ -28,8 +28,13 @@ export const Route = createFileRoute("/_store/conta/notificacoes")({
  meta: [{ title: "Central de Notificações | Wider OS" }],
  }),
  loader: async () => {
+   try {
  const session = await getUserSession().catch(() => null);
  return { session };
+   } catch (err) {
+     console.error("[loader:_store.conta.notificacoes] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: NotificationsPage,
 });

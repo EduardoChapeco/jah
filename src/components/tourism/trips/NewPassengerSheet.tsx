@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { X, UserPlus, FileText } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { saveTripPassenger } from "@/services/travel-lifecycle.functions";
 import { Field } from "@/components/ui/field";
 import { FormInput as Input } from "@/components/ui/input";
 import { NativeSelect as Select } from "@/components/ui/select";
@@ -59,23 +59,27 @@ export function NewPassengerSheet({
 
   async function onSubmit(data: PassengerFormData) {
     setSubmitting(true);
-    const { error } = await supabase.from("trip_passengers").insert({
-      trip_id: tripId,
-      agency_id: agencyId,
-      full_name: data.fullName,
-      kind: data.kind,
-      document: data.document || null,
-      document_type: data.documentType || null,
-      birth_date: data.birthDate || null,
-      nationality: data.nationality || null,
-      email: data.email || null,
-      phone: data.phone || null,
-      is_lead_passenger: data.isLead,
-    });
-    setSubmitting(false);
-    if (error) return toast.error(error.message);
-    toast.success("Passageiro adicionado");
-    onCreated();
+    try {
+      await saveTripPassenger({
+        data: {
+          tripId,
+          fullName: data.fullName,
+          documentType: data.documentType || "rg",
+          document: data.document || null,
+          birthDate: data.birthDate || null,
+          nationality: data.nationality || "Brasileira",
+          email: data.email || null,
+          phone: data.phone || null,
+          isLeadPassenger: Boolean(data.isLead),
+        },
+      });
+      toast.success("Passageiro adicionado");
+      onCreated();
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao adicionar passageiro");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (

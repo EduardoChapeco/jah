@@ -5,7 +5,6 @@ import {
   Mail, MessageCircle, ArrowUpRight, MoreHorizontal,
   Play, Pause, Trash2, Edit, Copy, Eye, Zap, BarChart3
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +14,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  updateCampaignStatus,
+  deleteCampaign,
+  duplicateCampaign,
+} from "@/services/marketing.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 // ── types ─────────────────────────────────────────────────────────────────────
 
@@ -88,38 +93,24 @@ export default function CampaignsDashboard() {
     enabled: !!empresaId,
   });
 
-  // ── mutations ─────────────────────────────────────────────────────────────
+  // ── mutations (via BFF — tenant-guarded server-side) ──────────────────────
   const updateStatusMut = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from("eventos_campanhas").update({ status }).eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      updateCampaignStatus({ data: { id, status } }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["campaigns", empresaId] }); toast.success("Status atualizado"); },
+    onError: (e: any) => toast.error(e.message ?? "Erro ao atualizar status"),
   });
 
   const deleteMut = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("eventos_campanhas").delete().eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => deleteCampaign({ data: { id } }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["campaigns", empresaId] }); toast.success("Campanha removida"); },
+    onError: (e: any) => toast.error(e.message ?? "Erro ao remover campanha"),
   });
 
   const duplicateMut = useMutation({
-    mutationFn: async (camp: Campaign) => {
-      const { error } = await supabase.from("eventos_campanhas").insert({
-        empresa_id: empresaId,
-        nome: `${camp.title} (cópia)`,
-        descricao: camp.description,
-        tipo: camp.type,
-        status: 'draft',
-        orcamento: camp.budget,
-        publico_alvo: camp.target_audience,
-        config: camp.config,
-      });
-      if (error) throw error;
-    },
+    mutationFn: (camp: Campaign) => duplicateCampaign({ data: { id: camp.id } }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["campaigns", empresaId] }); toast.success("Campanha duplicada"); },
+    onError: (e: any) => toast.error(e.message ?? "Erro ao duplicar campanha"),
   });
 
   // ── derived ───────────────────────────────────────────────────────────────

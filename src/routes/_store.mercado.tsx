@@ -88,6 +88,7 @@ export const Route = createFileRoute("/_store/mercado")({
  validateSearch: (search: Record<string, unknown>): CatalogSearch => SearchSchema.parse(search),
  loaderDeps: ({ search }) => search,
  loader: async ({ location }) => {
+   try {
  const search = location.search as CatalogSearch;
  const [productsRes, categoriesRes, attributesRes, feedRes, bannersRes, hotpagesRes] = await Promise.all([
  listPublishedProducts({
@@ -116,6 +117,10 @@ export const Route = createFileRoute("/_store/mercado")({
  banners: bannersRes || [],
  hotpages: hotpagesRes || [],
  };
+   } catch (err) {
+     console.error("[loader:_store.mercado] Unhandled error:", err);
+     return null;
+   }
  },
  pendingComponent: PageSkeleton,
  component: SupermarketMasterPage,

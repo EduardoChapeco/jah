@@ -28,9 +28,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/admin-master/seguranca/certificados/$id")({
  head: () => ({ meta: [{ title: "Certificado de Transação | Admin Master" }] }),
  loader: async ({ params }) => {
- const result = await getCertificateDetail({ data: { id: params.id } });
- return result;
- },
+    return await getCertificateDetail({ data: { id: params.id } }).catch((err: any) => ({
+      success: false,
+      error: err?.message || "Erro ao carregar certificado",
+      certificate: null,
+      related_events: [],
+    }));
+  },
  component: CertificateDetailPage,
 });
 
@@ -136,7 +140,7 @@ function CertificateDetailPage() {
  {/* Risk + Validity Strip */}
  <div className="bg-card border border-border/50 rounded-xl p-5 space-y-4">
  <RiskGauge score={status.risk_score} />
- <div className="grid grid-cols-3 gap-4 pt-2">
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
  <div className="text-center">
  <div className={cn("text-base font-bold", status.is_valid ? "text-green-500" : "text-red-500")}>
  {status.is_valid ? "✓ Válido" : "✗ Inválido"}

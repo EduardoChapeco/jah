@@ -56,8 +56,13 @@ import { formatMoney } from "@/lib/money";
 export const Route = createFileRoute("/workspace/catalogo/tabelas")({
  head: () => ({ meta: [{ title: "Tabelas de Preços (B2B, Atacado, Varejo) | Workspace" }] }),
  loader: async () => {
+   try {
  const tables = await listPriceTables().catch(() => []);
  return { tables };
+   } catch (err) {
+     console.error("[loader:workspace.catalogo.tabelas] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspacePriceTablesPage,
 });

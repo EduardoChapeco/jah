@@ -39,11 +39,16 @@ export const Route = createFileRoute("/workspace/pedidos/entregadores/$id")({
  meta: [{ title: "Detalhe do Entregador | Workspace Wider OS" }],
  }),
  loader: async ({ params }) => {
+   try {
  const couriers = await listCouriers({ data: {} }).catch(() => []);
  const courier = couriers.find(
  (c: CourierSummaryDTO) => c.id === params.id,
  );
  return { courier: courier || null, id: params.id };
+   } catch (err) {
+     console.error("[loader:workspace.pedidos.entregadores.$id] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: EntregadorDetailPage,
 });

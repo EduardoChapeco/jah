@@ -43,10 +43,15 @@ export const Route = createFileRoute("/admin-master/entregadores/auditoria")({
     meta: [{ title: "Auditoria Forense de Entregadores | Admin Master Wider" }],
   }),
   loader: async () => {
+    try {
     const applications = await listCourierApplicationsForAudit({ data: { status: "all" } }).catch(
       () => []
     );
     return { applications };
+    } catch (err) {
+      console.error("[loader:admin-master.entregadores.auditoria] Unhandled loader error:", err);
+      return null;
+    }
   },
   component: AdminCourierAuditPage,
 });
@@ -115,7 +120,7 @@ function AdminCourierAuditPage() {
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <ShieldCheck size={26} weight="bold" className="text-primary" />
-            <span>Auditoria Forense de Credenciamento de Parceiros</span>
+            <span>Auditoria de Parceiros</span>
           </h1>
           <p className="text-xs text-muted-foreground">
             Inspeção biométrica em 2 etapas, minivídeos de liveness, cross-check anti-fraude e comunicação legal.

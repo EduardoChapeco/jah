@@ -10,7 +10,7 @@ import {
 } from "@/components/proposals/ProposalFormFields";
 import { replaceAt } from "@/components/proposals/ProposalFormFields";
 import { useAgency } from "@/lib/agency-context";
-import { supabase } from "@/integrations/supabase/client";
+import { listGroupTours } from "@/services/group-tours.functions";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -44,26 +44,17 @@ export function SectionTours({ draft, save }: Props) {
     if (!agency) return;
     setLoading(true);
     try {
-      let q = supabase
-        .from("group_tours")
-        .select(
-          "id, title, destination, departure_date, return_date, base_price, cover_image_url, status",
-        )
-        .eq("agency_id", agency.id)
-        .in("status", ["draft", "open", "confirmed"]);
-
-      if (searchTerm.trim()) {
-        q = q.ilike("title", `%${searchTerm.trim()}%`);
-      }
-
-      const { data, error } = await q;
-      if (error) throw error;
-      setPromotions(data || []);
+      const data = await listGroupTours({
+        data: {
+          search: searchTerm.trim() || undefined,
+        },
+      });
+      setPromotions(data ?? []);
       if ((data || []).length === 0) {
         toast.info("Nenhuma promoção ou excursão localizada.");
       }
     } catch (err: any) {
-      toast.error(err.message || "Erro ao consultar promoções.");
+      toast.error(err.message ?? "Erro ao buscar viagens.");
     } finally {
       setLoading(false);
     }

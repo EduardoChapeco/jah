@@ -44,6 +44,7 @@ import {
 export const Route = createFileRoute("/admin-master/termos")({
  head: () => ({ meta: [{ title: "Termos & Políticas da Plataforma | Wider Master" }] }),
  loader: async () => {
+   try {
  const [documents, logsRes, stats] = await Promise.all([
  listLegalDocuments().catch(() => []),
  listConsentLogs({ data: { limit: 50, offset: 0 } }).catch(() => ({ logs: [], total: 0 })),
@@ -56,6 +57,10 @@ export const Route = createFileRoute("/admin-master/termos")({
  })),
  ]);
  return { documents, logs: logsRes.logs, totalLogs: logsRes.total, stats };
+   } catch (err) {
+     console.error("[loader:admin-master.termos] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: AdminMasterTermosPage,
 });

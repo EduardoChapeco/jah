@@ -32,8 +32,13 @@ import { formatDateTime, formatTimeOnly } from "@/lib/datetime";
 export const Route = createFileRoute("/_store/conta/colaborador")({
   head: () => ({ meta: [{ title: "Espaço do Colaborador | Wider Hub" }] }),
   loader: async () => {
+    try {
     const employee = await getMyEmployeeRecord().catch(() => null);
     return { employee };
+    } catch (err) {
+      console.error("[loader:_store.conta.colaborador] Unhandled error:", err);
+      return null;
+    }
   },
   component: ColaboradorPortalPage,
 });

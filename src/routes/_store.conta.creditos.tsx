@@ -22,12 +22,17 @@ import {
 export const Route = createFileRoute("/_store/conta/creditos")({
  head: () => ({ meta: [{ title: "Meus Créditos | Wider OS" }] }),
  loader: async () => {
+   try {
  return (
  (await getCustomerCredits().catch(() => ({
  balance_cents: 0,
  customer_credit_transactions: [],
  }))) || { balance_cents: 0, customer_credit_transactions: [] }
  );
+   } catch (err) {
+     console.error("[loader:_store.conta.creditos] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: Page,
 });

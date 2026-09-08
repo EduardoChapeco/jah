@@ -509,14 +509,14 @@ export default function WorkspaceBoardingPage() {
             {/* Calendar grid */}
             <div className="rounded-2xl border border-border overflow-hidden bg-card">
               {/* Day headers */}
-              <div className="grid grid-cols-7 border-b border-border/60 bg-muted/30">
+              <div className="grid grid-cols-7 sm:grid-cols-7 border-b border-border/60 bg-muted/30">
                 {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => (
                   <div key={d} className="text-center text-[11px] font-semibold text-muted-foreground py-2">{d}</div>
                 ))}
               </div>
 
               {/* Calendar days */}
-              <div className="grid grid-cols-7">
+              <div className="grid grid-cols-7 sm:grid-cols-7">
                 {/* Empty cells */}
                 {Array.from({ length: firstDay }, (_, i) => (
                   <div key={`empty-${i}`} className="min-h-[80px] sm:min-h-[100px] border-b border-r border-border/40 bg-muted/10" />

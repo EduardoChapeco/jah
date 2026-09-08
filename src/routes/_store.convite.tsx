@@ -46,6 +46,7 @@ export const Route = createFileRoute("/_store/convite")({
     ],
   }),
   loader: async () => {
+    try {
     const [overview, leaderboard, rewards, raffles] = await Promise.all([
       getMyInviteOverview().catch(() => null),
       getInviteLeaderboard().catch(() => []),
@@ -54,6 +55,10 @@ export const Route = createFileRoute("/_store/convite")({
     ]);
 
     return { overview, leaderboard, rewards, raffles };
+    } catch (err) {
+      console.error("[loader:_store.convite] Unhandled loader error:", err);
+      return null;
+    }
   },
   component: ConvitePage,
 });
@@ -143,7 +148,7 @@ function ConvitePage() {
                 </span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-                Seu Painel de Indicação & Pontos
+                Indicações
               </h1>
             </div>
 
@@ -226,7 +231,7 @@ function ConvitePage() {
           </div>
           <div className="max-w-md mx-auto space-y-2">
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-              Programa de Embaixadores Comunitários
+              Embaixadores
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground">
               Convide seus amigos e comércios locais para a Wider. A cada novo membro cadastrado pelo seu link, você ganha 100 pontos para trocar por ingressos e prêmios.

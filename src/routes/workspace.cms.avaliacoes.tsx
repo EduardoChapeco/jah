@@ -21,8 +21,13 @@ import { formatDate } from "@/lib/datetime";
 export const Route = createFileRoute("/workspace/cms/avaliacoes")({
  head: () => ({ meta: [{ title: "Avaliações & Moderação | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const res = await listReviews();
  return res || [];
+   } catch (err) {
+     console.error("[loader:workspace.cms.avaliacoes] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: CmsAvaliacoesPage,
 });

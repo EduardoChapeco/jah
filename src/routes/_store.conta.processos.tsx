@@ -98,7 +98,7 @@ function UserLawsuitsPage() {
  <span className="text-primary">Módulo Jus</span>
  </div>
  <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
- Processos & Assistência Jurídica
+ Processos
  </h1>
  <p className="text-sm text-muted-foreground">
  Acompanhe suas intimações, processos vinculados ao seu CPF e solicite suporte de advogados verificados.

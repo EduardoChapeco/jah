@@ -11,8 +11,13 @@ import { formatMoney } from "@/lib/money";
 export const Route = createFileRoute("/workspace/contratos/")({
  head: () => ({ meta: [{ title: "Meus Contratos | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const contracts = await listContracts().catch(() => []);
  return { contracts };
+   } catch (err) {
+     console.error("[loader:workspace.contratos.index] Unhandled error:", err);
+     return null;
+   }
  },
  component: ContractsDashboard,
 });

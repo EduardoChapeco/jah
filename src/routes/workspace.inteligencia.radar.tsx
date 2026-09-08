@@ -38,8 +38,13 @@ import {
 export const Route = createFileRoute("/workspace/inteligencia/radar")({
   head: () => ({ meta: [{ title: "Radar de Mercado & Brand DNA | Wider OS" }] }),
   loader: async () => {
+    try {
     const store = await getStoreSettings().catch(() => null);
     return { store };
+    } catch (err) {
+      console.error("[loader:workspace.inteligencia.radar] Unhandled loader error:", err);
+      return null;
+    }
   },
   component: MarketRadarPage,
 });
@@ -576,7 +581,7 @@ export function MarketRadarPage() {
                         <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5">
                           Paleta Cromática Oficial (Apple HIG)
                         </label>
-                        <div className="grid grid-cols-5 gap-2 p-3.5 rounded-xl bg-muted/20 border border-border/40">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 p-3.5 rounded-xl bg-muted/20 border border-border/40">
                           {Object.entries(brandDna.color_palette).map(([key, val]) => (
                             <div key={key} className="text-center">
                               <div

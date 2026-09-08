@@ -78,6 +78,7 @@ export const Route = createFileRoute("/_store/")({
  ],
  }),
   loader: async ({ location }) => {
+    try {
     let activeCity: string | undefined = (location.search as any)?.city;
     if (!activeCity && typeof document !== "undefined") {
       const match = document.cookie.match(/wider_city=([^;]+)/);
@@ -123,6 +124,10 @@ export const Route = createFileRoute("/_store/")({
  newsArticles,
  packages,
  };
+    } catch (err) {
+      console.error("[loader:_store.index] Unhandled loader error:", err);
+      return null;
+    }
  },
  component: CommercialHomePage,
 });

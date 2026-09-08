@@ -15,8 +15,13 @@ import { RmaMessageCard } from "@/components/chat/rma-message-card";
 export const Route = createFileRoute("/_store/conta/conversas/$id")({
  head: () => ({ meta: [{ title: "Atendimento & SAC | Wider OS" }] }),
  loader: async ({ params }) => {
+   try {
  const res = await getCustomerChatThread({ data: { threadId: params.id } });
  return res;
+   } catch (err) {
+     console.error("[loader:_store.conta.conversas.$id] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: CustomerChatPage,
 });

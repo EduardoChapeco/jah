@@ -17,7 +17,12 @@ import {
 export const Route = createFileRoute("/_store/conta/suporte")({
  head: () => ({ meta: [{ title: "Meus Atendimentos | Wider OS" }] }),
  loader: async () => {
+   try {
  return (await listCustomerTickets().catch(() => [])) || [];
+   } catch (err) {
+     console.error("[loader:_store.conta.suporte] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: CustomerSupportPage,
 });

@@ -34,8 +34,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/workspace/turismo/propostas/$id")({
  head: () => ({ meta: [{ title: "Studio de Propostas & Lâminas | Workspace Wider OS" }] }),
  loader: async ({ params }) => {
+   try {
  const proposal = await getTravelProposalById({ data: { id: params.id } });
  return { proposal };
+   } catch (err) {
+     console.error("[loader:workspace.turismo.propostas.$id] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspaceProposalStudioPage,
 });

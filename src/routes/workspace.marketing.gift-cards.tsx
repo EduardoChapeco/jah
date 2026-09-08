@@ -25,7 +25,12 @@ import { Search, Plus, Gift, CheckCircle, XCircle, Copy, ExternalLink, QrCode } 
 export const Route = createFileRoute("/workspace/marketing/gift-cards")({
  head: () => ({ meta: [{ title: "Vale-Presentes | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  return { giftCards: await listGiftCards() };
+   } catch (err) {
+     console.error("[loader:workspace.marketing.gift-cards] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: GiftCardsDashboardPage,
 });

@@ -7,7 +7,12 @@ import { getCollectionBySlug } from "@/services/catalog.functions";
 
 export const Route = createFileRoute("/_store/colecao/$slug")({
  loader: async ({ params }) => {
+   try {
  return getCollectionBySlug({ data: { slug: params.slug } });
+   } catch (err) {
+     console.error("[loader:_store.colecao.$slug] Unhandled error:", err);
+     return null;
+   }
  },
  head: ({ loaderData }) => {
  const data = loaderData as any;

@@ -30,11 +30,16 @@ import { formatMoney } from "@/lib/money";
 export const Route = createFileRoute("/workspace/financeiro/afiliados")({
  head: () => ({ meta: [{ title: "Comissões de Afiliados | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const [performance, summary] = await Promise.all([
  getAffiliatePerformance({ data: {} }),
  getCommissionSummary(),
  ]);
  return { initialPerformance: performance, initialSummary: summary };
+   } catch (err) {
+     console.error("[loader:workspace.financeiro.afiliados] Unhandled error:", err);
+     return null;
+   }
  },
  component: AfiliadosFinanceiroPage,
 });

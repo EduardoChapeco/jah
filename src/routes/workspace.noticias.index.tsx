@@ -42,12 +42,17 @@ import { EmptyState } from "@/components/state/states";
 export const Route = createFileRoute("/workspace/noticias/")({
  head: () => ({ meta: [{ title: "Redação & Gestão de Notícias | Workspace Wider OS" }] }),
  loader: async () => {
+   try {
  const [articles, tips, mined] = await Promise.all([
  listWorkspaceArticles().catch(() => []),
  listCommunityNewsTips().catch(() => []),
  listMinedArticles({ data: { limit: 20, status: "pending_review" } }).catch(() => ({ items: [], total: 0 })),
  ]);
  return { articles: articles || [], tips: tips || [], mined: mined.items || [] };
+   } catch (err) {
+     console.error("[loader:workspace.noticias.index] Unhandled loader error:", err);
+     return null;
+   }
  },
  component: WorkspaceNoticiasIndexPage,
 });
@@ -143,19 +148,19 @@ function WorkspaceNoticiasIndexPage() {
 
  {/* Abas */}
  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
- <TabsList className="grid grid-cols-3 h-10 w-full max-w-md mb-6">
- <TabsTrigger value="materias" className="text-xs font-semibold gap-1.5">
- <Newspaper className="size-3.5" />
- Matérias ({articles.length})
- </TabsTrigger>
- <TabsTrigger value="mineradas" className="text-xs font-semibold gap-1.5">
- <Radio className="size-3.5" />
- Mineradas ({minedArticles.length})
- </TabsTrigger>
- <TabsTrigger value="pautas" className="text-xs font-semibold gap-1.5">
- <Inbox className="size-3.5" />
- Pautas ({tips.length})
- </TabsTrigger>
+ <TabsList className="grid grid-cols-3 sm:grid-cols-3 h-10 w-full max-w-md mb-6 p-1">
+   <TabsTrigger value="materias" className="text-xs font-semibold gap-1.5 px-2">
+     <Newspaper className="size-3.5 shrink-0" />
+     <span className="truncate">Matérias ({articles.length})</span>
+   </TabsTrigger>
+   <TabsTrigger value="mineradas" className="text-xs font-semibold gap-1.5 px-2">
+     <Radio className="size-3.5 shrink-0" />
+     <span className="truncate">Mineradas ({minedArticles.length})</span>
+   </TabsTrigger>
+   <TabsTrigger value="pautas" className="text-xs font-semibold gap-1.5 px-2">
+     <Inbox className="size-3.5 shrink-0" />
+     <span className="truncate">Pautas ({tips.length})</span>
+   </TabsTrigger>
  </TabsList>
 
  {/* ── Aba 1: Matérias ── */}
