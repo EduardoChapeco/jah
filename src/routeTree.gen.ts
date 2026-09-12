@@ -262,6 +262,7 @@ import { Route as WorkspaceMarketingPixelsRouteImport } from './routes/workspace
 import { Route as WorkspaceMarketingPromocoesRouteImport } from './routes/workspace.marketing.promocoes'
 import { Route as WorkspaceMarketingPublicacoesRouteImport } from './routes/workspace.marketing.publicacoes'
 import { Route as WorkspaceMarketingStoriesRouteImport } from './routes/workspace.marketing.stories'
+import { Route as WorkspaceMarketingStudioRouteImport } from './routes/workspace.marketing.studio'
 import { Route as WorkspaceMarketingTelemetriaRouteImport } from './routes/workspace.marketing.telemetria'
 import { Route as WorkspaceMarketingVitrineRouteImport } from './routes/workspace.marketing.vitrine'
 import { Route as WorkspaceMasterInfluencersRouteImport } from './routes/workspace.master.influencers'
@@ -1660,6 +1661,12 @@ const WorkspaceMarketingStoriesRoute =
     path: '/marketing/stories',
     getParentRoute: () => WorkspaceRoute,
   } as any)
+const WorkspaceMarketingStudioRoute =
+  WorkspaceMarketingStudioRouteImport.update({
+    id: '/marketing/studio',
+    path: '/marketing/studio',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
 const WorkspaceMarketingTelemetriaRoute =
   WorkspaceMarketingTelemetriaRouteImport.update({
     id: '/marketing/telemetria',
@@ -2360,6 +2367,7 @@ export interface FileRoutesByFullPath {
   '/workspace/marketing/promocoes': typeof WorkspaceMarketingPromocoesRoute
   '/workspace/marketing/publicacoes': typeof WorkspaceMarketingPublicacoesRoute
   '/workspace/marketing/stories': typeof WorkspaceMarketingStoriesRoute
+  '/workspace/marketing/studio': typeof WorkspaceMarketingStudioRoute
   '/workspace/marketing/telemetria': typeof WorkspaceMarketingTelemetriaRoute
   '/workspace/marketing/vitrine': typeof WorkspaceMarketingVitrineRoute
   '/workspace/master/influencers': typeof WorkspaceMasterInfluencersRoute
@@ -2689,6 +2697,7 @@ export interface FileRoutesByTo {
   '/workspace/marketing/promocoes': typeof WorkspaceMarketingPromocoesRoute
   '/workspace/marketing/publicacoes': typeof WorkspaceMarketingPublicacoesRoute
   '/workspace/marketing/stories': typeof WorkspaceMarketingStoriesRoute
+  '/workspace/marketing/studio': typeof WorkspaceMarketingStudioRoute
   '/workspace/marketing/telemetria': typeof WorkspaceMarketingTelemetriaRoute
   '/workspace/marketing/vitrine': typeof WorkspaceMarketingVitrineRoute
   '/workspace/master/influencers': typeof WorkspaceMasterInfluencersRoute
@@ -3027,6 +3036,7 @@ export interface FileRoutesById {
   '/workspace/marketing/promocoes': typeof WorkspaceMarketingPromocoesRoute
   '/workspace/marketing/publicacoes': typeof WorkspaceMarketingPublicacoesRoute
   '/workspace/marketing/stories': typeof WorkspaceMarketingStoriesRoute
+  '/workspace/marketing/studio': typeof WorkspaceMarketingStudioRoute
   '/workspace/marketing/telemetria': typeof WorkspaceMarketingTelemetriaRoute
   '/workspace/marketing/vitrine': typeof WorkspaceMarketingVitrineRoute
   '/workspace/master/influencers': typeof WorkspaceMasterInfluencersRoute
@@ -3365,6 +3375,7 @@ export interface FileRouteTypes {
     | '/workspace/marketing/promocoes'
     | '/workspace/marketing/publicacoes'
     | '/workspace/marketing/stories'
+    | '/workspace/marketing/studio'
     | '/workspace/marketing/telemetria'
     | '/workspace/marketing/vitrine'
     | '/workspace/master/influencers'
@@ -3694,6 +3705,7 @@ export interface FileRouteTypes {
     | '/workspace/marketing/promocoes'
     | '/workspace/marketing/publicacoes'
     | '/workspace/marketing/stories'
+    | '/workspace/marketing/studio'
     | '/workspace/marketing/telemetria'
     | '/workspace/marketing/vitrine'
     | '/workspace/master/influencers'
@@ -4031,6 +4043,7 @@ export interface FileRouteTypes {
     | '/workspace/marketing/promocoes'
     | '/workspace/marketing/publicacoes'
     | '/workspace/marketing/stories'
+    | '/workspace/marketing/studio'
     | '/workspace/marketing/telemetria'
     | '/workspace/marketing/vitrine'
     | '/workspace/master/influencers'
@@ -5943,6 +5956,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceMarketingStoriesRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/workspace/marketing/studio': {
+      id: '/workspace/marketing/studio'
+      path: '/marketing/studio'
+      fullPath: '/workspace/marketing/studio'
+      preLoaderRoute: typeof WorkspaceMarketingStudioRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
     '/workspace/marketing/telemetria': {
       id: '/workspace/marketing/telemetria'
       path: '/marketing/telemetria'
@@ -7052,6 +7072,7 @@ interface WorkspaceRouteChildren {
   WorkspaceMarketingPromocoesRoute: typeof WorkspaceMarketingPromocoesRoute
   WorkspaceMarketingPublicacoesRoute: typeof WorkspaceMarketingPublicacoesRoute
   WorkspaceMarketingStoriesRoute: typeof WorkspaceMarketingStoriesRoute
+  WorkspaceMarketingStudioRoute: typeof WorkspaceMarketingStudioRoute
   WorkspaceMarketingTelemetriaRoute: typeof WorkspaceMarketingTelemetriaRoute
   WorkspaceMarketingVitrineRoute: typeof WorkspaceMarketingVitrineRoute
   WorkspaceMasterInfluencersRoute: typeof WorkspaceMasterInfluencersRoute
@@ -7201,6 +7222,7 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceMarketingPromocoesRoute: WorkspaceMarketingPromocoesRoute,
   WorkspaceMarketingPublicacoesRoute: WorkspaceMarketingPublicacoesRoute,
   WorkspaceMarketingStoriesRoute: WorkspaceMarketingStoriesRoute,
+  WorkspaceMarketingStudioRoute: WorkspaceMarketingStudioRoute,
   WorkspaceMarketingTelemetriaRoute: WorkspaceMarketingTelemetriaRoute,
   WorkspaceMarketingVitrineRoute: WorkspaceMarketingVitrineRoute,
   WorkspaceMasterInfluencersRoute: WorkspaceMasterInfluencersRoute,

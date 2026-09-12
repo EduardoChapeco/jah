@@ -169,6 +169,17 @@ export default function WorkspaceMarketingPixelsPage() {
 
         <div className="flex items-center gap-2">
           <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="rounded-xl text-xs font-semibold gap-1.5 cursor-pointer"
+          >
+            <Link to="/workspace/marketing/studio">
+              <Sparkles className="size-3.5 text-amber-500" />
+              <span>Social Studio</span>
+            </Link>
+          </Button>
+          <Button
             type="button"
             variant="outline"
             size="sm"
@@ -515,6 +526,124 @@ export default function WorkspaceMarketingPixelsPage() {
                 <span className="text-muted-foreground">Dispara ao abrir o checkout e concluir o pedido.</span>
               </div>
             </label>
+          </div>
+        </div>
+
+        {/* ── Bloco 4: Feeds de Catálogo Dinâmico & WebMCP (Meta DPA, Google Shopping & IAs) ── */}
+        <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border/60 space-y-4 shadow-xs">
+          <div className="flex items-center justify-between pb-3 border-b border-border/40">
+            <div className="flex items-center gap-2.5">
+              <div className="size-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                <Globe className="size-5" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-foreground">Feeds de Catálogo & WebMCP</h2>
+                <p className="text-xs text-muted-foreground">
+                  URLs padronizadas para sincronização automática com Meta Commerce Manager, Google Merchant Center e agentes de IA.
+                </p>
+              </div>
+            </div>
+            <Badge variant="outline" className="text-[10px] font-mono text-primary border-primary/30">
+              Open Standard
+            </Badge>
+          </div>
+
+          <div className="space-y-4">
+            {/* Meta Catalog Feed (CSV) */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold flex items-center justify-between">
+                <span>Feed Meta Commerce / Instagram Store (CSV DPA)</span>
+                <span className="text-[10px] font-normal text-muted-foreground">Formato Oficial Meta Catalog</span>
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  readOnly
+                  value={
+                    typeof window !== "undefined" && config?.store_id
+                      ? `${window.location.origin}/api/feed/meta.csv?store=${config.store_id}`
+                      : "/api/feed/meta.csv"
+                  }
+                  className="h-9 rounded-xl text-xs font-mono bg-muted/30 select-all"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-3 rounded-xl text-xs shrink-0 cursor-pointer"
+                  onClick={() => {
+                    const feedUrl = `${window.location.origin}/api/feed/meta.csv?store=${config?.store_id}`;
+                    navigator.clipboard.writeText(feedUrl);
+                    toast.success("URL do Feed Meta copiada!");
+                  }}
+                >
+                  <Copy className="size-3.5 mr-1.5" /> Copiar
+                </Button>
+              </div>
+            </div>
+
+            {/* Google Merchant Center (XML RSS 2.0) */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold flex items-center justify-between">
+                <span>Feed Google Shopping / Merchant Center (XML RSS 2.0)</span>
+                <span className="text-[10px] font-normal text-muted-foreground">Formato Google Product Feed</span>
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  readOnly
+                  value={
+                    typeof window !== "undefined" && config?.store_id
+                      ? `${window.location.origin}/api/feed/xml?store=${config.store_id}`
+                      : "/api/feed/xml"
+                  }
+                  className="h-9 rounded-xl text-xs font-mono bg-muted/30 select-all"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-3 rounded-xl text-xs shrink-0 cursor-pointer"
+                  onClick={() => {
+                    const feedUrl = `${window.location.origin}/api/feed/xml?store=${config?.store_id}`;
+                    navigator.clipboard.writeText(feedUrl);
+                    toast.success("URL do Feed Google copiada!");
+                  }}
+                >
+                  <Copy className="size-3.5 mr-1.5" /> Copiar
+                </Button>
+              </div>
+            </div>
+
+            {/* WebMCP Manifest */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold flex items-center justify-between">
+                <span>Manifesto WebMCP para Agentes de IA (JSON)</span>
+                <span className="text-[10px] font-normal text-muted-foreground">Indexação Gemini, Claude & Perplexity</span>
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  readOnly
+                  value={
+                    typeof window !== "undefined"
+                      ? `${window.location.origin}/api/webmcp.json`
+                      : "/api/webmcp.json"
+                  }
+                  className="h-9 rounded-xl text-xs font-mono bg-muted/30 select-all"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-3 rounded-xl text-xs shrink-0 cursor-pointer"
+                  onClick={() => {
+                    const mcpUrl = `${window.location.origin}/api/webmcp.json`;
+                    navigator.clipboard.writeText(mcpUrl);
+                    toast.success("URL do Manifesto WebMCP copiada!");
+                  }}
+                >
+                  <Copy className="size-3.5 mr-1.5" /> Copiar
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
 

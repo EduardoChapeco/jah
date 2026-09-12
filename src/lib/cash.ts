@@ -1,5 +1,16 @@
 export type CashEntryMethod = "cash" | "credit" | "debit" | "pix" | "other";
 export type CashRegisterStatus = "open" | "closed" | "discrepancy";
+export type CashChannel =
+  | "pos_counter"
+  | "mercadolivre"
+  | "amazon"
+  | "ifood"
+  | "99food"
+  | "shopee"
+  | "magalu"
+  | "whatsapp"
+  | "ecommerce"
+  | "other";
 
 export interface CashRegisterProfile {
  full_name: string | null;
@@ -13,6 +24,8 @@ export interface CashRegisterEntry {
  method: CashEntryMethod;
  description: string;
  created_at: string;
+ channel?: CashChannel;
+ marketplace_fee_cents?: number;
 }
 
 export interface ActiveCashRegister {

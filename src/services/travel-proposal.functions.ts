@@ -606,11 +606,17 @@ export const updateTravelProposal = createServerFn({ method: "POST" })
       if (data.patch.status) propPatch.status = data.patch.status;
       if (data.patch.cover_image_url) propPatch.hero_image_url = data.patch.cover_image_url;
 
-      await supabase
+      const { error: updatePropErr } = await supabase
         .from("travel_proposals")
         .update(propPatch)
         .or(`id.eq.${data.id},public_token.eq.${data.id}`);
-    } catch (_) {}
+
+      if (updatePropErr) {
+        console.warn("[updateTravelProposal] Aviso ao atualizar travel_proposals:", updatePropErr.message);
+      }
+    } catch (err: any) {
+      console.warn("[updateTravelProposal] Exceção ao atualizar travel_proposals:", err?.message);
+    }
 
     // 2. Atualiza na tabela quotes
     try {
@@ -624,7 +630,9 @@ export const updateTravelProposal = createServerFn({ method: "POST" })
         let existingMeta: Record<string, any> = {};
         try {
           if (currentQuote.conditions) existingMeta = JSON.parse(currentQuote.conditions);
-        } catch (_) {}
+        } catch {
+          existingMeta = {};
+        }
 
         const mergedMeta = { ...existingMeta, ...data.patch };
         const quotePatch: Record<string, any> = {
@@ -639,9 +647,14 @@ export const updateTravelProposal = createServerFn({ method: "POST" })
         if (data.patch.title) quotePatch.internal_notes = data.patch.title;
         if (data.patch.status) quotePatch.status = data.patch.status;
 
-        await supabase.from("quotes").update(quotePatch).eq("id", data.id);
+        const { error: quoteUpdateErr } = await supabase.from("quotes").update(quotePatch).eq("id", data.id);
+        if (quoteUpdateErr) {
+          console.warn("[updateTravelProposal] Aviso ao atualizar quotes:", quoteUpdateErr.message);
+        }
       }
-    } catch (_) {}
+    } catch (err: any) {
+      console.warn("[updateTravelProposal] Exceção ao atualizar quotes:", err?.message);
+    }
 
     return { success: true };
   });
@@ -716,44 +729,67 @@ export const approveTravelProposal = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<{ success: boolean; message: string }> => {
     const supabase = getServerClient();
 
-    // Atualiza na tabela travel_proposals
+    // 1. Localiza a proposta pelo token público ou ID
+    let proposalId = data.token;
+    let storeId: string | undefined;
+
     try {
-      await supabase
+      const { data: propRow } = await supabase
         .from("travel_proposals")
-        .update({
-          status: "approved",
-          approved_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .or(`public_token.eq.${data.token},id.eq.${data.token}`);
-    } catch (_) {}
+        .select("id, store_id, title")
+        .or(`public_token.eq.${data.token},id.eq.${data.token}`)
+        .maybeSingle();
 
-    // Atualiza na tabela quotes
+      if (propRow) {
+        proposalId = propRow.id;
+        storeId = propRow.store_id;
+        await supabase
+          .from("travel_proposals")
+          .update({
+            status: "approved",
+            approved_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", propRow.id);
+      }
+    } catch (err: any) {
+      console.warn("[approveTravelProposal] Aviso na atualização de travel_proposals:", err?.message);
+    }
+
+    // 2. Atualiza na tabela quotes
     try {
-      const { data: rows } = await supabase
+      const { data: quoteRow } = await supabase
         .from("quotes")
-        .select("id, conditions")
-        .order("created_at", { ascending: false })
-        .limit(200);
+        .select("id, store_id")
+        .eq("id", proposalId)
+        .maybeSingle();
 
-      const row = (rows || []).find((r: any) => {
-        try {
-          return JSON.parse(r.conditions || "{}").public_token === data.token || r.id === data.token;
-        } catch (_) {
-          return false;
-        }
-      });
-
-      if (row) {
+      if (quoteRow) {
+        if (!storeId) storeId = quoteRow.store_id;
         await supabase
           .from("quotes")
           .update({
             status: "approved",
             updated_at: new Date().toISOString(),
           })
-          .eq("id", row.id);
+          .eq("id", quoteRow.id);
       }
-    } catch (_) {}
+    } catch (err: any) {
+      console.warn("[approveTravelProposal] Aviso na atualização de quotes:", err?.message);
+    }
+
+    // 3. Conexão Completa do Ciclo de Vida: Gera Viagem, Vouchers, Embarque Kanban e atualiza Lead/Cliente
+    try {
+      const { convertProposalToTrip } = await import("@/services/travel-lifecycle.functions");
+      await convertProposalToTrip({
+        data: {
+          proposalId,
+          storeId,
+        },
+      });
+    } catch (lifecycleErr: any) {
+      console.warn("[approveTravelProposal] Aviso na conversão sistêmica do ciclo de vida:", lifecycleErr?.message);
+    }
 
     return {
       success: true,
@@ -906,12 +942,26 @@ export const deleteTravelProposal = createServerFn({ method: "POST" })
     const supabase = getServerClient();
 
     try {
-      await supabase.from("travel_proposals").delete().or(`id.eq.${data.id},public_token.eq.${data.id}`);
-    } catch (_) {}
+      const { error: propDelErr } = await supabase
+        .from("travel_proposals")
+        .delete()
+        .or(`id.eq.${data.id},public_token.eq.${data.id}`);
+
+      if (propDelErr) {
+        console.warn("[deleteTravelProposal] Aviso ao excluir de travel_proposals:", propDelErr.message);
+      }
+    } catch (err: any) {
+      console.warn("[deleteTravelProposal] Exceção ao excluir de travel_proposals:", err?.message);
+    }
 
     try {
-      await supabase.from("quotes").delete().eq("id", data.id);
-    } catch (_) {}
+      const { error: quoteDelErr } = await supabase.from("quotes").delete().eq("id", data.id);
+      if (quoteDelErr) {
+        console.warn("[deleteTravelProposal] Aviso ao excluir de quotes:", quoteDelErr.message);
+      }
+    } catch (err: any) {
+      console.warn("[deleteTravelProposal] Exceção ao excluir de quotes:", err?.message);
+    }
 
     return { success: true };
   });

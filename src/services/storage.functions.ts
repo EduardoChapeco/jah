@@ -514,3 +514,95 @@ export const uploadBrandAsset = createServerFn({ method: "POST" })
  }
  });
 
+/**
+ * Upload direto e infalível de foto de perfil, capa panorâmica ou marca (Base64)
+ * com persistência atômica no banco de dados e auto-healing do bucket.
+ */
+export const uploadProfileMediaDirect = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      base64Data: z.string().min(1),
+      fileName: z.string().min(1),
+      fileType: z.string().default("image/png"),
+      target: z.enum(["avatar", "cover", "creator_avatar", "creator_cover"]),
+    })
+  )
+  .handler(async ({ data: { base64Data, fileName, fileType, target } }) => {
+    try {
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const identity = await getServerIdentity();
+      if (!identity.id) throw new Error("Faça login para atualizar a mídia do seu perfil.");
+
+      const supabase = getServerClient();
+      const bucket = "post-media";
+      const ext = fileName.split(".").pop() || "png";
+      const uniqueName = `profiles/${identity.id}/${target}_${Date.now()}.${ext}`;
+
+      const base64Content = base64Data.includes(",") ? base64Data.split(",")[1] : base64Data;
+      const buffer = Buffer.from(base64Content, "base64");
+
+      let { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(uniqueName, buffer, {
+          contentType: fileType,
+          upsert: true,
+        });
+
+      if (
+        uploadError &&
+        (uploadError.message.includes("Bucket not found") ||
+          uploadError.message.includes("The related resource does not exist"))
+      ) {
+        await supabase.storage.createBucket(bucket, {
+          public: true,
+          fileSizeLimit: 25 * 1024 * 1024,
+        });
+        const retry = await supabase.storage
+          .from(bucket)
+          .upload(uniqueName, buffer, {
+            contentType: fileType,
+            upsert: true,
+          });
+        uploadError = retry.error;
+      }
+
+      if (uploadError) {
+        throw new Error(`Erro no upload da mídia: ${uploadError.message}`);
+      }
+
+      const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(uniqueName);
+      const publicUrl = publicUrlData.publicUrl;
+
+      // Persistência Atômica Imediata no Banco de Dados
+      if (target === "avatar") {
+        await supabase
+          .from("profiles")
+          .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+          .eq("id", identity.id);
+      } else if (target === "cover") {
+        await supabase
+          .from("profiles")
+          .update({ cover_url: publicUrl, updated_at: new Date().toISOString() })
+          .eq("id", identity.id);
+      } else if (target === "creator_avatar") {
+        await supabase
+          .from("creator_profiles")
+          .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+          .eq("user_id", identity.id);
+      } else if (target === "creator_cover") {
+        await supabase
+          .from("creator_profiles")
+          .update({ cover_url: publicUrl, banner_url: publicUrl, updated_at: new Date().toISOString() })
+          .eq("user_id", identity.id);
+      }
+
+      return {
+        success: true,
+        publicUrl,
+        target,
+      };
+    } catch (e: any) {
+      console.error("[storage] uploadProfileMediaDirect error:", e);
+      throw new Error(e.message || "Erro no processamento da imagem.");
+    }
+  });

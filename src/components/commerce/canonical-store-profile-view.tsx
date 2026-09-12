@@ -477,79 +477,82 @@ export function CanonicalStoreProfileView({
 
       {/* ── 2. BLOCO PANORÂMICO: AVATAR SQUIRCLE 1:1 + CAPA 1090PX + CARD DE STATS ── */}
       <div className="rounded-2xl bg-card border border-border/40 p-4 sm:p-6 space-y-6 shadow-xs">
-        {/* Faixa Superior Panorâmica: Foto + Capa Panorâmica 1090px com Card de Stats no Término */}
-        <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
-          {/* Foto da Empresa em Squircle 1:1 (Altura Fixa h-28 sm:h-36) */}
-          <div className="flex-shrink-0 relative group">
-            <div className="size-28 sm:size-36 rounded-2xl ring-2 ring-border/60 bg-muted flex-shrink-0 overflow-hidden shadow-xs flex items-center justify-center">
-              {logoUrl ? (
-                <img
-                  src={logoUrl}
-                  alt={store.name || store.business_name}
-                  className="size-full object-cover"
-                />
-              ) : (
-                <span className="text-2xl sm:text-3xl font-extrabold bg-muted text-foreground font-mono">
-                  {(store.name || store.business_name || "WD").slice(0, 2).toUpperCase()}
-                </span>
+        {/* Faixa Superior Panorâmica: Foto + Capa Panorâmica 3:1 + Card de Stats */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+          {/* Linha de Logo + Capa Panorâmica */}
+          <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+            {/* Foto da Empresa em Squircle 1:1 */}
+            <div className="flex-shrink-0 relative group">
+              <div className="size-20 sm:size-36 rounded-2xl ring-2 ring-border/60 bg-muted flex-shrink-0 overflow-hidden shadow-xs flex items-center justify-center">
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt={store.name || store.business_name}
+                    className="size-full object-cover"
+                  />
+                ) : (
+                  <span className="text-xl sm:text-3xl font-extrabold bg-muted text-foreground font-mono">
+                    {(store.name || store.business_name || "WD").slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              {isOwner && (
+                <Link
+                  to="/workspace/marketing/brand-kit"
+                  search={{ storeId: store.id }}
+                  className="absolute inset-0 bg-black/40 text-white rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-xs font-semibold gap-1 cursor-pointer"
+                  title="Alterar Logo da Marca"
+                >
+                  <Camera className="size-4 sm:size-5" />
+                  <span className="text-[9px] sm:text-[10px]">Alterar</span>
+                </Link>
               )}
             </div>
-            {isOwner && (
-              <Link
-                to="/workspace/marketing/brand-kit"
-                search={{ storeId: store.id }}
-                className="absolute inset-0 bg-black/40 text-white rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-xs font-semibold gap-1 cursor-pointer"
-                title="Alterar Logo da Marca"
-              >
-                <Camera className="size-5" />
-                <span className="text-[10px]">Alterar Logo</span>
-              </Link>
-            )}
+
+            {/* Container da Capa Panorâmica (Proporção 3:1 Canônica, Sem Scroll Quebrado) */}
+            <div className="flex-1 h-20 sm:h-36 rounded-2xl bg-muted/30 overflow-hidden flex items-center border border-border/40 relative">
+              {coverUrl ? (
+                <img
+                  src={coverUrl}
+                  alt="Capa da empresa"
+                  className="size-full object-cover select-none rounded-2xl"
+                />
+              ) : (
+                <div className="size-full bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex items-center justify-center rounded-2xl">
+                  <Store className="size-6 sm:size-8 text-primary/30" />
+                </div>
+              )}
+              {isOwner && (
+                <Link
+                  to="/workspace/marketing/brand-kit"
+                  search={{ storeId: store.id }}
+                  className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-background/85 hover:bg-background text-foreground backdrop-blur-md px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-border/60 text-[10px] sm:text-xs font-semibold flex items-center gap-1 sm:gap-1.5 shadow-xs cursor-pointer transition-colors"
+                >
+                  <Camera className="size-3 sm:size-3.5" />
+                  <span>Alterar Capa</span>
+                </Link>
+              )}
+            </div>
           </div>
 
-          {/* Container da Capa Panorâmica (min-w-[1090px]) com Scroll Horizontal Fluido */}
-          <div className="flex-1 h-28 sm:h-36 rounded-2xl bg-muted/30 overflow-x-auto no-scrollbar overflow-y-hidden flex items-center gap-3 pr-3 border border-border/40 relative">
-            {coverUrl ? (
-              <img
-                src={coverUrl}
-                alt="Capa da empresa"
-                className="h-full min-w-[1090px] object-cover flex-shrink-0 select-none rounded-2xl"
-              />
-            ) : (
-              <div className="h-full min-w-[1090px] bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex items-center justify-center rounded-2xl">
-                <Store className="size-8 text-primary/30" />
+          {/* Card de Stats (Linha inferior no mobile, bloco lateral no desktop) */}
+          <div className="h-14 sm:h-36 sm:min-w-[220px] flex-shrink-0 bg-background/90 backdrop-blur-md rounded-2xl border border-border/60 p-2 sm:p-4 flex flex-col justify-center shadow-xs">
+            <div className="grid grid-cols-3 gap-2 sm:gap-2 text-center max-w-sm mx-auto w-full">
+              <div>
+                <p className="text-xs sm:text-base font-extrabold text-foreground">{catalog.length}</p>
+                <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">Itens</p>
               </div>
-            )}
-            {isOwner && (
-              <Link
-                to="/workspace/marketing/brand-kit"
-                search={{ storeId: store.id }}
-                className="absolute top-3 right-3 bg-background/85 hover:bg-background text-foreground backdrop-blur-md px-3 py-1.5 rounded-xl border border-border/60 text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition-colors"
-              >
-                <Camera className="size-3.5" />
-                <span>Alterar Capa</span>
-              </Link>
-            )}
-
-            {/* Card de Stats ao Final da Capa Panorâmica (Padronizado com Perfil de Membro) */}
-            <div className="h-full min-w-[220px] flex-shrink-0 bg-background/90 backdrop-blur-md rounded-2xl border border-border/60 p-4 flex flex-col justify-center shadow-xs">
-              <div className="grid grid-cols-3 gap-2 text-center max-w-sm mx-auto">
-                <div>
-                  <p className="text-base font-extrabold text-foreground">{catalog.length}</p>
-                  <p className="text-[10px] text-muted-foreground font-medium">Itens</p>
-                </div>
-                <div>
-                  <p className="text-base font-extrabold text-foreground">
-                    {reviews.length > 0 ? reviews.length : store.reviews_count || 12}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground font-medium">Avaliações</p>
-                </div>
-                <div>
-                  <p className="text-base font-extrabold text-foreground font-mono">
-                    {Number(store.rating || 5.0).toFixed(1)}★
-                  </p>
-                  <p className="text-[10px] text-muted-foreground font-medium">Nota</p>
-                </div>
+              <div>
+                <p className="text-xs sm:text-base font-extrabold text-foreground">
+                  {reviews.length > 0 ? reviews.length : store.reviews_count || 12}
+                </p>
+                <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">Avaliações</p>
+              </div>
+              <div>
+                <p className="text-xs sm:text-base font-extrabold text-foreground font-mono">
+                  {Number(store.rating || 5.0).toFixed(1)}★
+                </p>
+                <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">Nota</p>
               </div>
             </div>
           </div>

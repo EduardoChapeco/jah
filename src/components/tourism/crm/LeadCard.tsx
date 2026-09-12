@@ -13,31 +13,55 @@ import {
   ExternalLink,
   Archive,
   UserCheck,
+  MoreVertical,
+  Edit3,
+  FileText,
+  Calculator,
+  Plane,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { formatMoney } from '@/lib/money';
 import { cn } from '@/lib/utils';
 
 export interface LeadCardProps {
   lead: any;
+  currentStageId?: string;
+  stages?: Array<{ id: string; title: string }>;
   team?: Array<{ profile_id?: string; id?: string; name?: string; full_name?: string }>;
   onOpenDetails?: (lead: any) => void;
+  onGenerateProposal?: (lead: any) => void;
+  onCalculateCommission?: (lead: any) => void;
+  onOpenFlightGrid?: (lead: any) => void;
   onStageChange?: (leadId: string, newStage: string) => void;
   onPromote?: (leadId: string) => void;
-  onArchive?: (leadId: string) => void;
+  onDelete?: (leadId: string) => void;
   prevStageId?: string | null;
   nextStageId?: string | null;
 }
 
 export function LeadCard({
   lead,
+  currentStageId,
+  stages = [],
   team = [],
   onOpenDetails,
+  onGenerateProposal,
+  onCalculateCommission,
+  onOpenFlightGrid,
   onStageChange,
   onPromote,
-  onArchive,
+  onDelete,
   prevStageId,
   nextStageId,
 }: LeadCardProps) {
@@ -147,52 +171,162 @@ export function LeadCard({
           </div>
         </div>
 
-        {/* Quick WhatsApp Link */}
-        {whatsappUrl && (
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="size-7 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border border-emerald-500/20 transition-colors shrink-0"
-            title="Iniciar conversa no WhatsApp"
-          >
-            <MessageSquare className="size-3.5" />
-          </a>
-        )}
+        {/* Menu de Ações e WhatsApp */}
+        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+          {whatsappUrl && (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="size-6 rounded-lg flex items-center justify-center bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border border-emerald-500/20 transition-colors"
+              title="Iniciar conversa no WhatsApp"
+            >
+              <MessageSquare className="size-3" />
+            </a>
+          )}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6 rounded-lg text-muted-foreground hover:text-foreground"
+              >
+                <MoreVertical className="size-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="text-xs w-52 p-1.5 rounded-2xl">
+              <DropdownMenuItem onClick={() => onOpenDetails?.(lead)} className="cursor-pointer font-medium">
+                <Edit3 className="size-3.5 mr-2" />
+                Abrir Ficha 360°
+              </DropdownMenuItem>
+              {onGenerateProposal && (
+                <DropdownMenuItem onClick={() => onGenerateProposal(lead)} className="cursor-pointer font-medium text-primary">
+                  <FileText className="size-3.5 mr-2" />
+                  Gerar Proposta Visual
+                </DropdownMenuItem>
+              )}
+              {onCalculateCommission && (
+                <DropdownMenuItem onClick={() => onCalculateCommission(lead)} className="cursor-pointer font-medium text-amber-500">
+                  <Calculator className="size-3.5 mr-2" />
+                  Calcular Comissão
+                </DropdownMenuItem>
+              )}
+              {onOpenFlightGrid && (
+                <DropdownMenuItem onClick={() => onOpenFlightGrid(lead)} className="cursor-pointer font-medium text-sky-500">
+                  <Plane className="size-3.5 mr-2" />
+                  Malha Aérea & Voos
+                </DropdownMenuItem>
+              )}
+
+              {stages.length > 0 && onStageChange && (
+                <>
+                  <DropdownMenuSeparator />
+                  <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase font-mono">
+                    Mover para Estágio:
+                  </div>
+                  {stages
+                    .filter((s) => s.id !== currentStageId)
+                    .map((s) => (
+                      <DropdownMenuItem
+                        key={s.id}
+                        onClick={() => onStageChange(lead.id, s.id)}
+                        className="cursor-pointer text-[11px]"
+                      >
+                        → {s.title}
+                      </DropdownMenuItem>
+                    ))}
+                </>
+              )}
+
+              {onPromote && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => onPromote(lead.id)}
+                    className="text-emerald-600 font-bold cursor-pointer"
+                  >
+                    <UserCheck className="size-3.5 mr-2" />
+                    Converter em Cliente
+                  </DropdownMenuItem>
+                </>
+              )}
+
+              {onDelete && (
+                <DropdownMenuItem
+                  onClick={() => onDelete(lead.id)}
+                  className="text-rose-600 font-medium cursor-pointer"
+                >
+                  <Trash2 className="size-3.5 mr-2" />
+                  Excluir Lead
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      {/* Destino & Valor Estimado */}
-      <div className="flex items-center justify-between gap-2 pt-0.5">
-        <div className="flex items-center gap-1 text-foreground font-semibold truncate text-[11px]">
-          <MapPin className="size-3 text-primary shrink-0" />
-          <span className="truncate">{lead.destination || 'Destino a definir'}</span>
-        </div>
-        {lead.estimated_value_cents > 0 && (
-          <span className="font-black text-xs text-foreground font-mono shrink-0">
-            {formatMoney(lead.estimated_value_cents)}
+      {/* Alerta de Inatividade / Staleness */}
+      {staleness.isStale && (
+        <div
+          className={cn(
+            'text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md inline-flex items-center gap-1 border',
+            staleness.isCold
+              ? 'bg-rose-500/10 text-rose-600 border-rose-500/30'
+              : 'bg-amber-500/10 text-amber-600 border-amber-500/30'
+          )}
+        >
+          <AlertTriangle className="size-2.5 shrink-0" />
+          <span>
+            {staleness.isCold ? 'Inativo há' : 'Sem Resposta há'} {staleness.days} dias
           </span>
-        )}
-      </div>
-
-      {/* Metadados: Pax & Período */}
-      <div className="flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/50 pt-2 flex-wrap gap-1">
-        <div className="flex items-center gap-1">
-          <Users className="size-3 text-muted-foreground shrink-0" />
-          <span>{paxBreakdown.total}</span>
-          {paxBreakdown.detail && <span className="text-[9px] opacity-75">({paxBreakdown.detail})</span>}
         </div>
+      )}
 
-        {travelPeriod && (
-          <div className="flex items-center gap-1 font-mono">
-            <Calendar className="size-3 text-muted-foreground shrink-0" />
-            <span className="truncate">{travelPeriod}</span>
+      {/* Bloco de Destino, Período & Passageiros */}
+      <div className="p-2 rounded-xl bg-muted/40 border border-border/40 space-y-1 text-[11px]">
+        <div className="flex items-center justify-between gap-1">
+          <div className="flex items-center gap-1 text-foreground font-semibold truncate">
+            <MapPin className="size-3 text-primary shrink-0" />
+            <span className="truncate">{lead.destination || 'Destino a definir'}</span>
           </div>
-        )}
+          {lead.estimated_value_cents > 0 && (
+            <span className="font-mono font-bold text-xs text-foreground shrink-0">
+              {formatMoney(lead.estimated_value_cents)}
+            </span>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-x-1.5 text-[10px] text-muted-foreground pl-4">
+          {travelPeriod && <span>{travelPeriod}</span>}
+          {travelPeriod && <span>•</span>}
+          <span className="font-medium text-foreground/80">{paxBreakdown.total}</span>
+        </div>
       </div>
 
-      {/* Rodapé do Card: Checklist & Alerta de Estagnação & Mudança de Estágio */}
-      <div className="flex items-center justify-between pt-1 text-[10px]">
+      {/* Tags com Cores */}
+      {lead.tags && Array.isArray(lead.tags) && lead.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {lead.tags.map((tag: string) => {
+            const [name, color] = tag.split(':');
+            return (
+              <span
+                key={tag}
+                className="px-1.5 py-0.5 rounded-md text-[9px] font-semibold border"
+                style={{
+                  backgroundColor: color ? `${color}15` : 'var(--muted)',
+                  borderColor: color ? `${color}40` : 'var(--border)',
+                  color: color || 'var(--foreground)',
+                }}
+              >
+                {name}
+              </span>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Rodapé do Card: Checklist & Membro Atribuído & Mudança de Estágio */}
+      <div className="flex items-center justify-between pt-1 text-[10px] border-t border-border/50">
         <div className="flex items-center gap-2">
           {checklistStats.total > 0 && (
             <span
@@ -206,15 +340,11 @@ export function LeadCard({
             </span>
           )}
 
-          {staleness.isCold ? (
-            <Badge variant="outline" className="text-[9px] font-bold text-rose-600 border-rose-500/30 bg-rose-500/10 px-1.5 py-0">
-              Inativo {staleness.days}d
-            </Badge>
-          ) : staleness.isStale ? (
-            <Badge variant="outline" className="text-[9px] font-bold text-amber-600 border-amber-500/30 bg-amber-500/10 px-1.5 py-0">
-              Sem contato {staleness.days}d
-            </Badge>
-          ) : null}
+          {assignedMember && (
+            <span className="text-muted-foreground font-mono truncate max-w-[90px]">
+              @{assignedMember.name || assignedMember.full_name}
+            </span>
+          )}
         </div>
 
         {/* Ações de Avanço Rápido no Funil */}
@@ -246,3 +376,4 @@ export function LeadCard({
     </div>
   );
 }
+

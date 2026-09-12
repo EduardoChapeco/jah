@@ -83,6 +83,9 @@ export const TOKEN_BURN_RATES = {
  visibility_boost_24h: { tokens: 40_000, label: "Impulso Máquina do Tempo (+3x no Radar por 24h)", approx_brl: "R$ 1,96" },
  hot_lead_unlock: { tokens: 35_000, label: "Lead Quente Qualificado (Intenção Real / Checkout)", approx_brl: "R$ 1,71" },
  market_intelligence_report: { tokens: 80_000, label: "Dossiê de Mercado & Tendências do Bairro", approx_brl: "R$ 3,92" },
+ marketplace_order_sync: { tokens: 25, label: "Sincronização de Pedido Multi-Canal", approx_brl: "R$ 0,0012" },
+ fiscal_nfe_issue: { tokens: 150, label: "Emissão de Nota Fiscal (NF-e / NFS-e)", approx_brl: "R$ 0,0073" },
+ shipping_label_thermal: { tokens: 50, label: "Geração de Etiqueta Térmica de Envio", approx_brl: "R$ 0,0024" },
 };
 
 // ============================================================

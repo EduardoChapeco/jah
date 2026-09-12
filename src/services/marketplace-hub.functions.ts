@@ -4,17 +4,26 @@ import { getServerClient } from "@/lib/supabase";
 import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
 import { logSystemError } from "@/lib/logger";
 
-export type MarketplacePlatform =
-  | "mercadolivre"
-  | "ifood"
-  | "shopee"
-  | "magalu"
-  | "amazon"
-  | "rappi"
-  | "amodelivery"
-  | "melhorenvio"
-  | "correios"
-  | "google_business";
+export const MARKETPLACE_PLATFORMS = [
+  "mercadolivre",
+  "ifood",
+  "shopee",
+  "magalu",
+  "amazon",
+  "rappi",
+  "amodelivery",
+  "melhorenvio",
+  "correios",
+  "google_business",
+  "99food",
+  "amoofertas",
+  "kangu",
+  "frenet",
+  "loggi",
+  "jadlog",
+] as const;
+
+export type MarketplacePlatform = (typeof MARKETPLACE_PLATFORMS)[number];
 
 export type MarketplaceStatus = "connected" | "disconnected" | "error" | "pending";
 
@@ -109,18 +118,7 @@ export const saveMarketplaceConnector = createServerFn({ method: "POST" })
   .validator(
     z.object({
       storeId: z.string().optional(),
-      platform: z.enum([
-        "mercadolivre",
-        "ifood",
-        "shopee",
-        "magalu",
-        "amazon",
-        "rappi",
-        "amodelivery",
-        "melhorenvio",
-        "correios",
-        "google_business",
-      ]),
+      platform: z.enum(MARKETPLACE_PLATFORMS),
       name: z.string().min(2),
       external_account_id: z.string().optional().nullable(),
       account_nickname: z.string().optional().nullable(),
@@ -177,18 +175,7 @@ export const disconnectMarketplaceConnector = createServerFn({ method: "POST" })
   .validator(
     z.object({
       storeId: z.string().optional(),
-      platform: z.enum([
-        "mercadolivre",
-        "ifood",
-        "shopee",
-        "magalu",
-        "amazon",
-        "rappi",
-        "amodelivery",
-        "melhorenvio",
-        "correios",
-        "google_business",
-      ]),
+      platform: z.enum(MARKETPLACE_PLATFORMS),
     })
   )
   .handler(async ({ data }) => {
@@ -231,18 +218,7 @@ export const triggerSyncConnector = createServerFn({ method: "POST" })
   .validator(
     z.object({
       storeId: z.string().optional(),
-      platform: z.enum([
-        "mercadolivre",
-        "ifood",
-        "shopee",
-        "magalu",
-        "amazon",
-        "rappi",
-        "amodelivery",
-        "melhorenvio",
-        "correios",
-        "google_business",
-      ]),
+      platform: z.enum(MARKETPLACE_PLATFORMS),
       syncType: z.enum(["catalog", "stock", "orders", "prices", "full"]).default("full"),
     })
   )

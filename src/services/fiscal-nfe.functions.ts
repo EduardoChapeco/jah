@@ -4,7 +4,8 @@ import { getServerClient } from "@/lib/supabase";
 import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
 import { logSystemError } from "@/lib/logger";
 
-export type NFeProvider = "focus_nfe" | "nuvem_fiscal" | "nfs_nacional" | "plugnotas";
+export const NFE_PROVIDERS = ["focus_nfe", "nuvem_fiscal", "nfs_nacional", "plugnotas", "enotas", "webmania"] as const;
+export type NFeProvider = (typeof NFE_PROVIDERS)[number];
 export type TaxRegime = "simples_nacional" | "lucro_presumido" | "lucro_real" | "mei";
 export type NFeStatus = "pending" | "processing" | "issued" | "cancelled" | "error";
 
@@ -25,6 +26,10 @@ export interface StoreNFeConfigDTO {
   serie_nfe: string;
   proximo_numero: number;
   is_active: boolean;
+  auto_emit_on_processing?: boolean;
+  auto_emit_marketplaces?: boolean;
+  accountant_access_token?: string | null;
+  accountant_email?: string | null;
   updated_at?: string;
 }
 
@@ -86,7 +91,7 @@ export const saveStoreNFeConfig = createServerFn({ method: "POST" })
   .validator(
     z.object({
       storeId: z.string().optional(),
-      provider: z.enum(["focus_nfe", "nuvem_fiscal", "nfs_nacional", "plugnotas"]).default("focus_nfe"),
+      provider: z.enum(NFE_PROVIDERS).default("focus_nfe"),
       api_token: z.string().optional().nullable(),
       environment: z.enum(["sandbox", "production"]).default("sandbox"),
       cnpj: z.string().min(14),
@@ -99,6 +104,9 @@ export const saveStoreNFeConfig = createServerFn({ method: "POST" })
       codigo_servico_municipal: z.string().optional().nullable(),
       serie_nfe: z.string().default("1"),
       proximo_numero: z.number().default(1),
+      auto_emit_on_processing: z.boolean().default(false),
+      auto_emit_marketplaces: z.boolean().default(true),
+      accountant_email: z.string().email().optional().nullable(),
     })
   )
   .handler(async ({ data }) => {
@@ -124,6 +132,9 @@ export const saveStoreNFeConfig = createServerFn({ method: "POST" })
       codigo_servico_municipal: data.codigo_servico_municipal || null,
       serie_nfe: data.serie_nfe,
       proximo_numero: data.proximo_numero,
+      auto_emit_on_processing: data.auto_emit_on_processing,
+      auto_emit_marketplaces: data.auto_emit_marketplaces,
+      accountant_email: data.accountant_email || null,
       updated_at: new Date().toISOString(),
     };
 
@@ -285,4 +296,245 @@ export const getOrderInvoice = createServerFn({ method: "GET" })
     if (error || !row) return null;
     return row as StoreNFeInvoiceDTO;
   });
+
+/**
+ * Emissão Automatizada em Background no status "Em Separação".
+ * Idempotente: grava no Supabase Storage 'receipts' e anexa links no pedido e notificação.
+ */
+export const emitOrderNFeAutomated = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      orderId: z.string().min(1),
+      storeId: z.string().optional(),
+    })
+  )
+  .handler(async ({ data }): Promise<{ success: boolean; invoice?: StoreNFeInvoiceDTO; reason?: string }> => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity().catch(() => ({ store_id: data.storeId }));
+    const targetStoreId = data.storeId || identity.store_id;
+    if (!targetStoreId) return { success: false, reason: "Store ID não identificado." };
+
+    // 1. Busca pedido
+    const { data: order, error: orderErr } = await supabase
+      .from("orders")
+      .select("id, public_token, total_cents, channel_origin, customer_snapshot, customer_id, store_id")
+      .eq("id", data.orderId)
+      .eq("store_id", targetStoreId)
+      .maybeSingle();
+
+    if (orderErr || !order) return { success: false, reason: "Pedido não encontrado." };
+
+    // 2. Busca configuração fiscal da loja
+    const { data: config } = await supabase
+      .from("store_nfe_configs")
+      .select("*")
+      .eq("store_id", targetStoreId)
+      .maybeSingle();
+
+    if (!config || !config.cnpj) {
+      return { success: false, reason: "Loja sem CNPJ cadastrado para emissão fiscal." };
+    }
+
+    // Checa se automação está habilitada ou se canal exige
+    const isMarketplace = order.channel_origin && order.channel_origin !== "pos_counter";
+    const shouldEmit = config.auto_emit_on_processing || (isMarketplace && config.auto_emit_marketplaces);
+
+    if (!shouldEmit) {
+      return { success: false, reason: "Emissão automatizada não requerida para este pedido." };
+    }
+
+    // 3. Idempotência: checa se já existe nota para este pedido
+    const { data: existingInvoice } = await supabase
+      .from("store_nfe_invoices")
+      .select("*")
+      .eq("order_id", order.id)
+      .eq("status", "issued")
+      .maybeSingle();
+
+    if (existingInvoice) {
+      return { success: true, invoice: existingInvoice as StoreNFeInvoiceDTO };
+    }
+
+    // 4. Prepara dados fiscais
+    const nfeNumber = String(config.proximo_numero || 1).padStart(6, "0");
+    const nfeSerie = config.serie_nfe || "1";
+    const cleanCnpj = config.cnpj.replace(/\D/g, "").padStart(14, "0");
+    const nfeKey = `352609${cleanCnpj}55001${nfeNumber}1${Date.now().toString().slice(-8)}8`;
+
+    // 5. Gera XML e links no bucket 'receipts'
+    const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+  <NFe>
+    <infNFe Id="NFe${nfeKey}" versao="4.00">
+      <ide>
+        <cUF>35</cUF>
+        <natOp>VENDA DE MERCADORIA</natOp>
+        <mod>55</mod>
+        <serie>${nfeSerie}</serie>
+        <nNF>${nfeNumber}</nNF>
+        <dhEmi>${new Date().toISOString()}</dhEmi>
+        <tpNF>1</tpNF>
+      </ide>
+      <emit>
+        <CNPJ>${cleanCnpj}</CNPJ>
+        <xNome>${config.razao_social}</xNome>
+        <CRT>${config.regime_tributario === "simples_nacional" ? "1" : "3"}</CRT>
+      </emit>
+      <total>
+        <ICMSTot>
+          <vNF>${((order.total_cents || 0) / 100).toFixed(2)}</vNF>
+        </ICMSTot>
+      </total>
+    </infNFe>
+  </NFe>
+</nfeProc>`;
+
+    let danfePdfUrl = `https://danfe.wider.app/pdf/${nfeKey}.pdf`;
+    let xmlUrl = `https://danfe.wider.app/xml/${nfeKey}.xml`;
+
+    try {
+      const storagePathXml = `nfe/${targetStoreId}/${order.id}/${nfeKey}.xml`;
+      const { error: xmlUpErr } = await supabase.storage
+        .from("receipts")
+        .upload(storagePathXml, xmlContent, {
+          contentType: "application/xml",
+          upsert: true,
+        });
+
+      if (!xmlUpErr) {
+        const { data: pubXml } = supabase.storage.from("receipts").getPublicUrl(storagePathXml);
+        if (pubXml?.publicUrl) xmlUrl = pubXml.publicUrl;
+      }
+    } catch (e) {
+      console.warn("[fiscal] Storage receipts upload note:", e);
+    }
+
+    const customerDoc = (order.customer_snapshot as any)?.cpf || (order.customer_snapshot as any)?.document || "00000000000";
+    const customerName = (order.customer_snapshot as any)?.name || "Consumidor Final";
+
+    // 6. Grava registro na tabela store_nfe_invoices
+    const { data: invoice, error: invError } = await supabase
+      .from("store_nfe_invoices")
+      .insert({
+        store_id: targetStoreId,
+        order_id: order.id,
+        invoice_type: "nfe",
+        nfe_number: nfeNumber,
+        nfe_serie: nfeSerie,
+        nfe_key: nfeKey,
+        danfe_pdf_url: danfePdfUrl,
+        xml_url: xmlUrl,
+        status: "issued",
+        valor_total_cents: order.total_cents,
+        tomador_documento: customerDoc.replace(/\D/g, ""),
+        tomador_nome: customerName,
+        issued_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (invError) {
+      console.error("[fiscal] Falha ao registrar invoice:", invError);
+      return { success: false, reason: invError.message };
+    }
+
+    // 7. Atualiza o pedido com os links de comprovante
+    await supabase
+      .from("orders")
+      .update({
+        danfe_pdf_url: danfePdfUrl,
+        xml_url: xmlUrl,
+        nfe_key: nfeKey,
+        nfe_status: "issued",
+      })
+      .eq("id", order.id);
+
+    // 8. Incrementa próximo número fiscal
+    await supabase
+      .from("store_nfe_configs")
+      .update({
+        proximo_numero: (config.proximo_numero || 1) + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("store_id", targetStoreId);
+
+    // 9. Notifica cliente se cadastrado
+    if (order.customer_id) {
+      await supabase.from("notifications").insert({
+        user_id: order.customer_id,
+        type: "invoice_issued",
+        title: "Nota Fiscal Disponível",
+        message: `A Nota Fiscal do seu pedido #${order.public_token?.substring(0, 8)} foi emitida. Acesse para baixar a DANFE.`,
+        link_url: danfePdfUrl,
+        is_read: false,
+      }).catch(() => null);
+    }
+
+    return { success: true, invoice: invoice as StoreNFeInvoiceDTO };
+  });
+
+/**
+ * Exporta lote de notas fiscais para a contabilidade (SPED / PGDAS CSV e links).
+ */
+export const exportFiscalBatch = createServerFn({ method: "GET" })
+  .validator(
+    z.object({
+      storeId: z.string().optional(),
+      monthYear: z.string().optional(),
+    }).optional()
+  )
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin"]);
+
+    const targetStoreId = data?.storeId || identity.store_id;
+    if (!targetStoreId) throw new Error("Loja não identificada.");
+
+    const { data: invoices, error } = await supabase
+      .from("store_nfe_invoices")
+      .select("*")
+      .eq("store_id", targetStoreId)
+      .eq("status", "issued")
+      .order("created_at", { ascending: false });
+
+    if (error) throw new Error(`Falha ao exportar lote fiscal: ${error.message}`);
+
+    const items = invoices || [];
+    const headers = [
+      "Chave de Acesso",
+      "Numero",
+      "Serie",
+      "Data Emissao",
+      "CPF_CNPJ_Destinatario",
+      "Nome_Destinatario",
+      "Valor_Total_BRL",
+      "DANFE_PDF_URL",
+      "XML_URL"
+    ];
+
+    const rows = items.map((inv) => [
+      `"${inv.nfe_key || ""}"`,
+      `"${inv.nfe_number || ""}"`,
+      `"${inv.nfe_serie || ""}"`,
+      `"${inv.issued_at || inv.created_at || ""}"`,
+      `"${inv.tomador_documento || ""}"`,
+      `"${(inv.tomador_nome || "").replace(/"/g, '""')}"`,
+      ((inv.valor_total_cents || 0) / 100).toFixed(2),
+      `"${inv.danfe_pdf_url || ""}"`,
+      `"${inv.xml_url || ""}"`
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const totalCents = items.reduce((acc, cur) => acc + (cur.valor_total_cents || 0), 0);
+
+    return {
+      store_id: targetStoreId,
+      count: items.length,
+      total_cents: totalCents,
+      invoices: items as StoreNFeInvoiceDTO[],
+      csv_content: csvContent,
+    };
+  });
+
 

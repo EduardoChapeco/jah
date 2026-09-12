@@ -607,6 +607,32 @@ export const saveResource = createServerFn({ method: "POST" })
  }
  });
 
+export const deleteResource = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: input }) => {
+    try {
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin"]);
+      const storeId = await resolveTenantStoreId();
+      if (!storeId) throw new Error("Loja não encontrada no contexto.");
+
+      const db = getServerClient();
+      await db.from("booking_resource_availabilities").delete().eq("resource_id", input.id);
+      const { error } = await db
+        .from("booking_resources")
+        .delete()
+        .eq("id", input.id)
+        .eq("store_id", storeId);
+
+      if (error) throw error;
+
+      return { status: "success" as const };
+    } catch (e: unknown) {
+      console.error("[booking] deleteResource error:", e);
+      throw new Error("Erro ao excluir recurso.");
+    }
+  });
+
 export const listAppointments = createServerFn({ method: "GET" })
  .validator(
  z.object({ date_from: z.string().optional(), date_to: z.string().optional() }).optional(),

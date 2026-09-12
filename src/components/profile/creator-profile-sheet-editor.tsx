@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
 import { CreatorNicheSelect } from "@/components/profile/creator-niche-select";
-import { getPostMediaSignedUrl } from "@/services/storage.functions";
+import { getPostMediaSignedUrl, uploadProfileMediaDirect } from "@/services/storage.functions";
 import { upsertCreatorProfile, registerAffiliate } from "@/services/affiliates.functions";
 import { toast } from "sonner";
 import {
@@ -118,31 +118,28 @@ export function CreatorProfileSheetEditor({
 
     try {
       const type = cropperType;
-      const file = new File([croppedBlob], `creator_${type}_${Date.now()}.png`, {
-        type: "image/png",
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(croppedBlob);
       });
 
-      const { signedUrl, publicUrl } = await getPostMediaSignedUrl({
+      const res = await uploadProfileMediaDirect({
         data: {
-          fileName: file.name,
-          contentType: "image/png",
+          fileName: `creator_${type}_${Date.now()}.png`,
+          fileType: "image/png",
+          base64Data,
+          target: type === "avatar" ? "creator_avatar" : "creator_cover",
         },
       });
 
-      const uploadRes = await fetch(signedUrl, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": "image/png" },
-      });
-
-      if (!uploadRes.ok) throw new Error("Falha no envio da imagem para o armazenamento.");
-
       if (type === "avatar") {
-        setAvatarUrl(publicUrl);
-        toast.success("Foto / Logo da marca atualizada!");
+        setAvatarUrl(res.publicUrl);
+        toast.success("Foto / Logo da marca atualizada com sucesso!");
       } else {
-        setCoverUrl(publicUrl);
-        toast.success("Foto de capa panorâmica atualizada!");
+        setCoverUrl(res.publicUrl);
+        toast.success("Foto de capa panorâmica atualizada com sucesso!");
       }
     } catch (err: any) {
       toast.error(err?.message || "Erro ao processar imagem.");
@@ -605,10 +602,10 @@ export function CreatorProfileSheetEditor({
         open={cropperOpen}
         onOpenChange={setCropperOpen}
         imageSrc={cropperSrc}
-        aspect={cropperType === "avatar" ? 1 : 16 / 9}
+        aspect={cropperType === "avatar" ? 1 : 3 / 1}
         cropShape={cropperType === "avatar" ? "round" : "rect"}
         lockAspect={true}
-        title={cropperType === "avatar" ? "Recortar Foto / Logo da Marca" : "Recortar Capa Panorâmica"}
+        title={cropperType === "avatar" ? "Recortar Foto / Logo da Marca (1:1)" : "Recortar Capa Panorâmica da Marca (3:1)"}
         onCropComplete={handleCropComplete}
       />
     </>

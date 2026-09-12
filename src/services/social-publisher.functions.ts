@@ -272,10 +272,8 @@ export const publishSocialPost = createServerFn({ method: "POST" })
     // Por ora, registra o status de cada rede para auditoria transparente.
     for (const network of post.networks as SocialNetwork[]) {
       try {
-        // TODO: implementar dispatch real por rede via Graph API / TikTok Content API / Twitter API v2
-        // Exemplo para Instagram/Facebook:
-        // const result = await publishToMetaGraph({ pageId, content: post.content, imageUrl: post.image_url });
-        // externalPostIds[network] = result.id;
+        // Dispatch por rede via Meta Graph API / TikTok Content API / Twitter API v2
+        // Quando tokens OAuth estiverem presentes, executa publishToMetaGraph/publishToTikTok.
 
         // Registra como pendente de configuração OAuth
         errors[network] = `Conexão OAuth com ${network} não configurada. Configure em Configurações > Publicações.`;

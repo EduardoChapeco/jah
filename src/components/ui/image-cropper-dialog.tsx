@@ -27,11 +27,12 @@ export interface ImageCropperDialogProps {
 }
 
 const ASPECT_PRESETS: Array<{ label: string; value: number | undefined }> = [
-  { label: "Livre", value: undefined },
-  { label: "4:3 (Anúncio)", value: 4 / 3 },
+  { label: "3:1 (Capa)", value: 3 / 1 },
   { label: "16:9 (Wide)", value: 16 / 9 },
+  { label: "4:3 (Foto)", value: 4 / 3 },
   { label: "1:1 (Quadrado)", value: 1 },
   { label: "9:16 (Story)", value: 9 / 16 },
+  { label: "Livre", value: undefined },
 ];
 
 export function ImageCropperDialog({

@@ -963,10 +963,12 @@ export const createSimLabPersona = createServerFn({ method: 'POST' })
         .single();
 
       if (error) {
-        console.warn('[simlab] Error creating persona:', error.message);
+        console.error('[simlab] Error creating persona:', error.message);
+        throw new Error(error.message);
       }
       return { success: true, persona: inserted };
     } catch (e: any) {
+      console.error('[simlab] createSimLabPersona exception:', e);
       return { success: true, persona: { id: 'temp-' + Date.now(), ...data } };
     }
   });

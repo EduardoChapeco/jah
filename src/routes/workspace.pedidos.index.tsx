@@ -827,6 +827,19 @@ function AdminOrdersPage() {
  <Printer className="size-4" />
  </Link>
  </Button>
+ {(order as any).danfe_pdf_url && (
+ <Button
+ asChild
+ variant="outline"
+ size="icon"
+ className="size-9 rounded-xl shrink-0 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/10"
+ title="Baixar DANFE (PDF da Nota Fiscal)"
+ >
+ <a href={(order as any).danfe_pdf_url} target="_blank" rel="noopener noreferrer">
+ <FileText className="size-4" />
+ </a>
+ </Button>
+ )}
  </div>
  </div>
  ))

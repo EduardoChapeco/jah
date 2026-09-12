@@ -81,6 +81,9 @@ function FiscalNFePage() {
   const [regime, setRegime] = useState<TaxRegime>(initialConfig?.regime_tributario || "simples_nacional");
   const [environment, setEnvironment] = useState<"sandbox" | "production">(initialConfig?.environment || "sandbox");
   const [apiToken, setApiToken] = useState(initialConfig?.api_token || "");
+  const [autoEmitOnProcessing, setAutoEmitOnProcessing] = useState(initialConfig?.auto_emit_on_processing ?? false);
+  const [autoEmitMarketplaces, setAutoEmitMarketplaces] = useState(initialConfig?.auto_emit_marketplaces ?? true);
+  const [accountantEmail, setAccountantEmail] = useState(initialConfig?.accountant_email || "");
 
   // Issue states
   const [tomadorNome, setTomadorNome] = useState("");
@@ -134,6 +137,9 @@ function FiscalNFePage() {
       regime_tributario: regime,
       environment,
       api_token: apiToken,
+      auto_emit_on_processing: autoEmitOnProcessing,
+      auto_emit_marketplaces: autoEmitMarketplaces,
+      accountant_email: accountantEmail || undefined,
     });
   };
 
@@ -322,8 +328,10 @@ function FiscalNFePage() {
                 <SelectContent>
                   <SelectItem value="focus_nfe">Focus NFe</SelectItem>
                   <SelectItem value="nuvem_fiscal">Nuvem Fiscal</SelectItem>
-                  <SelectItem value="nfs_nacional">NFS-e Padrão Nacional</SelectItem>
+                  <SelectItem value="nfs_nacional">NFS-e Padrão Nacional (Gov Federal)</SelectItem>
                   <SelectItem value="plugnotas">PlugNotas / TecnoSpeed</SelectItem>
+                  <SelectItem value="enotas">eNotas Gateway</SelectItem>
+                  <SelectItem value="webmania">Webmania NF-e / NFC-e</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -366,6 +374,73 @@ function FiscalNFePage() {
               onChange={(e) => setApiToken(e.target.value)}
               className="h-10 text-xs rounded-xl font-mono"
             />
+          </div>
+
+          {/* Automação de Emissão em Background */}
+          <div className="pt-4 border-t border-border/50 space-y-3">
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
+              Automação & Inteligência Fiscal
+            </h4>
+            
+            <div className="flex items-center justify-between p-3.5 rounded-xl border border-border/70 bg-muted/20">
+              <div className="space-y-0.5">
+                <p className="text-xs font-semibold text-foreground">Emissão Automatizada ao Mudar para "Em Separação"</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Gera a nota em segundo plano, salva XML e DANFE no Storage e vincula ao comprovante do cliente.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={autoEmitOnProcessing}
+                onChange={(e) => setAutoEmitOnProcessing(e.target.checked)}
+                className="size-4 rounded accent-primary cursor-pointer"
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3.5 rounded-xl border border-border/70 bg-muted/20">
+              <div className="space-y-0.5">
+                <p className="text-xs font-semibold text-foreground">Obrigatoriedade de Marketplaces (ML / Amazon / iFood)</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Emite a nota fiscal automaticamente para pedidos de canais integrados que exigem NF-e para despacho.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={autoEmitMarketplaces}
+                onChange={(e) => setAutoEmitMarketplaces(e.target.checked)}
+                className="size-4 rounded accent-primary cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {/* Integração Contábil B2B */}
+          <div className="pt-4 border-t border-border/50 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                  Acesso da Contabilidade & Lote SPED
+                </h4>
+                <p className="text-[11px] text-muted-foreground">
+                  Permita que seu contador acesse a DRE, notas e extratos diretamente pelo portal contábil.
+                </p>
+              </div>
+              <Button asChild size="sm" variant="outline" className="rounded-xl h-8 text-xs font-semibold">
+                <Link to="/workspace/contador">
+                  Abrir Portal do Contador
+                </Link>
+              </Button>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">E-mail do Escritório Contábil</Label>
+              <Input
+                type="email"
+                placeholder="contato@contabilidade.com.br"
+                value={accountantEmail}
+                onChange={(e) => setAccountantEmail(e.target.value)}
+                className="h-10 text-xs rounded-xl"
+              />
+            </div>
           </div>
 
           <div className="pt-4 flex justify-end">

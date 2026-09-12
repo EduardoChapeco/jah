@@ -284,6 +284,7 @@ export const updateDepartureDetails = createServerFn({ method: 'POST' })
       hotel_checkin_at: z.string().optional().nullable(),
       hotel_checkout_at: z.string().optional().nullable(),
       hotel_rules: z.string().optional().nullable(),
+      notes: z.string().optional().nullable(),
     })
   )
   .handler(async ({ data }) => {
@@ -294,19 +295,25 @@ export const updateDepartureDetails = createServerFn({ method: 'POST' })
     const airlineCode = data.airline_code?.toUpperCase() || null;
     const checkinLink = airlineCode ? AIRLINE_CHECKIN_LINKS[airlineCode] || null : null;
 
+    const updatePayload: Record<string, any> = {
+      airline_code: airlineCode,
+      flight_number: data.flight_number || null,
+      airline_locator: data.airline_locator?.toUpperCase() || null,
+      checkin_link: checkinLink,
+      hotel_name: data.hotel_name || null,
+      hotel_checkin_at: data.hotel_checkin_at || null,
+      hotel_checkout_at: data.hotel_checkout_at || null,
+      hotel_rules: data.hotel_rules || null,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (data.notes !== undefined) {
+      updatePayload.notes = data.notes || null;
+    }
+
     const { data: row, error } = await db
       .from('travel_departures_kanban')
-      .update({
-        airline_code: airlineCode,
-        flight_number: data.flight_number || null,
-        airline_locator: data.airline_locator?.toUpperCase() || null,
-        checkin_link: checkinLink,
-        hotel_name: data.hotel_name || null,
-        hotel_checkin_at: data.hotel_checkin_at || null,
-        hotel_checkout_at: data.hotel_checkout_at || null,
-        hotel_rules: data.hotel_rules || null,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq('id', data.id)
       .select('*')
       .single();
@@ -367,7 +374,7 @@ export const toggleChecklistItem = createServerFn({ method: 'POST' })
 export const addChecklistItem = createServerFn({ method: 'POST' })
   .validator(
     z.object({
-      store_id: z.string().uuid(),
+      store_id: z.string().uuid().optional(),
       departure_id: z.string().uuid(),
       label: z.string().min(2),
       category: z.enum(['documentation', 'health', 'insurance', 'financial', 'logistics', 'communication', 'airline', 'hotel', 'custom']),
@@ -378,12 +385,13 @@ export const addChecklistItem = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
+    const storeId = data.store_id || identity.store_id;
 
     const db = getServerClient();
     const { data: row, error } = await db
       .from('boarding_checklist_items')
       .insert({
-        store_id: data.store_id,
+        store_id: storeId,
         departure_id: data.departure_id,
         label: data.label,
         category: data.category,
@@ -401,7 +409,7 @@ export const addChecklistItem = createServerFn({ method: 'POST' })
 export const uploadBoardingDocument = createServerFn({ method: 'POST' })
   .validator(
     z.object({
-      store_id: z.string().uuid(),
+      store_id: z.string().uuid().optional(),
       departure_id: z.string().uuid(),
       document_type: z.enum(['contract', 'airline_ticket', 'hotel_voucher', 'insurance_policy', 'passport_copy', 'visa_stamp', 'vaccine_card', 'invoice', 'transfer_voucher', 'other']),
       file_url: z.string().url(),
@@ -413,12 +421,13 @@ export const uploadBoardingDocument = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
+    const storeId = data.store_id || identity.store_id;
 
     const db = getServerClient();
     const { data: row, error } = await db
       .from('boarding_documents')
       .insert({
-        store_id: data.store_id,
+        store_id: storeId,
         departure_id: data.departure_id,
         document_type: data.document_type,
         file_url: data.file_url,
@@ -435,6 +444,22 @@ export const uploadBoardingDocument = createServerFn({ method: 'POST' })
 
     if (error) throw new Error('Erro ao registrar documento: ' + error.message);
     return row as BoardingDocument;
+  });
+
+export const deleteBoardingDocument = createServerFn({ method: 'POST' })
+  .validator(z.object({ document_id: z.string().uuid() }))
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+
+    const db = getServerClient();
+    const { error } = await db
+      .from('boarding_documents')
+      .delete()
+      .eq('id', data.document_id);
+
+    if (error) throw new Error('Erro ao excluir documento: ' + error.message);
+    return { success: true };
   });
 
 export const updateDocumentOcrData = createServerFn({ method: 'POST' })

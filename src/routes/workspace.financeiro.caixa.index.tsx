@@ -63,6 +63,7 @@ import {
 import { parseCurrencyInputToCents } from "@/lib/cash";
 import { formatDateTime } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/financeiro/caixa/")({
  head: () => ({ meta: [{ title: "Fluxo de Caixa & Turnos | Workspace Wider OS" }] }),
@@ -117,6 +118,32 @@ function CashRegisterError({ error }: { error: Error }) {
 function CashRegisterManagerPage() {
  const { register, history } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
+
+ // Channel filter state
+ const [selectedChannel, setSelectedChannel] = useState<string>("all");
+
+ const filteredEntries = useMemo(() => {
+ const entries = (register?.recentEntries || []) as any[];
+ if (selectedChannel === "all") return entries;
+ return entries.filter((e) => (e.channel || "pos_counter") === selectedChannel);
+ }, [register?.recentEntries, selectedChannel]);
+
+ function getChannelBadge(channel?: string) {
+ switch (channel) {
+ case "mercadolivre":
+ return <Badge variant="outline" className="text-[10px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30">Mercado Livre</Badge>;
+ case "ifood":
+ return <Badge variant="outline" className="text-[10px] font-medium bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30">iFood</Badge>;
+ case "amazon":
+ return <Badge variant="outline" className="text-[10px] font-medium bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/30">Amazon</Badge>;
+ case "whatsapp":
+ return <Badge variant="outline" className="text-[10px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30">WhatsApp</Badge>;
+ case "ecommerce":
+ return <Badge variant="outline" className="text-[10px] font-medium bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30">Loja Virtual</Badge>;
+ default:
+ return <Badge variant="outline" className="text-[10px] font-medium text-muted-foreground border-border/60">Balcão / PDV</Badge>;
+ }
+ }
 
  // Dialog / Sheet states
  const [isOpenModalOpen, setIsOpenModalOpen] = useState(false);
@@ -454,52 +481,108 @@ function CashRegisterManagerPage() {
  </Button>
  </div>
  ) : register?.recentEntries && register.recentEntries.length > 0 ? (
- <div className="bg-card border border-border/70 rounded-2xl overflow-hidden shadow-2xs">
- <Table>
- <TableHeader>
- <TableRow className="bg-muted/30">
- <TableHead className="text-xs font-bold">Horário</TableHead>
- <TableHead className="text-xs font-bold">Tipo / Método</TableHead>
- <TableHead className="text-xs font-bold">Descrição / Notas</TableHead>
- <TableHead className="text-xs font-bold text-right">Valor</TableHead>
- </TableRow>
- </TableHeader>
- <TableBody>
- {register.recentEntries.map((entry) => {
- const isNegative = entry.amount_cents < 0;
- return (
- <TableRow key={entry.id} className="hover:bg-muted/20 text-xs">
- <TableCell className="font-mono text-muted-foreground whitespace-nowrap">
- {formatDateTime(entry.created_at)}
- </TableCell>
- <TableCell>
- <Badge
- variant={isNegative ? "destructive" : "outline"}
- className="text-[10px] font-mono uppercase"
- >
- {entry.method}
- </Badge>
- </TableCell>
- <TableCell className="max-w-md truncate text-foreground font-medium">
- {entry.description || "Venda balcão / Lançamento"}
- </TableCell>
- <TableCell
- className={`text-right font-mono font-bold ${
- isNegative
- ? "text-rose-600 dark:text-rose-400"
- : "text-emerald-600 dark:text-emerald-400"
- }`}
- >
- {isNegative ? "-" : "+"}
- {formatMoney(Math.abs(entry.amount_cents))}
- </TableCell>
- </TableRow>
- );
- })}
- </TableBody>
- </Table>
- </div>
- ) : (
+ <div className="space-y-3">
+      {/* Seletor Rápido de Canal / Origem */}
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 text-xs">
+        <span className="text-muted-foreground font-medium text-[11px] mr-1 shrink-0">Filtrar Canal:</span>
+        {[
+          { id: "all", label: "Todos os Canais" },
+          { id: "pos_counter", label: "Balcão / PDV" },
+          { id: "mercadolivre", label: "Mercado Livre" },
+          { id: "ifood", label: "iFood" },
+          { id: "amazon", label: "Amazon" },
+          { id: "whatsapp", label: "WhatsApp" },
+          { id: "ecommerce", label: "Loja Virtual" },
+        ].map((ch) => (
+          <button
+            key={ch.id}
+            type="button"
+            onClick={() => setSelectedChannel(ch.id)}
+            className={cn(
+              "px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors whitespace-nowrap",
+              selectedChannel === ch.id
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            {ch.label}
+          </button>
+        ))}
+      </div>
+
+      {filteredEntries.length === 0 ? (
+        <div className="py-8 text-center text-xs text-muted-foreground border border-dashed border-border/70 rounded-xl bg-card/40">
+          Nenhuma movimentação registrada no canal selecionado neste turno.
+        </div>
+      ) : (
+        <div className="bg-card border border-border/70 rounded-2xl overflow-hidden shadow-2xs">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/30">
+                <TableHead className="text-xs font-bold">Horário</TableHead>
+                <TableHead className="text-xs font-bold">Origem / Canal</TableHead>
+                <TableHead className="text-xs font-bold">Tipo / Método</TableHead>
+                <TableHead className="text-xs font-bold">Descrição / Notas</TableHead>
+                <TableHead className="text-xs font-bold text-right">Valor</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredEntries.map((entry: any) => {
+                const isNegative = entry.amount_cents < 0;
+                return (
+                  <TableRow key={entry.id} className="hover:bg-muted/20 text-xs">
+                    <TableCell className="font-mono text-muted-foreground whitespace-nowrap">
+                      {formatDateTime(entry.created_at)}
+                    </TableCell>
+                    <TableCell>
+                      {getChannelBadge(entry.channel)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5">
+                        <Badge
+                          variant={isNegative ? "destructive" : "outline"}
+                          className="text-[10px] font-mono uppercase"
+                        >
+                          {entry.method}
+                        </Badge>
+                        {entry.order_id ? (
+                          <Badge variant="outline" className="text-[9px] font-semibold text-emerald-600 border-emerald-500/30 bg-emerald-500/5">
+                            NF-e
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[9px] font-mono text-muted-foreground border-border/40">
+                            Não Fiscal
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="max-w-md truncate text-foreground font-medium">
+                      <span>{entry.description || "Venda balcão / Lançamento"}</span>
+                      {entry.marketplace_fee_cents && entry.marketplace_fee_cents > 0 ? (
+                        <span className="block text-[10px] text-muted-foreground font-mono">
+                          Taxa canal: -{formatMoney(entry.marketplace_fee_cents)}
+                        </span>
+                      ) : null}
+                    </TableCell>
+                    <TableCell
+                      className={`text-right font-mono font-bold ${
+                        isNegative
+                          ? "text-rose-600 dark:text-rose-400"
+                          : "text-emerald-600 dark:text-emerald-400"
+                      }`}
+                    >
+                      {isNegative ? "-" : "+"}
+                      {formatMoney(Math.abs(entry.amount_cents))}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  ) : (
  <div className="py-12 text-center space-y-4 border border-dashed border-border/70 rounded-2xl bg-card/40">
  <div className="size-12 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto text-muted-foreground">
  <ReceiptText className="size-6" />

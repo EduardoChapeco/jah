@@ -1615,3 +1615,334 @@ export const deleteTripPassenger = createServerFn({ method: "POST" })
     return { success: true };
   });
 
+// ─── 13. Ficha Segura do Viajante (Public Form Context & Submission) ──────────
+
+export interface TravelerFormContextDTO {
+  success: boolean;
+  tripTitle: string;
+  destination: string;
+  departureDate: string | null;
+  returnDate: string | null;
+  agencyName: string;
+  agencyLogo: string | null;
+  agencyPhone: string | null;
+  tokenType: "trip" | "proposal" | "voucher" | "passenger" | "generic";
+  passengerData?: {
+    fullName?: string;
+    cpf?: string;
+    phone?: string;
+    email?: string;
+  } | null;
+}
+
+export const getTravelerFormContext = createServerFn({ method: "GET" })
+  .validator(z.object({ token: z.string().min(1) }))
+  .handler(async ({ data }): Promise<TravelerFormContextDTO> => {
+    const supabase = getAnonServerClient();
+    const token = data.token.trim();
+
+    try {
+      // 1. Tentar buscar em tourism_trips (por id ou trip_number)
+      const { data: trip } = await supabase
+        .from("tourism_trips")
+        .select("id, title, destination_city, travel_start_date, travel_end_date, store_id, stores(name, logo_url, settings)")
+        .or(`id.eq.${token.length === 36 ? token : '00000000-0000-0000-0000-000000000000'},trip_number.eq.${token}`)
+        .maybeSingle();
+
+      if (trip) {
+        const store = (trip as any).stores || {};
+        const settings = store.settings || {};
+        return {
+          success: true,
+          tripTitle: trip.title || `Viagem para ${trip.destination_city}`,
+          destination: trip.destination_city || "Destino Turístico",
+          departureDate: trip.travel_start_date || null,
+          returnDate: trip.travel_end_date || null,
+          agencyName: store.name || "Agência de Viagens",
+          agencyLogo: store.logo_url || null,
+          agencyPhone: settings.whatsapp_phone || settings.phone || null,
+          tokenType: "trip",
+        };
+      }
+
+      // 2. Tentar buscar em tourism_vouchers (por public_token ou voucher_code)
+      const { data: voucher } = await supabase
+        .from("tourism_vouchers")
+        .select("id, public_token, voucher_code, trip_id, tourism_trips(title, destination_city, travel_start_date, travel_end_date, stores(name, logo_url, settings))")
+        .or(`public_token.eq.${token},voucher_code.eq.${token}`)
+        .maybeSingle();
+
+      if (voucher && voucher.tourism_trips) {
+        const vTrip = voucher.tourism_trips as any;
+        const store = vTrip.stores || {};
+        const settings = store.settings || {};
+        return {
+          success: true,
+          tripTitle: vTrip.title || `Viagem para ${vTrip.destination_city}`,
+          destination: vTrip.destination_city || "Destino Turístico",
+          departureDate: vTrip.travel_start_date || null,
+          returnDate: vTrip.travel_end_date || null,
+          agencyName: store.name || "Agência de Viagens",
+          agencyLogo: store.logo_url || null,
+          agencyPhone: settings.whatsapp_phone || settings.phone || null,
+          tokenType: "voucher",
+        };
+      }
+
+      // 3. Tentar buscar em travel_proposals (por id ou conditions com public_token)
+      const { data: proposal } = await supabase
+        .from("travel_proposals")
+        .select("id, title, destination, start_date, end_date, client_name, client_email, client_phone, stores(name, logo_url, settings)")
+        .or(`id.eq.${token.length === 36 ? token : '00000000-0000-0000-0000-000000000000'},conditions.ilike.%"public_token":"${token}"%`)
+        .maybeSingle();
+
+      if (proposal) {
+        const store = (proposal as any).stores || {};
+        const settings = store.settings || {};
+        return {
+          success: true,
+          tripTitle: proposal.title || `Proposta para ${proposal.destination}`,
+          destination: proposal.destination || "Destino Turístico",
+          departureDate: proposal.start_date || null,
+          returnDate: proposal.end_date || null,
+          agencyName: store.name || "Agência de Viagens",
+          agencyLogo: store.logo_url || null,
+          agencyPhone: settings.whatsapp_phone || settings.phone || null,
+          tokenType: "proposal",
+          passengerData: {
+            fullName: proposal.client_name || undefined,
+            email: proposal.client_email || undefined,
+            phone: proposal.client_phone || undefined,
+          },
+        };
+      }
+
+      // 4. Tentar buscar em trip_passengers diretamente se o token for UUID
+      if (token.length === 36) {
+        const { data: passenger } = await supabase
+          .from("trip_passengers")
+          .select("id, full_name, document, phone, email, trip_id, tourism_trips(title, destination_city, travel_start_date, travel_end_date, stores(name, logo_url, settings))")
+          .eq("id", token)
+          .maybeSingle();
+
+        if (passenger && passenger.tourism_trips) {
+          const pTrip = passenger.tourism_trips as any;
+          const store = pTrip.stores || {};
+          const settings = store.settings || {};
+          return {
+            success: true,
+            tripTitle: pTrip.title || `Viagem para ${pTrip.destination_city}`,
+            destination: pTrip.destination_city || "Destino Turístico",
+            departureDate: pTrip.travel_start_date || null,
+            returnDate: pTrip.travel_end_date || null,
+            agencyName: store.name || "Agência de Viagens",
+            agencyLogo: store.logo_url || null,
+            agencyPhone: settings.whatsapp_phone || settings.phone || null,
+            tokenType: "passenger",
+            passengerData: {
+              fullName: passenger.full_name,
+              cpf: passenger.document || undefined,
+              phone: passenger.phone || undefined,
+              email: passenger.email || undefined,
+            },
+          };
+        }
+      }
+    } catch (err) {
+      console.warn("[getTravelerFormContext] Lookup notice:", err);
+    }
+
+    // 5. Fallback padrão seguro para tokens genéricos
+    return {
+      success: true,
+      tripTitle: "Ficha do Viajante",
+      destination: "Destino da Viagem",
+      departureDate: null,
+      returnDate: null,
+      agencyName: "Agência de Viagens",
+      agencyLogo: null,
+      agencyPhone: null,
+      tokenType: "generic",
+    };
+  });
+
+export const submitTravelerRegistrationForm = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      token: z.string().min(1),
+      fullName: z.string().min(2, "Nome completo obrigatório"),
+      cpf: z.string().min(11, "CPF obrigatório"),
+      rg: z.string().optional().nullable(),
+      birthDate: z.string().optional().nullable(),
+      gender: z.string().optional().nullable(),
+      passportNumber: z.string().optional().nullable(),
+      passportExpiry: z.string().optional().nullable(),
+      phone: z.string().min(8, "Telefone obrigatório"),
+      email: z.string().email("E-mail inválido").optional().nullable(),
+      emergencyName: z.string().optional().nullable(),
+      emergencyPhone: z.string().optional().nullable(),
+      seatPreference: z.string().optional().nullable(),
+      specialNeeds: z.string().optional().nullable(),
+    })
+  )
+  .handler(async ({ data }): Promise<{ success: boolean; passengerId: string; message: string }> => {
+    const supabase = getServerClient();
+    const token = data.token.trim();
+
+    // 1. Resolver storeId e tripId a partir do token
+    let tripId: string | null = null;
+    let storeId: string | null = null;
+
+    // A. Buscar por trip
+    const { data: trip } = await supabase
+      .from("tourism_trips")
+      .select("id, store_id")
+      .or(`id.eq.${token.length === 36 ? token : '00000000-0000-0000-0000-000000000000'},trip_number.eq.${token}`)
+      .maybeSingle();
+
+    if (trip) {
+      tripId = trip.id;
+      storeId = trip.store_id;
+    }
+
+    // B. Se não achou, buscar por voucher
+    if (!tripId) {
+      const { data: vch } = await supabase
+        .from("tourism_vouchers")
+        .select("trip_id, store_id")
+        .or(`public_token.eq.${token},voucher_code.eq.${token}`)
+        .maybeSingle();
+      if (vch) {
+        tripId = vch.trip_id;
+        storeId = vch.store_id;
+      }
+    }
+
+    // C. Se não achou, buscar por proposta
+    if (!tripId) {
+      const { data: prop } = await supabase
+        .from("travel_proposals")
+        .select("id, store_id, agency_id")
+        .or(`id.eq.${token.length === 36 ? token : '00000000-0000-0000-0000-000000000000'},conditions.ilike.%"public_token":"${token}"%`)
+        .maybeSingle();
+      if (prop) {
+        storeId = prop.store_id || prop.agency_id;
+      }
+    }
+
+    // D. Se não achou storeId, usar store padrão ativa
+    if (!storeId) {
+      const { data: defaultStore } = await supabase
+        .from("stores")
+        .select("id")
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+      storeId = defaultStore?.id || "00000000-0000-0000-0000-000000000000";
+    }
+
+    // E. Se não achou tripId, criar viagem correspondente
+    if (!tripId) {
+      const { data: createdTrip } = await supabase
+        .from("tourism_trips")
+        .insert({
+          store_id: storeId,
+          title: `Viagem — ${data.fullName}`,
+          destination_city: "Destino a confirmar",
+          status: "confirmed",
+          client_name: data.fullName,
+          client_phone: data.phone,
+          client_email: data.email || null,
+          total_cents: 0,
+        })
+        .select("id")
+        .single();
+      tripId = createdTrip?.id || null;
+    }
+
+    if (!tripId) throw new Error("Não foi possível associar a viagem.");
+
+    // 2. Persistir passageiro em trip_passengers
+    const cleanCpf = data.cpf.replace(/\D/g, "");
+    const passengerPayload = {
+      trip_id: tripId,
+      store_id: storeId,
+      full_name: data.fullName.trim(),
+      document_type: "cpf",
+      document: cleanCpf,
+      document_expiry: data.passportExpiry || null,
+      birth_date: data.birthDate || null,
+      nationality: "Brasileira",
+      email: data.email || null,
+      phone: data.phone || null,
+      seat_number: data.seatPreference || null,
+      special_needs: data.specialNeeds || null,
+      notes: JSON.stringify({
+        rg: data.rg || null,
+        gender: data.gender || null,
+        passport_number: data.passportNumber || null,
+        emergency_name: data.emergencyName || null,
+        emergency_phone: data.emergencyPhone || null,
+        submitted_via_token: token,
+      }),
+    };
+
+    const { data: existingPassenger } = await supabase
+      .from("trip_passengers")
+      .select("id")
+      .eq("trip_id", tripId)
+      .eq("document", cleanCpf)
+      .maybeSingle();
+
+    let passengerId: string;
+    if (existingPassenger) {
+      const { error: updErr } = await supabase
+        .from("trip_passengers")
+        .update(passengerPayload)
+        .eq("id", existingPassenger.id);
+      if (updErr) throw updErr;
+      passengerId = existingPassenger.id;
+    } else {
+      const { data: ins, error: insErr } = await supabase
+        .from("trip_passengers")
+        .insert(passengerPayload)
+        .select("id")
+        .single();
+      if (insErr || !ins) throw insErr || new Error("Falha ao cadastrar passageiro.");
+      passengerId = ins.id;
+    }
+
+    // 3. Sincronizar na carteira CRM (customers_crm)
+    try {
+      const cleanPhone = data.phone.replace(/\D/g, "");
+      const { data: existingCustomer } = await supabase
+        .from("customers_crm")
+        .select("id")
+        .eq("store_id", storeId)
+        .or(`document.eq.${cleanCpf},phone.eq.${cleanPhone}`)
+        .maybeSingle();
+
+      if (!existingCustomer) {
+        await supabase.from("customers_crm").insert({
+          store_id: storeId,
+          full_name: data.fullName.trim(),
+          document: cleanCpf,
+          email: data.email || null,
+          phone: data.phone || null,
+          channel: "traveler_form",
+          kind: "individual",
+          notes: `Cadastrado via Ficha Segura do Viajante (Token: ${token})`,
+        });
+      }
+    } catch (crmErr) {
+      console.warn("[submitTravelerRegistrationForm] CRM sync notice:", crmErr);
+    }
+
+    return {
+      success: true,
+      passengerId,
+      message: "Ficha cadastral persistida com sucesso!",
+    };
+  });
+
+

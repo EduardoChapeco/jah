@@ -7,7 +7,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const migrationsDir = path.resolve(__dirname, "../supabase/migrations");
-const password = process.env.SUPABASE_DB_PASSWORD || "${process.env.SUPABASE_DB_PASSWORD || ""}";
+let password = process.env.SUPABASE_DB_PASSWORD || "";
+if (!password) {
+  const secretsPath = path.resolve(__dirname, "../.env.secrets");
+  if (fs.existsSync(secretsPath)) {
+    const lines = fs.readFileSync(secretsPath, "utf8").split("\n");
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("SUPABASE_DB_PASSWORD=")) {
+        password = trimmed.replace("SUPABASE_DB_PASSWORD=", "").replace(/["']/g, "").trim();
+        break;
+      }
+    }
+  }
+}
 
 const configs = [
   {
@@ -87,7 +100,10 @@ async function main() {
 
     console.log(`\n--> Aplicando migration pendente: ${file}...`);
     const filePath = path.join(migrationsDir, file);
-    const sqlContent = fs.readFileSync(filePath, "utf8");
+    let sqlContent = fs.readFileSync(filePath, "utf8");
+    if (sqlContent.charCodeAt(0) === 0xfeff) {
+      sqlContent = sqlContent.slice(1);
+    }
 
     try {
       await sql.unsafe(sqlContent);

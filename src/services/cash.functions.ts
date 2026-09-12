@@ -60,24 +60,45 @@ async function getProfilesById(ids: string[]): Promise<Map<string, CashRegisterP
 }
 
 async function getEntriesForRegister(registerId: string): Promise<CashRegisterEntry[]> {
- const supabase = getServerClient();
- const { data, error } = await supabase
- .from("cash_register_entries")
- .select("id, cash_register_id, order_id, amount_cents, entry_type, notes, created_at")
- .eq("cash_register_id", registerId)
- .order("created_at", { ascending: false });
+  const supabase = getServerClient();
+  const { data, error } = await supabase
+    .from("cash_register_entries")
+    .select("id, cash_register_id, order_id, amount_cents, entry_type, notes, created_at, channel, marketplace_fee_cents")
+    .eq("cash_register_id", registerId)
+    .order("created_at", { ascending: false });
 
- if (error) throw new Error("Erro ao buscar lançamentos do caixa: " + error.message);
+  if (error) {
+    // Fallback gracefully if optional columns aren't yet in this DB instance
+    const fallbackRes = await supabase
+      .from("cash_register_entries")
+      .select("id, cash_register_id, order_id, amount_cents, entry_type, notes, created_at")
+      .eq("cash_register_id", registerId)
+      .order("created_at", { ascending: false });
+    if (fallbackRes.error) throw new Error("Erro ao buscar lançamentos do caixa: " + fallbackRes.error.message);
+    return (fallbackRes.data ?? []).map((entry: any) => ({
+      id: entry.id,
+      register_id: entry.cash_register_id,
+      order_id: entry.order_id,
+      amount_cents: entry.amount_cents,
+      method: entry.entry_type as CashEntryMethod,
+      description: entry.notes,
+      created_at: entry.created_at,
+      channel: (entry.notes?.toLowerCase().includes("mercado livre") ? "mercadolivre" : entry.notes?.toLowerCase().includes("ifood") ? "ifood" : entry.notes?.toLowerCase().includes("whatsapp") ? "whatsapp" : "pos_counter") as any,
+      marketplace_fee_cents: 0,
+    }));
+  }
 
- return (data ?? []).map((entry: any) => ({
- id: entry.id,
- register_id: entry.cash_register_id,
- order_id: entry.order_id,
- amount_cents: entry.amount_cents,
- method: entry.entry_type as CashEntryMethod,
- description: entry.notes,
- created_at: entry.created_at,
- }));
+  return (data ?? []).map((entry: any) => ({
+    id: entry.id,
+    register_id: entry.cash_register_id,
+    order_id: entry.order_id,
+    amount_cents: entry.amount_cents,
+    method: entry.entry_type as CashEntryMethod,
+    description: entry.notes,
+    created_at: entry.created_at,
+    channel: (entry.channel || (entry.notes?.toLowerCase().includes("mercado livre") ? "mercadolivre" : entry.notes?.toLowerCase().includes("ifood") ? "ifood" : entry.notes?.toLowerCase().includes("whatsapp") ? "whatsapp" : "pos_counter")) as any,
+    marketplace_fee_cents: entry.marketplace_fee_cents || 0,
+  }));
 }
 
 // ---------------------------------------------------------------------------
@@ -269,15 +290,17 @@ export async function _listRegisterHistory(): Promise<CashRegisterHistoryItem[]>
  .in("cash_register_id", registerIds),
  ]);
 
- const allEntries = (allEntriesRes.data ?? []).map((entry: any) => ({
- id: entry.id,
- register_id: entry.cash_register_id,
- order_id: entry.order_id,
- amount_cents: entry.amount_cents,
- method: entry.entry_type as CashEntryMethod,
- description: entry.notes,
- created_at: entry.created_at,
- })) as Array<CashRegisterEntry & { method: CashEntryMethod }>;
+  const allEntries = (allEntriesRes.data ?? []).map((entry: any) => ({
+    id: entry.id,
+    register_id: entry.cash_register_id,
+    order_id: entry.order_id,
+    amount_cents: entry.amount_cents,
+    method: entry.entry_type as CashEntryMethod,
+    description: entry.notes,
+    created_at: entry.created_at,
+    channel: (entry.channel || (entry.notes?.toLowerCase().includes("mercado livre") ? "mercadolivre" : entry.notes?.toLowerCase().includes("ifood") ? "ifood" : entry.notes?.toLowerCase().includes("whatsapp") ? "whatsapp" : "pos_counter")) as any,
+    marketplace_fee_cents: entry.marketplace_fee_cents || 0,
+  })) as Array<CashRegisterEntry & { method: CashEntryMethod }>;
  const entriesByRegister = new Map<string, typeof allEntries>();
 
  allEntries.forEach((entry) => {

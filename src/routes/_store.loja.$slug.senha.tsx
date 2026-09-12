@@ -111,15 +111,13 @@ function StorePasswordGatePage() {
 
         <div className="pt-2">
           <Button
-            asChild
             variant="ghost"
             size="sm"
-            className="text-xs text-muted-foreground hover:text-foreground gap-1"
+            onClick={() => navigate({ to: "/" })}
+            className="text-xs text-muted-foreground hover:text-foreground gap-1.5 cursor-pointer"
           >
-            <button onClick={() => navigate({ to: "/" })}>
-              <ArrowLeft size={13} />
-              <span>Voltar ao início</span>
-            </button>
+            <ArrowLeft size={13} />
+            <span>Voltar ao início</span>
           </Button>
         </div>
       </div>

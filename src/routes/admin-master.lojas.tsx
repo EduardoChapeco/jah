@@ -159,7 +159,14 @@ function MasterLojasPage() {
  {store.name?.slice(0, 2).toUpperCase()}
  </div>
  <div>
+ <div className="flex items-center gap-1.5">
  <p className="font-semibold text-foreground">{store.name}</p>
+ {store.settings?.segment && (
+ <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border-border/60 uppercase">
+ {store.settings.segment}
+ </Badge>
+ )}
+ </div>
  <p className="text-[11px] text-muted-foreground">
  {store.city ? `${store.city} - ${store.state || "SC"}` : "Santa Catarina"}
  </p>

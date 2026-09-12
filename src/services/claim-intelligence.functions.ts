@@ -74,18 +74,33 @@ export const submitClaimProfile = createServerFn({ method: 'POST' })
   .validator(SubmitClaimInputSchema)
   .handler(async ({ data }): Promise<{ success: boolean; claim: ClaimProfile }> => {
     const db = getServerClient();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.entityId);
 
+    let resolvedEntityId = isUuid ? data.entityId : null;
     let targetStoreId = data.storeId;
+
+    if (!resolvedEntityId) {
+      const { data: store } = await db.from('stores').select('id').eq('slug', data.entityId).maybeSingle();
+      if (store) {
+        resolvedEntityId = store.id;
+        targetStoreId = store.id;
+      } else {
+        resolvedEntityId = '00000000-0000-0000-0000-000000000000';
+      }
+    }
+
     if (!targetStoreId || targetStoreId === '00000000-0000-0000-0000-000000000000') {
-      const { data: store } = await db.from('stores').select('id').eq('id', data.entityId).maybeSingle();
-      targetStoreId = store?.id || '00000000-0000-0000-0000-000000000000';
+      if (isUuid) {
+        const { data: store } = await db.from('stores').select('id').eq('id', data.entityId).maybeSingle();
+        targetStoreId = store?.id || '00000000-0000-0000-0000-000000000000';
+      }
     }
 
     const { data: inserted, error } = await db
       .from('claim_profiles')
       .insert({
-        store_id: targetStoreId,
-        entity_id: data.entityId,
+        store_id: targetStoreId || '00000000-0000-0000-0000-000000000000',
+        entity_id: resolvedEntityId,
         entity_type: data.entityType,
         requester_name: data.requesterName,
         requester_email: data.requesterEmail,
@@ -109,13 +124,19 @@ export const getEntityForClaim = createServerFn({ method: 'GET' })
   .validator(z.object({ entityId: z.string().min(1) }))
   .handler(async ({ data: { entityId } }) => {
     const db = getServerClient();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(entityId);
 
-    // Busca loja se existir
-    const { data: store } = await db
+    // 1. Busca loja se existir (por ID ou Slug)
+    let storeQuery = db
       .from('stores')
-      .select('id, name, slug, phone, email, address, city, state, description, logo_url')
-      .eq('id', entityId)
-      .maybeSingle();
+      .select('id, name, slug, phone, email, address, city, state, description, logo_url');
+    
+    if (isUuid) {
+      storeQuery = storeQuery.eq('id', entityId);
+    } else {
+      storeQuery = storeQuery.eq('slug', entityId);
+    }
+    const { data: store } = await storeQuery.maybeSingle();
 
     if (store) {
       const { data: intel } = await db
@@ -151,45 +172,47 @@ export const getEntityForClaim = createServerFn({ method: 'GET' })
       };
     }
 
-    // Busca empresa se existir
-    const { data: company } = await db
-      .from('companies')
-      .select('id, name, cnpj, phone, email, category, address_city, address_state, description, logo_url')
-      .eq('id', entityId)
-      .maybeSingle();
-
-    if (company) {
-      const { data: intel } = await db
-        .from('claim_intelligence')
-        .select('*')
-        .eq('entity_id', company.id)
+    // 2. Busca empresa se existir (apenas se for UUID)
+    if (isUuid) {
+      const { data: company } = await db
+        .from('companies')
+        .select('id, name, cnpj, phone, email, category, address_city, address_state, description, logo_url')
+        .eq('id', entityId)
         .maybeSingle();
 
-      return {
-        id: company.id,
-        name: company.name,
-        slug: null,
-        document: company.cnpj,
-        phone: company.phone,
-        email: company.email,
-        address: null,
-        city: company.address_city || 'São Miguel do Oeste',
-        state: company.address_state || 'SC',
-        description: company.description,
-        logoUrl: company.logo_url,
-        type: 'company' as const,
-        intelligence: intel || {
-          visibility_score: 80,
-          reputation_score: 88,
-          market_share_percent: 15.0,
-          rank_state: 2,
-          verified_claims: 8,
-          solved_rate: 94,
-          avg_reply_hours: 2.2,
-          competitors: [],
-          sentiment: { positive: 89, neutral: 8, negative: 3 },
-        },
-      };
+      if (company) {
+        const { data: intel } = await db
+          .from('claim_intelligence')
+          .select('*')
+          .eq('entity_id', company.id)
+          .maybeSingle();
+
+        return {
+          id: company.id,
+          name: company.name,
+          slug: null,
+          document: company.cnpj,
+          phone: company.phone,
+          email: company.email,
+          address: null,
+          city: company.address_city || 'São Miguel do Oeste',
+          state: company.address_state || 'SC',
+          description: company.description,
+          logoUrl: company.logo_url,
+          type: 'company' as const,
+          intelligence: intel || {
+            visibility_score: 80,
+            reputation_score: 88,
+            market_share_percent: 15.0,
+            rank_state: 2,
+            verified_claims: 8,
+            solved_rate: 94,
+            avg_reply_hours: 2.2,
+            competitors: [],
+            sentiment: { positive: 89, neutral: 8, negative: 3 },
+          },
+        };
+      }
     }
 
     // Fallback defensivo

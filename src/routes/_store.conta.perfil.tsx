@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useRouter, redirect } from "@tanstack/react-router";
 import { useState, useRef } from "react";
 import { getProfile, updateProfile, requestAccountDeletion, getUserSession } from "@/services/auth.functions";
-import { getPostMediaSignedUrl } from "@/services/storage.functions";
+import { getPostMediaSignedUrl, uploadProfileMediaDirect } from "@/services/storage.functions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -187,38 +187,34 @@ function ProfilePage() {
 
     try {
       const type = cropperType;
-      const ext = "png";
-      const file = new File([croppedBlob], `profile_${type}_${Date.now()}.${ext}`, {
-        type: "image/png",
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(croppedBlob);
       });
 
-      const { signedUrl, publicUrl } = await getPostMediaSignedUrl({
+      const res = await uploadProfileMediaDirect({
         data: {
-          fileName: file.name,
-          contentType: "image/png",
+          fileName: `profile_${type}_${Date.now()}.png`,
+          fileType: "image/png",
+          base64Data,
+          target: type,
         },
       });
 
-      const uploadRes = await fetch(signedUrl, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": "image/png" },
-      });
-
-      if (!uploadRes.ok) throw new Error("Falha no upload para o Storage.");
-
       if (type === "avatar") {
-        set("avatarUrl", publicUrl);
-        toast.success("Foto de perfil atualizada!");
+        set("avatarUrl", res.publicUrl);
+        toast.success("Foto de perfil atualizada com sucesso!");
       } else if (type === "cover") {
-        set("coverUrl", publicUrl);
-        toast.success("Foto de capa atualizada!");
+        set("coverUrl", res.publicUrl);
+        toast.success("Foto de capa atualizada com sucesso!");
       } else if (type === "creator_avatar") {
-        setCreatorAvatarUrl(publicUrl);
-        toast.success("Foto/Logo da marca atualizada!");
+        setCreatorAvatarUrl(res.publicUrl);
+        toast.success("Foto/Logo da marca atualizada com sucesso!");
       } else if (type === "creator_cover") {
-        setCreatorCoverUrl(publicUrl);
-        toast.success("Capa panorâmica da marca atualizada!");
+        setCreatorCoverUrl(res.publicUrl);
+        toast.success("Capa panorâmica da marca atualizada com sucesso!");
       }
     } catch (err: unknown) {
       toast.error((err instanceof Error ? err.message : String(err)) || "Erro no upload da imagem.");
@@ -453,17 +449,32 @@ function ProfilePage() {
               <span>1. Fotos de Identidade Visual</span>
             </div>
 
-            {/* Capa Panorâmica 1090px */}
+            {/* Capa Panorâmica (Proporção 3:1 Canônica e Responsiva) */}
             <div className="space-y-2">
-              <Label className="text-xs font-semibold text-foreground">Foto de Capa Panorâmica (1090px)</Label>
-              <div className="w-full h-28 sm:h-36 rounded-2xl bg-muted/30 overflow-x-auto no-scrollbar overflow-y-hidden flex items-center gap-3 pr-3 border border-border/40 relative group">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold text-foreground">Foto de Capa Panorâmica (Proporção 3:1)</Label>
+                {formData.coverUrl && (
+                  <button
+                    type="button"
+                    onClick={() => set("coverUrl", "")}
+                    className="text-[11px] text-destructive hover:underline cursor-pointer"
+                  >
+                    Remover Capa
+                  </button>
+                )}
+              </div>
+              <div className="w-full aspect-[3/1] max-h-52 rounded-2xl bg-muted/30 overflow-hidden flex items-center justify-center border border-border/40 relative group shadow-xs">
                 {formData.coverUrl ? (
-                  <img src={formData.coverUrl} alt="Capa" className="h-full min-w-[1090px] object-cover flex-shrink-0 select-none rounded-2xl" />
+                  <img
+                    src={formData.coverUrl}
+                    alt="Capa do Perfil"
+                    className="size-full object-cover select-none"
+                  />
                 ) : (
-                  <div className="h-full min-w-[1090px] bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex items-center justify-center rounded-2xl">
-                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <ImageIcon className="size-4 opacity-50" />
-                      Nenhuma capa adicionada (Formato Panorâmico: 1090px de largura)
+                  <div className="size-full bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex flex-col items-center justify-center gap-1.5 p-4 text-center">
+                    <ImageIcon className="size-6 text-primary/40" />
+                    <span className="text-xs text-muted-foreground font-medium">
+                      Nenhuma capa adicionada (Formato Panorâmico 3:1 — 1200x400)
                     </span>
                   </div>
                 )}
@@ -476,16 +487,30 @@ function ProfilePage() {
                   onChange={(e) => handleFileSelected(e, "cover")}
                 />
 
+                <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-3 pointer-events-none group-hover:pointer-events-auto">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="rounded-xl text-xs font-bold gap-1.5 bg-background/95 backdrop-blur-md shadow-md hover:bg-background cursor-pointer min-h-[44px]"
+                    onClick={() => coverInputRef.current?.click()}
+                    disabled={isUploadingMedia}
+                  >
+                    <Camera className="size-4" />
+                    <span>{formData.coverUrl ? "Alterar Capa" : "Carregar Capa"}</span>
+                  </Button>
+                </div>
+
                 <Button
                   type="button"
                   size="sm"
                   variant="secondary"
-                  className="sticky right-3 z-10 shrink-0 rounded-xl text-xs font-bold gap-1.5 bg-background/90 backdrop-blur-sm shadow-sm hover:bg-background"
+                  className="absolute bottom-2.5 right-2.5 sm:hidden rounded-xl text-xs font-bold gap-1.5 bg-background/90 backdrop-blur-md shadow-xs min-h-[40px]"
                   onClick={() => coverInputRef.current?.click()}
                   disabled={isUploadingMedia}
                 >
                   <Camera className="size-3.5" />
-                  <span>{formData.coverUrl ? "Alterar Capa" : "Adicionar Capa"}</span>
+                  <span>{formData.coverUrl ? "Alterar" : "Adicionar"}</span>
                 </Button>
               </div>
             </div>
@@ -968,10 +993,10 @@ function ProfilePage() {
                 </div>
               </div>
 
-              {/* Capa Panorâmica da Marca (1090x144 px) */}
+              {/* Capa Panorâmica da Marca (3:1 Canônica) */}
               <div className="space-y-2 p-3.5 rounded-xl bg-muted/30 border border-border/40">
                 <Label className="text-xs font-semibold text-foreground flex items-center justify-between">
-                  <span>Capa Panorâmica da Marca</span>
+                  <span>Capa Panorâmica da Marca (3:1)</span>
                   {creatorCoverUrl && (
                     <button
                       type="button"
@@ -983,11 +1008,11 @@ function ProfilePage() {
                   )}
                 </Label>
                 <div className="space-y-2">
-                  <div className="h-16 w-full rounded-xl ring-1 ring-border/40 bg-muted overflow-hidden flex items-center justify-center">
+                  <div className="w-full aspect-[3/1] max-h-40 rounded-xl ring-1 ring-border/40 bg-muted overflow-hidden flex items-center justify-center">
                     {creatorCoverUrl ? (
-                      <img src={creatorCoverUrl} alt="Capa da Marca" className="h-full w-full object-cover" />
+                      <img src={creatorCoverUrl} alt="Capa da Marca" className="size-full object-cover" />
                     ) : (
-                      <span className="text-[11px] text-muted-foreground">Sem capa definida (padrão panorâmico)</span>
+                      <span className="text-[11px] text-muted-foreground">Sem capa definida (Panorâmica 3:1 — 1200x400)</span>
                     )}
                   </div>
                   <Button
@@ -1211,7 +1236,7 @@ function ProfilePage() {
  aspect={
    cropperType === "avatar" || cropperType === "creator_avatar"
      ? 1
-     : 1090 / 144
+     : 3 / 1
  }
  cropShape={
    cropperType === "avatar" || cropperType === "creator_avatar"
@@ -1221,12 +1246,12 @@ function ProfilePage() {
  lockAspect={true}
  title={
    cropperType === "avatar"
-     ? "Recortar Foto de Perfil"
+     ? "Recortar Foto de Perfil (1:1)"
      : cropperType === "creator_avatar"
      ? "Recortar Foto/Logo da Marca (1:1)"
      : cropperType === "creator_cover"
-     ? "Recortar Capa da Marca (1090px)"
-     : "Recortar Capa Panorâmica (1090px)"
+     ? "Recortar Capa Panorâmica da Marca (3:1)"
+     : "Recortar Capa do Perfil (Panorâmica 3:1)"
  }
  onCropComplete={handleCropComplete}
  />

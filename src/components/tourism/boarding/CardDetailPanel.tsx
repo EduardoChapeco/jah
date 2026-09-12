@@ -41,6 +41,7 @@ import {
   addChecklistItem,
   deleteChecklistItem,
   uploadBoardingDocument,
+  deleteBoardingDocument,
   deleteDepartureCard,
   AIRLINE_CHECKIN_LINKS,
   type DepartureWithChecklist,
@@ -180,6 +181,51 @@ export function CardDetailPanel({
     onError: (err: any) => toast.error(err?.message || 'Erro ao excluir item.'),
   });
 
+  const uploadDocMutation = useMutation({
+    mutationFn: async () => {
+      if (!departureId || !docUrl.trim()) throw new Error('Selecione ou envie um documento válido.');
+      return uploadBoardingDocument({
+        data: {
+          departure_id: departureId,
+          document_type: docType,
+          file_url: docUrl.trim(),
+          file_name: `${DOC_TYPE_LABELS[docType]} - ${new Date().toLocaleDateString('pt-BR')}`,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success('Documento anexado com sucesso!');
+      setDocUrl('');
+      qc.invalidateQueries({ queryKey: ['departure-detail', departureId] });
+      onUpdated?.();
+    },
+    onError: (err: any) => toast.error(err?.message || 'Erro ao anexar documento.'),
+  });
+
+  const deleteDocMutation = useMutation({
+    mutationFn: (document_id: string) => deleteBoardingDocument({ data: { document_id } }),
+    onSuccess: () => {
+      toast.success('Documento excluído.');
+      qc.invalidateQueries({ queryKey: ['departure-detail', departureId] });
+      onUpdated?.();
+    },
+    onError: (err: any) => toast.error(err?.message || 'Erro ao excluir documento.'),
+  });
+
+  const deleteDepartureMutation = useMutation({
+    mutationFn: () => {
+      if (!departureId) throw new Error('ID não informado');
+      return deleteDepartureCard({ data: { id: departureId } });
+    },
+    onSuccess: () => {
+      toast.success('Cartão de embarque excluído.');
+      qc.invalidateQueries({ queryKey: ['travel-departures'] });
+      onUpdated?.();
+      onClose();
+    },
+    onError: (err: any) => toast.error(err?.message || 'Erro ao excluir embarque.'),
+  });
+
   const updateMutation = useMutation({
     mutationFn: () => {
       if (!departureId) throw new Error('ID não informado');
@@ -189,6 +235,7 @@ export function CardDetailPanel({
           airline_locator: airlineLocator || null,
           flight_number: flightNumber || null,
           hotel_name: hotelName || null,
+          notes: notes || null,
         },
       });
     },
@@ -338,6 +385,20 @@ export function CardDetailPanel({
                     <Send className="size-3.5" />
                     <span>Briefing</span>
                   </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      if (window.confirm(`Tem certeza que deseja excluir o cartão de embarque de ${departure.client_name}?`)) {
+                        deleteDepartureMutation.mutate();
+                      }
+                    }}
+                    disabled={deleteDepartureMutation.isPending}
+                    className="size-8 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                    title="Excluir embarque"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
                 </div>
               </div>
 
@@ -481,7 +542,7 @@ export function CardDetailPanel({
                             <p className="text-[10px] text-muted-foreground truncate">{doc.file_name || 'Arquivo anexo'}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-1.5 shrink-0">
                           {doc.ocr_status === 'completed' && (
                             <Badge variant="outline" className="text-[9px] text-emerald-600 border-emerald-500/30">
                               OCR ✓
@@ -491,6 +552,20 @@ export function CardDetailPanel({
                             <a href={doc.file_url} target="_blank" rel="noreferrer" title="Visualizar arquivo">
                               <ExternalLink className="size-3.5" />
                             </a>
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => {
+                              if (window.confirm('Deseja excluir este documento?')) {
+                                deleteDocMutation.mutate(doc.id);
+                              }
+                            }}
+                            disabled={deleteDocMutation.isPending}
+                            className="size-7 rounded-lg text-muted-foreground hover:text-destructive cursor-pointer"
+                            title="Excluir documento"
+                          >
+                            <Trash2 className="size-3.5" />
                           </Button>
                         </div>
                       </div>
@@ -530,6 +605,18 @@ export function CardDetailPanel({
                         />
                       </div>
                     </div>
+                    <Button
+                      onClick={() => uploadDocMutation.mutate()}
+                      disabled={!docUrl || uploadDocMutation.isPending}
+                      className="w-full rounded-xl font-bold text-xs h-9 gap-1.5 cursor-pointer"
+                    >
+                      {uploadDocMutation.isPending ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <Plus className="size-3.5" />
+                      )}
+                      Salvar Documento Anexado
+                    </Button>
                   </div>
                 </div>
               )}
@@ -622,6 +709,24 @@ export function CardDetailPanel({
                         </p>
                       )}
                     </div>
+                  </div>
+
+                  {/* Observações Operacionais */}
+                  <div className="p-4 rounded-2xl border border-border/70 bg-card space-y-2">
+                    <Label className="text-xs font-bold text-foreground">Observações Operacionais & Cuidados</Label>
+                    {isEditing ? (
+                      <Textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Instruções especiais, conexões curtas, bagagem diferenciada..."
+                        className="rounded-xl text-xs resize-none"
+                        rows={3}
+                      />
+                    ) : (
+                      <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                        {(departure as any).notes || 'Nenhuma observação informada.'}
+                      </p>
+                    )}
                   </div>
 
                   {isEditing && (

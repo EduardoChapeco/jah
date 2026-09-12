@@ -78,6 +78,21 @@ function getStatusBadge(
   }
 }
 
+function getExchangeChannelBadge(channel?: string) {
+  switch (channel) {
+    case "mercadolivre":
+      return <Badge variant="outline" className="text-[10px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30">Mercado Livre</Badge>;
+    case "ifood":
+      return <Badge variant="outline" className="text-[10px] font-medium bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30">iFood</Badge>;
+    case "amazon":
+      return <Badge variant="outline" className="text-[10px] font-medium bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/30">Amazon</Badge>;
+    case "whatsapp":
+      return <Badge variant="outline" className="text-[10px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30">WhatsApp</Badge>;
+    default:
+      return <Badge variant="outline" className="text-[10px] font-medium text-muted-foreground border-border/60">Balcão / Loja</Badge>;
+  }
+}
+
 const KANBAN_COLUMNS = [
   { id: "requested", title: "Novas" },
   { id: "approved", title: "Em Andamento" },
@@ -364,6 +379,7 @@ function ExchangesDashboardPage() {
             <TableHeader>
               <TableRow className="border-border/60 bg-muted/20">
                 <TableHead>Data</TableHead>
+                <TableHead>Canal</TableHead>
                 <TableHead>Pedido</TableHead>
                 <TableHead>Cliente</TableHead>
                 <TableHead>Motivo</TableHead>
@@ -376,6 +392,9 @@ function ExchangesDashboardPage() {
                 <TableRow key={ex.id} className="border-border/50">
                   <TableCell className="whitespace-nowrap font-mono text-xs text-muted-foreground">
                     {formatDate(ex.requestedAt)}
+                  </TableCell>
+                  <TableCell>
+                    {getExchangeChannelBadge(ex.channel || ex.origin_channel)}
                   </TableCell>
                   <TableCell className="font-mono font-semibold text-xs">#{ex.orderToken}</TableCell>
                   <TableCell className="text-xs font-medium">{ex.customerName}</TableCell>
@@ -423,7 +442,10 @@ function ExchangesDashboardPage() {
                       >
                         <div className="flex justify-between items-start gap-2">
                           <div>
-                            <p className="font-bold font-mono text-xs text-foreground">#{ex.orderToken}</p>
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span className="font-bold font-mono text-xs text-foreground">#{ex.orderToken}</span>
+                              {getExchangeChannelBadge(ex.channel || ex.origin_channel)}
+                            </div>
                             <p className="text-xs text-muted-foreground font-medium">{ex.customerName}</p>
                           </div>
                           <Badge variant={getStatusBadge(ex.status)} className="text-[10px]">

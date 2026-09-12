@@ -34,22 +34,27 @@ CREATE INDEX IF NOT EXISTS idx_orders_channel_origin
 COMMENT ON COLUMN public.orders.channel_origin
   IS 'Canal de origem do pedido. Obrigatório para rastreabilidade omnichannel e DRE por canal.';
 
--- ── 3. channel_origin em cash_flows ─────────────────────────
-ALTER TABLE public.cash_flows
-  ADD COLUMN IF NOT EXISTS channel_origin TEXT NOT NULL DEFAULT 'vitrine_online';
+-- ── 3. channel_origin em cash_flows / cash_register_entries ───────
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'cash_flows') THEN
+    ALTER TABLE public.cash_flows ADD COLUMN IF NOT EXISTS channel_origin TEXT NOT NULL DEFAULT 'vitrine_online';
+    CREATE INDEX IF NOT EXISTS idx_cash_flows_channel_origin ON public.cash_flows(store_id, channel_origin);
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_cash_flows_channel_origin
-  ON public.cash_flows(store_id, channel_origin);
-
-COMMENT ON COLUMN public.cash_flows.channel_origin
-  IS 'Canal de origem do lançamento financeiro. Permite relatórios de taxas por plataforma.';
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'cash_register_entries') THEN
+    ALTER TABLE public.cash_register_entries ADD COLUMN IF NOT EXISTS channel_origin TEXT DEFAULT 'vitrine_online';
+    CREATE INDEX IF NOT EXISTS idx_cash_reg_entries_chan_orig ON public.cash_register_entries(cash_register_id, channel_origin);
+  END IF;
+END $$;
 
 -- ── 4. channel_origin em stock_movements ────────────────────
-ALTER TABLE public.stock_movements
-  ADD COLUMN IF NOT EXISTS channel_origin TEXT DEFAULT 'vitrine_online';
-
-COMMENT ON COLUMN public.stock_movements.channel_origin
-  IS 'Canal que originou a movimentação de estoque. Essencial para rastreio de baixas por marketplace.';
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'stock_movements') THEN
+    ALTER TABLE public.stock_movements ADD COLUMN IF NOT EXISTS channel_origin TEXT DEFAULT 'vitrine_online';
+  END IF;
+END $$;
 
 -- ── 5. Tabela store_social_posts ────────────────────────────
 CREATE TABLE IF NOT EXISTS public.store_social_posts (

@@ -34,7 +34,7 @@ const fallbackEnv = {
   VITE_SUPABASE_ANON_KEY: secrets.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || "",
   SUPABASE_ANON_KEY: secrets.SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "",
   SUPABASE_SERVICE_ROLE_KEY: secrets.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "",
-  VITE_SITE_URL: secrets.VITE_SITE_URL || process.env.VITE_SITE_URL || "https://wider.pages.dev",
+  VITE_SITE_URL: secrets.VITE_SITE_URL || process.env.VITE_SITE_URL || "https://waesy.pages.dev",
 };
 
 const injection = `async fetch(cfReq, env, context) {

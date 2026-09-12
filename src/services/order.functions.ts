@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 import { getSSRClient, getServerIdentity, assertStoreAccess } from "@/lib/server-access";
 import { requireAdmin } from "@/lib/server-access";
+import { emitOrderNFeAutomated } from "@/services/fiscal-nfe.functions";
 
 // ---------------------------------------------------------------------------
 // Order status enum (shared between validator and domain logic)
@@ -118,6 +119,19 @@ export async function _updateOrderStatus(
 
  const updatePayload: Record<string, any> = { status };
  if (status === "paid") updatePayload.paid_at = new Date().toISOString();
+ if (status === "processing") {
+  updatePayload.prep_started_at = new Date().toISOString();
+  // Disparo em background da emissão automatizada de NF-e (não bloqueia o fluxo do pedido)
+  emitOrderNFeAutomated({ data: { orderId, storeId: store_id } })
+   .then((res) => {
+    if (res.success && res.invoice) {
+     console.log(`[fiscal] NF-e #${res.invoice.nfe_number} emitida automaticamente para o pedido ${orderId}`);
+    }
+   })
+   .catch((err) => {
+    console.warn(`[fiscal] Background auto-emit aviso para o pedido ${orderId}:`, err);
+   });
+ }
  if (status === "shipped") updatePayload.shipped_at = new Date().toISOString();
  if (status === "delivered") updatePayload.delivered_at = new Date().toISOString();
 

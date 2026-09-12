@@ -81,6 +81,7 @@ import { LeadImportModal } from "@/components/commercial/lead-import-modal";
 import { LeadVisualProposalSheet } from "@/components/commercial/lead-visual-proposal-sheet";
 import { LeadCommissionCalculatorSheet } from "@/components/commercial/lead-commission-calculator-sheet";
 import { LeadFlightGridSheet } from "@/components/commercial/lead-flight-grid-sheet";
+import { LeadCard } from "@/components/tourism/crm/LeadCard";
 
 export const Route = createFileRoute("/workspace/comercial")({
   head: () => ({ meta: [{ title: "Pipeline Comercial & Funil de Oportunidades | Workspace" }] }),
@@ -678,295 +679,24 @@ function WorkspaceComercialPage() {
                     </Button>
                   </div>
                 ) : (
-                  stageLeads.map((lead: any) => {
-                    const initials = lead.full_name
-                      ? lead.full_name
-                          .split(" ")
-                          .map((n: string) => n[0])
-                          .slice(0, 2)
-                          .join("")
-                          .toUpperCase()
-                      : "L";
-
-                    const cleanPhone = lead.phone ? lead.phone.replace(/\D/g, "") : "";
-                    const whatsappUrl = cleanPhone
-                      ? `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(
-                          `Olá ${lead.full_name}, tudo bem? Sou da equipe comercial da agência de viagens. Gostaria de dar andamento à sua viagem ${lead.destination ? `para ${lead.destination}` : ""}.`
-                        )}`
-                      : null;
-
-                    const staleness = getStalenessInfo(lead);
-                    const travelPeriod = getTravelPeriodDisplay(lead);
-                    const paxBreakdown = formatPaxBreakdown(lead);
-
-                    // Checklist stats
-                    const checklistItems: Array<{ id: string; text: string; done: boolean }> = Array.isArray(lead.checklist)
-                      ? lead.checklist
-                      : [];
-                    const totalTasks = checklistItems.length;
-                    const doneTasks = checklistItems.filter((t) => t.done).length;
-
-                    // Assigned team member
-                    const assignedMember = team.find((m: any) => (m.profile_id || m.id) === lead.assigned_to);
-
-                    return (
-                      <div
-                        key={lead.id}
-                        onClick={() => openLeadDetails(lead)}
-                        className={cn(
-                          "p-3.5 rounded-2xl border bg-card hover:border-primary/50 transition-all shadow-xs hover:shadow-md space-y-2.5 text-xs group/card cursor-pointer relative",
-                          staleness.isCold
-                            ? "border-rose-500/40 bg-rose-500/[0.02]"
-                            : staleness.isStale
-                              ? "border-amber-500/40 bg-amber-500/[0.02]"
-                              : "border-border/70"
-                        )}
-                      >
-                        {/* Topo do Card: Avatar, Nome, Origem e Menu */}
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center gap-2 min-w-0 flex-1">
-                            <Avatar className="size-7 rounded-xl shrink-0 border border-border/60">
-                              <AvatarFallback className="text-[10px] font-bold bg-primary/10 text-primary">
-                                {initials}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="min-w-0 flex-1">
-                              <h4 className="font-bold text-foreground text-xs truncate group-hover/card:text-primary transition-colors">
-                                {lead.full_name}
-                              </h4>
-                              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground truncate">
-                                {lead.phone && <span>{lead.phone}</span>}
-                                {lead.lead_source_detail && (
-                                  <>
-                                    <span>•</span>
-                                    <span className="font-mono uppercase font-semibold text-primary/80">
-                                      {lead.lead_source_detail}
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-6 rounded-lg text-muted-foreground hover:text-foreground shrink-0"
-                              >
-                                <MoreVertical className="size-3" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="text-xs w-52 p-1.5 rounded-2xl">
-                              <DropdownMenuItem onClick={() => openLeadDetails(lead)} className="cursor-pointer font-medium">
-                                <Edit3 className="size-3.5 mr-2" />
-                                Abrir Ficha 360°
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setProposalLead(lead)} className="cursor-pointer font-medium text-primary">
-                                <FileText className="size-3.5 mr-2" />
-                                Gerar Proposta Visual
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setCalculatorLead(lead)} className="cursor-pointer font-medium text-amber-500">
-                                <Calculator className="size-3.5 mr-2" />
-                                Calcular Comissão
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setFlightLead(lead)} className="cursor-pointer font-medium text-sky-500">
-                                <Plane className="size-3.5 mr-2" />
-                                Malha Aérea & Voos
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase font-mono">
-                                Mover para Estágio:
-                              </div>
-                              {STAGES.filter((s) => s.id !== stage.id).map((s) => (
-                                <DropdownMenuItem
-                                  key={s.id}
-                                  onClick={() => handleMoveStage(lead.id, s.id)}
-                                  className="cursor-pointer text-[11px]"
-                                >
-                                  → {s.title}
-                                </DropdownMenuItem>
-                              ))}
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => handlePromoteToCustomer(lead.id)}
-                                className="text-emerald-600 font-bold cursor-pointer"
-                              >
-                                <UserCheck className="size-3.5 mr-2" />
-                                Converter em Cliente
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleDeleteLead(lead.id)}
-                                className="text-rose-600 font-medium cursor-pointer"
-                              >
-                                <Trash2 className="size-3.5 mr-2" />
-                                Excluir Lead
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-
-                        {/* Alerta de Inatividade / Staleness */}
-                        {staleness.isStale && (
-                          <div
-                            className={cn(
-                              "text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md inline-flex items-center gap-1 border",
-                              staleness.isCold
-                                ? "bg-rose-500/10 text-rose-600 border-rose-500/30"
-                                : "bg-amber-500/10 text-amber-600 border-amber-500/30"
-                            )}
-                          >
-                            <AlertTriangle className="size-2.5 shrink-0" />
-                            <span>
-                              {staleness.isCold ? "Inativo há" : "Sem Resposta há"} {staleness.diffDays} dias
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Bloco de Destino, Período & Passageiros */}
-                        {(lead.destination || travelPeriod || lead.pax_count > 1) && (
-                          <div className="p-2 rounded-xl bg-muted/40 border border-border/40 space-y-1 text-[11px]">
-                            {lead.destination && (
-                              <div className="font-bold text-foreground flex items-center gap-1.5 truncate">
-                                <MapPin className="size-3 text-primary shrink-0" />
-                                <span className="truncate">{lead.destination}</span>
-                              </div>
-                            )}
-                            <div className="flex flex-wrap items-center gap-x-1.5 text-[10px] text-muted-foreground pl-4">
-                              {travelPeriod && <span>{travelPeriod}</span>}
-                              {travelPeriod && <span>•</span>}
-                              <span className="font-medium text-foreground/80">{paxBreakdown}</span>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Tags com Cores */}
-                        {lead.tags && Array.isArray(lead.tags) && lead.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {lead.tags.map((tag: string) => {
-                              const [name, color] = tag.split(":");
-                              return (
-                                <span
-                                  key={tag}
-                                  className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md text-white shadow-2xs"
-                                  style={{ backgroundColor: color || "#3b82f6" }}
-                                >
-                                  {name}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {/* Valor Estimado & Checklist / Equipe */}
-                        <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-border/40">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-mono font-bold text-xs text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-lg">
-                              {lead.estimated_value_cents > 0
-                                ? formatMoney(lead.estimated_value_cents)
-                                : "A orçar"}
-                            </span>
-
-                            {totalTasks > 0 && (
-                              <span
-                                className={cn(
-                                  "inline-flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded-md border font-medium",
-                                  doneTasks === totalTasks
-                                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30 font-bold"
-                                    : "bg-muted text-muted-foreground border-border/60"
-                                )}
-                                title={`Checklist: ${doneTasks} de ${totalTasks} concluídos`}
-                              >
-                                <CheckCircle2 className="size-2.5 shrink-0" />
-                                <span>{doneTasks}/{totalTasks}</span>
-                              </span>
-                            )}
-                          </div>
-
-                          {assignedMember && (
-                            <span className="text-[9px] font-medium text-muted-foreground truncate max-w-[80px]">
-                              {assignedMember.name?.split(" ")[0] || "Agente"}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Rodapé do Card: Ações Rápidas (WhatsApp, Cotação & Navegação) */}
-                        <div className="pt-1.5 border-t border-border/40 flex items-center justify-between gap-1">
-                          <div className="flex items-center gap-1">
-                            {prevStage && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleMoveStage(lead.id, prevStage.id);
-                                }}
-                                className="size-6 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
-                                title={`Voltar para ${prevStage.title}`}
-                              >
-                                <ChevronLeft className="size-3.5" />
-                              </Button>
-                            )}
-
-                            {nextStage && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleMoveStage(lead.id, nextStage.id);
-                                }}
-                                className="size-6 rounded-lg text-primary hover:bg-primary/10 cursor-pointer"
-                                title={`Avançar para ${nextStage.title}`}
-                              >
-                                <ChevronRight className="size-3.5" />
-                              </Button>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-1">
-                            {whatsappUrl && (
-                              <a
-                                href={whatsappUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className="h-6 px-2 rounded-lg bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 transition-colors font-bold text-[10px] inline-flex items-center gap-1"
-                                title="Conversar no WhatsApp"
-                              >
-                                <Phone className="size-2.5" />
-                                <span>Whats</span>
-                              </a>
-                            )}
-
-                            <Button
-                              asChild
-                              variant="outline"
-                              size="sm"
-                              onClick={(e) => e.stopPropagation()}
-                              className="h-6 px-2 rounded-lg text-[10px] font-bold text-primary border-primary/25 hover:bg-primary/10 gap-1 cursor-pointer"
-                            >
-                              <Link
-                                to="/workspace/turismo/cotacoes"
-                                search={{
-                                  leadName: lead.full_name,
-                                  leadPhone: lead.phone || undefined,
-                                  leadEmail: lead.email || undefined,
-                                  destination: lead.destination || undefined,
-                                } as any}
-                              >
-                                <Plane className="size-2.5" />
-                                <span>Cotação</span>
-                              </Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
+                  stageLeads.map((lead: any) => (
+                    <LeadCard
+                      key={lead.id}
+                      lead={lead}
+                      currentStageId={stage.id}
+                      stages={STAGES.map((s) => ({ id: s.id, title: s.title }))}
+                      team={team}
+                      onOpenDetails={openLeadDetails}
+                      onGenerateProposal={setProposalLead}
+                      onCalculateCommission={setCalculatorLead}
+                      onOpenFlightGrid={setFlightLead}
+                      onStageChange={(leadId, newStage) => handleMoveStage(leadId, newStage as any)}
+                      onPromote={handlePromoteToCustomer}
+                      onDelete={handleDeleteLead}
+                      prevStageId={prevStage?.id}
+                      nextStageId={nextStage?.id}
+                    />
+                  ))
                 )}
               </div>
             </div>
