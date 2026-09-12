@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Community Platform — Microfase B
+-- Waesy Community Platform — Microfase B
 -- Migration 0083: Events Extended Schema
 -- ============================================================================
 -- Adiciona colunas essenciais à tabela events sem quebrar dados existentes.

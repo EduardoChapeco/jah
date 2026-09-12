@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration V4: Advanced Catalog & Option Groups
+-- Waesy Commerce — Migration V4: Advanced Catalog & Option Groups
 -- ============================================================================
 -- Elevating the catalog to support complex logic (iFood/Neutto style):
 -- 1. Adds `max_quantity_per_option` to option_values (e.g., up to 3 extra cheeses).

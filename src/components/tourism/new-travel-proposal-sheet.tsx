@@ -1614,7 +1614,7 @@ export function NewTravelProposalSheet({
  <span>Assistente de Extração de Texto (PDF / WhatsApp)</span>
  </div>
  <p className="text-muted-foreground text-[11px]">
- Cole a cotação recebida da sua operadora (CVC, Schultz, Orinter, Azul Viagens, etc.) ou cole o texto do WhatsApp para a IA estruturar o roteiro.
+ Cole a cotação recebida da sua operadora ou consolidadora de viagens ou cole o texto do WhatsApp para a IA estruturar o roteiro.
  </p>
  </div>
 

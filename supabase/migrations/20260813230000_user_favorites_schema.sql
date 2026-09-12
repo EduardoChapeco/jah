@@ -1,5 +1,5 @@
 -- ============================================================================
--- JAH COMMUNITY PLATFORM — USER FAVORITES / BOOKMARKS SCHEMA
+-- Waesy COMMUNITY PLATFORM — USER FAVORITES / BOOKMARKS SCHEMA
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.user_favorites (

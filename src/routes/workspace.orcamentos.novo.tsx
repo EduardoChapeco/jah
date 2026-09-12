@@ -74,7 +74,7 @@ import {
 } from "@/lib/destinations-catalog";
 
 export const Route = createFileRoute("/workspace/orcamentos/novo")({
- head: () => ({ meta: [{ title: "Novo Orçamento Comercial | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Novo Orçamento Comercial | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const store = await getStoreSettings().catch(() => null);

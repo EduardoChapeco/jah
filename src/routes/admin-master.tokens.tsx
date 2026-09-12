@@ -53,7 +53,7 @@ import {
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin-master/tokens")({
- head: () => ({ meta: [{ title: "Economia de Tokens | Wider Master" }] }),
+ head: () => ({ meta: [{ title: "Economia de Tokens | Waesy Master" }] }),
  loader: async () => {
  try {
  const [stats, eventsRes, discounts] = await Promise.all([

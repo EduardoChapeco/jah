@@ -99,7 +99,7 @@ export async function recordConsentLogServer(input: RecordConsentInput) {
 
  // 7. Define o Cookie de Consentimento HTTP com validade de 10 anos
  try {
- setCookie("wider_cookie_consent", "accepted", {
+ setCookie("waesy_cookie_consent", "accepted", {
  path: "/",
  maxAge: 315360000, // 10 anos em segundos
  sameSite: "lax",

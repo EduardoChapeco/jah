@@ -36,7 +36,7 @@ import {
 } from "@/types/squads-and-onboarding";
 
 export const Route = createFileRoute("/workspace/inteligencia/radar")({
-  head: () => ({ meta: [{ title: "Radar de Mercado & Brand DNA | Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Radar de Mercado & Brand DNA | Waesy" }] }),
   loader: async () => {
     try {
     const store = await getStoreSettings().catch(() => null);

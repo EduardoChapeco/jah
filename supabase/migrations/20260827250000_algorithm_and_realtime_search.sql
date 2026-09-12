@@ -33,7 +33,7 @@ INSERT INTO public.platform_algorithm_parameters (
 )
 VALUES (
   '00000000-0000-0000-0000-000000000001',
-  'Algoritmo Canônico Wider Pulse v1',
+  'Algoritmo Canônico Waesy Pulse v1',
   0.25, 0.20, 0.20, 0.15, 0.10, 0.10
 )
 ON CONFLICT (id) DO NOTHING;

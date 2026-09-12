@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/marketing/stories")({
   head: () => ({
-    meta: [{ title: "Gerador de Stories & Redes Sociais | Workspace Wider OS" }],
+    meta: [{ title: "Gerador de Stories & Redes Sociais | Workspace Waesy" }],
   }),
   loader: async () => {
     try {
@@ -64,7 +64,7 @@ export default function WorkspaceMarketingStoriesPage() {
   const [targetUrl, setTargetUrl] = useState(() => {
     return typeof window !== "undefined"
       ? `${window.location.origin}/mercado`
-      : "https://wider.com.br";
+      : "https://usewaesy.com";
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -80,7 +80,7 @@ export default function WorkspaceMarketingStoriesPage() {
     const media = prod.product_media?.[0]?.url;
     if (media) setImageUrl(media);
 
-    const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://wider.com.br";
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://usewaesy.com";
     setTargetUrl(`${baseUrl}/produto/${prod.slug}`);
     toast.success(`Dados preenchidos a partir de "${prod.title}"`);
   };
@@ -90,12 +90,12 @@ export default function WorkspaceMarketingStoriesPage() {
     try {
       const res = await generateSocialStoryCard({
         data: {
-          storeName: storeName.trim() || "Wider Loja",
+          storeName: storeName.trim() || "Waesy Loja",
           title: title.trim(),
           subtitle: subtitle.trim(),
           priceCents: priceCents > 0 ? priceCents : undefined,
           imageUrl: imageUrl.trim() || undefined,
-          targetUrl: targetUrl.trim() || "https://wider.com.br",
+          targetUrl: targetUrl.trim() || "https://usewaesy.com",
           format,
           theme,
         },
@@ -121,7 +121,7 @@ export default function WorkspaceMarketingStoriesPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `wider-${format}-${Date.now()}.svg`;
+    a.download = `waesy-${format}-${Date.now()}.svg`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -168,7 +168,7 @@ export default function WorkspaceMarketingStoriesPage() {
             </h1>
           </div>
           <p className="text-xs text-muted-foreground ml-10">
-            Crie artes vetoriais ultra-nítidas no padrão 9:16 (Stories/Status), 1:1 (Feed/Threads) e 16:9 (Banners).
+            Crie artes vetoriais ultra-nítidas no padrão 9:16 (Stories/Status), 1:1 (Feed / Quadrado) e 16:9 (Banners).
           </p>
         </div>
 
@@ -358,7 +358,7 @@ export default function WorkspaceMarketingStoriesPage() {
                   value={targetUrl}
                   onChange={(e) => setTargetUrl(e.target.value)}
                   className="mt-1.5 h-11 rounded-xl text-xs"
-                  placeholder="https://wider.com.br/produto/tenis-runner"
+                  placeholder="https://usewaesy.com/produto/tenis-runner"
                 />
               </div>
             </div>

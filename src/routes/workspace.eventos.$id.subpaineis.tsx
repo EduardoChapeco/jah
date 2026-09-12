@@ -22,7 +22,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { listEventSubpanels, createEventSubpanel } from "@/services/events.functions";
 
 export const Route = createFileRoute("/workspace/eventos/$id/subpaineis")({
- head: () => ({ meta: [{ title: "Subpainéis de Eventos | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Subpainéis de Eventos | Waesy" }] }),
  component: EventSubpanelsPage,
 });
 

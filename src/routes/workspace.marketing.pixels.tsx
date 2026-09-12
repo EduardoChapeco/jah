@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/marketing/pixels")({
   head: () => ({
-    meta: [{ title: "Pixels & Telemetria Multicanal | Workspace Wider OS" }],
+    meta: [{ title: "Pixels & Telemetria Multicanal | Workspace Waesy" }],
   }),
   loader: async () => {
     try {
@@ -122,7 +122,7 @@ export default function WorkspaceMarketingPixelsPage() {
           eventSourceUrl: window.location.href,
           customData: {
             test_event: true,
-            source: "Workspace Wider OS Telemetry Diagnostic",
+            source: "Workspace Waesy Telemetry Diagnostic",
           },
           userData: {
             clientUserAgent: navigator.userAgent,

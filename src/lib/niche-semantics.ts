@@ -1,5 +1,5 @@
 /**
- * Biblioteca Canônica de Semântica e Terminologia Contextual por Nicho (JAH / Wider)
+ * Biblioteca Canônica de Semântica e Terminologia Contextual por Nicho (Waesy)
  *
  * Fornece a identidade semântica completa para adaptar títulos, botões de ação,
  * labels, placeholders, tipos de pedidos e termos operacionais de acordo com

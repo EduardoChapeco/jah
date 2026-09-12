@@ -1,6 +1,6 @@
 /**
  * courier-verification.functions.ts — BFF Server Functions para Onboarding de Entregadores,
- * Cross-Check Facial/Documental Anti-Fraude, Circuit Breaker e Telemetria Legal (Wider Platform).
+ * Cross-Check Facial/Documental Anti-Fraude, Circuit Breaker e Telemetria Legal (Waesy Platform).
  */
 
 import { createServerFn } from "@tanstack/react-start";
@@ -148,7 +148,7 @@ export const submitCourierApplication = createServerFn({ method: "POST" })
           term_type: "entregadores",
           document_version: legalDoc.version,
           ip_address: data.client_ip || "127.0.0.1",
-          user_agent: data.user_agent || "Wider OS App",
+          user_agent: data.user_agent || "Waesy App",
           signature_hash: Buffer.from(
             `${identity.id}:${candidateCpfClean}:${legalDoc.version}:${new Date().toISOString()}`
           ).toString("base64"),

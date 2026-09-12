@@ -62,7 +62,7 @@ import { formatMoney } from "@/lib/money";
 import { NewClientWizard } from "@/components/crm/NewClientWizard";
 
 export const Route = createFileRoute("/workspace/clientes/")({
- head: () => ({ meta: [{ title: "Carteira de Clientes & Passageiros | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Carteira de Clientes & Passageiros | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const [customers, teamRes, store] = await Promise.all([

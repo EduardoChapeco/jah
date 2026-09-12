@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0029: Product Categories Mapping
+-- Waesy Commerce — Migration 0029: Product Categories Mapping
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.product_categories (

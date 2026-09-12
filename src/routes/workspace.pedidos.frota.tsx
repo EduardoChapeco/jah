@@ -48,7 +48,7 @@ import { formatMoney } from "@/lib/money";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/workspace/pedidos/frota")({
- head: () => ({ meta: [{ title: "Frota & Despacho de Entregas | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Frota & Despacho de Entregas | Waesy" }] }),
  loader: async () => {
    try {
  const [dispatches, priceTables, pendingOrders, couriers] = await Promise.all([

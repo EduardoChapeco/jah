@@ -1,5 +1,5 @@
 ﻿# ==============================================================================
-# DOSSIÊ ARQUITETURAL FORENSE: BUILDER & EDITOR UNIVERSAL DE EXPERIÊNCIAS JAH
+# DOSSIÊ ARQUITETURAL FORENSE: BUILDER & EDITOR UNIVERSAL DE EXPERIÊNCIAS Waesy
 # PROTOCOLO DE CONSELHO MULTI-AGENTE (STAFF / PRINCIPAL ARCHITECT LEVEL)
 # ESTABILIZAÇÃO DE PRODUÇÃO, MULTI-PORTAL 360, OFFICE SUITE E CREATIVE STUDIO
 # ==============================================================================
@@ -9,26 +9,26 @@
 **Alvos Principais:** 
 - Estabilização Imediata do Construtor de Vitrines em Produção (/workspace/builder//editor)
 - Expansão para Multi-Portal Engine (Portal do Cliente 360, Portal de Carreiras/Empregos, Portal de Reputação estilo Reclame Aqui, BioLinks e Hotsites)
-- Incorporação da Suíte JAH Office (Word/Google Docs para Contratos e Documentos com conversor PDF/Doc)
-- Incorporação do JAH Creative Studio (Gerador de Flyers/Banners estilo Canva e Editor de Vídeo com IA)
+- Incorporação da Suíte Waesy Office (Word/Google Docs para Contratos e Documentos com conversor PDF/Doc)
+- Incorporação do Waesy Creative Studio (Gerador de Flyers/Banners estilo Canva e Editor de Vídeo com IA)
 - Motor de Animações de Scroll (Wix Studio Standard), CMS Dinâmico Real-Time e Deploy 1-Click (GitHub, Vercel, Cloudflare)
 
 ---
 
 ## 1. SUMÁRIO EXECUTIVO & VISÃO DO SISTEMA UNIVERSAL
 
-O ecossistema **JAH** possui uma infraestrutura base de construtor visual em src/components/admin/builder conectada a um motor de renderização dinâmico em src/components/commerce/experience-renderer.tsx. No entanto, o sistema em produção opera de forma instável e limitada por três razões fundamentais:
+O ecossistema **Waesy** possui uma infraestrutura base de construtor visual em src/components/admin/builder conectada a um motor de renderização dinâmico em src/components/commerce/experience-renderer.tsx. No entanto, o sistema em produção opera de forma instável e limitada por três razões fundamentais:
 1. **Instabilidade e Quebras de Execução:** Bloqueios prematuros de permissão em chamadas de servidor (equireAdmin()), quebras por nós com estruturas undefined e ausência de tratamento defensivo no carregador do TanStack Router.
 2. **Escopo Restrito:** O editor atual trata apenas o caso genérico de storefront de e-commerce e biolink simples, falhando em fornecer a experiência que os lojistas e empresas necessitam: portais completos com a sua própria identidade visual onde os seus clientes interagem com a vida contratual e financeira do negócio.
-3. **Desconexão com Motores Proprietários Prontos:** O ecossistema possui ferramentas completas já desenvolvidas em repositórios irmãos (	ravelagencias, wider, machine, cloudblock, classificadoswaesy, simwork) que contêm editores de contratos jurídicos com assinatura eletrônica, timeline de edição de vídeo, wizards de design gráfico estilo Canva e geradores de PWA whitelabel.
+3. **Desconexão com Motores Proprietários Prontos:** O ecossistema possui ferramentas completas já desenvolvidas em repositórios irmãos (	ravelagencias, waesy, machine, cloudblock, classificadoswaesy, simwork) que contêm editores de contratos jurídicos com assinatura eletrônica, timeline de edição de vídeo, wizards de design gráfico estilo Canva e geradores de PWA whitelabel.
 
-Este Dossiê estabelece a arquitetura definitiva para estabilizar a base existente e transformá-la no **Builder Universal de Experiências da JAH**, operando como uma plataforma de nível Big Tech capaz de orquestrar seis grandes pilares em uma interface fluida, ultra-rápida, aderente ao Apple Human Interface Guidelines (HIG) e alimentada por IA.
+Este Dossiê estabelece a arquitetura definitiva para estabilizar a base existente e transformá-la no **Builder Universal de Experiências da Waesy**, operando como uma plataforma de nível Big Tech capaz de orquestrar seis grandes pilares em uma interface fluida, ultra-rápida, aderente ao Apple Human Interface Guidelines (HIG) e alimentada por IA.
 
 ---
 
 ## 2. ROOT CAUSE ANALYSIS (RCA) - POR QUE O BUILDER ATUAL QUEBRA EM PRODUÇÃO?
 
-A auditoria forense no código-fonte de jah/src/services/builder.functions.ts e jah/src/routes/workspace.builder..editor.tsx identificou os 5 vetores exatos de falha que causam o comportamento errático e quebras em produção:
+A auditoria forense no código-fonte de waesy/src/services/builder.functions.ts e waesy/src/routes/workspace.builder..editor.tsx identificou os 5 vetores exatos de falha que causam o comportamento errático e quebras em produção:
 
 ### 2.1. Bloqueio RLS e Validação de Papel Rígida Demais (equireAdmin)
 * **Localização:** src/services/builder.functions.ts (linhas 482, 904, 2395, 2484, 2556) e src/lib/auth-guards.server.ts.
@@ -68,7 +68,7 @@ ode.content.
 
 ## 3. INVENTÁRIO FORENSE DE ATIVOS NOS PROJETOS IRMÃOS (TRANSFERÊNCIA E COMPATIBILIZAÇÃO)
 
-Identificamos e auditamos minuciosamente 14 repositórios locais em C:\Users\Excelência Tour SMO\Documents\projetos-referencias. Abaixo estão os ativos prontos que serão transplantados e nativizados dentro do JAH:
+Identificamos e auditamos minuciosamente 14 repositórios locais em C:\Users\Excelência Tour SMO\Documents\projetos-referencias. Abaixo estão os ativos prontos que serão transplantados e nativizados dentro do Waesy:
 
 ### 3.1. Suíte de Contratos e Documentos (travelagencias / turisagencias)
 * **Arquivos-Fonte:**
@@ -77,16 +77,16 @@ Identificamos e auditamos minuciosamente 14 repositórios locais em C:\Users\Exc
   - src/components/trips/contract/ContractSignModal.tsx: Modal de assinatura eletrônica com captura de assinatura manuscrita via canvas, hash SHA-256 e validação jurídica.
   - src/routes/m.contract..tsx: Rota pública responsiva mobile-first para o cliente final ler e assinar o contrato pelo smartphone com registro de IP, data/hora e geolocalização.
   - supabase/migrations/20260613030000_contract_tables.sql: Tabelas contracts, contract_clauses, contract_signatures, contract_audit_logs.
-* **Destino no JAH:** Módulo **JAH Office** integrado ao Builder Universal, permitindo criar modelos de contratos, orçamentos, termos de adesão e recibos com conversão de/para PDF e Word.
+* **Destino no Waesy:** Módulo **Waesy Office** integrado ao Builder Universal, permitindo criar modelos de contratos, orçamentos, termos de adesão e recibos com conversão de/para PDF e Word.
 
-### 3.2. Creative Studio & Video Editor com IA (wider)
+### 3.2. Creative Studio & Video Editor com IA (waesy)
 * **Arquivos-Fonte:**
   - src/components/studio/canvas/StudioCanvas.tsx: Canvas vetorial com manipulação de objetos gráficos, guias magnéticas e snap-to-grid.
   - src/components/studio/video/VideoStudioTimeline.tsx: Timeline de vídeo multi-track (vídeo, áudio, legendas, overlays) com agulha de reprodução e trim de clipes.
   - src/components/studio/video/VideoStudioEditor.tsx: Orquestrador de edição de vídeo com preview em tempo real e atalhos de teclado.
   - src/components/studio/panels/Mockup3DPanel.tsx: Gerador de mockups 3D de dispositivos (iPhone, MacBook, Embalagens) para exibição de produtos.
   - src/components/studio/panels/BrandKitPanel.tsx: Gerenciador de paleta de cores corporativa, tipografia e logotipos da empresa.
-* **Destino no JAH:** Módulo **JAH Creative Studio (Canva & CapCut)**, permitindo que as empresas gerem peças publicitárias, posts para redes sociais, cartazes de ofertas e vídeos curtos diretamente no painel.
+* **Destino no Waesy:** Módulo **Waesy Creative Studio (Canva & CapCut)**, permitindo que as empresas gerem peças publicitárias, posts para redes sociais, cartazes de ofertas e vídeos curtos diretamente no painel.
 
 ### 3.3. Gerador de Carrosséis e Peças Visuais (machine / studiomachine)
 * **Arquivos-Fonte:**
@@ -94,25 +94,25 @@ Identificamos e auditamos minuciosamente 14 repositórios locais em C:\Users\Exc
   - components/SlideRenderer.tsx: Renderizador visual de slides com hierarquia tipográfica automática e balanceamento de contraste.
   - components/BrandEditor.tsx: Editor de identidade visual e regras de design system aplicadas a peças publicitárias.
   - services/geminiService.ts: Integração com IA para geração de títulos persuasivos, slogans e roteiros de carrossel.
-* **Destino no JAH:** Templates automáticos de peças promocionais conectados ao banco de produtos e vitrine da loja.
+* **Destino no Waesy:** Templates automáticos de peças promocionais conectados ao banco de produtos e vitrine da loja.
 
 ### 3.4. Biblioteca de 40 Blocos Modulares (cloudblock)
 * **Arquivos-Fonte:**
   - BentoGridBlock.tsx, ItineraryBlock.tsx, AttractionCardBlock.tsx, CountdownBlock.tsx, ReviewStreamBlock.tsx, InteractivePricingBlock.tsx, InteractiveMapBlock.tsx.
-* **Destino no JAH:** Inclusão no uilderRegistry do JAH, elevando o catálogo de seções visuais de 40 para mais de 80 componentes de altíssimo nível estético.
+* **Destino no Waesy:** Inclusão no uilderRegistry do Waesy, elevando o catálogo de seções visuais de 40 para mais de 80 componentes de altíssimo nível estético.
 
 ### 3.5. Configurador Visual de PWA Whitelabel (classificadoswaesy)
 * **Arquivos-Fonte:**
   - src/pages/PWAEditorPage.tsx: Editor visual de PWA que gera dinamicamente o manifest.json, ícones em múltiplos formatos (maskable 192x192, 512x512), cores de splash screen e atalhos de aplicativo por empresa.
-* **Destino no JAH:** Configuração de PWA nativo para cada Portal do Cliente ou Loja criado através do builder.
+* **Destino no Waesy:** Configuração de PWA nativo para cada Portal do Cliente ou Loja criado através do builder.
 
 ---
 
 ## 4. BENCHMARKING GLOBAL DE BUILDERS OPEN-SOURCE & PADRÕES DE MERCADO
 
-Para garantir que a engenharia do JAH Builder opere no mesmo patamar dos maiores construtores do mundo (Wix Studio, Framer, Webflow e Shopify Online Store 2.0), adotamos os seguintes padrões arquiteturais consolidados da indústria:
+Para garantir que a engenharia do Waesy Builder opere no mesmo patamar dos maiores construtores do mundo (Wix Studio, Framer, Webflow e Shopify Online Store 2.0), adotamos os seguintes padrões arquiteturais consolidados da indústria:
 
-| Sistema de Referência | Princípio Arquitetural Adotado no JAH | Benefício Direto |
+| Sistema de Referência | Princípio Arquitetural Adotado no Waesy | Benefício Direto |
 | :--- | :--- | :--- |
 | **Puck (Measured)** | Árvore de nós puramente serializável em JSON (ExperienceNode) com contratos de componentes desacoplados de renderização. | Separação estrita entre o estado do editor e o runtime de produção pública. Zero vazamento de código de admin para o visitante. |
 | **Craft.js** | Hooks atômicos de manipulação de canvas (useNode, useEditor) e sistema de conectores DOM para Drag & Drop sem poluição de nós extras. | Fluidez de 60fps no arrastar e soltar de seções e redimensionamento visual de colunas. |
@@ -128,7 +128,7 @@ Para garantir que a engenharia do JAH Builder opere no mesmo patamar dos maiores
 Abaixo estão detalhados os fluxos de ponta a ponta para cada um dos portais e ferramentas que o Builder Universal orquestra:
 
 ### 5.1. Pilar 1: Portal do Cliente 360 (Whitelabel da Empresa)
-* **Objetivo:** Toda empresa cadastrada no JAH pode publicar o seu próprio Portal do Cliente (cliente.minhaempresa.com.br ou /c/:slug), onde o cliente final gerencia toda a sua relação com o negócio.
+* **Objetivo:** Toda empresa cadastrada no Waesy pode publicar o seu próprio Portal do Cliente (cliente.minhaempresa.com.br ou /c/:slug), onde o cliente final gerencia toda a sua relação com o negócio.
 * **Estrutura de Seções do Builder para este Portal:**
   1. portal_hero_header: Logo da empresa, saudação personalizada com foto do cliente, dados cadastrais e botão de sair.
   2. portal_contracts_widget: Lista de contratos vigentes, baixados em PDF ou com alerta  Assinatura Pendente que abre o canvas de assinatura digital.
@@ -155,12 +155,12 @@ Abaixo estão detalhados os fluxos de ponta a ponta para cada um dos portais e f
 * **Objetivo:** Fornecer um canal público e transparente de resolução de conflitos, avaliações auditadas e reputação corporativa, com páginas públicas por empresa e possibilidade de reivindicação de perfil.
 * **Estrutura de Seções do Builder para este Portal:**
   1. eputation_score_header: Perfil verificado da empresa, nota geral (0 a 10), tempo médio de resposta, taxa de resolução de problemas e percentual de clientes que Voltariam a Fazer Negócio.
-  2. eputation_badges_strip: Selos auditados conquistados pela empresa (Selo JAH Confiança Ouro, Empresa Verificada 100%, Atendimento Humanizado).
+  2. eputation_badges_strip: Selos auditados conquistados pela empresa (Selo Waesy Confiança Ouro, Empresa Verificada 100%, Atendimento Humanizado).
   3. eputation_complaint_action: Botão chamativo Reclamar Desta Empresa que guia o consumidor através de uma abertura de chamado segura.
   4. eputation_timeline_feed: Feed público das últimas reclamações com filtro por status (Não respondida, Em réplica, Resolvida, Avaliada). Cada thread exibe a manifestação do consumidor, a resposta oficial da empresa e a avaliação final com estrelas.
   5. eputation_claim_banner: Para empresas ainda não cadastradas oficialmente, banner Você representa esta empresa? Reivindique este perfil gratuitamente e responda seus clientes.
 * **Storyboard de Resolução:**
-  - O consumidor registra a reclamação com validação de CPF (evitando bots e difamação anônima). A empresa é notificada instantaneamente via webhook/e-mail, acessa o painel do JAH, envia a resposta com anexo e propõe um acordo. O cliente avalia a solução e a nota da empresa é recalculada em tempo real pela fórmula matemática de reputação.
+  - O consumidor registra a reclamação com validação de CPF (evitando bots e difamação anônima). A empresa é notificada instantaneamente via webhook/e-mail, acessa o painel do Waesy, envia a resposta com anexo e propõe um acordo. O cliente avalia a solução e a nota da empresa é recalculada em tempo real pela fórmula matemática de reputação.
 
 ### 5.4. Pilar 4: BioLinks, Landing Pages & Hotsites de Alta Conversão
 * **Objetivo:** Construção de páginas ultra-leves para links de bio de redes sociais (Instagram, TikTok) e páginas de lançamento de produtos ou campanhas sazonais.
@@ -171,7 +171,7 @@ Abaixo estão detalhados os fluxos de ponta a ponta para cada um dos portais e f
   4. iolink_featured_product: Card de produto em destaque com slider de fotos e botão de checkout direto em 1 clique.
   5. hotsite_countdown_hero: Cronômetro regressivo com ofertas relâmpago, selos de garantia e botão de compra rápida.
 
-### 5.5. Pilar 5: Suíte JAH Office (Word / Google Docs para Contratos e Documentos)
+### 5.5. Pilar 5: Suíte Waesy Office (Word / Google Docs para Contratos e Documentos)
 * **Objetivo:** Substituir ferramentas externas de edição de documentos por um editor embutido na plataforma onde as empresas redigem, personalizam, assinam e gerenciam contratos, orçamentos, termos e notificações.
 * **Recursos do Editor:**
   - **Visualização em Folha A4:** Margens normatizadas, numeração de páginas, cabeçalho e rodapé timbrado com a logo da empresa.
@@ -180,7 +180,7 @@ Abaixo estão detalhados os fluxos de ponta a ponta para cada um dos portais e f
   - **Conversão e Importação de Arquivos:** Importação de arquivos DOCX ou PDF com extração de texto para edição imediata no navegador.
   - **Exportação e Assinatura Eletrônica:** Geração de PDF pronto para impressão ou envio direto para assinatura digital via WhatsApp com token criptográfico e conformidade com a MP 2.200-2/2001.
 
-### 5.6. Pilar 6: JAH Creative Studio (Canva & CapCut com IA)
+### 5.6. Pilar 6: Waesy Creative Studio (Canva & CapCut com IA)
 * **Objetivo:** Permitir que pequenas e médias empresas produzam materiais visuais profissionais sem precisar contratar agências ou assinar múltiplos softwares.
 * **Recursos do Studio:**
   - **Gerador de Flyers e Banners:** Canvas vetorial com dezenas de templates divididos por nicho (Restaurante: Prato do Dia; Turismo: Pacote de Férias; Varejo: Queima de Estoque; Serviços: Cartão de Visita Digital).
@@ -196,7 +196,7 @@ Abaixo está o DDL completo em PostgreSQL que estabelece a fundação de dados p
 
 `sql
 -- ============================================================================
--- SCHEMA UNIFICADO: BUILDER & EDITOR UNIVERSAL DE EXPERIÊNCIAS JAH
+-- SCHEMA UNIFICADO: BUILDER & EDITOR UNIVERSAL DE EXPERIÊNCIAS Waesy
 -- ============================================================================
 
 -- Extensões necessárias
@@ -409,7 +409,7 @@ CREATE TABLE IF NOT EXISTS public.reputation_interactions (
 
 CREATE INDEX IF NOT EXISTS idx_rep_interactions_complaint ON public.reputation_interactions(complaint_id);
 
--- 12. Suíte JAH Office: Documentos, Minutas e Modelos Contratuais
+-- 12. Suíte Waesy Office: Documentos, Minutas e Modelos Contratuais
 CREATE TABLE IF NOT EXISTS public.office_documents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,
@@ -426,7 +426,7 @@ CREATE TABLE IF NOT EXISTS public.office_documents (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
 
--- 13. JAH Creative Studio: Banners, Flyers e Criativos Visuais
+-- 13. Waesy Creative Studio: Banners, Flyers e Criativos Visuais
 CREATE TABLE IF NOT EXISTS public.marketing_creatives (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,
@@ -504,7 +504,7 @@ O Builder Universal conta com um módulo de orquestração de IA que cria págin
 
 ### 8.1. Arquitetura do Orquestrador de IA
 1. **Entrada do Usuário:** O lojista informa o nicho do negócio, público-alvo, paleta de cores preferida e objetivo principal (ex:  Clínica Odontológica especializada em implantes e estética tom elegante em azul marinho e branco objetivo é agendamento de consultas via WhatsApp).
-2. **Processamento Cognitivo:** O orquestrador injeta o prompt especializado do nicho e gera uma árvore estrita de nós (ExperienceNode[]) compatível com o schema do JAH.
+2. **Processamento Cognitivo:** O orquestrador injeta o prompt especializado do nicho e gera uma árvore estrita de nós (ExperienceNode[]) compatível com o schema do Waesy.
 3. **Hidratação e Renderização:** O canvas recebe os nós gerados e imediatamente renderiza a vitrine funcional com textos persuasivos, imagens sugeridas de alta qualidade e botões já pré-configurados.
 
 ### 8.2. Templates Nativos Pré-Configurados por Nicho
@@ -518,7 +518,7 @@ O Builder Universal conta com um módulo de orquestração de IA que cria págin
 
 ## 9. PIPELINE DE EXPORTAÇÃO 1-CLICK (GITHUB / VERCEL / CLOUDFLARE PAGES)
 
-Além de rodar no domínio próprio fornecido pelo JAH, o lojista avançado ou agência parceira pode exportar todo o código da página para os provedores líderes de nuvem:
+Além de rodar no domínio próprio fornecido pelo Waesy, o lojista avançado ou agência parceira pode exportar todo o código da página para os provedores líderes de nuvem:
 
 1. **Compilador Estático Interno (exportExperienceAsCode):**
    - Transforma a árvore JSON de nós em um projeto React / Next.js / Vite limpo e autocontido com Tailwind CSS.
@@ -555,10 +555,10 @@ A execução do Conselho de Engenharia será realizada em 8 Grandes Fases, desdo
 * **Microfase 5.1:** Criação dos blocos de métricas de atendimento, selos de auditoria e timeline pública de reclamações.
 * **Microfase 5.2:** Criação do formulário de abertura de reclamação com validação de CPF e fluxo de réplica/tréplica.
 
-### FASE 6: Transplante e Nativização do JAH Office & Creative Studio
-* **Microfase 6.1:** Nativização da biblioteca de cláusulas e editor de contratos de 	ravelagencias para o JAH Office.
-* **Microfase 6.2:** Nativização do canvas de flyers e wizard de carrosséis de machine e wider para o JAH Creative Studio.
-* **Microfase 6.3:** Nativização da timeline de edição de vídeo de wider para o JAH Video Studio.
+### FASE 6: Transplante e Nativização do Waesy Office & Creative Studio
+* **Microfase 6.1:** Nativização da biblioteca de cláusulas e editor de contratos de 	ravelagencias para o Waesy Office.
+* **Microfase 6.2:** Nativização do canvas de flyers e wizard de carrosséis de machine e waesy para o Waesy Creative Studio.
+* **Microfase 6.3:** Nativização da timeline de edição de vídeo de waesy para o Waesy Video Studio.
 
 ### FASE 7: Motor de Animações de Scroll e Novo BuilderInspector
 * **Microfase 7.1:** Implementação das 3 abas no BuilderInspector (Conteúdo, Estilo, Interação/Scroll).
@@ -570,4 +570,4 @@ A execução do Conselho de Engenharia será realizada em 8 Grandes Fases, desdo
 * **Microfase 8.3:** Implementação do exportador de código estático e conector de deploy na Vercel e Cloudflare Pages.
 
 ---
-**Fim do Dossiê Mestre de Engenharia do Builder Universal JAH.**
+**Fim do Dossiê Mestre de Engenharia do Builder Universal Waesy.**

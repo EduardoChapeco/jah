@@ -27,7 +27,7 @@ import { getDeliveryProofsByOrderId, type DeliveryProof } from "@/services/dispa
 import { DealDeliveryTrackingCard } from "@/components/commercial/deal-delivery-tracking-card";
 
 export const Route = createFileRoute("/_store/conta/pedidos/$id")({
- head: () => ({ meta: [{ title: "Detalhes do Pedido | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Detalhes do Pedido | Waesy" }] }),
  loader: async ({ params }) => {
    try {
  const [orderRes, instrRes, proofs] = await Promise.all([

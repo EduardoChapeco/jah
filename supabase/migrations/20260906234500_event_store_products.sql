@@ -1,6 +1,6 @@
 -- =============================================================================
 -- MIGRATION: 20260906234500_event_store_products.sql
--- ECOSSISTEMA JAH: PRODUTOS & LOJA DO EVENTO (BAR, MERCHANDISE, COMBOS & BUNDLES)
+-- ECOSSISTEMA Waesy: PRODUTOS & LOJA DO EVENTO (BAR, MERCHANDISE, COMBOS & BUNDLES)
 -- TRANSFUSÃO NATIVIZADA DE PERSONA-NEXUS / EVENTIO
 -- =============================================================================
 

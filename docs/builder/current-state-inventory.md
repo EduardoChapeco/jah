@@ -1,7 +1,7 @@
 # Audit e Inventário do Estado Atual — CMS & Builder Engine
 
 > Data: 2026-07-25  
-> Projeto: Jah Commerce  
+> Projeto: Waesy Commerce  
 > Status: Fase 0 — Pós-Auditoria Profunda (Sessão 2)
 
 ---

@@ -140,7 +140,7 @@ export const updateChangeCaseWorkflow = createServerFn({ method: 'POST' })
       throw new Error("Caso de reacomodação não encontrado.");
     }
 
-    if (flightCase.store_id !== identity.store_id && !identity.is_super_admin) {
+    if (flightCase.store_id !== identity.store_id && !(identity.role === "platform_admin")) {
       throw new Error("Acesso não autorizado para esta loja.");
     }
 

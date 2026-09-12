@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration: Enterprise RMA, Audit & HR
+-- Waesy Commerce — Migration: Enterprise RMA, Audit & HR
 -- ============================================================================
 
 -- 1. Create RMA Requests table (replaces basic exchanges)

@@ -40,7 +40,7 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/workspace/noticias/")({
- head: () => ({ meta: [{ title: "Redação & Gestão de Notícias | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Redação & Gestão de Notícias | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const [articles, tips, mined] = await Promise.all([

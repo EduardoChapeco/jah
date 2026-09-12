@@ -1,4 +1,4 @@
-# JAH Platform — Inventário & Auditoria Geral E2E (Master Audit)
+# Waesy Platform — Inventário & Auditoria Geral E2E (Master Audit)
 
 > **Documento Executivo de Engenharia & Auditoria de Sistemas Bilaterais (BigTech Standard)**
 > Versão: 2.0 — Auditoria Completa de 100% dos Módulos, Rotas (151 rotas), Tabelas (183 migrations), BFF e Camadas Operacionais.

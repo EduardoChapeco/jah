@@ -166,8 +166,8 @@ async function processMercadoLivreEvent(resourceId?: string, payload: any = {}, 
   if (payload.status === "paid" && totalAmountCents > 0) {
     try {
       await addRegisterEntry({
-        data: {
-          storeId: targetStoreId,
+      data: {
+          store_id: targetStoreId,
           type: "INCOME",
           category: "Venda Externa (Mercado Livre)",
           amountCents: totalAmountCents,

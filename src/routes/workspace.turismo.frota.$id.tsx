@@ -43,7 +43,7 @@ import {
 } from "@/services/vehicle-layouts.functions";
 
 export const Route = createFileRoute("/workspace/turismo/frota/$id")({
- head: () => ({ meta: [{ title: "Editor de Assentos 2D | Frota & Turismo | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Editor de Assentos 2D | Frota & Turismo | Workspace Waesy" }] }),
  loader: async ({ params }: { params: { id: string } }) => {
    try {
  const store = await getStoreSettings().catch(() => null);

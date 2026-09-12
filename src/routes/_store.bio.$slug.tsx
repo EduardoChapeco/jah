@@ -488,13 +488,13 @@ function BiolinkPage() {
  </div>
  </div>
 
- {/* ── 4. Rodapé Powered by Wider ── */}
+ {/* ── 4. Rodapé Powered by Waesy ── */}
  <footer className="pt-10 pb-4 text-center">
  <a
  href="/"
  className="text-[10px] opacity-40 hover:opacity-100 transition-opacity font-bold uppercase tracking-widest"
  >
- Wider Community · Turismo
+ Waesy Community · Turismo
  </a>
  </footer>
  </main>

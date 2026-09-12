@@ -44,13 +44,13 @@ describe('[FASE 8 AUDIT] AI Layout Generator, Niche Templates & 1-Click Exporter
  ];
  const html = exportStaticHtml(dummyNodes, {
  title: 'Portal Oficial',
- storeName: 'Wider Turismo Premium',
+ storeName: 'Waesy Turismo Premium',
  description: 'Experiência exclusiva de compras',
  });
 
  expect(html).toContain('<!DOCTYPE html>');
  expect(html).toContain('<html lang="pt-BR"');
- expect(html).toContain('Portal Oficial · Wider Turismo Premium');
+ expect(html).toContain('Portal Oficial · Waesy Turismo Premium');
  expect(html).toContain('cdn.tailwindcss.com');
  expect(html).toContain('fonts.googleapis.com');
  expect(html).toContain('window.__WIDER_EXPERIENCE_NODES__');

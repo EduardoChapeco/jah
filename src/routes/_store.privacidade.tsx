@@ -7,9 +7,9 @@ const DEFAULT_PRIVACIDADE = {
   slug: "privacidade",
   version: "2.1",
   summary:
-    "Este documento descreve como a Wider Community Platform coleta, processa, armazena e protege os dados pessoais dos usuários em estrita conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).",
+    "Este documento descreve como a Plataforma Waesy coleta, processa, armazena e protege os dados pessoais dos usuários em estrita conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).",
   content_markdown: `## 1. Princípios e Compromisso de Privacidade
-A Wider Community Platform opera sob o princípio de Zero-Trust e minimização de dados. Coletamos apenas os dados estritamente necessários para o funcionamento dos serviços, processamento de pedidos e cumprimento de obrigações legais.
+A Plataforma Waesy opera sob o princípio de Zero-Trust e minimização de dados. Coletamos apenas os dados estritamente necessários para o funcionamento dos serviços, processamento de pedidos e cumprimento de obrigações legais.
 
 ## 2. Dados Coletados
 - **Identificação e Contato:** Nome, e-mail, telefone e endereço para entrega de pedidos.
@@ -28,7 +28,7 @@ Você possui o direito de:
 Utilizamos criptografia em repouso (AES-256) e em trânsito (TLS 1.3), isolamento de dados multitenant a nível de banco de dados (PostgreSQL Row Level Security) e autenticação forte.
 
 ## 5. Contato do Encarregado de Dados (DPO)
-Para exercer qualquer um dos seus direitos previstos na LGPD, entre em contato através da nossa Central de Privacidade ou envie um e-mail para dpo@wider.app.`,
+Para exercer qualquer um dos seus direitos previstos na LGPD, entre em contato através da nossa Central de Privacidade ou envie um e-mail para dpo@usewaesy.com.`,
 };
 
 export const Route = createFileRoute("/_store/privacidade")({
@@ -36,8 +36,8 @@ export const Route = createFileRoute("/_store/privacidade")({
     meta: [
       {
         title: (loaderData as any)?.doc?.title
-          ? `${(loaderData as any).doc.title} | Wider`
-          : "Política de Privacidade e Proteção de Dados (LGPD) | Wider OS",
+          ? `${(loaderData as any).doc.title} | Waesy`
+          : "Política de Privacidade e Proteção de Dados (LGPD) | Waesy",
       },
     ],
   }),

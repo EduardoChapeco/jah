@@ -59,7 +59,7 @@ const BELEZA_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/beleza")({
  head: () => ({
  meta: [
- { title: "Beleza, Cosméticos, Perfumaria & Saúde | Wider OS" },
+ { title: "Beleza, Cosméticos, Perfumaria & Saúde | Waesy" },
  {
  name: "description",
  content:

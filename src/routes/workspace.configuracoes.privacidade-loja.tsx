@@ -1,6 +1,6 @@
 /**
  * workspace.configuracoes.privacidade-loja.tsx — Painel do Lojista para Controle de Lojas Ocultas,
- * Senhas de Acesso, Marketplace Seletivo e Comissões (Wider Platform).
+ * Senhas de Acesso, Marketplace Seletivo e Comissões (Waesy Platform).
  */
 
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -31,7 +31,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/configuracoes/privacidade-loja")({
   head: () => ({
-    meta: [{ title: "Privacidade da Loja & Marketplace | Workspace Wider" }],
+    meta: [{ title: "Privacidade da Loja & Marketplace | Workspace Waesy" }],
   }),
   loader: async () => {
     try {
@@ -221,7 +221,7 @@ function StorePrivacySettingsPage() {
             <div className="space-y-1">
               <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <CurrencyCircleDollar size={18} weight="bold" className="text-primary" />
-                <span>Divulgação no Marketplace Unificado Wider</span>
+                <span>Divulgação no Marketplace Unificado Waesy</span>
               </h2>
               <p className="text-xs text-muted-foreground leading-relaxed max-w-xl">
                 A comissão de intermediação só é aplicada nas vendas originadas através do Marketplace público. Desative se deseja operar exclusivamente através de vendas orgânicas diretas (0% de taxa de marketplace).

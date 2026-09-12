@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Platform — Migration: Web Push Subscriptions & Instant Lead Notifications
+-- Waesy Platform — Migration: Web Push Subscriptions & Instant Lead Notifications
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.push_subscriptions (

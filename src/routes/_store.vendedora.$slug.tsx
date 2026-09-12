@@ -41,7 +41,7 @@ function SellerShowcasePage() {
  useEffect(() => {
  if (document && document.owner_id) {
  // Set the affiliate attribution cookie for 30 days
- window.document.cookie = `wider_affiliate_id=${document.owner_id}; path=/; max-age=2592000; SameSite=Lax`;
+ window.document.cookie = `waesy_affiliate_id=${document.owner_id}; path=/; max-age=2592000; SameSite=Lax`;
  }
  }, [document?.owner_id]);
 

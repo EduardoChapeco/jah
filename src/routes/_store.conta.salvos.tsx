@@ -25,7 +25,7 @@ import { formatMoney } from "@/lib/money";
 import { formatRelativeTime } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/salvos")({
-  head: () => ({ meta: [{ title: "Meus Itens Salvos & Favoritos | Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Meus Itens Salvos & Favoritos | Waesy" }] }),
   loader: async () => {
     try {
       const initialFavorites = await listUserFavorites({

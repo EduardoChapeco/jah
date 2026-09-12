@@ -1,4 +1,4 @@
--- Jah Commerce — Migration 0065: LGPD trigger support
+-- Waesy Commerce — Migration 0065: LGPD trigger support
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
@@ -20,16 +20,16 @@ BEGIN
 
     -- Ensure default organization exists
     INSERT INTO public.organizations (name, slug)
-    VALUES ('Jah Organization', 'jah-org')
+    VALUES ('Waesy Organization', 'waesy-org')
     ON CONFLICT (slug) DO NOTHING;
-    SELECT id INTO v_default_org_id FROM public.organizations WHERE slug = 'jah-org' LIMIT 1;
+    SELECT id INTO v_default_org_id FROM public.organizations WHERE slug = 'waesy-org' LIMIT 1;
 
     -- Ensure default store exists
     INSERT INTO public.stores (organization_id, name, slug)
-    VALUES (v_default_org_id, 'Jah', 'jah')
+    VALUES (v_default_org_id, 'Waesy', 'waesy')
     ON CONFLICT (organization_id, slug) DO NOTHING;
     SELECT id INTO v_default_store_id FROM public.stores
-      WHERE slug = 'jah' AND organization_id = v_default_org_id LIMIT 1;
+      WHERE slug = 'waesy' AND organization_id = v_default_org_id LIMIT 1;
 
     -- Mark setup as complete (idempotent)
     INSERT INTO public.system_flags (key, value)

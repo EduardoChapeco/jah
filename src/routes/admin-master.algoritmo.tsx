@@ -15,7 +15,7 @@ import {
 } from "@/services/algorithm.functions";
 
 export const Route = createFileRoute("/admin-master/algoritmo")({
- head: () => ({ meta: [{ title: "Motor Algorítmico | Admin Master Wider" }] }),
+ head: () => ({ meta: [{ title: "Motor Algorítmico | Admin Master Waesy" }] }),
  loader: async () => {
  try {
  const params = await getAlgorithmParameters();
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/admin-master/algoritmo")({
  return {
  params: {
  id: "00000000-0000-0000-0000-000000000001",
- name: "Algoritmo Oficial Wider Pulse v1",
+ name: "Algoritmo Oficial Waesy Pulse v1",
  weight_geo: 0.25,
  weight_open_status: 0.20,
  weight_user_affinity: 0.20,
@@ -134,7 +134,7 @@ export default function AdminAlgorithmSettingsPage() {
  Algoritmo & Recomendações
  </h1>
  <p className="text-xs text-muted-foreground mt-0.5">
- Controle central dos pesos do algoritmo de ranking (Wider Pulse). Ajustes entram em vigor imediatamente na vitrine pública.
+ Controle central dos pesos do algoritmo de ranking (Waesy Pulse). Ajustes entram em vigor imediatamente na vitrine pública.
  </p>
  </div>
 

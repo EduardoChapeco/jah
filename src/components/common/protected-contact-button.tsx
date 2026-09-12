@@ -137,7 +137,7 @@ export function ProtectedContactButton({
               <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
                 Para blindar nossos anunciantes, lojistas e criadores contra robôs de raspagem de dados,
                 ligações automáticas e tentativas de golpe, os dados diretos de WhatsApp estão disponíveis
-                exclusivamente para membros cadastrados da comunidade Wider.
+                exclusivamente para membros cadastrados da Comunidade Waesy.
               </DialogDescription>
             </DialogHeader>
 

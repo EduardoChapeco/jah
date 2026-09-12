@@ -1,6 +1,6 @@
-# Master Plan — Wider Community Platform
+# Master Plan — Plataforma Waesy
 
-Este documento normaliza o briefing completo do projeto Wider Community Platform em um plano mestre. Ele é a porta de entrada para qualquer pessoa (humana ou agente) que for trabalhar no produto. Os detalhes técnicos aprofundados vivem em documentos irmãos, que são fontes únicas de verdade (single source of truth) para seus respectivos temas:
+Este documento normaliza o briefing completo do projeto Plataforma Waesy em um plano mestre. Ele é a porta de entrada para qualquer pessoa (humana ou agente) que for trabalhar no produto. Os detalhes técnicos aprofundados vivem em documentos irmãos, que são fontes únicas de verdade (single source of truth) para seus respectivos temas:
 
 - `DESIGN.md` — design system, tokens visuais, tipografia (Inter, Space Grotesk, Oswald, JetBrains Mono), cores, espaçamentos, primitivas de superfície (Surface).
 - `.agents/AGENTS.md` — regras de comportamento vinculantes para agentes/IA e protocolo obrigatório do Time de Elite (Arquitetura, Design Ops, QA).
@@ -25,7 +25,7 @@ Este `MASTER_PLAN.md` não substitui nenhum desses documentos: ele apenas situa 
 
 ## 1. Visão e objetivo
 
-A **Jah** é uma plataforma comunitária, social, cultural e comercial conectando artistas, bandas, criadores, entregadores, pequenos negócios e o público. Não somos apenas um e-commerce genérico; a Jah possui múltiplos contextos (Social, Operacional, Administrativo).
+A **Waesy** é uma plataforma comunitária, social, cultural e comercial conectando artistas, bandas, criadores, entregadores, pequenos negócios e o público. Não somos apenas um e-commerce genérico; a Waesy possui múltiplos contextos (Social, Operacional, Administrativo).
 
 A entrada principal é um feed comunitário mobile-first, onde aparecem eventos reais (com ingressos estruturados), serviços e produtos. O usuário pode trocar de perfil (Pessoa Física para Pessoa Jurídica) e gerir seus negócios.
 
@@ -46,7 +46,7 @@ Ambos os públicos são prioritariamente mobile. Desktop é suportado, mas o des
 4. **Sem recursos fantasmas**: funcionalidades não implementadas não devem aparecer na interface. Se um botão, menu ou página existe, ele deve ser real e funcional. Proibido usar "Em breve".
 5. **Servidor é dono de dinheiro, estoque e pedidos**: cálculos financeiros, de estoque e de pedidos são sempre feitos no servidor (funções de servidor/BFF). O cliente (browser) nunca calcula preço final, frete, desconto ou disponibilidade — apenas exibe o que o servidor retorna.
 6. **Sem acesso direto ao Supabase a partir de componentes**: todo componente React consome dados por meio de serviços/funções de servidor. Nenhuma chamada `supabase.from(...)` dentro de componentes de UI.
-7. **Auditoria Recursiva E2E Obrigatória**: Nenhuma UI, input ou bloco de código visual pode ser criado sem antes projetar a raiz da tabela/schema no banco, tipar os DTOs do BFF e validar os tokens de design do `DESIGN.md`. A JAH exige propagação síncrona completa. Nada de "pontas soltas" no frontend.
+7. **Auditoria Recursiva E2E Obrigatória**: Nenhuma UI, input ou bloco de código visual pode ser criado sem antes projetar a raiz da tabela/schema no banco, tipar os DTOs do BFF e validar os tokens de design do `DESIGN.md`. A Waesy exige propagação síncrona completa. Nada de "pontas soltas" no frontend.
 
 ## 4. Escopo da Fase 0
 
@@ -76,7 +76,7 @@ Nenhum desses itens deve ganhar UI até estar 100% implementado no backend.
 ## 6. Decisões-chave e tradeoffs
 
 - **Camada de serviços obrigatória**: adiciona uma indireção extra em troca de segurança, testabilidade e possibilidade de trocar de provedor de dados sem reescrever a UI.
-- **Multi-tenant-ready desde o dia um**: custo inicial de modelagem um pouco maior, mas evita migração de esquema arriscada quando a Jah decidir operar mais de uma loja/organização.
+- **Multi-tenant-ready desde o dia um**: custo inicial de modelagem um pouco maior, mas evita migração de esquema arriscada quando a Waesy decidir operar mais de uma loja/organização.
 - **Dinheiro sempre em centavos inteiros (BRL)**: elimina erros de ponto flutuante; toda formatação para exibição acontece na borda de apresentação, nunca no armazenamento ou no cálculo.
 - **Datas em ISO UTC no armazenamento, exibidas em America/Sao_Paulo**: evita ambiguidade de fuso horário; a conversão de exibição é responsabilidade da camada de apresentação.
 - **Proibição de 'Em breve'**: prioriza a entrega contínua. Módulos só entram em produção quando estiverem utilizáveis de ponta a ponta.
@@ -98,7 +98,7 @@ Nenhum desses itens deve ganhar UI até estar 100% implementado no backend.
 
 A Fase 0 é considerada concluída somente quando todos os itens abaixo forem verdadeiros:
 
-1. O logo da Jah aparece corretamente em todos os contextos de shell (público, cliente, admin), em tamanhos e fundos variados, sem distorção.
+1. O logo da Waesy aparece corretamente em todos os contextos de shell (público, cliente, admin), em tamanhos e fundos variados, sem distorção.
 2. Nenhuma referência de projeto, mockup ou material de briefing foi transformada em conteúdo real da loja (nenhum produto, preço ou texto fictício vazou para a vitrine).
 3. A home pública está refinada em mobile e desktop, com seções reais e conectáveis (estrutura pronta para receber dados reais nas fases seguintes) e estados vazios honestos onde ainda não há conteúdo.
 4. A navegação pública, de cliente e de admin não contém links quebrados; toda rota do registro resolve para uma página existente.
@@ -117,7 +117,7 @@ Este `MASTER_PLAN.md` é o ponto de partida narrativo. Para trabalho técnico es
 
 ## 10. Protocolo de Execução do Time de Elite
 
-Qualquer agente de Inteligência Artificial atuando na JAH não é apenas um "gerador de código". É esperado que opere como um **Time de Elite**, assumindo as personas detalhadas em `.agents/AGENTS.md`:
+Qualquer agente de Inteligência Artificial atuando na Waesy não é apenas um "gerador de código". É esperado que opere como um **Time de Elite**, assumindo as personas detalhadas em `.agents/AGENTS.md`:
 
 1. **Design Ops**: Antes de gerar componentes, deve consultar o `DESIGN.md` para garantir que o estilo gerado reflita as diretrizes visuais criadas pelo cliente (Operacional Clean x Editorial Cultural).
 2. **Data Architect**: Se houver um requisito visual novo (como um "Campo de Status de Entrega"), o agente deve traçar a arquitetura até o banco, propondo tabelas, schemas e contratos BFF ANTES de modificar o front-end.

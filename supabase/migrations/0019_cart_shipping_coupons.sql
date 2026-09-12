@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0019: Cart Shipping & Coupons
+-- Waesy Commerce — Migration 0019: Cart Shipping & Coupons
 -- ============================================================================
 
 -- Add coupon and shipping fields to the carts table.

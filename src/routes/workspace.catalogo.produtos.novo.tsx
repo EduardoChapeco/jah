@@ -81,7 +81,7 @@ import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/catalogo/produtos/novo")({
- head: () => ({ meta: [{ title: "Criar Novo Produto | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Criar Novo Produto | Workspace Waesy" }] }),
  loader: async () => {
  try {
  const [catsRes, typesRes, groupsRes, storeRes] = await Promise.all([

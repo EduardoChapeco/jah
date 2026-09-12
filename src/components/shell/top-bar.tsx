@@ -80,13 +80,13 @@ export function TopBar({ session, brandSettings }: TopBarProps) {
             {brandSettings?.show_logo !== false && brandSettings?.logo_url ? (
               <img
                 src={brandSettings.logo_url}
-                alt={brandSettings.platform_name && brandSettings.platform_name !== "Wider" ? brandSettings.platform_name : DEFAULT_BRAND_NAME}
+                alt={brandSettings.platform_name && !["Waesy", "Waesy", "waesy"].includes(brandSettings.platform_name) ? brandSettings.platform_name : DEFAULT_BRAND_NAME}
                 className="h-7 max-w-[100px] object-contain"
               />
             ) : null}
             {(brandSettings?.show_name !== false || !brandSettings?.logo_url) && (
               <span className="font-display font-black text-xl sm:text-2xl tracking-tight text-foreground leading-none">
-                {brandSettings?.platform_name && brandSettings.platform_name !== "Wider" ? brandSettings.platform_name : DEFAULT_BRAND_NAME}
+                {brandSettings?.platform_name && !["Waesy", "Waesy", "waesy"].includes(brandSettings.platform_name) ? brandSettings.platform_name : DEFAULT_BRAND_NAME}
               </span>
             )}
           </Link>

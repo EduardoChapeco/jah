@@ -69,7 +69,7 @@ import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/pedidos/$id")({
   head: ({ loaderData }) => ({
-    meta: [{ title: `Pedido #${loaderData?.order?.public_token?.slice(0, 8) || "Detalhes"} | Workspace Wider OS` }],
+    meta: [{ title: `Pedido #${loaderData?.order?.public_token?.slice(0, 8) || "Detalhes"} | Workspace Waesy` }],
   }),
   loader: async ({ params }: { params: { id: string } }) => {
     try {
@@ -189,7 +189,7 @@ function AdminOrderDetailPage() {
     setIsPrintingEscPos(true);
     try {
       const receiptData = {
-        storeName: order.store?.name || "Wider Platform",
+        storeName: order.store?.name || "Waesy Platform",
         storeCnpj: order.store?.cnpj,
         storeAddress: order.store?.address_street,
         orderNumber: order.public_token || order.id.slice(0, 8),
@@ -236,14 +236,14 @@ function AdminOrderDetailPage() {
     setIsPrintingZpl(true);
     try {
       const sender = {
-        storeName: order.store?.name || "Wider Hub",
+        storeName: order.store?.name || "Waesy Hub",
         city: order.store?.address_city || "São Miguel do Oeste",
         state: order.store?.address_state || "SC",
         zipCode: order.store?.address_zip || "89900-000",
       };
 
       const recipient = {
-        name: customer.name || customer.fullName || "Cliente Wider",
+        name: customer.name || customer.fullName || "Cliente Waesy",
         street: address.street || address.logradouro || "Rua do Cliente",
         number: address.number || address.numero || "S/N",
         complement: address.complement || address.complemento,

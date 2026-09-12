@@ -307,7 +307,7 @@ export const orchestrateMarketingPost = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
-    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+    if (data.storeId !== identity.store_id && !(identity.role === "platform_admin")) {
       throw new Error("Acesso não autorizado para esta organização.");
     }
     return executeOrchestrateMarketingPost(data);
@@ -346,7 +346,7 @@ export const listSquadGeneratedPosts = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
-    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+    if (data.storeId !== identity.store_id && !(identity.role === "platform_admin")) {
       throw new Error("Acesso não autorizado para esta organização.");
     }
     return executeListSquadGeneratedPosts(data);

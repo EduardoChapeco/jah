@@ -2,7 +2,7 @@
 
 > **Data:** 12 de Setembro de 2026  
 > **Classificação:** Diretriz Estratégica & Arquitetural de Engenharia (BigTech Standards)  
-> **Plataforma:** JAH / Wider Community Platform  
+> **Plataforma:** Waesy / Plataforma Waesy  
 > **Fontes de Verdade:** `AGENTS.md`, `docs/DESIGN.md`, `docs/MASTER_PLAN.md`, `docs/ARCHITECTURE.md`, `docs/DOMAIN_MODEL.md`, `docs/ROUTES.md`, `docs/SECURITY.md`, `docs/API_CONTRACTS.md`, `docs/BUSINESS_FLOWS.md`, `docs/PAGE_CATALOG.md`.
 
 ---
@@ -24,7 +24,7 @@
    - [3.3 Reescrita do Tema 3: Encartes Semanais/Mensais de Supermercados & Atacados com Zoom e Hotspots](#33-tema-3-encartes-semanais-de-supermercados--atacados-com-zoom-e-hotspots)
    - [3.4 Reescrita do Tema 4: Varredura de Código Legado, Rotas Fantasmas e Subações Desconectadas](#34-tema-4-varredura-de-código-legado-rotas-fantasmas-e-subações-desconectadas)
    - [3.5 Reescrita do Tema 5: Pipeline Industrial de Deploy (Wrangler Pages + Supabase Produção)](#35-tema-5-pipeline-industrial-de-deploy-wrangler-pages--supabase)
-4. [SEÇÃO 4 — Consolidação das Regras Invioláveis de Todos os `*.md` da JAH](#seção-4--consolidação-das-regras-invioláveis-de-todos-os-md)
+4. [SEÇÃO 4 — Consolidação das Regras Invioláveis de Todos os `*.md` da Waesy](#seção-4--consolidação-das-regras-invioláveis-de-todos-os-md)
    - [4.1 A Completude Séptupla Obrigatória (Camadas 1 a 7)](#41-a-completude-séptupla-obrigatória)
    - [4.2 Princípios de Design Apple HIG & Anti-AI Smell](#42-princípios-de-design-apple-hig--anti-ai-smell)
    - [4.3 Sistema de Penalidades SRE (Tolerância Zero SEV-1 e SEV-2)](#43-sistema-de-penalidades-sre)
@@ -107,7 +107,7 @@ O Conselho reuniu-se em sessão extraordinária para processar as dores, quebras
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                        CONSELHO EXECUTIVO DE ENGENHARIA — JAH                          │
+│                        CONSELHO EXECUTIVO DE ENGENHARIA — Waesy                          │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ 1. CPO & Presidente do Conselho  │ "Chega de 'parcial'. Todo prompt precisa virar uma   │
 │                                  │ especificação rastreável [REQ-1] a [REQ-N]. Se o     │
@@ -251,7 +251,7 @@ Criar uma esteira de ponta a ponta especializada para o nicho de Alimentação &
 ## 3.3 Tema 3: Encartes Semanais/Mensais de Supermercados & Atacados com Zoom e Hotspots
 
 ### 📝 Diagnóstico Técnico do Problema Atual (Root Cause Analysis - RCA)
-1. **Inexistência do Recurso no Sistema:** Supermercados, atacarejos e feiras de bairro dependem primariamente de folhetos de ofertas de final de semana (encartes de ofertas). O sistema JAH oferecia apenas catálogo unitário de produtos, ignorando o comportamento de compras em massa da população regional.
+1. **Inexistência do Recurso no Sistema:** Supermercados, atacarejos e feiras de bairro dependem primariamente de folhetos de ofertas de final de semana (encartes de ofertas). O sistema Waesy oferecia apenas catálogo unitário de produtos, ignorando o comportamento de compras em massa da população regional.
 2. **Falta de Imersão e Interatividade:** O lojista não tinha como fazer upload de um encarte escaneado ou diagramado e transformar as fotos das ofertas em itens compráveis com toque direto.
 
 ---
@@ -290,7 +290,7 @@ Desenvolver o módulo de Encartes Digitais e Folhetos Promocionais da Semana/Mê
 [CAMADA 3 — EXPERIÊNCIA PÚBLICA (VITRINE & LEITOR ZINE)]
 - Seção no Perfil da Loja (`_store.index.tsx`):
   * Trilho Horizontal de Encartes com cards verticais elegantes (`aspect-[3/4]`), badge "Válido até Domingo" e contagem regressiva de encerramento.
-  * Opção de Estilo Visual Temático: "Encarte Retrô" com moldura amarelada e tipografia de pincel vermelho de supermercado tradicional, harmonizado com o design system da JAH.
+  * Opção de Estilo Visual Temático: "Encarte Retrô" com moldura amarelada e tipografia de pincel vermelho de supermercado tradicional, harmonizado com o design system da Waesy.
 - Modal de Leitura Imersiva (Visualizador Apple-Grade):
   * Tela cheia sem ruído visual, suporte a transição de páginas com snap horizontal.
   * Suporte a Zoom Suave (Pinch / Double-tap) de até 3x para leitura nítida de letras miúdas.
@@ -366,13 +366,13 @@ Formalizar e executar o pipeline de publicação em produção com verificação
    - `SUPABASE_SERVICE_ROLE_KEY`
    - Configurações de domínio e SSL.
 4. Etapa 4 — Publicação Cloudflare Pages:
-   - Executar deploy via `npx wrangler pages deploy dist --project-name=jah --branch=main`.
+   - Executar deploy via `npx wrangler pages deploy dist --project-name=waesy --branch=main`.
    - Obter URL final de produção ativa e realizar Smoke Test com gravação no browser.
 ```
 
 ---
 
-# SEÇÃO 4 — Consolidação das Regras Invioláveis de Todos os `*.md` da JAH
+# SEÇÃO 4 — Consolidação das Regras Invioláveis de Todos os `*.md` da Waesy
 
 O Conselho consolidou a totalidade dos mandamentos técnicos e de produto espalhados pelos arquivos `docs/*.md` e `.agents/*.md` em três eixos centrais que governam qualquer alteração no repositório:
 
@@ -451,4 +451,4 @@ A partir da reescrita dos prompts pelo Conselho, os planos de implementação de
 ---
 
 > **CERTIFICAÇÃO DO CONSELHO EXECUTIVO:**  
-> Este documento foi revisado e aprovado em conformidade estrita com o protocolo autônomo da plataforma JAH. Nenhuma regra foi mitigada, nenhum requisito foi esquecido, e a base técnica está integralmente mapeada para execução sem gaps.
+> Este documento foi revisado e aprovado em conformidade estrita com o protocolo autônomo da plataforma Waesy. Nenhuma regra foi mitigada, nenhum requisito foi esquecido, e a base técnica está integralmente mapeada para execução sem gaps.

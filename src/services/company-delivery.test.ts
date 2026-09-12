@@ -70,7 +70,7 @@ describe("Company Delivery & Dispatch Contracts (BFF)", () => {
     const validUpdate = {
       token: "disp_12345678_abcdef",
       status: "delivered",
-      proofPhotoUrl: "https://storage.wider.app/proof.jpg",
+      proofPhotoUrl: "https://storage.usewaesy.com/proof.jpg",
       confirmationPin: "4521",
     };
 

@@ -1,5 +1,5 @@
 ﻿-- ============================================================================
--- Jah Commerce — Migration 20260904190000: Hub do Colaborador & Ponto Eletrônico
+-- Waesy Commerce — Migration 20260904190000: Hub do Colaborador & Ponto Eletrônico
 -- ============================================================================
 -- Microfase 1.1:
 --  - hr_departments & hr_positions

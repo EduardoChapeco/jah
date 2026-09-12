@@ -164,7 +164,7 @@ const CATEGORY_TREE: CategoryDefinition[] = [
 
 // ── Catálogo de Blocos Individuais transplantado de cloudblock/BlockLibrary.tsx ──
 // Fonte: projetos-referencias/cloudblock/src/components/editor/BlockLibrary.tsx
-// Adaptação: usa onInsertSingleBlock do editor JAH ao invés de useEditor() do cloudblock
+// Adaptação: usa onInsertSingleBlock do editor Waesy ao invés de useEditor() do cloudblock
 
 interface SingleBlockDef {
  type: string;

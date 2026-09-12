@@ -13,7 +13,7 @@ import { getDashboardData } from "@/services/dashboard.functions";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/relatorios")({
-  head: () => ({ meta: [{ title: "Relatórios & Análise de Performance | Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Relatórios & Análise de Performance | Waesy" }] }),
   loader: async () => {
     try {
       const data = await getDashboardData();

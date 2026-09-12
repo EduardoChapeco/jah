@@ -54,7 +54,7 @@ import {
 export const Route = createFileRoute("/workspace/configuracoes/equipe")({
  head: () => ({
  meta: [
- { title: "Equipe, Folha & Recrutamento | Workspace Wider OS" },
+ { title: "Equipe, Folha & Recrutamento | Workspace Waesy" },
  { name: "description", content: "Gerencie os membros, cargos, folha de pagamento e vagas de emprego da sua loja." },
  ],
  }),

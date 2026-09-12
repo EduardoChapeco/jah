@@ -28,7 +28,7 @@ ALTER TABLE public.classifieds
       'vehicle',
       'event',
       'donation',
-      'travel',        -- Pacotes turísticos, roteiros, resorts (Modo Instagram)
+      'travel',        -- Pacotes turísticos, roteiros, resorts (Vitrine Imersiva)
       'equipment'      -- Aluguel de equipamentos (eventos, som, luz, maquinário)
     ));
 
@@ -52,7 +52,7 @@ CREATE INDEX IF NOT EXISTS idx_workspace_waitlist_status ON public.workspace_pro
 -- 4. Tabela de Configurações da Landing Page Portal Completo
 CREATE TABLE IF NOT EXISTS public.portal_completo_settings (
   id TEXT PRIMARY KEY DEFAULT 'default',
-  hero_title TEXT NOT NULL DEFAULT 'Evolua sua Gestão com o Wider OS Pro',
+  hero_title TEXT NOT NULL DEFAULT 'Evolua sua Gestão com o Waesy Pro',
   hero_subtitle TEXT NOT NULL DEFAULT 'Módulos avançados de PDV, Estoque, Logística, Turismo e Relatórios desenhados para o seu crescimento.',
   video_url TEXT,
   feature_modules JSONB NOT NULL DEFAULT '[

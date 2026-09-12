@@ -46,7 +46,7 @@ import { getStockLevels, adjustStock } from "@/services/stock.functions";
 import { StockAuditDialog } from "@/components/admin/stock-audit-dialog";
 
 export const Route = createFileRoute("/workspace/estoque/")({
- head: () => ({ meta: [{ title: "Estoque Operacional | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Estoque Operacional | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const res = await getStockLevels({ data: {} }).catch(() => []);
@@ -205,7 +205,7 @@ function AdminStockPage() {
         </div>
       </div>
 
-      {/* ── TOOLBAR CANÔNICA SOBERANA JAH ── */}
+      {/* ── TOOLBAR CANÔNICA SOBERANA Waesy ── */}
       <WorkspaceCanonicalToolbar
         tabs={[
           { id: "all", label: "Todos", count: stock.length },

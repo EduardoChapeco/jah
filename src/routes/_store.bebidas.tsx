@@ -59,7 +59,7 @@ const BEBIDAS_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/bebidas")({
  head: () => ({
  meta: [
- { title: "Distribuidoras de Bebidas, Adegas & Gelo | Wider OS" },
+ { title: "Distribuidoras de Bebidas, Adegas & Gelo | Waesy" },
  {
  name: "description",
  content:

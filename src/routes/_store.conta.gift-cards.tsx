@@ -22,7 +22,7 @@ import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/gift-cards")({
- head: () => ({ meta: [{ title: "Meus Vales-Presente | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Meus Vales-Presente | Waesy" }] }),
  loader: async () => {
  try {
  const res = await listCustomerGiftCards();

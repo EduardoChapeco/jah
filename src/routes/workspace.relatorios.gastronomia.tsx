@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/relatorios/gastronomia")({
- head: () => ({ meta: [{ title: "Relatórios Gastronomia | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Relatórios Gastronomia | Workspace Waesy" }] }),
  loader: async () => {
  try {
  const [reports, store] = await Promise.all([

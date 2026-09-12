@@ -1,5 +1,5 @@
 /**
- * Seletor de Temas de Apresentação (PostThemeSelector — derivado do Wider)
+ * Seletor de Temas de Apresentação (PostThemeSelector — derivado do Waesy)
  */
 
 import { PRESENTATION_THEMES, type PresentationTheme } from "@/lib/presentation-presets";

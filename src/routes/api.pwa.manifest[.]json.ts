@@ -10,11 +10,11 @@ export const Route = createFileRoute("/api/pwa/manifest.json")({
  const storeId = url.searchParams.get("storeId");
  const slug = url.searchParams.get("slug");
 
- // Manifest Padrão do Super App Wider
+ // Manifest Padrão do Super App Waesy
  const defaultManifest = {
- name: "Wider — Master OS",
- short_name: "Wider",
- description: "Wider OS — Plataforma Empresarial Unificada",
+ name: "Waesy — Master OS",
+ short_name: "Waesy",
+ description: "Waesy — Plataforma Empresarial Unificada",
  start_url: "/",
  scope: "/",
  display: "standalone",

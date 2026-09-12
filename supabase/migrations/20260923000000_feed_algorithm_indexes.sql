@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Platform — Migration: Feed Algorithm Indexes & Optimization
+-- Waesy Platform — Migration: Feed Algorithm Indexes & Optimization
 -- ============================================================================
 
 -- 1. Index on posts(post_type, created_at DESC) for fast category filtering (travel, news, etc.)

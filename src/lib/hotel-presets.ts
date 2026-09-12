@@ -1,6 +1,6 @@
 /**
  * hotel-presets.ts — Presets Canônicos de Resorts & Hotéis Renomados do Brasil e Mundo
- * Utilizado para pré-carregamento instantâneo no Banco de Hotéis e nos Construtores de Propostas da JAH.
+ * Utilizado para pré-carregamento instantâneo no Banco de Hotéis e nos Construtores de Propostas da Waesy.
  * Padrão BigTech | Dados de Acomodação, Políticas, Gastronomia e Fotos Reais
  */
 

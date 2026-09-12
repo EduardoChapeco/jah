@@ -97,7 +97,7 @@ export function FlyerInteractiveViewerModal({
   const handleShare = async () => {
     const url = typeof window !== "undefined" ? window.location.href : "";
     const title = currentFlyer.title || `Encarte de Ofertas - ${storeName || "Supermercado"}`;
-    const text = `Confira o encarte de ofertas: "${title}" no Wider!`;
+    const text = `Confira o encarte de ofertas: "${title}" no Waesy!`;
 
     if (navigator.share) {
       try {
@@ -302,7 +302,7 @@ export function FlyerInteractiveViewerModal({
                 className="max-h-[75vh] sm:max-h-[78vh] w-auto object-contain rounded-xl select-none"
               />
 
-              {/* Botões Redondos Interativos (Hotspots Estilo Instagram) */}
+              {/* Botões Redondos Interativos (Hotspots de Destaque) */}
               {hotspots.map((spot, idx) => {
                 const isActive = activeHotspot?.id === spot.id;
                 return (

@@ -100,7 +100,7 @@ async function extractMenuWithRealAI(
 
   if (!geminiKey && !groqKey) return null;
 
-  const systemInstruction = `Você é o Agente The Visual Parser do Wider OS.
+  const systemInstruction = `Você é o Agente The Visual Parser da Plataforma Waesy.
 Sua missão é ler e transcrever com máxima precisão fotos de cardápio, listas de preços ou descrições em JSON estruturado:
 {
   "categories": ["Entradas", "Pratos Principais", "Bebidas", "Sobremesas"],
@@ -436,8 +436,7 @@ export const approveOnboardingProducts = createServerFn({ method: "POST" })
             applied_products_count: insertedCount,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", session_id)
-          .catch(() => null);
+          .eq("id", session_id);
       }
 
       return {

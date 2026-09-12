@@ -214,7 +214,7 @@ MIGRATIONS:
 
 PROJETO:
 
-- `Jah`
+- `Waesy`
 
 AMBIENTE:
 

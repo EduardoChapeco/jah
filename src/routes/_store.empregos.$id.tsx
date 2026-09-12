@@ -52,8 +52,8 @@ export const Route = createFileRoute("/_store/empregos/$id")({
  meta: [
  {
  title: loaderData?.job
- ? `${loaderData.job.title} na ${loaderData.job.company_name} — Vagas Wider`
- : "Vaga de Emprego | Wider OS",
+ ? `${loaderData.job.title} na ${loaderData.job.company_name} — Vagas Waesy`
+ : "Vaga de Emprego | Waesy",
  },
  {
  name: "description",
@@ -315,7 +315,7 @@ function JobDetailPage() {
 
  {/* ── 4. Coluna Lateral de Ação / Candidatura ── */}
  <aside className="space-y-5">
- {/* Card de Avaliações do Empregador (Estilo InfoJobs / Glassdoor) */}
+ {/* Card de Avaliações do Empregador (Avaliação Corporativa e Cultura) */}
  {employerInsights && employerInsights.total_reviews > 0 && (
  <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-3">
  <div className="flex items-center justify-between">
@@ -581,7 +581,7 @@ function JobDetailPage() {
  <div className="pt-3 space-y-2 text-[11px] text-muted-foreground">
  <div className="flex items-center gap-2">
  <ShieldCheck size={16} weight="bold" className="text-foreground shrink-0" />
- <span>Processo seletivo verificado pela Comunidade Wider.</span>
+ <span>Processo seletivo verificado pela Comunidade Waesy.</span>
  </div>
  </div>
  </div>

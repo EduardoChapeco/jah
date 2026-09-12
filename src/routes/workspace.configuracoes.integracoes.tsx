@@ -29,7 +29,7 @@ import {
 } from "@/services/secret-vault.functions";
 
 export const Route = createFileRoute("/workspace/configuracoes/integracoes")({
- head: () => ({ meta: [{ title: "Integrações & APIs | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Integrações & APIs | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const [integrations, secrets] = await Promise.all([

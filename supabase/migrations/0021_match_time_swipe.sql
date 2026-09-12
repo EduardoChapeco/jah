@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0021: Match Time Domain Fix
+-- Waesy Commerce — Migration 0021: Match Time Domain Fix
 -- ============================================================================
 
 -- Drop the incorrectly modeled table

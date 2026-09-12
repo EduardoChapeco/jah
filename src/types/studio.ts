@@ -1,5 +1,5 @@
 /**
- * WIDER STUDIO 3.0 - Types & Canvas Schema
+ * WAESY STUDIO 3.0 - Types & Canvas Schema
  */
 
 export type StudioAspectRatio = "1:1" | "4:5" | "9:16" | "16:9" | "1.91:1";

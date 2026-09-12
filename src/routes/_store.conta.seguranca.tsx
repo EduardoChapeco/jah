@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_store/conta/seguranca")({
- head: () => ({ meta: [{ title: "Segurança e Dispositivos | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Segurança e Dispositivos | Waesy" }] }),
  loader: async () => {
  try {
  const [session, logs, devices] = await Promise.all([

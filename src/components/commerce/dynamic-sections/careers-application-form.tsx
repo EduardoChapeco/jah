@@ -34,7 +34,7 @@ export function CareersApplicationForm({ job, isOpen, onClose }: CareersApplicat
 
  setIsSubmitting(true);
  try {
- let resumeUrl = "https://storage.jah.app/resumes/demo-cv.pdf";
+ let resumeUrl = "https://storage.usewaesy.com/resumes/demo-cv.pdf";
 
  if (resumeFile) {
  const reader = new FileReader();
@@ -125,10 +125,10 @@ export function CareersApplicationForm({ job, isOpen, onClose }: CareersApplicat
 
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
  <div className="space-y-1">
- <label className="text-xs font-semibold text-foreground">Perfil LinkedIn (Opcional)</label>
+ <label className="text-xs font-semibold text-foreground">Perfil Profissional / Portfólio (Opcional)</label>
  <Input
  type="url"
- placeholder="https://linkedin.com/in/..."
+ placeholder="https://exemplo.com/perfil..."
  value={linkedinUrl}
  onChange={(e) => setLinkedinUrl(e.target.value)}
  className="min-h-[44px] rounded-xl text-sm"

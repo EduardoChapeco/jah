@@ -15,7 +15,7 @@ interface ContractEditorSheetProps {
 
 export function ContractEditorSheet({
  initialTitle = 'Contrato de Prestação de Serviços',
- storeName = 'Minha Loja Wider',
+ storeName = 'Minha Loja Waesy',
  onSaveDocument,
  onClose,
 }: ContractEditorSheetProps) {
@@ -77,7 +77,7 @@ export function ContractEditorSheet({
  onChange={(e) => setTitle(e.target.value)}
  className="h-8 font-bold text-sm bg-transparent border-none shadow-none px-0 focus-visible:ring-0 text-foreground"
  />
- <p className="text-[11px] text-muted-foreground">Wider Office Suite · Editor de Contratos Inteligentes</p>
+ <p className="text-[11px] text-muted-foreground">Waesy Office Suite · Editor de Contratos Inteligentes</p>
  </div>
  </div>
 

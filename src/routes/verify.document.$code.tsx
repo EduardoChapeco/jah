@@ -22,8 +22,8 @@ export const Route = createFileRoute("/verify/document/$code")({
  meta: [
  {
  title: loaderData?.result?.title
- ? `Verificação: ${loaderData.result.title} | Wider OS`
- : "Verificação de Documento | Wider OS",
+ ? `Verificação: ${loaderData.result.title} | Waesy`
+ : "Verificação de Documento | Waesy",
  },
  ],
  }),
@@ -60,7 +60,7 @@ function DocumentVerificationPage() {
  <h1 className="text-lg font-bold text-foreground">Documento Não Reconhecido</h1>
  <p className="text-xs text-muted-foreground leading-relaxed">
  O código ou hash informado não corresponde a nenhum documento selado ou emitido na
- infraestrutura canônica da Wider.
+ infraestrutura canônica da Waesy.
  </p>
  <Button asChild variant="outline" size="sm" className="rounded-xl mt-2">
  <Link to="/">
@@ -89,7 +89,7 @@ function DocumentVerificationPage() {
  Documento Autêntico e Verificado
  </h1>
  <p className="text-xs text-muted-foreground">
- Registro Imutável emitido na plataforma comunitária Wider
+ Registro Imutável emitido na plataforma comunitária Waesy
  </p>
  </div>
 
@@ -172,7 +172,7 @@ function DocumentVerificationPage() {
  Integridade Criptográfica
  </span>
  <Link to="/" className="text-primary hover:underline font-medium">
- Wider Community Platform
+ Plataforma Waesy
  </Link>
  </div>
  </div>

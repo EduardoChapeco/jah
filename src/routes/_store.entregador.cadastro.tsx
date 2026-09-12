@@ -38,7 +38,7 @@ import { formatCpf, validateCpfMod11 } from "@/lib/document-validator";
 export const Route = createFileRoute("/_store/entregador/cadastro")({
   head: () => ({
     meta: [
-      { title: "Cadastro de Entregador & Motorista Parceiro | Wider OS" },
+      { title: "Cadastro de Entregador & Motorista Parceiro | Waesy" },
       {
         name: "description",
         content:
@@ -513,7 +513,7 @@ function CourierOnboardingPage() {
                   <span>Termos de Parceria e Garantias de Liberdade</span>
                 </h2>
                 <p className="text-xs text-muted-foreground">
-                  Conheça seus direitos inegociáveis de profissional autônomo na plataforma Wider.
+                  Conheça seus direitos inegociáveis de profissional autônomo na plataforma Waesy.
                 </p>
               </div>
 
@@ -523,7 +523,7 @@ function CourierOnboardingPage() {
                   TERMOS E CONDIÇÕES PARA ENTREGADORES E MOTORISTAS PARCEIROS (v4.0)
                 </p>
                 <p>
-                  <strong>1. INEXISTÊNCIA DE VÍNCULO EMPREGATÍCIO:</strong> A relação entre o Entregador e a Plataforma Wider é estritamente comercial de intermediação tecnológica. Não há relação de emprego, subordinação jurídica, exclusividade ou dependência econômica sob a CLT.
+                  <strong>1. INEXISTÊNCIA DE VÍNCULO EMPREGATÍCIO:</strong> A relação entre o Entregador e a plataforma Waesy é estritamente comercial de intermediação tecnológica. Não há relação de emprego, subordinação jurídica, exclusividade ou dependência econômica sob a CLT.
                 </p>
                 <p>
                   <strong>2. LIBERDADE DE HORÁRIOS E JORNADA:</strong> O parceiro tem total autonomia para conectar-se e desconectar-se nos dias e horários que desejar, sem cumprimento de horas mínimas.

@@ -1,5 +1,5 @@
 /**
- * Helper de Observabilidade e Logging Estruturado para Loaders e Server Functions (JAH)
+ * Helper de Observabilidade e Logging Estruturado para Loaders e Server Functions (Waesy)
  *
  * Registra erros detalhados de queries, contratos BFF, tabelas e RLS
  * para diagnóstico imediato nos logs do servidor / Cloudflare Workers,

@@ -34,8 +34,8 @@ export const Route = createFileRoute("/_store/loja/$slug")({
 
     return {
       title: profile?.name
-        ? `${profile.name} — Vitrine & Cardápio Oficial | Wider OS`
-        : "Página Oficial da Loja | Wider OS",
+        ? `${profile.name} — Vitrine & Cardápio Oficial | Waesy`
+        : "Página Oficial da Loja | Waesy",
       meta: [
         {
           name: "description",

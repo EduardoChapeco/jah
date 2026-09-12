@@ -149,7 +149,7 @@ export async function _inviteTeamMember(input: {
  // 1. Tenta criar usuário novo
  const { data: authData, error: authError } = await db.auth.admin.createUser({
  email: input.email.toLowerCase().trim(),
- password: "Wider" + Math.random().toString(36).slice(-8) + "!",
+ password: "Waesy" + Math.random().toString(36).slice(-8) + "!",
  email_confirm: true,
  user_metadata: {
  full_name: input.fullName,

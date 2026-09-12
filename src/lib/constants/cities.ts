@@ -34,7 +34,7 @@ export const CHAPECO_NEIGHBORHOODS: NeighborhoodPreset[] = [
 ];
 
 export const CANONICAL_CITIES: CityRecord[] = [
- // ── Grande Oeste Catarinense (Foco Principal Wider) ──
+ // ── Grande Oeste Catarinense (Foco Principal Waesy) ──
  { id: "chapeco-sc", name: "Chapecó", state: "SC", label: "Chapecó - SC", region: "Oeste SC", lat: -27.1004, lng: -52.6152 },
  { id: "xanxere-sc", name: "Xanxerê", state: "SC", label: "Xanxerê - SC", region: "Oeste SC", lat: -26.8747, lng: -52.4036 },
  { id: "concordia-sc", name: "Concórdia", state: "SC", label: "Concórdia - SC", region: "Oeste SC", lat: -27.2341, lng: -52.0264 },

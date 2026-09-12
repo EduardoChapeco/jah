@@ -40,7 +40,7 @@ import { WorkspaceDashboardSheet } from "@/components/workspace/workspace-dashbo
 import { KanbanColumnCustomizerModal } from "@/components/workspace/kanban/kanban-column-customizer-modal";
 
 export const Route = createFileRoute("/workspace/tarefas")({
-  head: () => ({ meta: [{ title: "Tarefas | Workspace Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Tarefas | Workspace Waesy" }] }),
   loader: async () => {
     try {
     const store = await getStoreSettings().catch(() => null);

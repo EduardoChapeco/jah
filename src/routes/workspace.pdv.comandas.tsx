@@ -45,7 +45,7 @@ import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/pdv/comandas")({
- head: () => ({ meta: [{ title: "Salão & Comandas | PDV | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Salão & Comandas | PDV | Workspace Waesy" }] }),
  loader: async () => {
  try {
  const [tables, store] = await Promise.all([
@@ -203,7 +203,7 @@ function PdvComandasPage() {
  payMutation.mutate({ orderId: comandaToCheckout.id, method: paymentMethod });
  };
 
- const currentHost = typeof window !== "undefined" ? window.location.host : "wider.app";
+ const currentHost = typeof window !== "undefined" ? window.location.host : "usewaesy.com";
  const publicMenuTableUrl = `https://${currentHost}/m/${store_info?.slug || "loja"}?mesa=${encodeURIComponent(qrTableNumber)}`;
 
  return (

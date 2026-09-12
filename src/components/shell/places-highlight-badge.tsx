@@ -8,7 +8,7 @@ export interface PlacesHighlightBadgeProps {
 
 /**
  * PlacesHighlightBadge — Identidade Canônica "Places (Lista Telefônica)"
- * Efeito visual de marcador de texto amarelo (highlighter style do Threads / Meta Notes)
+ * Efeito visual de marcador de texto amarelo (Highlighter Note)
  * sobre a expressão "(Lista Telefônica)", modernizando o conceito e gerando contraste nostálgico.
  */
 export function PlacesHighlightBadge({ className, subtle = false }: PlacesHighlightBadgeProps) {

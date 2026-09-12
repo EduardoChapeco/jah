@@ -46,7 +46,7 @@ import {
 } from "@/services/tokens.functions";
 
 export const Route = createFileRoute("/workspace/tokens")({
- head: () => ({ meta: [{ title: "Tokens & Aceleração | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Tokens & Aceleração | Workspace Waesy" }] }),
  loader: async () => {
  try {
  const [wallet, growth, economy] = await Promise.all([
@@ -114,7 +114,7 @@ export default function WorkspaceTokensPage() {
  };
 
  const handleCopyReferral = () => {
- const url = growth?.referral_url || `https://wider.com.br/@${wallet.store_name?.toLowerCase().replace(/\s+/g, "")}`;
+ const url = growth?.referral_url || `https://usewaesy.pages.dev/@${wallet.store_name?.toLowerCase().replace(/\s+/g, "")}`;
  navigator.clipboard.writeText(url);
  toast.success("Link copiado.");
  };
@@ -251,7 +251,7 @@ export default function WorkspaceTokensPage() {
  </Badge>
  </div>
  <p className="text-muted-foreground font-mono text-[11px] truncate max-w-md">
- {growth?.referral_url || `https://wider.com.br/@${wallet.store_name?.toLowerCase().replace(/\s+/g, "")}`}
+ {growth?.referral_url || `https://usewaesy.pages.dev/@${wallet.store_name?.toLowerCase().replace(/\s+/g, "")}`}
  </p>
  </div>
 
@@ -410,7 +410,7 @@ export default function WorkspaceTokensPage() {
  <div>
  <h2 className="text-base font-bold text-foreground">Calculadora de Economia Real</h2>
  <p className="text-xs text-muted-foreground">
- Veja quanto sua empresa economiza vendendo na Wider em comparação com taxas de marketplaces e e-commerces.
+ Veja quanto sua empresa economiza vendendo na Waesy em comparação com taxas de marketplaces e e-commerces.
  </p>
  </div>
 
@@ -448,7 +448,7 @@ export default function WorkspaceTokensPage() {
 
  <div className="pt-2 border-t border-border/40 space-y-0.5">
  <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold block">
- Economia Líquida na Wider:
+ Economia Líquida na Waesy:
  </span>
  <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400 font-mono">
  +{c.savings_brl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}{" "}
@@ -462,13 +462,13 @@ export default function WorkspaceTokensPage() {
  </div>
  </TabsContent>
 
- {/* Tab 3: Faturamento & Recarga Automática (Meta Ads Style) */}
+ {/* Tab 3: Faturamento & Recarga Automática */}
  <TabsContent value="faturamento" className="space-y-4">
  <div className="p-5 rounded-2xl border border-border/60 bg-card space-y-4">
  <div>
  <h2 className="text-base font-bold text-foreground">Faturamento Inteligente & Limite de Gastos</h2>
  <p className="text-xs text-muted-foreground">
- Configure recargas automáticas por limite (estilo Meta Ads) para que suas IAs e campanhas no Radar nunca parem.
+ Configure recargas automáticas por limite para que suas ferramentas de IA e campanhas no Radar nunca parem.
  </p>
  </div>
 
@@ -482,7 +482,7 @@ export default function WorkspaceTokensPage() {
  </SelectTrigger>
  <SelectContent>
  <SelectItem value="prepaid">Pré-Pago (Recarga manual sob demanda)</SelectItem>
- <SelectItem value="auto_threshold">Automático por Limite (Meta Ads Style)</SelectItem>
+ <SelectItem value="auto_threshold">Automático por Limite de Consumo</SelectItem>
  <SelectItem value="monthly_invoice">Fatura Mensal Consolidada</SelectItem>
  </SelectContent>
  </Select>

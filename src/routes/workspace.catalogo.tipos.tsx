@@ -67,7 +67,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export const Route = createFileRoute("/workspace/catalogo/tipos")({
- head: () => ({ meta: [{ title: "Tipos de Produto | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Tipos de Produto | Workspace Waesy" }] }),
  loader: async () => {
  try {
  const res = await listProductTypes();

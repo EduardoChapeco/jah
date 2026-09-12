@@ -57,7 +57,7 @@ const ELETRONICOS_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/eletronicos")({
  head: () => ({
  meta: [
- { title: "Eletrônicos, Informática, Smartphones & Gamers | Wider OS" },
+ { title: "Eletrônicos, Informática, Smartphones & Gamers | Waesy" },
  {
  name: "description",
  content:

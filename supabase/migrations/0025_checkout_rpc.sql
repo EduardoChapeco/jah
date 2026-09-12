@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0025: Checkout RPC and Schema Fixes
+-- Waesy Commerce — Migration 0025: Checkout RPC and Schema Fixes
 -- ============================================================================
 -- 1. Adds customer_snapshot to orders (was missing from 0003).
 -- 2. Creates atomic process_checkout_atomic RPC.

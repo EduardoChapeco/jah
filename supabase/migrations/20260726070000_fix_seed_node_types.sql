@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 20260726070000: Fix Seed Node Types
+-- Waesy Commerce — Migration 20260726070000: Fix Seed Node Types
 -- ============================================================================
 -- Fixes node_type from 'section' to 'composition' for non-structural blocks
 -- ============================================================================

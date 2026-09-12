@@ -1,5 +1,5 @@
 # O MANIFESTO DA ECONOMIA DE TOKENS & A MÁQUINA DO TEMPO
-## *Wider Community Platform — Infraestrutura Econômica de Aceleração Urbana*
+## *Plataforma Waesy — Infraestrutura Econômica de Aceleração Urbana*
 
 > **Documento Estratégico & Arquitetural Canônico**
 > Versão: 1.0.0 — 2026
@@ -13,7 +13,7 @@ Nos últimos 15 anos, o comércio local e as pequenas empresas foram sufocados p
 1. **O SaaS Tradicional (Shopify / VTEX / Plataformas de Cardápio):** Cobra mensalidades fixas pesadas (R$ 150 a R$ 800/mês), faça chuva ou faça sol, mesmo quando a loja está começando ou tem meses de baixo movimento.
 2. **Os Marketplaces Predatórios (iFood / Mercado Livre / Rappi):** Cobram pedágios extorsivos de 12% a 27% sobre o faturamento bruto. Em negócios com margem de lucro de 15% a 20%, o marketplace consome praticamente todo o lucro líquido do empreendedor.
 
-### A Ruptura Estrutural da Wider:
+### A Ruptura Estrutural da Waesy:
 - **0% de Comissões sobre Vendas:** O dinheiro das vendas vai direto e integralmente para o gateway do lojista (modelo BYOG — *Bring Your Own Gateway*).
 - **Tráfego Próprio 100% Gratuito (0 Tokens):** Divulgar o próprio link no Instagram, WhatsApp ou via QR Code na mesa consome **zero tokens**.
 - **Monetização por Utilidade Real:** A plataforma não cobra para a loja existir; ela monetiza fornecendo uma **Máquina do Tempo** — créditos em micro-tokens para acelerar prospecção, visibilidade e operações.
@@ -27,10 +27,10 @@ A premissa psicológica e econômica central é simples: **Nenhum empresário qu
 ```
                        O CONCEITO DA MÁQUINA DO TEMPO
   
-  [ SEM A WIDER ]  ═══════════════════════════════════════════► 10 ANOS
+  [ SEM A WAESY ]  ═══════════════════════════════════════════► 10 ANOS
                    Crescimento orgânico lento, boca a boca, panfletagem cara.
   
-  [ COM A WIDER ]  ════════► 1 ANO (Tempo Economizado = 9 Anos)
+  [ COM A WAESY ]  ════════► 1 ANO (Tempo Economizado = 9 Anos)
                    Impulso no Radar, IA de Atendimento, Leads Quentes e Visibilidade.
 ```
 
@@ -41,7 +41,7 @@ A premissa psicológica e econômica central é simples: **Nenhum empresário qu
 
 ## 🪙 3. A Escala dos Milhões de Tokens & Micro-Centavinhos
 
-Inspirado no modelo de consumo de APIs de BigTechs (como Meta Graph API e OpenAI Tokens), a Wider opera na escala de **Milhões de Micro-Tokens**.
+Inspirado no modelo de consumo de APIs de BigTechs (como Meta Graph API e OpenAI Tokens), a Waesy opera na escala de **Milhões de Micro-Tokens**.
 
 ### Paridade Base de Conversão
 $$\mathbf{1.000.000\text{ Tokens}} \approx \mathbf{R\$\ 44,50\text{ a R\$\ 49,00}} \quad (\approx \mathbf{R\$\ 0,000049\text{ por token}})$$
@@ -64,7 +64,7 @@ $$\mathbf{1.000.000\text{ Tokens}} \approx \mathbf{R\$\ 44,50\text{ a R\$\ 49,00
 ## 🔄 4. O Flywheel Viral de CAC Zero (+100.000 Tokens por Novo Cliente)
 
 Plataformas tradicionais queimam milhões de reais em campanhas de marketing pago (Google/Meta) para adquirir novos usuários.  
-A Wider descentraliza a aquisição através de um **Loop de Incentivo Mútuo**:
+A Waesy descentraliza a aquisição através de um **Loop de Incentivo Mútuo**:
 
 ```
                     O FLYWHEEL VIRAL DE CRESCIMENTO ORGÂNICO
@@ -90,7 +90,7 @@ A Wider descentraliza a aquisição através de um **Loop de Incentivo Mútuo**:
       └─────────────────────────────────────────────────────────────┘
 ```
 
-- **Custo de Aquisição de Clientes (CAC) da Wider:** Quase zero. A plataforma "paga" o comerciante com poder de aceleração gerado pela própria infraestrutura.
+- **Custo de Aquisição de Clientes (CAC) da Waesy:** Quase zero. A plataforma "paga" o comerciante com poder de aceleração gerado pela própria infraestrutura.
 - **Engajamento dos Comerciantes:** Os próprios lojistas tornam-se os maiores embaixadores e promotores da plataforma na cidade.
 
 ---
@@ -108,7 +108,7 @@ Ao contrário de esquemas tradicionais de pontuação que geram moedas podres se
 
 ## 🔒 6. Arquitetura de Segurança Bancária & Prova Matemática de Solvência
 
-Tokens representam valor econômico real. Por isso, a Wider implementa defesas equivalentes a sistemas financeiros centrais (BACEN / Blockchain):
+Tokens representam valor econômico real. Por isso, a Waesy implementa defesas equivalentes a sistemas financeiros centrais (BACEN / Blockchain):
 
 ```
                         AS 4 CAMADAS DE BLINDAGEM DO LEDGER
@@ -150,7 +150,7 @@ Para blindar a plataforma contra sangria de caixa:
   │ • Origem: Bounties virais (+100k)      │  │ • Origem: Comprados com R$ Real        │
   │ • Destino: Impulsos no Radar, Feed,    │  │ • Destino: Emissão de NF-e, LLMs de IA │
   │   Selo de Curadoria e Destaques        │  │   pesada, APIs de WhatsApp e Gateways   │
-  │ • Custo Marginal para Wider: ~R$ 0,00  │  │ • Custo Marginal para Wider: Real (R$)  │
+  │ • Custo Marginal para Waesy: ~R$ 0,00  │  │ • Custo Marginal para Waesy: Real (R$)  │
   └────────────────────────────────────────┘  └────────────────────────────────────────┘
 ```
 
@@ -170,7 +170,7 @@ Para empresas que rodam campanhas contínuas de Radar ou utilizam IA de atendime
 
 ## 📊 10. Comparativo Estratégico de Mercado
 
-| Fator | Shopify / VTEX | iFood / Rappi | Meta / Google Ads | WIDER PLATFORM |
+| Fator | Shopify / VTEX | iFood / Rappi | Meta / Google Ads | WAESY PLATFORM |
 |---|---|---|---|---|
 | **Modelo** | Aluguel de Software (SaaS) | Marketplace Predatório | Leilão de Mídia Paga | **Infraestrutura de Aceleração Comunitária** |
 | **Custo para Vender** | Mensalidade fixa | 12% a 27% sobre vendas | CPC volátil e imprevisível | **0% comissão (BYOG)** |
@@ -182,6 +182,6 @@ Para empresas que rodam campanhas contínuas de Radar ou utilizam IA de atendime
 
 ## 🚀 Conclusão
 
-A Economia de Tokens da Wider transforma o software em uma **concessionária de aceleração de tempo**. 
+A Economia de Tokens da Waesy transforma o software em uma **concessionária de aceleração de tempo**. 
 
 Elimina o atrito do pequeno comerciante, devolve o controle do faturamento para quem produz, cria um motor de crescimento viral perpétuo para a cidade, protege a saúde financeira da plataforma contra custos externos de APIs e assegura integridade matemática e bancária para o ecossistema.

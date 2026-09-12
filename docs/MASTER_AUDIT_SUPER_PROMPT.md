@@ -1,8 +1,8 @@
-# MASTER_AUDIT_SUPER_PROMPT.md — O Super Prompt Supremo & Inventário Canônico 360° (Wider Community Platform)
+# MASTER_AUDIT_SUPER_PROMPT.md — O Super Prompt Supremo & Inventário Canônico 360° (Plataforma Waesy)
 
 > **Documento Canônico VINCULANTE e ABSOLUTO de Engenharia, Produto, Dados e Design**  
 > Elaborado pelo **Conselho Executivo de Engenharia BigTech** (CPO, Chief Software Architect, Staff Security & Supabase Master, Principal Design Ops Director e Staff QA Gatekeeper).  
-> **Propósito:** Consolidar rigorosamente todas as centenas de prompts, requisitos, módulos, rotas, funções do BFF, tabelas do Supabase e regras de bilateralidade do ecossistema WIDER, garantindo **Completude Quádrupla**, **Zero Fallbacks Falsos**, **Zero Simulações**, **100% de Editabilidade Bilateral** e **Prontidão de Lançamento Comercial**.
+> **Propósito:** Consolidar rigorosamente todas as centenas de prompts, requisitos, módulos, rotas, funções do BFF, tabelas do Supabase e regras de bilateralidade do ecossistema Waesy, garantindo **Completude Quádrupla**, **Zero Fallbacks Falsos**, **Zero Simulações**, **100% de Editabilidade Bilateral** e **Prontidão de Lançamento Comercial**.
 
 ---
 

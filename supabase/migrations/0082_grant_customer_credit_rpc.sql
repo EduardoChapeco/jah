@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Community Platform — Microfase 5 (RMA & Credits)
+-- Waesy Community Platform — Microfase 5 (RMA & Credits)
 -- Migration 0082: Grant Customer Credit RPC
 -- ============================================================================
 

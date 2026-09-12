@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Community Platform — Microfase C
+-- Waesy Community Platform — Microfase C
 -- Migration 0084: Classifieds Extended Schema
 -- ============================================================================
 -- Expande a tabela classifieds com campos de imagens, localização, expiração,

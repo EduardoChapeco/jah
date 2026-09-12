@@ -1,7 +1,7 @@
 -- ==============================================================================
 -- MIGRATION: 20260930000000_tourism_core_unified_tables.sql
 -- DESCRIÇÃO: Consolidação Integral das Tabelas Canônicas de Turismo (travelagencias)
--- NATIVIZADAS com Multi-Tenant Jah Core (organization_id, store_id) e RLS Seguro
+-- NATIVIZADAS com Multi-Tenant Waesy Core (organization_id, store_id) e RLS Seguro
 -- ==============================================================================
 
 -- 1. AGENCIES (Tabela Central de Agências, espelhada com Organizations / Stores)

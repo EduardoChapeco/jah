@@ -23,7 +23,7 @@ import { formatDate } from "@/lib/datetime";
 import { Search, Plus, Gift, CheckCircle, XCircle, Copy, ExternalLink, QrCode } from "lucide-react";
 
 export const Route = createFileRoute("/workspace/marketing/gift-cards")({
-  head: () => ({ meta: [{ title: "Vale-Presentes | Workspace Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Vale-Presentes | Workspace Waesy" }] }),
   loader: async () => {
     try {
       return { giftCards: await listGiftCards() };

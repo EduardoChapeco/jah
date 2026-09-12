@@ -161,7 +161,7 @@ export const deleteFlightItinerary = createServerFn({ method: 'POST' })
       throw new Error("Itinerário não encontrado.");
     }
 
-    if (itinerary.store_id !== identity.store_id && !identity.is_super_admin) {
+    if (itinerary.store_id !== identity.store_id && !(identity.role === "platform_admin")) {
       throw new Error("Acesso não autorizado para esta loja.");
     }
 

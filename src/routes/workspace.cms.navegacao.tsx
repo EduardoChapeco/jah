@@ -11,7 +11,7 @@ import { EmptyState } from "@/components/state/states";
 import { getNavigationMenus, upsertNavigationMenu } from "@/services/cms.functions";
 
 export const Route = createFileRoute("/workspace/cms/navegacao")({
-  head: () => ({ meta: [{ title: "Menus de Navegação | Workspace Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Menus de Navegação | Workspace Waesy" }] }),
   loader: async () => {
     try {
       const res = await getNavigationMenus();

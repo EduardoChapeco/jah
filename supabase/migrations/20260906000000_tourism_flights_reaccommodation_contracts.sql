@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS public.travel_contract_certificates (
   signed_at timestamptz,
   content_hash text NOT NULL,
   signed_hash text,
-  issuer text NOT NULL DEFAULT 'JAH Turismo Autenticações',
+  issuer text NOT NULL DEFAULT 'Waesy Turismo Autenticações',
   status text NOT NULL DEFAULT 'pending',
   contract_html text,
   geolocation jsonb DEFAULT '{}'::jsonb,

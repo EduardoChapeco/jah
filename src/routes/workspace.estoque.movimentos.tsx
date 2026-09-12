@@ -17,7 +17,7 @@ import { EmptyState } from "@/components/state/states";
 import { getStockMovements } from "@/services/stock.functions";
 
 export const Route = createFileRoute("/workspace/estoque/movimentos")({
- head: () => ({ meta: [{ title: "Movimentos de estoque | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Movimentos de estoque | Workspace Waesy" }] }),
  loader: async () => {
    try {
  return (await getStockMovements({ data: { limit: 100 } })) || [];

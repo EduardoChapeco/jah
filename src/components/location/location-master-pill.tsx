@@ -42,7 +42,7 @@ export const GLOBAL_DEFAULT_LOCATION: LocationState = {
 
 export function getStoredLocation(): LocationState {
  if (typeof window !== "undefined") {
- const saved = localStorage.getItem("wider_master_location");
+ const saved = localStorage.getItem("waesy_master_location");
  if (saved) {
  try {
  const parsed = JSON.parse(saved);
@@ -145,9 +145,9 @@ export function useMasterLocation() {
  }
 
  // Auto-detectar de forma resiliente: se o navegador já possui permissão concedida ou se o usuário
- // já autorizou no Wider, sincronizar as coordenadas reais imediatamente e NUNCA deixar travado em "Global"
+ // já autorizou no Waesy, sincronizar as coordenadas reais imediatamente e NUNCA deixar travado em "Global"
  if (typeof window !== "undefined" && typeof navigator !== "undefined" && navigator.geolocation) {
- const isGrantedLocally = localStorage.getItem("wider_geo_permission_granted") === "true";
+ const isGrantedLocally = localStorage.getItem("waesy_geo_permission_granted") === "true";
  const isCurrentlyGlobal = !location || location.city === "Global" || location.source === "default";
 
  const executeGpsSync = () => {
@@ -164,11 +164,11 @@ export function useMasterLocation() {
  source: "gps",
  };
  setLocation(autoLoc);
- localStorage.setItem("wider_master_location", JSON.stringify(autoLoc));
- document.cookie = `wider_city=${encodeURIComponent(autoLoc.city)}; path=/; max-age=31536000; SameSite=Lax`;
- localStorage.removeItem("wider_geo_permission_dismissed");
- localStorage.setItem("wider_geo_permission_granted", "true");
- window.dispatchEvent(new CustomEvent("wider:location-updated", { detail: autoLoc }));
+ localStorage.setItem("waesy_master_location", JSON.stringify(autoLoc));
+ document.cookie = `waesy_city=${encodeURIComponent(autoLoc.city)}; path=/; max-age=31536000; SameSite=Lax`;
+ localStorage.removeItem("waesy_geo_permission_dismissed");
+ localStorage.setItem("waesy_geo_permission_granted", "true");
+ window.dispatchEvent(new CustomEvent("waesy:location-updated", { detail: autoLoc }));
  } catch {
  // ignore
  }
@@ -199,7 +199,7 @@ export function useMasterLocation() {
  };
 
  const handleStorage = (e: StorageEvent) => {
- if (e.key === "wider_master_location" && e.newValue) {
+ if (e.key === "waesy_master_location" && e.newValue) {
  try {
  setLocation(JSON.parse(e.newValue));
  } catch {
@@ -208,11 +208,11 @@ export function useMasterLocation() {
  }
  };
 
- window.addEventListener("wider:location-updated", handleUpdate as EventListener);
+ window.addEventListener("waesy:location-updated", handleUpdate as EventListener);
  window.addEventListener("storage", handleStorage);
 
  return () => {
- window.removeEventListener("wider:location-updated", handleUpdate as EventListener);
+ window.removeEventListener("waesy:location-updated", handleUpdate as EventListener);
  window.removeEventListener("storage", handleStorage);
  };
  }, []);
@@ -220,9 +220,9 @@ export function useMasterLocation() {
   const updateLocation = (newLoc: LocationState) => {
     setLocation(newLoc);
     if (typeof window !== "undefined") {
-      localStorage.setItem("wider_master_location", JSON.stringify(newLoc));
-      document.cookie = `wider_city=${encodeURIComponent(newLoc.city)}; path=/; max-age=31536000; SameSite=Lax`;
-      window.dispatchEvent(new CustomEvent("wider:location-updated", { detail: newLoc }));
+      localStorage.setItem("waesy_master_location", JSON.stringify(newLoc));
+      document.cookie = `waesy_city=${encodeURIComponent(newLoc.city)}; path=/; max-age=31536000; SameSite=Lax`;
+      window.dispatchEvent(new CustomEvent("waesy:location-updated", { detail: newLoc }));
     }
   };
 
@@ -263,8 +263,8 @@ export function LocationMasterPill({ className = "" }: { className?: string }) {
 
  updateLocation(newLoc);
  if (typeof window !== "undefined") {
- localStorage.setItem("wider_geo_permission_granted", "true");
- document.cookie = "wider_geo_granted=true; path=/; max-age=31536000; SameSite=Lax";
+ localStorage.setItem("waesy_geo_permission_granted", "true");
+ document.cookie = "waesy_geo_granted=true; path=/; max-age=31536000; SameSite=Lax";
  }
  toast.success(`Localização ativada: ${resolved.city}${resolved.state ? ` - ${resolved.state}` : ""}`);
  } catch (e) {
@@ -448,7 +448,7 @@ export function LocationPickerModal({
  try {
  const res = await fetch(
  `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
- { headers: { "User-Agent": "WiderCommunityCommerce/1.0" } },
+ { headers: { "User-Agent": "WaesyCommunityCommerce/1.0" } },
  );
  const data = await res.json();
  const city =

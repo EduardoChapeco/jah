@@ -25,7 +25,7 @@ import { EmptyState } from "@/components/state/states";
 import { PageSkeleton } from "@/components/state/loading";
 
 export const Route = createFileRoute("/_store/conta/pacotes")({
- head: () => ({ meta: [{ title: "Meus Pacotes & Aulas | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Meus Pacotes & Aulas | Waesy" }] }),
  component: CustomerPassesPage,
  pendingComponent: PageSkeleton,
 });

@@ -18,15 +18,15 @@ export interface PlatformBrandConfig {
 }
 
 export const BRAND_CONFIG: PlatformBrandConfig = {
- name: "Wider",
- legalName: "Wider Plataforma & Tecnologia Ltda",
+ name: "Waesy",
+ legalName: "Waesy Plataforma & Tecnologia Ltda",
  tagline: "Super App Comunitário & Negócios Locais",
- description: "Explore comércio local, gastronomia, serviços, notícias, turismo, classificados e vagas na comunidade Wider.",
- communityName: "Comunidade Wider",
- domain: "wider.pages.dev",
- supportEmail: "suporte@wider.pages.dev",
- appSlug: "wider",
- defaultTitle: "Wider — Super App Comunitário",
+ description: "Explore comércio local, gastronomia, serviços, notícias, turismo, classificados e vagas na comunidade Waesy.",
+ communityName: "Comunidade Waesy",
+ domain: "usewaesy.pages.dev",
+ supportEmail: "contato@usewaesy.com",
+ appSlug: "waesy",
+ defaultTitle: "Waesy — Super App Comunitário",
 };
 
 export function getBrandName(overrideName?: string | null): string {

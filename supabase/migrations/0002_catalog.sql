@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0002: Catalog
+-- Waesy Commerce — Migration 0002: Catalog
 -- ============================================================================
 -- Schema: product types (adaptive forms), categories (tree), products,
 -- variants, media and stock movements.

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0059: PIX Discount in Checkout Transaction
+-- Waesy Commerce — Migration 0059: PIX Discount in Checkout Transaction
 -- ============================================================================
 
 BEGIN;

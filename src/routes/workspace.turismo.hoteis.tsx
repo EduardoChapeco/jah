@@ -92,7 +92,7 @@ import { FAMOUS_HOTEL_PRESETS, RESORT_AMENITY_OPTIONS, type HotelPreset } from "
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/turismo/hoteis")({
- head: () => ({ meta: [{ title: "Banco de Hotéis & Resorts | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Banco de Hotéis & Resorts | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const [hotels, destinations, store] = await Promise.all([

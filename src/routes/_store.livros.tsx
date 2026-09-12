@@ -56,7 +56,7 @@ const LIVROS_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/livros")({
  head: () => ({
  meta: [
- { title: "Livros, Papelaria & Presentes Criativos | Wider OS" },
+ { title: "Livros, Papelaria & Presentes Criativos | Waesy" },
  {
  name: "description",
  content:

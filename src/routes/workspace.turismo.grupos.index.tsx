@@ -35,7 +35,7 @@ import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/turismo/grupos/")({
   head: () => ({
-    meta: [{ title: "Grupos Terrestres & Excursões | Workspace Wider OS" }],
+    meta: [{ title: "Grupos Terrestres & Excursões | Workspace Waesy" }],
   }),
   loader: async () => {
     try {
@@ -170,7 +170,7 @@ export default function WorkspaceGroupToursIndexPage() {
       store={store}
     >
       <div className="w-full space-y-6 animate-in fade-in duration-200">
-        {/* ── 1. TOOLBAR CANÔNICA PADRÃO WIDER OS ── */}
+        {/* ── 1. TOOLBAR CANÔNICA PADRÃO Waesy ── */}
         <WorkspaceCanonicalToolbar
           tabs={TABS}
           activeTab={selectedStatus}

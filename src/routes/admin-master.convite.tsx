@@ -457,7 +457,7 @@ function AdminConvitePage() {
                             {isOfficial ? (
                               <>
                                 <ShieldCheck className="size-3 text-primary" />
-                                <span>Wider Oficial</span>
+                                <span>Waesy Oficial</span>
                               </>
                             ) : (
                               <>
@@ -723,7 +723,7 @@ function AdminConvitePage() {
         isOpen={isRaffleSheetOpen}
         onClose={() => setIsRaffleSheetOpen(false)}
         title="Novo Sorteio da Plataforma"
-        description="Cadastre um sorteio oficial disponível para toda a comunidade Wider."
+        description="Cadastre um sorteio oficial disponível para toda a Comunidade Waesy."
         size="lg"
       >
         <form onSubmit={handleCreateRaffleSubmit} className="space-y-5 pt-2">

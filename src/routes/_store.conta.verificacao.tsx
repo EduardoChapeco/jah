@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/verificacao")({
- head: () => ({ meta: [{ title: "Verificação de Identidade & KYC | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Verificação de Identidade & KYC | Waesy" }] }),
  loader: async () => {
  try {
  const kyc = await getMyKycStatus();

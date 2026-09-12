@@ -1,6 +1,6 @@
-# Estratégia de Testes — Jah Commerce
+# Estratégia de Testes — Waesy Commerce
 
-Este documento define como o Jah Commerce é testado em cada camada e em cada fase do roadmap (`ROADMAP.md`). O objetivo é garantir confiabilidade em um sistema que lida com dinheiro, estoque e dados de clientes reais, sem depender de verificação manual como rede de segurança principal.
+Este documento define como o Waesy Commerce é testado em cada camada e em cada fase do roadmap (`ROADMAP.md`). O objetivo é garantir confiabilidade em um sistema que lida com dinheiro, estoque e dados de clientes reais, sem depender de verificação manual como rede de segurança principal.
 
 ## 1. Princípios de teste
 

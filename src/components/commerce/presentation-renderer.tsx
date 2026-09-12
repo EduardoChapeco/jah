@@ -131,7 +131,7 @@ export function PresentationRenderer({
  className={`w-full max-w-[90%] flex flex-col ${bgClass}`}
  >
  <div className="text-center mb-6">
- <p className="font-mono text-xs uppercase tracking-widest opacity-70 mb-2">WIDER TICKET</p>
+ <p className="font-mono text-xs uppercase tracking-widest opacity-70 mb-2">WAESY TICKET</p>
  <h2 className="font-black text-2xl uppercase font-display leading-tight">
  {entity.title}
  </h2>

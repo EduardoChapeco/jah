@@ -253,7 +253,7 @@ function JobsMasterPage() {
  </div>
  )}
 
- {/* MODE 3: LISTA ESTILO LINKEDIN / COMPACTA (LARGURA MÁXIMA) */}
+ {/* MODE 3: LISTA COMPACTA CORPORATIVA (LARGURA MÁXIMA) */}
  {viewMode === "list" && (
  <div className="space-y-3 w-full">
  {jobsList.length === 0 && !isLoading ? (
@@ -386,7 +386,7 @@ function JobPostCard({ job }: { job: JobItemDTO }) {
  {whatsappNumber ? (
  <a
  href={`https://wa.me/55${whatsappNumber}?text=${encodeURIComponent(
- `Olá! Vi a vaga de ${job.title} na ${job.company_name} no Wider e gostaria de me candidatar.`,
+ `Olá! Vi a vaga de ${job.title} na ${job.company_name} no Waesy e gostaria de me candidatar.`,
  )}`}
  target="_blank"
  rel="noopener noreferrer"
@@ -480,7 +480,7 @@ function JobListItem({ job }: { job: JobItemDTO }) {
  {whatsappNumber && (
  <a
  href={`https://wa.me/55${whatsappNumber}?text=${encodeURIComponent(
- `Olá! Vi a vaga de ${job.title} no Wider e gostaria de mais informações.`,
+ `Olá! Vi a vaga de ${job.title} no Waesy e gostaria de mais informações.`,
  )}`}
  target="_blank"
  rel="noopener noreferrer"

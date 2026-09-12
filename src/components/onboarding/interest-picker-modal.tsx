@@ -72,24 +72,24 @@ export function InterestPickerModal() {
  if (typeof window === "undefined") return;
 
  // 1. Se já foi concluído ou dispensado no localStorage ou em Cookie persistente, NUNCA abre
- const localDone = localStorage.getItem("wider_onboarding_interests_done");
- const hasCookie = document.cookie.includes("wider_onboarding_interests_done=true");
+ const localDone = localStorage.getItem("waesy_onboarding_interests_done");
+ const hasCookie = document.cookie.includes("waesy_onboarding_interests_done=true");
  if (localDone === "true" || hasCookie) {
  return;
  }
 
  // 2. O modal só deve abrir se o usuário ACABOU de fazer cadastro (onboarding inicial)
- const justRegistered = sessionStorage.getItem("wider_just_registered") === "true";
+ const justRegistered = sessionStorage.getItem("waesy_just_registered") === "true";
  const hasOnboardingParam = window.location.search.includes("onboarding=true") || window.location.search.includes("welcome=true");
 
  // Verifica no servidor se é um usuário autenticado que ainda não completou o onboarding
  getUserPreferences()
  .then((prefs) => {
  if (prefs && prefs.onboarding_done) {
- localStorage.setItem("wider_onboarding_interests_done", "true");
- document.cookie = "wider_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
+ localStorage.setItem("waesy_onboarding_interests_done", "true");
+ document.cookie = "waesy_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
  if (prefs.selected_niches && prefs.selected_niches.length > 0) {
- localStorage.setItem("wider_user_niches", JSON.stringify(prefs.selected_niches));
+ localStorage.setItem("waesy_user_niches", JSON.stringify(prefs.selected_niches));
  }
  } else if (prefs && !prefs.onboarding_done) {
  // Usuário logado em fase de primeiro onboarding
@@ -101,14 +101,14 @@ export function InterestPickerModal() {
  return () => clearTimeout(t);
  } else {
  // Usuário anônimo comum navegando no site: não interrompe a experiência com popup
- localStorage.setItem("wider_onboarding_interests_done", "true");
- document.cookie = "wider_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
+ localStorage.setItem("waesy_onboarding_interests_done", "true");
+ document.cookie = "waesy_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
  }
  })
  .catch(() => {
  // Erro ou anônimo: suprime popup e grava flag
- localStorage.setItem("wider_onboarding_interests_done", "true");
- document.cookie = "wider_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
+ localStorage.setItem("waesy_onboarding_interests_done", "true");
+ document.cookie = "waesy_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
  });
  }, []);
 
@@ -130,9 +130,9 @@ export function InterestPickerModal() {
 
  const handleClose = (newOpen: boolean) => {
  if (!newOpen) {
- localStorage.setItem("wider_onboarding_interests_done", "true");
- document.cookie = "wider_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
- sessionStorage.removeItem("wider_just_registered");
+ localStorage.setItem("waesy_onboarding_interests_done", "true");
+ document.cookie = "waesy_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
+ sessionStorage.removeItem("waesy_just_registered");
  saveUserPreferences({
  data: {
  selected_niches: selectedNiches,
@@ -146,10 +146,10 @@ export function InterestPickerModal() {
  const handleConfirm = async () => {
  setIsSaving(true);
  try {
- localStorage.setItem("wider_onboarding_interests_done", "true");
- document.cookie = "wider_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
- sessionStorage.removeItem("wider_just_registered");
- localStorage.setItem("wider_user_niches", JSON.stringify(selectedNiches));
+ localStorage.setItem("waesy_onboarding_interests_done", "true");
+ document.cookie = "waesy_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
+ sessionStorage.removeItem("waesy_just_registered");
+ localStorage.setItem("waesy_user_niches", JSON.stringify(selectedNiches));
 
  await saveUserPreferences({
  data: {
@@ -162,7 +162,7 @@ export function InterestPickerModal() {
  setOpen(false);
 
  if (typeof window !== "undefined") {
- window.dispatchEvent(new CustomEvent("wider:preferences-updated", { detail: selectedNiches }));
+ window.dispatchEvent(new CustomEvent("waesy:preferences-updated", { detail: selectedNiches }));
  }
  } catch {
  setOpen(false);

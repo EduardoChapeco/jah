@@ -293,7 +293,7 @@ function CustomerPortalWhitelabelPage() {
  <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
  <span>© {new Date().getFullYear()} {store.name}. Todos os direitos reservados.</span>
  <span className="flex items-center gap-1">
- Desenvolvido sobre a infraestrutura <strong className="text-foreground font-semibold">Wider OS</strong>
+ Desenvolvido sobre a infraestrutura <strong className="text-foreground font-semibold">Waesy</strong>
  </span>
  </div>
  </footer>

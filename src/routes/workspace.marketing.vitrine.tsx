@@ -67,7 +67,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/marketing/vitrine")({
- head: () => ({ meta: [{ title: "Sites, Vitrines & Hotpages | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Sites, Vitrines & Hotpages | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const [docs, storefrontRes, biolinkRes] = await Promise.all([

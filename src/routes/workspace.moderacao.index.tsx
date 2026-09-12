@@ -40,7 +40,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatRelativeTime, formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/moderacao/")({
- head: () => ({ meta: [{ title: "Central de Moderação & Denúncias | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Central de Moderação & Denúncias | Workspace Waesy" }] }),
  component: ModerationQueuePage,
 });
 

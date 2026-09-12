@@ -2,14 +2,14 @@
 name: apple-design
 description: >
   Revisor de UI/UX e Design System de alto padrão baseado no Apple Human Interface Guidelines (HIG)
-  e adaptado universalmente para a plataforma JAH (React + Tailwind CSS v4 + Radix UI + Phosphor/Lucide).
+  e adaptado universalmente para a plataforma Waesy (React + Tailwind CSS v4 + Radix UI + Phosphor/Lucide).
   Audita e impõe regras estritas de tipografia, contraste (WCAG AA/AAA), touch targets mínimos (44px),
   elevação em camadas (Background -> Card -> Floating Bar -> Sheet/Modal), física de movimento e glassmorphism refinado.
 ---
 
-# JAH Apple-Grade Design System & HIG Reviewer
+# Waesy Apple-Grade Design System & HIG Reviewer
 
-Esta skill define os padrões de excelência visual, ergonomia e usabilidade canônica para o ecossistema **JAH Platform**.
+Esta skill define os padrões de excelência visual, ergonomia e usabilidade canônica para o ecossistema **Waesy Platform**.
 
 ---
 
@@ -42,9 +42,9 @@ Esta skill define os padrões de excelência visual, ergonomia e usabilidade can
 
 ---
 
-## 2. Tabela de Tradução Apple HIG -> JAH Stack
+## 2. Tabela de Tradução Apple HIG -> Waesy Stack
 
-| Conceito Apple HIG | Equivalente JAH Stack (React + Tailwind v4 + Radix) | Regra de Implementação |
+| Conceito Apple HIG | Equivalente Waesy Stack (React + Tailwind v4 + Radix) | Regra de Implementação |
 | :--- | :--- | :--- |
 | **SF Pro / Typography** | `Inter, system-ui, -apple-system, sans-serif` | `font-sans`, pesos 400, 500, 600, 700. |
 | **Dynamic Type Scale** | `text-xs (12px)`, `text-sm (14px)`, `text-base (16px)`, `text-2xl (24px)` | Tamanho mínimo de leitura corporal: 13-14px. |
@@ -59,7 +59,7 @@ Esta skill define os padrões de excelência visual, ergonomia e usabilidade can
 
 ## 3. Checklist de Auditoria de Design (53+ Diretrizes HIG)
 
-Ao criar ou editar qualquer tela na plataforma JAH, execute a seguinte verificação:
+Ao criar ou editar qualquer tela na plataforma Waesy, execute a seguinte verificação:
 1. **Layout & Viewport**: O container tem scroll acidental? As barras fixas têm `shrink-0` e altura invariável?
 2. **Touch Targets**: Todos os botões e links no mobile têm área de toque >= 44px?
 3. **Contraste**: O texto preto está sobre fundo claro ou branco no dark mode sem inversões caóticas?

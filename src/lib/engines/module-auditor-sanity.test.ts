@@ -15,7 +15,7 @@ describe('ONDA 6.2: VERIFICAÇÃO DE SANIDADE PELO MODULE AUDITOR', () => {
  maybeSingle: async () => ({
  data: {
  id: 'store-123',
- name: 'Restaurante Exemplo JAH',
+ name: 'Restaurante Exemplo Waesy',
  slug: 'restaurante-exemplo',
  phone: '11999998888',
  document: '11222333000181',

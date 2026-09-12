@@ -3,7 +3,7 @@ import type {} from "@tanstack/react-start";
 
 import { PUBLIC_ROUTES } from "@/lib/routes";
 
-const BASE_URL = "https://wider.pages.dev";
+const BASE_URL = "https://waesy.pages.dev";
 
 export const Route = createFileRoute("/sitemap.xml")({
  server: {

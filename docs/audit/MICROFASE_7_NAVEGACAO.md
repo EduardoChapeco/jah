@@ -14,8 +14,8 @@
 
 ### AMBIENTE
 
-- **Local**: `c:\Users\Excelência Tour SMO\Documents\jah`
-- **Preview / Produção**: `https://eduardochapeco-wider.pages.dev`
+- **Local**: `c:\Users\Excelência Tour SMO\Documents\waesy`
+- **Preview / Produção**: `https://eduardochapeco-waesy.pages.dev`
 - **Project Ref Supabase**: `hfgnageqkeryxsnwobjc`
 - **Projeto Cloudflare**: `hrshoes` (Pages build output dir: `dist`)
 - **Migrations Locais/Remotas**: Pushed até `0058_upsell_rules.sql` via Supabase CLI.

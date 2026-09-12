@@ -3,11 +3,11 @@ name: recursive-audit
 description: "Use when creating, debugging, or modifying ANY feature that spans across UI, BFF (Server Functions), and Database. Triggers: audit, recursively check, bug, E2E, data flow, new feature, component missing data."
 ---
 
-# Recursive Audit Protocol (JAH)
+# Recursive Audit Protocol (Waesy)
 
 ## Core Principles
 
-A JAH exige a Verificação Recursiva Obrigatória. **Nenhuma mudança é local se for uma mudança sistêmica.**
+A Waesy exige a Verificação Recursiva Obrigatória. **Nenhuma mudança é local se for uma mudança sistêmica.**
 
 Antes de criar ou alterar qualquer interface (UI), você **DEVE OBRIGATORIAMENTE** seguir a trilha de dados da ponta até a raiz.
 

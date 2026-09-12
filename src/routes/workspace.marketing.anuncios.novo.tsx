@@ -35,7 +35,7 @@ import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/marketing/anuncios/novo")({
- head: () => ({ meta: [{ title: "Criar Campanha de Anúncio | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Criar Campanha de Anúncio | Waesy" }] }),
  loader: async () => {
  try {
  return await getStoreAdTargets();
@@ -367,7 +367,7 @@ function NovoAnuncioPage() {
  id="ad-dest-url"
  value={customUrl}
  onChange={(e) => setCustomUrl(e.target.value)}
- placeholder={`https://wider.app/loja/${storeSlug || "sua-loja"}`}
+ placeholder={`https://usewaesy.com/loja/${storeSlug || "sua-loja"}`}
  className="h-10 text-xs rounded-xl"
  />
  </div>

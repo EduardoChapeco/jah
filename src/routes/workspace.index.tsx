@@ -49,7 +49,7 @@ import { getNicheSemantics } from "@/lib/niche-semantics";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/")({
- head: () => ({ meta: [{ title: "Painel de Controle & Visão Geral | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Painel de Controle & Visão Geral | Workspace Waesy" }] }),
  loader: async () => {
    try {
  let session: any = null;

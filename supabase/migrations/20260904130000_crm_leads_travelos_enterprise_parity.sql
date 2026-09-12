@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah / Wider — Migration 20260904130000: CRM Leads Enterprise Parity (TravelAgências Standard)
+-- Waesy / Waesy — Migration 20260904130000: CRM Leads Enterprise Parity (TravelAgências Standard)
 -- ============================================================================
 -- Enriquece a tabela public.leads_crm com todas as dimensões ricas do travelagencias:
 -- - Destino, tipo de interesse e período flexível

@@ -15,7 +15,7 @@ import {
 } from "@/services/ticket.functions";
 
 export const Route = createFileRoute("/_store/conta/suporte")({
- head: () => ({ meta: [{ title: "Meus Atendimentos | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Meus Atendimentos | Waesy" }] }),
  loader: async () => {
    try {
  return (await listCustomerTickets().catch(() => [])) || [];

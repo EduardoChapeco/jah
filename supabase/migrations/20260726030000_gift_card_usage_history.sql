@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 20260726030000: Gift Card Usage History
+-- Waesy Commerce — Migration 20260726030000: Gift Card Usage History
 -- ============================================================================
 -- Creates a gift_card_usages table to record every partial or full redemption
 -- of a gift card. This provides a complete audit trail:

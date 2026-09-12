@@ -50,7 +50,7 @@ import type {
 } from '@/types/travel-reaccommodation';
 
 export const Route = createFileRoute('/workspace/turismo/reacomodacao')({
-  head: () => ({ meta: [{ title: 'Casos ANAC 400 & Reacomodação | Workspace Wider OS' }] }),
+  head: () => ({ meta: [{ title: 'Casos ANAC 400 & Reacomodação | Workspace Waesy' }] }),
   loader: async () => {
     try {
       const store = await getStoreSettings().catch(() => null);

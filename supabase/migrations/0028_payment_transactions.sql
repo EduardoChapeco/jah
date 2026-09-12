@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0028: Payment Transactions & Webhooks
+-- Waesy Commerce — Migration 0028: Payment Transactions & Webhooks
 -- ============================================================================
 
 -- 1. Create table for payment transactions (Atomic record of payment attempts)

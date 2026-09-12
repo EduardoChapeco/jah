@@ -44,7 +44,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/integracoes/marketplaces")({
   head: () => ({
-    meta: [{ title: "Hub de Marketplaces & Canais | Workspace Wider OS" }],
+    meta: [{ title: "Hub de Marketplaces & Canais | Workspace Waesy" }],
   }),
   loader: async () => {
     try {

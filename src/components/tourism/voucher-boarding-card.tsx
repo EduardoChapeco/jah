@@ -86,7 +86,7 @@ interface VoucherBoardingCardProps {
 
 export const VoucherBoardingCard = forwardRef<HTMLDivElement, VoucherBoardingCardProps>(
  ({ voucher, tripNumber, agency }, ref) => {
- const origin = typeof window !== "undefined" ? window.location.origin : "https://jah.com.br";
+ const origin = typeof window !== "undefined" ? window.location.origin : "https://usewaesy.pages.dev";
  const publicUrl = `${origin}/voucher/${voucher.public_token}`;
  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data=${encodeURIComponent(publicUrl)}`;
 

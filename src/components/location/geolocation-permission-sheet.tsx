@@ -37,8 +37,8 @@ export function GeolocationPermissionSheet() {
  if (typeof window === "undefined") return;
 
  // Se já foi concedido ou dispensado, não abre a sheet
- const hasGranted = localStorage.getItem("wider_geo_permission_granted");
- const hasDismissed = localStorage.getItem("wider_geo_permission_dismissed");
+ const hasGranted = localStorage.getItem("waesy_geo_permission_granted");
+ const hasDismissed = localStorage.getItem("waesy_geo_permission_dismissed");
 
  if (hasGranted === "true" || hasDismissed === "true") {
  return;
@@ -54,8 +54,8 @@ export function GeolocationPermissionSheet() {
 
  const handleDismiss = () => {
  if (typeof window !== "undefined") {
- localStorage.setItem("wider_geo_permission_dismissed", "true");
- document.cookie = "wider_geo_dismissed=true; path=/; max-age=31536000; SameSite=Lax";
+ localStorage.setItem("waesy_geo_permission_dismissed", "true");
+ document.cookie = "waesy_geo_dismissed=true; path=/; max-age=31536000; SameSite=Lax";
  }
  setOpen(false);
  };
@@ -69,10 +69,10 @@ export function GeolocationPermissionSheet() {
 
  setIsVerifying(true);
  if (typeof window !== "undefined") {
- localStorage.setItem("wider_geo_permission_granted", "true");
- localStorage.setItem("wider_show_location_posts", String(showLocationInPosts));
- localStorage.setItem("wider_filter_region", String(filterContentByRegion));
- document.cookie = "wider_geo_granted=true; path=/; max-age=31536000; SameSite=Lax";
+ localStorage.setItem("waesy_geo_permission_granted", "true");
+ localStorage.setItem("waesy_show_location_posts", String(showLocationInPosts));
+ localStorage.setItem("waesy_filter_region", String(filterContentByRegion));
+ document.cookie = "waesy_geo_granted=true; path=/; max-age=31536000; SameSite=Lax";
  }
 
  const onSheetPosSuccess = async (pos: GeolocationPosition) => {
@@ -91,8 +91,8 @@ export function GeolocationPermissionSheet() {
 
  updateLocation(newLoc);
  if (typeof window !== "undefined") {
- localStorage.removeItem("wider_geo_permission_dismissed");
- localStorage.setItem("wider_geo_permission_granted", "true");
+ localStorage.removeItem("waesy_geo_permission_dismissed");
+ localStorage.setItem("waesy_geo_permission_granted", "true");
  }
  toast.success(`Localização ativada: ${resolved.city}${resolved.state ? ` - ${resolved.state}` : ""}`);
  } catch {

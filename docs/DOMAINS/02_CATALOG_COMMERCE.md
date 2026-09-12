@@ -29,7 +29,7 @@
    - Salva. O backend converte isso no mesmo motor de catálogo subjacente, mas amarrado ao `store_id` (que neste caso, pode ser uma micro-loja ou projeto invisível associado ao perfil dele).
 3. **Descoberta e Carrinho:**
    - O Comprador vê um pôster do Artista A e um Classificado do Usuário B.
-   - O carrinho da Jah mantém isolamento por Tenant. Ele não faz checkout único de duas origens (por enquanto).
+   - O carrinho da Waesy mantém isolamento por Tenant. Ele não faz checkout único de duas origens (por enquanto).
    - Ele adiciona o pôster ao carrinho `A`. Checkout e fechamento de Pedido.
 
 ---

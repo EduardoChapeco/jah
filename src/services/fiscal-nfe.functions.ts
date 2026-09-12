@@ -205,8 +205,8 @@ export const emitNFeInvoice = createServerFn({ method: "POST" })
       nfe_number: nfeNumber,
       nfe_serie: nfeSerie,
       nfe_key: nfeKey,
-      danfe_pdf_url: `https://danfe.wider.app/pdf/${nfeKey}.pdf`,
-      xml_url: `https://danfe.wider.app/xml/${nfeKey}.xml`,
+      danfe_pdf_url: `https://danfe.usewaesy.com/pdf/${nfeKey}.pdf`,
+      xml_url: `https://danfe.usewaesy.com/xml/${nfeKey}.xml`,
       status: "issued" as NFeStatus,
       valor_total_cents: data.valorTotalCents,
       tomador_documento: data.tomadorDocumento.replace(/\D/g, ""),
@@ -389,8 +389,8 @@ export const emitOrderNFeAutomated = createServerFn({ method: "POST" })
   </NFe>
 </nfeProc>`;
 
-    let danfePdfUrl = `https://danfe.wider.app/pdf/${nfeKey}.pdf`;
-    let xmlUrl = `https://danfe.wider.app/xml/${nfeKey}.xml`;
+    let danfePdfUrl = `https://danfe.usewaesy.com/pdf/${nfeKey}.pdf`;
+    let xmlUrl = `https://danfe.usewaesy.com/xml/${nfeKey}.xml`;
 
     try {
       const storagePathXml = `nfe/${targetStoreId}/${order.id}/${nfeKey}.xml`;

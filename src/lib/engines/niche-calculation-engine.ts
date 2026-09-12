@@ -1,5 +1,5 @@
 /**
- * JAH Niche Calculation Engine
+ * Waesy Niche Calculation Engine
  * Motor Financeiro e Paramétrico Especializado por Nicho.
  */
 

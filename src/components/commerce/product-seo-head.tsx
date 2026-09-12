@@ -39,7 +39,7 @@ export function ProductSeoHead({
 
     // 1. Atualizar Título da Página
     if (title) {
-      document.title = storeName ? `${title} | ${storeName}` : `${title} | Wider Marketplace`;
+      document.title = storeName ? `${title} | ${storeName}` : `${title} | Waesy Marketplace`;
     }
 
     // 2. Helper para setar ou criar meta tags
@@ -54,7 +54,7 @@ export function ProductSeoHead({
       el.setAttribute("content", content);
     };
 
-    const cleanDescription = description?.slice(0, 160) || "Confira os detalhes deste produto no ecossistema Wider.";
+    const cleanDescription = description?.slice(0, 160) || "Confira os detalhes deste produto no ecossistema Waesy.";
     const cleanUrl = canonicalUrl || (typeof window !== "undefined" ? window.location.href : "");
     const priceFormatted = priceCents ? (priceCents / 100).toFixed(2) : undefined;
 

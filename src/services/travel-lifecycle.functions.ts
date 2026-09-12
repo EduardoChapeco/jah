@@ -961,7 +961,7 @@ export const parseOperatorVoucherAI = createServerFn({ method: "POST" })
 
     const geminiKey = await getNextActiveKey("gemini");
 
-    const systemInstruction = `Você é o Agente Especialista em OCR e Extração de Documentos de Turismo do Wider OS (Padrão BigTech).
+    const systemInstruction = `Você é o Agente Especialista em OCR e Extração de Documentos de Turismo da Plataforma Waesy (Padrão BigTech).
 Sua missão é ler com precisão cirúrgica comprovantes, vouchers e confirmações de reserva emitidos por OPERADORAS DE TURISMO (CVC, FRT, Orinter, Azul Viagens, LATAM Travel, Schultz, Trend, Abreu, Viagens Promo, Booking, Decolar, etc.), bem como documentos de passageiros (Passaporte, RG, CNH) e faturas/boletos/recibos financeiros.
 
 DIRETRIZES FUNDAMENTAIS DE EXTRAÇÃO:

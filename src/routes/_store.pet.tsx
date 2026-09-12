@@ -58,7 +58,7 @@ const PET_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/pet")({
  head: () => ({
  meta: [
- { title: "Pet Shops, Rações, Veterinária & Agro | Wider OS" },
+ { title: "Pet Shops, Rações, Veterinária & Agro | Waesy" },
  {
  name: "description",
  content:

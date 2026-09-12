@@ -11,9 +11,9 @@ export function exportStaticHtml(
  nodes: Partial<ExperienceNode>[],
  options: ExportHtmlOptions = {}
 ): string {
- const title = options.title || 'Experiência Interativa Wider';
- const storeName = options.storeName || 'Loja Certificada Wider';
- const desc = options.description || 'Página de alta conversão gerada com Wider Universal Experience Builder';
+ const title = options.title || 'Experiência Interativa Waesy';
+ const storeName = options.storeName || 'Loja Certificada Waesy';
+ const desc = options.description || 'Página de alta conversão gerada com Waesy Universal Experience Builder';
 
  const serializedNodes = JSON.stringify(nodes).replace(/</g, '\\u003c');
 
@@ -24,7 +24,7 @@ export function exportStaticHtml(
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
  <title>${title} · ${storeName}</title>
  <meta name="description" content="${desc}">
- <meta name="generator" content="Wider Universal Experience Builder">
+ <meta name="generator" content="Waesy Universal Experience Builder">
  <!-- Fonts -->
  <link rel="preconnect" href="https://fonts.googleapis.com">
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,18 +48,18 @@ export function exportStaticHtml(
  </script>
 </head>
 <body class="bg-slate-950 text-slate-50 min-h-screen antialiased selection:bg-brand selection:text-white">
- <div id="jah-root" class="w-full flex flex-col items-center">
+ <div id="waesy-root" class="w-full flex flex-col items-center">
  <!-- Header Standalone -->
  <header class="w-full max-w-6xl py-6 px-4 flex items-center justify-between border-b border-slate-800/80">
  <div class="flex items-center gap-2">
  <span class="w-3 h-3 rounded-full bg-sky-500 animate-pulse"></span>
  <span class="font-heading font-extrabold text-lg tracking-tight">${storeName}</span>
  </div>
- <div class="text-xs text-slate-400 font-mono">Certificado Wider 360</div>
+ <div class="text-xs text-slate-400 font-mono">Certificado Waesy 360</div>
  </header>
 
  <!-- Main Content Container -->
- <main id="jah-experience-container" class="w-full max-w-6xl py-8 px-4 space-y-8">
+ <main id="waesy-experience-container" class="w-full max-w-6xl py-8 px-4 space-y-8">
  <div class="p-8 rounded-2xl bg-slate-900/60 border border-slate-800 text-center space-y-4 shadow-2xl">
  <h1 class="text-3xl sm:text-5xl font-heading font-black tracking-tight">${title}</h1>
  <p class="text-sm text-slate-400 max-w-xl mx-auto">${desc}</p>
@@ -73,13 +73,13 @@ export function exportStaticHtml(
 
  <!-- Footer Standalone -->
  <footer class="w-full max-w-6xl py-8 px-4 mt-auto border-t border-slate-800/60 text-center text-xs text-slate-500">
- <p>© ${new Date().getFullYear()} ${storeName}. Desenvolvido com tecnologia Wider Universal Experience OS.</p>
+ <p>© ${new Date().getFullYear()} ${storeName}. Desenvolvido com tecnologia Waesy Universal Experience.</p>
  </footer>
  </div>
 
  <script>
- window.__WIDER_EXPERIENCE_NODES__ = ${serializedNodes};
- console.log("Wider Standalone Experience Loaded", window.__WIDER_EXPERIENCE_NODES__.length, "nodes");
+ window.__WAESY_EXPERIENCE_NODES__ = ${serializedNodes};
+ console.log("Waesy Standalone Experience Loaded", window.__WAESY_EXPERIENCE_NODES__.length, "nodes");
  </script>
 </body>
 </html>`;

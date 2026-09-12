@@ -32,7 +32,7 @@ import {
 
 export const Route = createFileRoute("/workspace/marketing/telemetria")({
  head: () => ({
- meta: [{ title: "Telemetria de Audiência, WhatsApp & Patrocinadores | Workspace Wider OS" }],
+ meta: [{ title: "Telemetria de Audiência, WhatsApp & Patrocinadores | Workspace Waesy" }],
  }),
  loader: async () => {
    try {

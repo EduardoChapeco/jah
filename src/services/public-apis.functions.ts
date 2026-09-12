@@ -76,7 +76,7 @@ export const DEFAULT_PUBLIC_API_GOVERNANCE: PublicApiGovernanceDTO = {
   timeoutMs: 4000,
 };
 
-const NOMINATIM_USER_AGENT = "WiderCommunityPlatform/1.0 (contact@wider.community)";
+const NOMINATIM_USER_AGENT = "WaesyPlatform/1.0 (contato@usewaesy.com)";
 
 /**
  * Consulta de CEP de alta precisão cirúrgica via BrasilAPI v2 (com coordenadas geográficas)

@@ -149,9 +149,9 @@ export const applyToJob = createServerFn({ method: "POST" })
  candidateName: z.string().min(2, "Informe seu nome completo"),
  candidateEmail: z.string().email("E-mail inválido"),
  candidatePhone: z.string().min(8, "Telefone inválido"),
- resumeUrl: z.string().url("URL de currículo/LinkedIn inválida").optional().or(z.literal("")),
+ resumeUrl: z.string().url("URL de currículo inválida").optional().or(z.literal("")),
  coverLetter: z.string().max(2000).optional(),
- // Inteligência Salarial & Avaliação do Empregador Anterior (estilo InfoJobs)
+ // Inteligência Salarial & Avaliação do Empregador Anterior
  lastSalaryCents: z.number().int().min(0).optional().nullable(),
  salaryExpectationCents: z.number().int().min(0).optional().nullable(),
  previousCompanyName: z.string().optional().nullable(),

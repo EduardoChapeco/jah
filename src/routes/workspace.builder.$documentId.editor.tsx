@@ -24,7 +24,7 @@ import type { SectionTemplate } from "@/lib/builder-types";
 import { builderRegistry } from "@/lib/builder-registry";
 
 export const Route = createFileRoute("/workspace/builder/$documentId/editor")({
- head: () => ({ meta: [{ title: "Editor Visual de Páginas | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Editor Visual de Páginas | Workspace Waesy" }] }),
  loader: async ({ params }) => {
    try {
  const [docData, categories, collections, productsRes] = await Promise.all([

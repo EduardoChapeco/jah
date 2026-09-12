@@ -1,6 +1,6 @@
 -- ============================================================
 -- Migration: 20260826000000_universal_niche_banners_and_hotpages.sql
--- Propósito: 100% de Bilateralidade e Completude para Banners e Botões em todos os 25 Nichos da Plataforma Wider
+-- Propósito: 100% de Bilateralidade e Completude para Banners e Botões em todos os 25 Nichos da plataforma Waesy
 -- ============================================================
 
 -- 1. Atualizar Tabela BANNERS (Remover constraint restritiva e adicionar colunas de controle visual)

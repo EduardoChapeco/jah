@@ -1,5 +1,5 @@
 /**
- * studio.functions.ts — BFF Server Functions para Wider Studio 3.0
+ * studio.functions.ts — BFF Server Functions para Waesy Studio 3.0
  * Gestão de Projetos de Design Gráfico, Vídeo e Templates Oficiais.
  */
 
@@ -1072,7 +1072,7 @@ export const generateSocialStoryCard = createServerFn({ method: "POST" })
             ? `<g transform="translate(48, 420)">
                 <rect width="${width - 256}" height="80" rx="24" fill="${textColor}" />
                 <text x="${(width - 256) / 2}" y="50" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="28" font-weight="800" fill="${bgColor}" text-anchor="middle">
-                  Comprar Online no Wider
+                  Comprar Online no Waesy
                 </text>
               </g>`
             : ""

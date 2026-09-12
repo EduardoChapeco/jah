@@ -94,7 +94,7 @@ export const getPublicClassifiedById = createServerFn({ method: "GET" })
 
  classifiedData.profiles = profile || {
  id: classifiedData.author_profile_id,
- full_name: "Morador Verificado Wider",
+ full_name: "Morador Verificado Waesy",
  avatar_url: null,
  phone: classifiedData.contact_whatsapp || classifiedData.whatsapp,
  };
@@ -622,7 +622,7 @@ export const getDigitalDownloadSignedUrl = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
-// RECURRING SUBSCRIPTIONS & RENTS ENGINE (Wider Subscriptions)
+// RECURRING SUBSCRIPTIONS & RENTS ENGINE (Waesy Subscriptions)
 // ---------------------------------------------------------------------------
 
 export const subscribeToClassifiedPlan = createServerFn({ method: "POST" })
@@ -939,7 +939,7 @@ export const getBoostPaymentStatus = createServerFn({ method: "GET" }).handler(a
   const { data: store } = await supabase
     .from("stores")
     .select("settings")
-    .or("slug.eq.wider-matriz,is_platform_root.eq.true")
+    .or("slug.eq.waesy-matriz,is_platform_root.eq.true")
     .limit(1)
     .maybeSingle();
 
@@ -999,7 +999,7 @@ export const initiateBoostPayment = createServerFn({ method: "POST" })
     const { data: store } = await supabase
       .from("stores")
       .select("settings")
-      .or("slug.eq.wider-matriz,is_platform_root.eq.true")
+      .or("slug.eq.waesy-matriz,is_platform_root.eq.true")
       .limit(1)
       .maybeSingle();
 
@@ -1048,7 +1048,7 @@ export const initiateBoostPayment = createServerFn({ method: "POST" })
         .maybeSingle();
 
       const userEmail = (userProfile as any)?.email || "";
-      const userName = (userProfile as any)?.name || (userProfile as any)?.username || "Usuário Wider";
+      const userName = (userProfile as any)?.name || (userProfile as any)?.username || "Usuário Waesy";
 
       // Primeiro: verifica/cria customer no Asaas
       let asaasCustomerId: string | null = null;
@@ -1092,7 +1092,7 @@ export const initiateBoostPayment = createServerFn({ method: "POST" })
           billingType: "PIX",
           value: amountCents / 100,
           dueDate: dueDateStr,
-          description: `Wider — ${planName} para anúncio "${classified.title}"`,
+          description: `Waesy — ${planName} para anúncio "${classified.title}"`,
           externalReference: adId,
         }),
       });
@@ -1134,7 +1134,7 @@ export const initiateBoostPayment = createServerFn({ method: "POST" })
         body: new URLSearchParams({
           amount: String(amountCents),
           currency: "brl",
-          description: `Wider — ${planName} para anúncio "${classified.title}"`,
+          description: `Waesy — ${planName} para anúncio "${classified.title}"`,
           metadata: JSON.stringify({ ad_id: adId, plan_days: String(planDays) }),
         }),
       });

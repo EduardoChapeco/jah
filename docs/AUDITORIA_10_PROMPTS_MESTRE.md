@@ -2,7 +2,7 @@
 
 > **Data de Emissão:** 12 de Setembro de 2026  
 > **Classificação:** Diretriz Estratégica, Arquitetural e Operacional de Engenharia (BigTech Standards)  
-> **Plataforma:** JAH / Wider Community Platform  
+> **Plataforma:** Waesy / Plataforma Waesy  
 > **Fontes de Verdade Vinculantes:** `AGENTS.md`, `docs/DESIGN.md`, `docs/MASTER_PLAN.md`, `docs/ARCHITECTURE.md`, `docs/DOMAIN_MODEL.md`, `docs/ROUTES.md`, `docs/SECURITY.md`, `docs/API_CONTRACTS.md`, `docs/BUSINESS_FLOWS.md`, `docs/PAGE_CATALOG.md`.  
 > **Padrões Técnicos:** Apple Human Interface Guidelines (HIG), OpenDelivery v1.0 (Abrasel), OpenAPI v3, Meta CAPI v19, Google Enhanced Conversions, SEFAZ/SPED, Padrão Nacional NFS-e (Receita Federal), Schema.org & WebMCP.
 
@@ -140,11 +140,11 @@ Eu preciso intensificar os últimos 10 promtps enviados, quero que você leia e 
 
 # SEÇÃO 2 — A Sessão do Conselho Executivo BigTech
 
-O Conselho de Engenharia da JAH operou sob convocação extraordinária com suas 5 Personas Especialistas:
+O Conselho de Engenharia da Waesy operou sob convocação extraordinária com suas 5 Personas Especialistas:
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                        CONSELHO EXECUTIVO DE ENGENHARIA — JAH                          │
+│                        CONSELHO EXECUTIVO DE ENGENHARIA — Waesy                          │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ 1. CPO & Presidente do Conselho  │ "Decomposição exaustiva [REQ-1] a [REQ-N]. Não há   │
 │                                  │ espaço para 'cascas vazias' ou trabalho parcial.    │
@@ -250,9 +250,9 @@ Cada um dos tópicos demandados foi reescrito na forma de **Master Engineering S
 ---
 
 ## 3.9 Spec 09: SEO Semântico, WebMCP para Agentes de IA e Google
-* **Objetivo:** Tornar o JAH a fonte indexada de referência de produtos, comércios e matérias na web para Google Search, Google Shopping, Google Discovery, Google Meu Negócio e Agentes de IA via WebMCP.
+* **Objetivo:** Tornar o Waesy a fonte indexada de referência de produtos, comércios e matérias na web para Google Search, Google Shopping, Google Discovery, Google Meu Negócio e Agentes de IA via WebMCP.
 * **Camada 1 a 3:** Injeção automática de Schema.org JSON-LD (`Product`, `Restaurant`, `NewsArticle`).
-* **Camada 4:** Endpoint declarativo `/api/webmcp.json` para que assistentes autônomos (Gemini, ChatGPT, Claude, Perplexity) consultem e recomendem lojas do JAH.
+* **Camada 4:** Endpoint declarativo `/api/webmcp.json` para que assistentes autônomos (Gemini, ChatGPT, Claude, Perplexity) consultem e recomendem lojas do Waesy.
 
 ---
 

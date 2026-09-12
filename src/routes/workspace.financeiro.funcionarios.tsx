@@ -29,7 +29,7 @@ import { listEmployeesBalance, registerFinancialEvent } from "@/services/hr.func
 import { Wallet, ArrowDownRight, ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/workspace/financeiro/funcionarios")({
- head: () => ({ meta: [{ title: "Folha e Comissões | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Folha e Comissões | Workspace Waesy" }] }),
  loader: async () => {
    try {
      const data = await listEmployeesBalance();

@@ -149,7 +149,7 @@ describe("Personal Finance & Carnê Digital Bilateral Test Suite (Ciclo 89)", ()
     it("deve validar payload de submissão de comprovante pelo cliente", () => {
       const proofPayload = {
         installmentId: "e0000000-0000-0000-0000-000000000001",
-        proofUrl: "https://storage.wider.app/receipts/proof-123.jpg",
+        proofUrl: "https://storage.usewaesy.com/receipts/proof-123.jpg",
         notes: "Transferência PIX realizada às 14:32",
       };
 

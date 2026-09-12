@@ -979,7 +979,7 @@ export const triggerRssFeedFetch = createServerFn({ method: "POST" })
  let feedXml = "";
  try {
  const res = await fetch(feed.feed_url, {
- headers: { "User-Agent": "Wider/1.0 RSS Reader (+https://wider.com.br)", Accept: "application/rss+xml, application/xml, text/xml" },
+ headers: { "User-Agent": "Waesy/1.0 RSS Reader (+https://usewaesy.pages.dev)", Accept: "application/rss+xml, application/xml, text/xml" },
  signal: AbortSignal.timeout(10000),
  });
  if (!res.ok) throw new Error(`HTTP ${res.status}`);

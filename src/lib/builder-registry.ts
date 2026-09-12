@@ -762,7 +762,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
  defaultProps: {
  node_type: "composition",
  block_type: "social_grid",
- content: { title: "Siga-nos", username: "@lojawider", posts: [] },
+ content: { title: "Siga-nos", username: "@lojawaesy", posts: [] },
  },
  },
 

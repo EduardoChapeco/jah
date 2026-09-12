@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/workspace/configuracoes/sessoes")({
- head: () => ({ meta: [{ title: "Sessões & Segurança da Equipe | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Sessões & Segurança da Equipe | Workspace Waesy" }] }),
  loader: async () => {
  try {
  const [logs, devices] = await Promise.all([

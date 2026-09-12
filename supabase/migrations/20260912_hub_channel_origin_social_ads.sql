@@ -1,6 +1,6 @@
 -- ============================================================
 -- MIGRATION: 20260912_hub_channel_origin_social_ads.sql
--- Autores: Conselho Executivo BigTech JAH/Wider OS
+-- Autores: Conselho Executivo BigTech Waesy/Waesy
 -- Escopo: channel_origin em orders/cash_flows/stock_movements,
 --         tabela store_social_posts, store_ad_accounts,
 --         google_product_category em products,

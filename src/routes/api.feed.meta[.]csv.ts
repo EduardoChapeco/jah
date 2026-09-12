@@ -97,7 +97,7 @@ export const Route = createFileRoute("/api/feed/meta.csv")({
                   escapeCsv(`${effectivePrice.toFixed(2)} BRL`),
                   escapeCsv(link),
                   escapeCsv(thumb),
-                  escapeCsv(p.manufacturer || "Wider"),
+                  escapeCsv(p.manufacturer || "Waesy"),
                   escapeCsv(p.id),
                 ].join(",")
               );

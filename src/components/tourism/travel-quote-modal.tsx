@@ -146,7 +146,7 @@ export function TravelQuoteModal({
  return (
  <Dialog open={open} onOpenChange={onOpenChange}>
  <DialogContent className="sm:max-w-md sm:w-full sm:rounded-2xl p-0 overflow-hidden bg-card border-border">
- {/* Header no Padrão CVC */}
+ {/* Header de Cotação de Viagem */}
  <div className="bg-linear-to-r from-blue-700 via-indigo-600 to-violet-700 text-white p-5 space-y-1 relative">
  <div className="flex items-center justify-between">
  <span className="text-[10px] font-mono font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full backdrop-blur-md">
@@ -283,7 +283,7 @@ export function TravelQuoteModal({
  )}
  </div>
 
- {/* Buscas Recentes Rápidas (CVC Style) */}
+ {/* Buscas Recentes Rápidas */}
  <div className="pt-2 space-y-1.5">
  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
  Destinos Populares
@@ -522,7 +522,7 @@ export function TravelQuoteModal({
  </div>
  </div>
 
- {/* Disclaimer Transparente Padrão CVC / Decolar */}
+ {/* Disclaimer Transparente de Turismo & Agências */}
  <div className="p-3 rounded-xl bg-muted/30 border border-border/40 space-y-1 text-[11px] text-muted-foreground leading-relaxed">
  <span className="font-bold text-foreground block">
  ℹ️ Transparência de Valores & Disponibilidade:

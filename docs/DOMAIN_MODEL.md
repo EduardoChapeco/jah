@@ -1,12 +1,12 @@
-# Modelo de Domínio — Wider Community Platform
+# Modelo de Domínio — Plataforma Waesy
 
-Documento canônico de entidades, relações, invariantes e máquinas de estado da Jah.
+Documento canônico de entidades, relações, invariantes e máquinas de estado da Waesy.
 
 Convenções gerais: identificadores internos são UUID; dinheiro é inteiro em centavos + `currency`; datas são ISO UTC persistidas, exibidas em `America/Sao_Paulo`; toda tabela carrega `organization_id` (e `store_id` quando aplicável) para isolamento multi-tenant; toda tabela sensível possui RLS deny-by-default.
 
 ## 1. Organização, Perfis e Contextos (Social vs Business)
 
-A plataforma Jah suporta múltiplos perfis para um mesmo usuário.
+A plataforma Waesy suporta múltiplos perfis para um mesmo usuário.
 
 ```text
 User (1) ──< UserProfile (N) (Contextos Sociais/Administrativos)
@@ -327,7 +327,7 @@ Para suportar indicações:
 
 - **Normalização**: Minúsculas, apenas caracteres `[a-z0-9_]`, comprimento entre 3 e 30 caracteres.
 - **Unicidade Case-Insensitive**: Nenhum perfil pode colidir com outro (ex.: `@eduardo` e `@Eduardo` são idênticos).
-- **Reserved Handles**: Lista de sistema protegida (`admin`, `jah`, `suporte`, `api`, `auth`, `termos`, `privacidade`, `seguranca`, `loja`, `mural`, `mapa`, `mercado`, `agenda`).
+- **Reserved Handles**: Lista de sistema protegida (`admin`, `waesy`, `suporte`, `api`, `auth`, `termos`, `privacidade`, `seguranca`, `loja`, `mural`, `mapa`, `mercado`, `agenda`).
 - **Cooldown & Histórico**: Alteração de handle grava registro em `handle_history`. Existe cooldown de 14 dias entre alterações. O handle antigo redireciona temporariamente por 30 dias para evitar quebra de links antes de ser liberado.
 - **Tipos de Perfil**:
   - `personal`: Pessoa física com avatar, bio, cidade, posts, moments, histórias, classificados e listas públicas.

@@ -55,7 +55,7 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/workspace/financeiro/recebiveis")({
-  head: () => ({ meta: [{ title: "Carnês & Contas a Receber | Workspace Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Carnês & Contas a Receber | Workspace Waesy" }] }),
   loader: async () => {
     try {
       const [carnes, report] = await Promise.all([

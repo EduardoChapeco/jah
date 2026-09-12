@@ -6,9 +6,9 @@
 
 /*
  * ============================================================================
- * Wider Community Platform — Canonical Design System
+ * Waesy Platform — Canonical Design System
  * ============================================================================
- * Estética: Ultra-clean, Minimalista, iFood / Threads style.
+ * Estética: Ultra-clean, Minimalista, Editorial.
  * Sem hardcodes, forte uso de white space, bordas circulares amigáveis.
  * ============================================================================
  */
@@ -302,7 +302,7 @@
 }
 
 /* ===========================================================================
- * UTILITIES CANÔNICAS WIDER
+ * UTILITIES CANÔNICAS WAESY
  * ===========================================================================*/
 
 /* ── Safe area ─────────────────────────────── */
@@ -343,7 +343,7 @@
 }
 
 /* ── Scrollbar canônica & Ocultação ───────────────────────────────────────── */
-@utility scrollbar-wider {
+@utility scrollbar-waesy {
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
 }
@@ -439,10 +439,10 @@
 
 /* ── Animação ──────────────────────────────────────────── */
 @utility animate-in-up {
-  animation: wider-slide-up var(--duration-base) var(--ease-out-expo) both;
+  animation: waesy-slide-up var(--duration-base) var(--ease-out-expo) both;
 }
 
-@keyframes wider-slide-up {
+@keyframes waesy-slide-up {
   from {
     opacity: 0;
     transform: translateY(4px);
@@ -454,10 +454,10 @@
 }
 
 @utility animate-in-fade {
-  animation: wider-fade-in var(--duration-base) var(--ease-in-out) both;
+  animation: waesy-fade-in var(--duration-base) var(--ease-in-out) both;
 }
 
-@keyframes wider-fade-in {
+@keyframes waesy-fade-in {
   from {
     opacity: 0;
   }
@@ -542,7 +542,7 @@
   }
 }
 
-/* ── MOBILE ADAPTIVE RESPONSIVENESS (Apple HIG, Material 3, iFood, Threads) ──── */
+/* ── MOBILE ADAPTIVE RESPONSIVENESS (Apple HIG, Material 3, Design Humano) ──── */
 @utility safe-bottom {
   padding-bottom: max(1rem, env(safe-area-inset-bottom, 16px));
 }

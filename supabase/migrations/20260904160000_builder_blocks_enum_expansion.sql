@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 20260904160000: Builder Blocks Enum Expansion
+-- Waesy Commerce — Migration 20260904160000: Builder Blocks Enum Expansion
 -- ============================================================================
 -- Expands public.builder_block_type ENUM to support all modern platform blocks:
 -- Biolink, Tourism, Gastronomy, Services, Commerce specials, and Custom sections.

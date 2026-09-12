@@ -46,7 +46,7 @@ import { SYSTEM_FLAGS } from "@/lib/constants/system-flags";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/criar-negocio")({
- head: () => ({ meta: [{ title: "Cadastrar Novo Negócio | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Cadastrar Novo Negócio | Waesy" }] }),
  validateSearch: (search: Record<string, unknown>): { segment?: string; modo?: "expresso" | "avancado" } => {
  return {
  segment: (search.segment as string) || undefined,
@@ -324,7 +324,7 @@ function CriarNegocioPage() {
 
  if (result?.storeId) {
  if (typeof window !== "undefined") {
- window.document.cookie = `wider_active_tenant=${result.storeId}; path=/; max-age=31536000; SameSite=Lax`;
+ window.document.cookie = `waesy_active_tenant=${result.storeId}; path=/; max-age=31536000; SameSite=Lax`;
  }
  await setTenantContext({ data: { store_id: result.storeId } }).catch(() => null);
  }
@@ -395,7 +395,7 @@ function CriarNegocioPage() {
   userId={session?.user?.id}
   onSuccess={(storeId) => {
   if (typeof window !== "undefined") {
-  window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
+  window.document.cookie = `waesy_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
   }
   window.location.href = "/conta/empresa";
   }}
@@ -1184,7 +1184,7 @@ function CriarNegocioPage() {
  <span>Prévia da Loja ao Vivo</span>
  </div>
  <Badge variant="outline" className="text-[10px] font-mono bg-background">
- Vitrine Wider
+ Vitrine Waesy
  </Badge>
  </div>
 

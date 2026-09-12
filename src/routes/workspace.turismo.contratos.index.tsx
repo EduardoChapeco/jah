@@ -35,7 +35,7 @@ import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/turismo/contratos/")({
   head: () => ({
-    meta: [{ title: "Contratos Turísticos & Assinatura Digital | Workspace Wider OS" }],
+    meta: [{ title: "Contratos Turísticos & Assinatura Digital | Workspace Waesy" }],
   }),
   loader: async () => {
     try {
@@ -134,7 +134,7 @@ export default function WorkspaceContractsIndexPage() {
       store={store}
     >
       <div className="w-full space-y-6 animate-in fade-in duration-200">
-        {/* ── 1. TOOLBAR CANÔNICA PADRÃO WIDER OS ── */}
+        {/* ── 1. TOOLBAR CANÔNICA PADRÃO Waesy ── */}
         <WorkspaceCanonicalToolbar
           tabs={TABS}
           activeTab={selectedStatus}

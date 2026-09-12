@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/admin-master/boost-payments")({
-  head: () => ({ meta: [{ title: "Boost Payments | Admin Master · Wider" }] }),
+  head: () => ({ meta: [{ title: "Boost Payments | Admin Master · Waesy" }] }),
   loader: async () => {
     try {
       const payments = await listBoostPayments({ data: { status: "all", limit: 100 } });

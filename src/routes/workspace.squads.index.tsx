@@ -39,7 +39,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/workspace/squads/")({
-  head: () => ({ meta: [{ title: "Squads Agênticos Especializados | JAH" }] }),
+  head: () => ({ meta: [{ title: "Squads Agênticos Especializados | Waesy" }] }),
   loader: async () => {
     try {
     const store = await getStoreSettings().catch(() => null);

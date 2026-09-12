@@ -3,44 +3,44 @@ import { MemberPublicProfileView, type MembroSearchParams } from "./_store.membr
 import { getPublicMemberProfile } from "@/services/social.functions";
 
 export const Route = createFileRoute("/_store/u/$username")({
- validateSearch: (search: Record<string, unknown>): MembroSearchParams => ({
- modo:
- search.modo === "profissional" || search.modo === "comercial"
- ? (search.modo as "profissional" | "comercial")
- : "social",
- }),
+  validateSearch: (search: Record<string, unknown>): MembroSearchParams => ({
+    modo:
+      search.modo === "profissional" || search.modo === "comercial"
+        ? (search.modo as "profissional" | "comercial")
+        : "social",
+  }),
   head: ({ loaderData, search }: { loaderData?: { data: any }; search?: MembroSearchParams }) => {
     const modo = search?.modo;
     const isCreator = loaderData?.data?.isCreator;
     const fullName = loaderData?.data?.profile?.full_name || "Membro";
     const username = loaderData?.data?.profile?.username ? `@${loaderData.data.profile.username}` : "";
-    let title = `${fullName} (${username}) | Wider`;
+    let title = `${fullName} (${username}) | Waesy`;
     if (isCreator && (modo === "comercial" || !modo)) {
-      title = `${fullName} — Vitrine & Parcerias | Wider`;
+      title = `${fullName} — Vitrine & Parcerias | Waesy`;
     } else if (modo === "profissional") {
-      title = `${fullName} — Perfil Profissional | Wider`;
+      title = `${fullName} — Perfil Profissional | Waesy`;
     } else if (modo === "comercial") {
-      title = `${fullName} — Catálogo & Desapegos | Wider`;
+      title = `${fullName} — Catálogo & Desapegos | Waesy`;
     }
     return {
       meta: [
         { title },
         {
           name: "description",
-          content: loaderData?.data?.profile?.bio || "Perfil no ecossistema comunitário Wider.",
+          content: loaderData?.data?.profile?.bio || "Perfil no ecossistema comunitário Waesy.",
         },
       ],
     };
   },
   loader: async ({ params }): Promise<{ data: any }> => {
-   try {
-   const usernameParam = params.username;
-   const data = await getPublicMemberProfile({ data: { profileId: usernameParam } }).catch(() => null);
-   return { data };
-   } catch (err) {
-     console.error("[loader:_store.u.$username] Unhandled error:", err);
-     return { data: null };
-   }
+    try {
+      const usernameParam = params.username;
+      const data = await getPublicMemberProfile({ data: { profileId: usernameParam } }).catch(() => null);
+      return { data };
+    } catch (err) {
+      console.error("[loader:_store.u.$username] Unhandled error:", err);
+      return { data: null };
+    }
   },
   component: MemberVanityPage,
 });

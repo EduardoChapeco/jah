@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0073: Remove Legacy weight_grams columns
+-- Waesy Commerce — Migration 0073: Remove Legacy weight_grams columns
 -- ============================================================================
 -- The original migration 0002 created weight_grams (integer, grams) on both
 -- products and product_variants. Migration 0062 added proper weight_kg columns.

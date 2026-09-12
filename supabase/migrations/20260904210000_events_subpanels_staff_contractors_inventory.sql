@@ -1,6 +1,6 @@
 -- =============================================================================
 -- MIGRATION: 20260904210000_events_subpanels_staff_contractors_inventory.sql
--- ECOSSISTEMA JAH: SUBPAINÉIS DE EVENTOS COM TOKEN, EQUIPE, TERCEIRIZADOS & INVENTÁRIO
+-- ECOSSISTEMA Waesy: SUBPAINÉIS DE EVENTOS COM TOKEN, EQUIPE, TERCEIRIZADOS & INVENTÁRIO
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------

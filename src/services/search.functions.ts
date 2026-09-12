@@ -1,5 +1,5 @@
 /**
- * Busca Federada — Wider Community Platform
+ * Busca Federada — Waesy Platform
  *
  * Executa queries paralelas em múltiplas entidades e retorna resultados
  * agrupados por tipo, com tipo explícito em cada item.

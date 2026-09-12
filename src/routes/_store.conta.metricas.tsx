@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/conta/metricas")({
- head: () => ({ meta: [{ title: "Métricas | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Métricas | Waesy" }] }),
  loader: async (): Promise<{ analytics: MemberAnalyticsDTO | null }> => {
  try {
  const analytics = await getMemberAnalyticsInsights({ data: {} });

@@ -23,7 +23,7 @@ export const getPortalCompletoContent = createServerFn({ method: "GET" })
 
     return {
       id: "default",
-      hero_title: "Evolua sua Gestão com o Wider OS Pro",
+      hero_title: "Evolua sua Gestão com o Waesy Pro",
       hero_subtitle: "Módulos avançados de PDV, Estoque, Logística, Turismo e Relatórios desenhados para o seu crescimento.",
       video_url: null,
       feature_modules: [

@@ -79,7 +79,7 @@ const DIETARY_FILTERS = [
 export const Route = createFileRoute("/_store/mercado")({
  head: () => ({
  meta: [
- { title: "Mercado — Supermercados & Mercearias da Região | Wider OS" },
+ { title: "Mercado — Supermercados & Mercearias da Região | Waesy" },
  {
  name: "description",
  content:

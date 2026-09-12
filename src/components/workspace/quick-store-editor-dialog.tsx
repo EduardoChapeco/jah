@@ -245,13 +245,13 @@ export function QuickStoreEditorDialog({
  <Label className="text-xs font-bold text-foreground">Slug da Vitrine *</Label>
  <div className="relative">
  <span className="absolute left-3 top-2.5 text-xs font-mono text-muted-foreground">
- wider.com.br/
+ usewaesy.com/
  </span>
  <Input
  value={slug}
  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
  placeholder="cantina-do-lago"
- className="rounded-xl text-xs h-10 pl-24 font-mono font-medium"
+ className="rounded-xl text-xs h-10 pl-28 font-mono font-medium"
  />
  </div>
  </div>

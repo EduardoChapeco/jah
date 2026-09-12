@@ -2,7 +2,7 @@
 -- WIDER -- Migration: Simplify handle_new_user & Remove legacy org creation
 -- ============================================================================
 -- Esta migration substitui a versão anterior do trigger `handle_new_user`.
--- Removemos completamente a criação automática de organizações/lojas (ex: jah-org),
+-- Removemos completamente a criação automática de organizações/lojas (ex: waesy-org),
 -- pois um usuário comum deve apenas ter sua conta (customer).
 -- Apenas o primeiro usuário da plataforma recebe a role 'platform_admin'.
 -- Nenhuma loja/workspace é gerada automaticamente pelo banco de dados.
@@ -33,7 +33,7 @@ BEGIN
   INSERT INTO public.profiles (id, full_name, role)
   VALUES (
     NEW.id,
-    coalesce(NEW.raw_user_meta_data->>'full_name', coalesce(split_part(NEW.email, '@', 1), 'Usuário Wider')),
+    coalesce(NEW.raw_user_meta_data->>'full_name', coalesce(split_part(NEW.email, '@', 1), 'Usuário Waesy')),
     v_assigned_role
   )
   ON CONFLICT (id) DO UPDATE SET 
@@ -41,7 +41,7 @@ BEGIN
   WHERE public.profiles.role = 'customer'; -- Apenas atualiza se ainda for customer (evita rebaixar admins)
 
   -- =======================================================================
-  -- REMOVIDO: Toda a lógica de criação de jah-org e stores foi eliminada.
+  -- REMOVIDO: Toda a lógica de criação de waesy-org e stores foi eliminada.
   -- O usuário agora é criado de forma leve (Zero-Throw) sem arriscar
   -- timeouts ou conflitos de constraints em cascata.
   -- =======================================================================

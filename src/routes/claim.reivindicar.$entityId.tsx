@@ -23,7 +23,7 @@ import { toast } from 'sonner';
 
 export const Route = createFileRoute('/claim/reivindicar/$entityId')({
  head: ({ loaderData }: any) => ({
-   meta: [{ title: `Reivindicar ${loaderData?.entity?.name || "Empresa"} | Wider OS Trust` }],
+   meta: [{ title: `Reivindicar ${loaderData?.entity?.name || "Empresa"} | Waesy Trust` }],
  }),
  loader: async ({ params }) => {
    try {
@@ -40,7 +40,7 @@ const PROOF_OPTIONS: { type: ProofType; label: string; desc: string; icon: any }
  { type: 'email_domain', label: 'E-mail Corporativo', desc: 'Comprove usando o e-mail do domínio oficial da empresa', icon: Mail },
  { type: 'document', label: 'Contrato Social / CNPJ', desc: 'Envio de cartão CNPJ ou ato constitutivo autenticado', icon: FileText },
  { type: 'phone', label: 'Telefone Comercial', desc: 'Validação por SMS ou ligação na linha corporativa', icon: Phone },
- { type: 'social_media', label: 'Rede Social Oficial', desc: 'Verificação através do Instagram ou LinkedIn verificado', icon: Instagram },
+ { type: 'social_media', label: 'Rede Social Oficial', desc: 'Verificação através de perfil social oficial verificado', icon: Instagram },
  { type: 'other', label: 'Outro Método', desc: 'Apresente documentação complementar personalizada', icon: Globe },
 ];
 
@@ -120,7 +120,7 @@ function ClaimReivindicarPage() {
  <div className="max-w-3xl mx-auto">
  <div className="text-center mb-8">
  <Badge variant="outline" className="px-3 py-1 mb-3 rounded-full text-xs font-semibold gap-1.5 border-primary/30 text-primary">
- <ShieldCheck className="size-3.5" /> Wider Trust & Compliance
+ <ShieldCheck className="size-3.5" /> Waesy Trust & Compliance
  </Badge>
  <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
  Reivindicar {entity?.name || 'Perfil Comercial'}

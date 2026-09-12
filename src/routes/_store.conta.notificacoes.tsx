@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/conta/notificacoes")({
  head: () => ({
- meta: [{ title: "Central de Notificações | Wider OS" }],
+ meta: [{ title: "Central de Notificações | Waesy" }],
  }),
  loader: async () => {
    try {

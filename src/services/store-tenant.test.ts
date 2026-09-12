@@ -5,15 +5,15 @@ describe("Gestão de Lojas & Tenant — Ciclo 2 Microfase 2.1", () => {
  describe("Validação de Schema de Configurações da Loja", () => {
  it("valida payload completo de configurações da loja", () => {
  const validSettings = {
- name: "Wider Matriz Florianópolis",
- email: "gestao@jah.os",
+ name: "Waesy Matriz Florianópolis",
+ email: "gestao@usewaesy.com",
  phone: "(48) 99999-8888",
  cnpj: "12.345.678/0001-90",
  address: "Av. Beira Mar Norte, 1000",
  city: "Florianópolis",
  state: "SC",
  zip_code: "88015-000",
- description: "Unidade modelo do ecossistema Wider OS",
+ description: "Unidade modelo do ecossistema Waesy",
  segment: "gastronomy",
  type: "food_service",
  niche: "gastronomy",

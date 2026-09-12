@@ -62,7 +62,7 @@ const FARMACIA_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/farmacia")({
  head: () => ({
  meta: [
- { title: "Farmácias, Drogarias & Saúde | Wider OS" },
+ { title: "Farmácias, Drogarias & Saúde | Waesy" },
  {
  name: "description",
  content:

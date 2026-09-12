@@ -134,7 +134,7 @@ export function FloatingCommunityDock({ session }: FloatingCommunityDockProps) {
  if (activeFormat === "news") {
  metadata.is_news = true;
  metadata.title = newsTitle.trim() || content.slice(0, 60);
- metadata.source = newsSource.trim() || "Wider News";
+ metadata.source = newsSource.trim() || "Waesy News";
  metadata.subtitle = content.trim();
  } else if (activeFormat === "travel") {
  metadata.is_triptych = true;
@@ -179,7 +179,7 @@ export function FloatingCommunityDock({ session }: FloatingCommunityDockProps) {
 
  return (
  <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3 pointer-events-auto">
- {/* ── Card Minimalista Expansível (Estilo Threads / Apple Floating Panel) ── */}
+ {/* ── Card Minimalista Expansível (Card Flutuante Expansível) ── */}
  {isExpanded && (
  <div className="w-[90vw] sm:w-[420px] bg-background/95 backdrop-blur-xl border border-border/80 rounded-2xl p-4 shadow-2xl space-y-3.5 animate-in fade-in zoom-in-95 duration-200">
  {/* Header do Floating Composer */}
@@ -242,7 +242,7 @@ export function FloatingCommunityDock({ session }: FloatingCommunityDockProps) {
  <Input
  value={newsSource}
  onChange={(e) => setNewsSource(e.target.value)}
- placeholder="Fonte / Veículo (ex: Wider News, G1)..."
+ placeholder="Fonte / Veículo (ex: Waesy News, G1)..."
  className="h-7 text-[11px] bg-background border-border/60"
  />
  </div>
@@ -365,7 +365,7 @@ export function FloatingCommunityDock({ session }: FloatingCommunityDockProps) {
  </Link>
  </Button>
 
- {/* Botão Flutuante Criar Publicação (Expandable Threads Style) */}
+ {/* Botão Flutuante Criar Publicação (Ação Flutuante Expansível) */}
  <Button
  onClick={() => setIsExpanded(!isExpanded)}
  className={cn(

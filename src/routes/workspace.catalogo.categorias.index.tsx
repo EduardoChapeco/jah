@@ -39,7 +39,7 @@ import { getStoreSettings } from "@/services/store.functions";
 import { getNicheSemantics } from "@/lib/niche-semantics";
 
 export const Route = createFileRoute("/workspace/catalogo/categorias/")({
- head: () => ({ meta: [{ title: "Categorias & Sessões | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Categorias & Sessões | Workspace Waesy" }] }),
  loader: async () => {
  try {
  const [catsRes, storeRes] = await Promise.all([

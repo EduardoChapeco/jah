@@ -23,7 +23,7 @@ import {
 } from "@/services/group-tour-tokens.functions";
 
 export const Route = createFileRoute("/m/excursao/$token")({
- head: () => ({ meta: [{ title: "Confirmação de Passageiro | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Confirmação de Passageiro | Waesy" }] }),
  loader: async ({ params }: { params: { token: string } }) => {
    try {
  const formData = await getPublicPassengerForm({ data: { token: params.token } }).catch(

@@ -75,8 +75,8 @@ export const Route = createFileRoute("/workspace/turismo/viagens/$id")({
     meta: [
       {
         title: loaderData?.aggregate?.trip
-          ? `${loaderData.aggregate.trip.destination_city || "Viagem"} (${loaderData.aggregate.trip.trip_number}) | Workspace Wider OS`
-          : "Detalhes da Viagem | Workspace Wider OS",
+          ? `${loaderData.aggregate.trip.destination_city || "Viagem"} (${loaderData.aggregate.trip.trip_number}) | Workspace Waesy`
+          : "Detalhes da Viagem | Workspace Waesy",
       },
     ],
   }),
@@ -188,7 +188,7 @@ function WorkspaceTripDetailPage() {
   const store = aggregate.store;
   const mainVoucher = aggregate.vouchers[0];
 
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://jah.com.br";
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://usewaesy.com";
   const voucherPublicUrl = mainVoucher ? `${origin}/voucher/${mainVoucher.public_token}` : "";
   const contractPublicUrl = aggregate.contract?.public_token
     ? `${origin}/contrato/${aggregate.contract.public_token}`

@@ -77,7 +77,7 @@ export const Customer360Sidebar: React.FC<Customer360SidebarProps> = ({
  </div>
  <div className="min-w-0 flex-1">
  <h4 className="font-bold text-foreground truncate text-sm">
- {profile?.full_name || "Cliente Wider"}
+ {profile?.full_name || "Cliente Waesy"}
  </h4>
  <p className="text-muted-foreground text-[11px] truncate flex items-center gap-1">
  <Mail className="size-3" />

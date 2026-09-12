@@ -1,10 +1,10 @@
 -- ============================================================================
--- JAH -- Migration: Fix handle_new_user to correctly assign platform_admin
+-- Waesy -- Migration: Fix handle_new_user to correctly assign platform_admin
 -- ============================================================================
 -- PROBLEMA: O trigger handle_new_user estava inserindo todos os usuários com
 -- a role default ('customer'). Isso impedia que a logica do servidor em
 -- auth.functions.ts identificasse o primeiro usuário como 'platform_admin',
--- quebrando a inicialização do Wider Org e do Master Workspace.
+-- quebrando a inicialização do Waesy Org e do Master Workspace.
 --
 -- SOLUÇÃO: Atualizamos o trigger para contar o número de perfis. Se for o
 -- primeiro perfil a ser criado (ou se o email contiver admin/excelencia),
@@ -39,24 +39,24 @@ BEGIN
   INSERT INTO public.profiles (id, full_name, role)
   VALUES (
     NEW.id,
-    coalesce(NEW.raw_user_meta_data->>'full_name', coalesce(split_part(NEW.email, '@', 1), 'Membro Wider')),
+    coalesce(NEW.raw_user_meta_data->>'full_name', coalesce(split_part(NEW.email, '@', 1), 'Membro Waesy')),
     v_assigned_role
   )
   ON CONFLICT (id) DO UPDATE SET 
     role = EXCLUDED.role
   WHERE public.profiles.role = 'customer'; -- Apenas atualiza se ainda for customer (evita rebaixar admins)
 
-  -- Se for o platform_admin inicial (ou os dois primeiros), garante acesso a 'jah' como fallback
-  -- (Embora o BFF já crie 'wider' para platform_admins, mantemos o fallback do tenant default se precisar)
+  -- Se for o platform_admin inicial (ou os dois primeiros), garante acesso a 'waesy' como fallback
+  -- (Embora o BFF já crie 'waesy' para platform_admins, mantemos o fallback do tenant default se precisar)
   IF v_user_count < 2 THEN
-    SELECT id INTO default_org_id FROM public.organizations WHERE slug = 'jah-org' LIMIT 1;
+    SELECT id INTO default_org_id FROM public.organizations WHERE slug = 'waesy-org' LIMIT 1;
     IF default_org_id IS NULL THEN
-      INSERT INTO public.organizations (name, slug) VALUES ('Jah Organization', 'jah-org') RETURNING id INTO default_org_id;
+      INSERT INTO public.organizations (name, slug) VALUES ('Waesy Organization', 'waesy-org') RETURNING id INTO default_org_id;
     END IF;
 
-    SELECT id INTO default_store_id FROM public.stores WHERE slug = 'jah' AND organization_id = default_org_id LIMIT 1;
+    SELECT id INTO default_store_id FROM public.stores WHERE slug = 'waesy' AND organization_id = default_org_id LIMIT 1;
     IF default_store_id IS NULL THEN
-      INSERT INTO public.stores (organization_id, name, slug) VALUES (default_org_id, 'Jah', 'jah') RETURNING id INTO default_store_id;
+      INSERT INTO public.stores (organization_id, name, slug) VALUES (default_org_id, 'Waesy', 'waesy') RETURNING id INTO default_store_id;
     END IF;
 
     INSERT INTO public.workspace_members (profile_id, store_id, role)

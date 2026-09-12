@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 20260812201300: Phase 2 Lifecycle Evolution
+-- Waesy Commerce — Migration 20260812201300: Phase 2 Lifecycle Evolution
 -- ============================================================================
 -- Purpose:
 --   1. Create `outbox_events` table for active communication (webhooks/emails).

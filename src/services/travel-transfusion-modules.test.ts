@@ -141,10 +141,10 @@ describe('Travel Transfusion Modules Test Suite (Big Tech Quality Assurance)', (
  store_id: 'store-abc',
  passenger_name: 'Carlos Drummond',
  voucher_type: 'hotel',
- qr_code_payload: 'WIDER-VCH:vch-123456:store-abc:hash987abc',
+ qr_code_payload: 'WAESY-VCH:vch-123456:store-abc:hash987abc',
  };
 
- expect(voucher.qr_code_payload).toMatch(/^WIDER-VCH:/);
+ expect(voucher.qr_code_payload).toMatch(/^WAESY-VCH:/);
  expect(voucher.qr_code_payload).toContain('store-abc');
  expect(voucher.voucher_code).toBe('VCH-7890-XYZ');
  });

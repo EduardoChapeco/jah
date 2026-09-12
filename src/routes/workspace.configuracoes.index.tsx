@@ -39,7 +39,7 @@ import { cn } from "@/lib/utils";
 import { getNicheSemantics } from "@/lib/niche-semantics";
 
 export const Route = createFileRoute("/workspace/configuracoes/")({
- head: () => ({ meta: [{ title: "Configurações da Loja & Perfil Comercial | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Configurações da Loja & Perfil Comercial | Workspace Waesy" }] }),
  loader: async () => {
  try {
  const [settingsRes, hoursRes, policiesRes, manualMethodsRes] = await Promise.all([
@@ -570,7 +570,7 @@ export default function WorkspaceConfiguracoesPage() {
  <Input
  value={name}
  onChange={(e) => setName(e.target.value)}
- placeholder="Ex: Wider Store"
+ placeholder="Ex: Waesy Store"
  className="rounded-xl text-xs h-10 font-bold"
  required
  />
@@ -1259,7 +1259,7 @@ export default function WorkspaceConfiguracoesPage() {
  )}
  >
  <div className="flex items-center justify-between">
- <span className="text-xs font-bold text-foreground">Gateway Central Wider</span>
+ <span className="text-xs font-bold text-foreground">Gateway Central Waesy</span>
  {paymentProcessingMode === "platform_gateway" && (
  <CheckCircle2 className="size-4 text-primary" />
  )}

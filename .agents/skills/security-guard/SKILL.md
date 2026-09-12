@@ -1,6 +1,6 @@
 ---
 name: security-guard
-description: "Auditor de Segurança Server-Side, Zero-Trust Client, RLS Deny-by-Default, Prevenção de Injeção e Proteção Multi-Tenant para a plataforma Wider."
+description: "Auditor de Segurança Server-Side, Zero-Trust Client, RLS Deny-by-Default, Prevenção de Injeção e Proteção Multi-Tenant para a plataforma Waesy."
 ---
 
 # Security Guard — Protocolo de Blindagem Server-Side (BigTech Standard)

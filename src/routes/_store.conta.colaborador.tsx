@@ -30,7 +30,7 @@ import {
 import { formatDateTime, formatTimeOnly } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/colaborador")({
-  head: () => ({ meta: [{ title: "Espaço do Colaborador | Wider Hub" }] }),
+  head: () => ({ meta: [{ title: "Espaço do Colaborador | Waesy Hub" }] }),
   loader: async () => {
     try {
       const employee = await getMyEmployeeRecord().catch(() => null);

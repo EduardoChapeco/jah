@@ -1,6 +1,6 @@
 -- =============================================================================
 -- MIGRATION: 20260904200000_gastronomy_kds_tables_multi_payment.sql
--- ECOSSISTEMA JAH: GASTRONOMIA, KDS COZINHA, MESAS DE SALÃO & MULTI-PAGAMENTO PDV
+-- ECOSSISTEMA Waesy: GASTRONOMIA, KDS COZINHA, MESAS DE SALÃO & MULTI-PAGAMENTO PDV
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Wider Master Platform — Canonical Migration
+-- Waesy Master Platform — Canonical Migration
 -- File: 20260826010000_all_25_niche_isolated_banners_and_hotpages.sql
 -- Propósito: 100% de Isolamento Bilateral de Banners e Hotpages para todos os 25 Nichos
 -- ============================================================================
@@ -12,7 +12,7 @@ VALUES
     'e0000000-0000-0000-0000-000000000001',
     'Descubra o Melhor da Nossa Região',
     'Comércio local, gastronomia autoral, notícias e eventos em um só lugar.',
-    'Comunidade Wider',
+    'Comunidade Waesy',
     'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1600&q=85',
     'image',
     'hotpage',

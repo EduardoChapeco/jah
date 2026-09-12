@@ -32,7 +32,7 @@ export const Route = createFileRoute("/workspace/onboarding/revisao")({
   head: () => ({
     meta: [
       {
-        title: "Revisão de Onboarding Multimodal & Master Catalog | Wider OS",
+        title: "Revisão de Onboarding Multimodal & Master Catalog | Waesy",
       },
     ],
   }),

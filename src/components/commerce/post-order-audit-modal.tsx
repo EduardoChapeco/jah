@@ -77,7 +77,7 @@ export function PostOrderAuditModal({
  if (currentStep < tagsToAudit.length - 1) {
  setCurrentStep((prev) => prev + 1);
  } else {
- toast.success("Obrigado! Sua avaliação ajuda a manter a Comunidade Wider confiável.");
+ toast.success("Obrigado! Sua avaliação ajuda a manter a Comunidade Waesy confiável.");
  onClose();
  }
  } catch {

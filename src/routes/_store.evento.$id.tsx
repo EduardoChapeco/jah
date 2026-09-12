@@ -22,13 +22,13 @@ export const Route = createFileRoute("/_store/evento/$id")({
  meta: [
  {
  title: loaderData?.event?.title
- ? `${loaderData.event.title} - Ingressos | Wider`
- : "Evento | Wider OS",
+ ? `${loaderData.event.title} - Ingressos | Waesy`
+ : "Evento | Waesy",
  },
  {
  name: "description",
  content:
- loaderData?.event?.description?.slice(0, 160) || "Evento cultural na Comunidade Wider.",
+ loaderData?.event?.description?.slice(0, 160) || "Evento cultural na Comunidade Waesy.",
  },
  ],
  }),

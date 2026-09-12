@@ -181,7 +181,7 @@ export const Route = createFileRoute("/_store/produto/$slug")({
  product.seoDescription ||
  (product.description
  ? product.description.replace(/<[^>]+>/g, "").slice(0, 155)
- : `Compre ${product.title} no Wider. Frete rápido e parcelamento disponível.`);
+ : `Compre ${product.title} no Waesy. Frete rápido e parcelamento disponível.`);
  const coverUrl = product.media?.[0]?.url ?? null;
  const canonical = `${typeof window !== "undefined" ? window.location.origin : ""}/produto/${product.slug}`;
 
@@ -229,7 +229,7 @@ export const Route = createFileRoute("/_store/produto/$slug")({
  availability: product.variants?.some((v: any) => v.availableQty > 0)
  ? "https://schema.org/InStock"
  : "https://schema.org/OutOfStock",
- seller: { "@type": "Organization", name: "Wider" },
+ seller: { "@type": "Organization", name: "Waesy" },
  },
  }),
  },
@@ -663,7 +663,7 @@ function ProductContent({
         priceCents={product.priceCents || 0}
         currency="BRL"
         imageUrl={currentThumbnailUrl || product.media?.[0]?.url}
-        brandName={(product as any)?.store?.name || "JAH"}
+        brandName={(product as any)?.store?.name || "Waesy"}
         categoryName="Turismo & Viagens"
         sku={product.sku || product.id}
         inStock={true}
@@ -709,7 +709,7 @@ function ProductContent({
         priceCents={currentPriceCents || product.priceCents || 0}
         currency="BRL"
         imageUrl={currentThumbnailUrl || product.media?.[0]?.url}
-        brandName={(product as any)?.store?.name || "JAH"}
+        brandName={(product as any)?.store?.name || "Waesy"}
         categoryName={product.categories?.[0]?.name || "Geral"}
         sku={selectedVariant?.sku || product.sku || product.id}
         inStock={!allOutOfStock}
@@ -1306,7 +1306,7 @@ function ProductContent({
  <p className="text-muted-foreground leading-normal text-[11px]">
  {isFoodOrPerishable
  ? "Garantia de preparo fresco e seguro. Entrega com controle térmico e higiene rigorosa para consumo imediato."
- : "Garantia de conformidade Wider. Trocas ou devoluções em até 7 dias úteis após o recebimento conforme o CDC."}
+ : "Garantia de conformidade Waesy. Trocas ou devoluções em até 7 dias úteis após o recebimento conforme o CDC."}
  </p>
  </div>
  </div>
@@ -1329,7 +1329,7 @@ function ProductContent({
  search={{ storeId: product.store_id || (product as any).store?.id }}
  className="text-sm font-bold text-foreground hover:text-primary transition-colors truncate block"
  >
- {(product as any).store?.name || "Loja Parceira Wider"}
+ {(product as any).store?.name || "Loja Parceira Waesy"}
  </Link>
  {(product as any).store?.city && (
  <p className="text-[11px] text-muted-foreground truncate">
@@ -1354,7 +1354,7 @@ function ProductContent({
  </span>
  <span className="flex items-center gap-1.5">
  <ShieldCheck className="size-3.5 text-success fill-success/10" />
- Proteção Wider
+ Proteção Waesy
  </span>
  </div>
 
@@ -1454,7 +1454,7 @@ function ProductContent({
  </div>
  <div>
  <div className="flex items-center gap-1.5">
- <h3 className="font-bold text-sm text-foreground">{product.brand || "Wider"}</h3>
+ <h3 className="font-bold text-sm text-foreground">{product.brand || "Waesy"}</h3>
  <Badge className="bg-primary/15 text-primary hover:bg-primary/20 text-[9px] px-1.5 py-0">
  Marca Oficial
  </Badge>

@@ -98,7 +98,7 @@ export const getUserSession = createServerFn({ method: "GET" }).handler(async ()
  profile?.full_name ||
  user?.user_metadata?.full_name ||
  user?.email?.split("@")[0] ||
- "Membro Wider";
+ "Membro Waesy";
 
  return {
  id: effectiveUserId,
@@ -229,7 +229,7 @@ export const signInWithPassword = createServerFn({ method: "POST" })
  }
 
  // Extract guest session manually before async context drops
- const guestSessionToken = request ? readCookieFromRequest(request, "wider_guest_session") : null;
+ const guestSessionToken = request ? readCookieFromRequest(request, "waesy_guest_session") : null;
 
  // Use global getResponseHeaders implicitly to ensure Set-Cookie is persisted on the RPC response
  const supabase = await getSSRClient();
@@ -306,7 +306,7 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
  .handler(async ({ data: { provider, redirectTo } }) => {
  try {
  const supabase = await getSSRClient();
- const siteUrl = getEnvVar("VITE_SITE_URL") || "https://wider.pages.dev";
+ const siteUrl = getEnvVar("VITE_SITE_URL") || "https://waesy.pages.dev";
  const safeNext = normalizeInternalReturnPath(redirectTo, "/");
  const safeRedirectTo = `${siteUrl}/api/auth/callback?next=${encodeURIComponent(safeNext)}`;
 
@@ -388,7 +388,7 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
  }
 
  // Extract guest session manually before async context drops
- const guestSessionToken = request ? readCookieFromRequest(request, "wider_guest_session") : null;
+ const guestSessionToken = request ? readCookieFromRequest(request, "waesy_guest_session") : null;
 
  const supabase = await getSSRClient();
 
@@ -470,21 +470,21 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
  if (p?.role === "platform_admin") {
  // Localiza ou cria org
  let orgId: string;
- const { data: orgs } = await adminDb.from("organizations").select("id").eq("slug", "wider-org").limit(1);
+ const { data: orgs } = await adminDb.from("organizations").select("id").eq("slug", "waesy-org").limit(1);
  if (orgs && orgs.length > 0) {
  orgId = orgs[0].id;
  } else {
- const { data: newOrg } = await adminDb.from("organizations").insert({ name: "Wider Global", slug: "wider-org" }).select("id").single();
+ const { data: newOrg } = await adminDb.from("organizations").insert({ name: "Waesy Global", slug: "waesy-org" }).select("id").single();
  orgId = newOrg!.id;
  }
 
  // Localiza ou cria store
  let storeId: string;
- const { data: stores } = await adminDb.from("stores").select("id").eq("slug", "wider").limit(1);
+ const { data: stores } = await adminDb.from("stores").select("id").eq("slug", "waesy").limit(1);
  if (stores && stores.length > 0) {
  storeId = stores[0].id;
  } else {
- const { data: newStore } = await adminDb.from("stores").insert({ organization_id: orgId, name: "Wider", slug: "wider", settings: {}, is_platform_root: true, is_active: true }).select("id").single();
+ const { data: newStore } = await adminDb.from("stores").insert({ organization_id: orgId, name: "Waesy", slug: "waesy", settings: {}, is_platform_root: true, is_active: true }).select("id").single();
  storeId = newStore!.id;
  }
 
@@ -548,7 +548,7 @@ export const signOut = createServerFn({ method: "POST" }).handler(async () => {
  // Clear guest session manually using H3-compatible util
  setResponseHeader(
  "Set-Cookie",
- `wider_guest_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${
+ `waesy_guest_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${
  getEnvVar("VITE_SITE_URL")?.includes("localhost") ? "" : "; Secure"
  }`,
  );

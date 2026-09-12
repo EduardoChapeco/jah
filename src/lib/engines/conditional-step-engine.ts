@@ -1,5 +1,5 @@
 /**
- * JAH Conditional Step Engine
+ * Waesy Conditional Step Engine
  * Motor de Avaliação Condicional e Branching Dinâmico para Formulários, Checklists e Wizards Multi-Etapa.
  */
 

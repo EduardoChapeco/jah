@@ -1,4 +1,4 @@
--- Jah Commerce — Migration 20260812150000: Provide Shipping Quote RPC
+-- Waesy Commerce — Migration 20260812150000: Provide Shipping Quote RPC
 -- Permite que o painel admin forneça o valor do frete para um pedido "awaiting_shipping_quote"
 
 CREATE OR REPLACE FUNCTION public.provide_shipping_quote(

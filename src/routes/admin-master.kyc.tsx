@@ -33,7 +33,7 @@ import { formatDateTime } from "@/lib/datetime";
 import { ErrorState } from "@/components/state/states";
 
 export const Route = createFileRoute("/admin-master/kyc")({
- head: () => ({ meta: [{ title: "Verificação Facial & KYC | Admin Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Verificação Facial & KYC | Admin Waesy" }] }),
  loader: async () => {
  try {
  const kycList = await listKycVerifications({ data: { status: "all" } }).catch(() => []);

@@ -20,7 +20,7 @@ import { getStockLevels, adjustStock } from "@/services/stock.functions";
 import { getWaitlistDemandCounts } from "@/services/waitlist.functions";
 
 export const Route = createFileRoute("/workspace/estoque/alertas")({
- head: () => ({ meta: [{ title: "Alertas de Estoque | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Alertas de Estoque | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const res = await getStockLevels({ data: {} });

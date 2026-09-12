@@ -32,7 +32,7 @@ export const getAlgorithmParameters = createServerFn({ method: "GET" }).handler(
  // Fallback canônico seguro
  return {
  id: "00000000-0000-0000-0000-000000000001",
- name: "Algoritmo Canônico Wider Pulse v1",
+ name: "Algoritmo Canônico Waesy Pulse v1",
  weight_geo: 0.25,
  weight_open_status: 0.20,
  weight_user_affinity: 0.20,

@@ -1,5 +1,5 @@
 -- ============================================================================
--- JAH COMMUNITY PLATFORM — MODERATION REPORTS & TRUST & SAFETY SCHEMA
+-- Waesy COMMUNITY PLATFORM — MODERATION REPORTS & TRUST & SAFETY SCHEMA
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.moderation_reports (

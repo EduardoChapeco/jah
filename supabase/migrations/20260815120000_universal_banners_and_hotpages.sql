@@ -107,7 +107,7 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Garantir que a organização padrão exista
 INSERT INTO public.organizations (id, name, slug)
-VALUES ('00000000-0000-0000-0000-000000000001', 'Jah Organization', 'jah-org')
+VALUES ('00000000-0000-0000-0000-000000000001', 'Waesy Organization', 'waesy-org')
 ON CONFLICT (slug) DO NOTHING;
 
 -- [SEEDS LEGADOS DESATIVADOS PARA PRESERVAR ISOLAMENTO DE DADOS REAIS]
@@ -123,7 +123,7 @@ INSERT INTO banners (id, title, subtitle, badge_text, media_url, media_type, tar
 VALUES
   (
     'e0000000-0000-0000-0000-000000000001',
-    'Festival Gastronômico da Comunidade JAH',
+    'Festival Gastronômico da Comunidade Waesy',
     'Pratos autorais, hambúrgueres artesanais e cafés especiais com até 30% OFF nesta semana.',
     'Destaque da Cidade',
     'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1600&q=85',

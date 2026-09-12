@@ -19,7 +19,7 @@ import { listReviews, updateReviewStatus } from "@/services/cms.functions";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/cms/avaliacoes")({
- head: () => ({ meta: [{ title: "Avaliações & Moderação | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Avaliações & Moderação | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const res = await listReviews();

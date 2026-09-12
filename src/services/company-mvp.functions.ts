@@ -185,8 +185,7 @@ export const fastRegisterCompany = createServerFn({ method: "POST" })
         sameSite: "lax" as const,
         secure: isProd,
       };
-      setCookie("wider_store_id", store.id, cookieOpts);
-      setCookie("jah_store_id", store.id, cookieOpts);
+      setCookie("waesy_store_id", store.id, cookieOpts);
     } catch (e: any) {
       console.warn("[fastRegisterCompany] Aviso ao setar cookie:", e?.message);
     }
@@ -385,7 +384,7 @@ export const getCompanyReceiptData = createServerFn({ method: "GET" })
       deal,
       buyer: buyer || { full_name: "Cliente", phone: "" },
       store: store || {
-        name: "Empresa Parceira Wider",
+        name: "Empresa Parceira Waesy",
         cnpj: "",
         phone: "",
         address: "",

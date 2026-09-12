@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_store/redefinir-senha")({
  head: () => ({
  meta: [
  { title: "Redefinir Senha de Acesso" },
- { name: "description", content: "Crie uma nova senha segura para sua conta na plataforma Wider." },
+ { name: "description", content: "Crie uma nova senha segura para sua conta na plataforma Waesy." },
  ],
  }),
  loader: async () => {

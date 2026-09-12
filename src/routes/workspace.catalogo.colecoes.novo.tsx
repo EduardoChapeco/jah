@@ -22,7 +22,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { createCollection } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/workspace/catalogo/colecoes/novo")({
- head: () => ({ meta: [{ title: "Nova Coleção Inteligente | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Nova Coleção Inteligente | Workspace Waesy" }] }),
  component: NewCollectionPage,
 });
 

@@ -54,7 +54,7 @@ import {
 import { getStoreSettings } from '@/services/store.functions';
 
 export const Route = createFileRoute('/workspace/simlab/focus-group')({
-  head: () => ({ meta: [{ title: 'Console de Amostragem Sintética & Focus Group | JAH' }] }),
+  head: () => ({ meta: [{ title: 'Console de Amostragem Sintética & Focus Group | Waesy' }] }),
   loader: async () => {
     try {
     const store = await getStoreSettings().catch(() => null);

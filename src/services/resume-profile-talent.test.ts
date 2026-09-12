@@ -25,9 +25,9 @@ describe('Professional Resume 360° & Talent Intelligence ([REQ-1], [REQ-3])', (
           would_recommend: true,
         },
         {
-          id: 'exp_wider',
+          id: 'exp_waesy',
           title: 'Staff Software Architect',
-          company: 'Wider OS',
+          company: 'Waesy',
           location: 'Chapecó, SC',
           location_type: 'Remoto',
           employment_type: 'PJ',

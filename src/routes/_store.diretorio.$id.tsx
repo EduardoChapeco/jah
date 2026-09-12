@@ -26,8 +26,8 @@ export const Route = createFileRoute("/_store/diretorio/$id")({
     meta: [
       {
         title: loaderData?.listing
-          ? `${loaderData.listing.business_name || loaderData.listing.name} — Perfil Institucional | Wider`
-          : "Perfil Institucional | Wider OS",
+          ? `${loaderData.listing.business_name || loaderData.listing.name} — Perfil Institucional | Waesy`
+          : "Perfil Institucional | Waesy",
       },
       {
         name: "description",

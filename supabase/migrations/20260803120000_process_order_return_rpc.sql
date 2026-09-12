@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration: process_order_return RPC (RMA)
+-- Waesy Commerce — Migration: process_order_return RPC (RMA)
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION public.process_order_return(

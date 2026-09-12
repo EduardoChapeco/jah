@@ -23,7 +23,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/cadastro")({
  head: () => ({
- meta: [{ title: "Criar Conta — Wider OS" }],
+ meta: [{ title: "Criar Conta — Waesy" }],
  }),
  validateSearch: (search: Record<string, unknown>): { returnUrl?: string; error?: string } => {
  return {
@@ -77,9 +77,9 @@ function RegisterPage() {
  return;
  }
 
- toast.success("Conta criada com sucesso! Bem-vindo(a) ao Wider!");
+ toast.success("Conta criada com sucesso! Bem-vindo(a) à Waesy!");
  if (typeof window !== "undefined") {
- sessionStorage.setItem("jah_just_registered", "true");
+ sessionStorage.setItem("waesy_just_registered", "true");
  }
  await new Promise((r) => setTimeout(r, 100));
  await getUserSession().catch(() => null);
@@ -111,7 +111,7 @@ function RegisterPage() {
 
  <div className="relative z-10 flex flex-col h-full justify-between">
  <Link to="/" className="inline-flex items-center gap-2 text-xl font-bold tracking-tight">
- <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded-lg text-sm font-black">Wider</span>
+ <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded-lg text-sm font-black">Waesy</span>
  </Link>
  <div className="max-w-md">
  <h2 className="text-3xl font-bold tracking-tight leading-tight">

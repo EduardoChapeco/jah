@@ -1,5 +1,5 @@
 /**
- * _store.conta.carnes.tsx — Meus Carnês & Parcelamentos (Wider Community Platform)
+ * _store.conta.carnes.tsx — Meus Carnês & Parcelamentos (Plataforma Waesy)
  * Visão do cliente para gestão de compras parceladas direto com a loja.
  * Padrão Apple HIG, alvos de 44px, transparência contábil de juros/desconto e upload de comprovante.
  */
@@ -45,7 +45,7 @@ import { cn } from "@/lib/utils";
 import { listClientCarnes, submitInstallmentProof } from "@/services/receivables.functions";
 
 export const Route = createFileRoute("/_store/conta/carnes")({
-  head: () => ({ meta: [{ title: "Meus Carnês & Parcelas | Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Meus Carnês & Parcelas | Waesy" }] }),
   loader: async () => {
     try {
       const data = await listClientCarnes();

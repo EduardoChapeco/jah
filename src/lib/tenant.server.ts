@@ -10,10 +10,10 @@ import { getAnonServerClient } from "@/lib/supabase";
  */
 export async function resolveTenantStoreId(): Promise<string | null> {
  // 1. Cookie de sessão de tenant (definido por setTenantContext ou após createBusinessProfile)
- let activeTenantCookie = getCookie("jah_active_tenant") || getCookie("wider_active_tenant");
+ let activeTenantCookie = getCookie("waesy_active_tenant") || getCookie("jah_active_tenant") || getCookie("waesy_active_tenant");
  if (!activeTenantCookie) {
  const rawCookie = getRequestHeader("cookie") || "";
- const match = rawCookie.match(/(?:jah_active_tenant|wider_active_tenant)=([^;]+)/);
+ const match = rawCookie.match(/(?:waesy_active_tenant|jah_active_tenant|waesy_active_tenant)=([^;]+)/);
  if (match && match[1]) {
  activeTenantCookie = decodeURIComponent(match[1].trim());
  }
@@ -23,11 +23,11 @@ export async function resolveTenantStoreId(): Promise<string | null> {
  return activeTenantCookie;
  }
 
- // 2. Subdomínio (ex: "minha-loja.wider.com.br" → slug = "minha-loja")
+ // 2. Subdomínio (ex: "minha-loja.usewaesy.com" → slug = "minha-loja")
  const host = getRequestHeader("host");
  if (host) {
  const parts = host.split(".");
- if (parts.length > 1 && parts[0] !== "www" && parts[0] !== "wider") {
+ if (parts.length > 1 && parts[0] !== "www" && parts[0] !== "waesy" && parts[0] !== "usewaesy") {
  const slugToMatch = parts[0];
  const db = getAnonServerClient();
  const { data: matchedStore } = await db

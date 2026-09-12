@@ -260,7 +260,7 @@ export async function triggerSquadRun(
       const groqKey = !geminiKey ? await getNextActiveKey("groq") : null;
 
       if (geminiKey || groqKey) {
-        const systemPrompt = `Você é o agente líder ${leadAgent?.name || "Especialista Chefe"} (${leadAgent?.role_label || "Diretor Técnico"}), atuando no squad "${squadName}" do ecossistema JAH.
+        const systemPrompt = `Você é o agente líder ${leadAgent?.name || "Especialista Chefe"} (${leadAgent?.role_label || "Diretor Técnico"}), atuando no squad "${squadName}" do ecossistema Waesy.
 Sua missão é emitir um parecer analítico executivo rigoroso sobre a rotina da loja (Store ID: ${storeId}).
 Retorne EXCLUSIVAMENTE um JSON válido com a seguinte estrutura:
 {
@@ -523,7 +523,7 @@ export const listStoreSquadsFn = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
-    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+    if (data.storeId !== identity.store_id && !(identity.role === "platform_admin")) {
       throw new Error("Acesso não autorizado para esta organização.");
     }
     return listStoreSquads(data.storeId);
@@ -540,7 +540,7 @@ export const triggerSquadRunFn = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<any> => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
-    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+    if (data.storeId !== identity.store_id && !(identity.role === "platform_admin")) {
       throw new Error("Acesso não autorizado para esta organização.");
     }
     return triggerSquadRun(data.storeId, data.squadId, data.options);
@@ -556,7 +556,7 @@ export const approveSquadRunFn = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<any> => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
-    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+    if (data.storeId !== identity.store_id && !(identity.role === "platform_admin")) {
       throw new Error("Acesso não autorizado para esta organização.");
     }
     return approveSquadRun(data.storeId, data.runId);
@@ -580,7 +580,7 @@ export const createCustomSquadFromArchitectFn = createServerFn({ method: "POST" 
   .handler(async ({ data }) => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
-    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+    if (data.storeId !== identity.store_id && !(identity.role === "platform_admin")) {
       throw new Error("Acesso não autorizado para esta organização.");
     }
     const sql = await getDb();

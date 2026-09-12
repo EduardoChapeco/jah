@@ -18,7 +18,7 @@ export const setTenantContext = createServerFn({ method: "POST" })
 
  if (store_id === null) {
  try {
- setCookie("wider_active_tenant", "", {
+ setCookie("waesy_active_tenant", "", {
  path: "/",
  maxAge: 0,
  httpOnly: true,
@@ -54,7 +54,7 @@ export const setTenantContext = createServerFn({ method: "POST" })
  { onConflict: "profile_id,store_id" },
  );
  // NOTA: profiles.store_id foi removida na migração de identidade.
- // O contexto de loja ativo é resolvido via workspace_members + cookie wider_active_tenant.
+ // O contexto de loja ativo é resolvido via workspace_members + cookie waesy_active_tenant.
  } catch (e) {
  console.warn("[setTenantContext] Upsert em workspace_members / profiles:", e);
  }
@@ -62,7 +62,7 @@ export const setTenantContext = createServerFn({ method: "POST" })
 
  // 3. Persiste o cookie do tenant ativo
  try {
- setCookie("wider_active_tenant", store_id, {
+ setCookie("waesy_active_tenant", store_id, {
  path: "/",
  maxAge: 60 * 60 * 24 * 30,
  httpOnly: false,
@@ -149,7 +149,7 @@ export const createBusinessProfile = createServerFn({ method: "POST" })
 
  // 4. Seta o tenant ativo
  try {
- setCookie("wider_active_tenant", store.id, {
+ setCookie("waesy_active_tenant", store.id, {
  path: "/",
  maxAge: 60 * 60 * 24 * 30,
  httpOnly: true,

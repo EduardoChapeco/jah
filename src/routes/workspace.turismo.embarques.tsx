@@ -324,7 +324,7 @@ function WorkspaceBoardingPage() {
           <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #000000; padding-bottom: 20px; margin-bottom: 25px;">
             <div>
               <h1 style="font-size: 22px; font-weight: 800; margin: 0; color: #151515; letter-spacing: -0.5px; text-transform: uppercase;">GUIA DE EMBARQUE & ROTEIRO</h1>
-              <p style="font-size: 11px; color: #777168; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Wider Turismo & Inteligência Operacional</p>
+              <p style="font-size: 11px; color: #777168; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Waesy Turismo & Inteligência Operacional</p>
             </div>
             <div style="text-align: right;">
               <span style="font-size: 14px; font-weight: 800; color: #000000; font-family: monospace;">LOCALIZADOR: ${pnr}</span>

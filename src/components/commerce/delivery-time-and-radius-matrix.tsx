@@ -166,7 +166,7 @@ export function DeliveryTimeAndRadiusMatrix({
  </div>
 
  <div className="text-[11px] text-muted-foreground font-medium hidden sm:block">
- Canal de venda: <strong className="text-foreground">App & Web Wider</strong>
+ Canal de venda: <strong className="text-foreground">App & Web Waesy</strong>
  </div>
  </div>
 

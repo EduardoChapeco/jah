@@ -58,7 +58,7 @@ import { getProductById } from "@/services/admin-catalog.functions";
 import { exportElementAsImage } from "@/lib/pdf-export";
 
 export const Route = createFileRoute("/workspace/estudio/")({
- head: () => ({ meta: [{ title: "Wider Studio — Criação & Vídeo | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Waesy Studio — Criação & Vídeo | Workspace Waesy" }] }),
  validateSearch: (search: Record<string, unknown>) => {
  return {
  projectId: search.projectId as string | undefined,

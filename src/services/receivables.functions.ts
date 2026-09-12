@@ -318,7 +318,7 @@ export const listStoreCarnes = createServerFn({ method: "GET" })
 
     const targetStoreId = input.storeId || serverIdentity.store_id;
     if (targetStoreId) {
-      assertStoreAccess(serverIdentity, targetStoreId);
+      assertStoreAccess(serverIdentity, undefined, targetStoreId);
     }
 
     let query = supabase
@@ -734,7 +734,7 @@ export const createStoreCarne = createServerFn({ method: "POST" })
 
     const storeId = input.storeId || serverIdentity.store_id;
     if (storeId) {
-      assertStoreAccess(serverIdentity, storeId);
+      assertStoreAccess(serverIdentity, undefined, storeId);
     }
 
     const { data: result, error } = await supabase.rpc("create_receivable_with_installments", {
@@ -783,7 +783,7 @@ export const getCarnesReportSummary = createServerFn({ method: "GET" })
 
     const storeId = input.storeId || serverIdentity.store_id;
     if (storeId) {
-      assertStoreAccess(serverIdentity, storeId);
+      assertStoreAccess(serverIdentity, undefined, storeId);
     }
 
     let query = supabase

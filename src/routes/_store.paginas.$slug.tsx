@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_store/paginas/$slug")({
  if (!loaderData || !loaderData.document) return { meta: [{ title: "Página não encontrada" }] };
  const storeId = loaderData.document.store_id;
  return {
- title: `${loaderData.document.title} — Wider`,
+ title: `${loaderData.document.title} — Waesy`,
  meta: [
  { name: "description", content: loaderData.document.title },
  { name: "apple-mobile-web-app-capable", content: "yes" },

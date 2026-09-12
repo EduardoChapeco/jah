@@ -1,4 +1,4 @@
-# 🏛️ MATRIZ TRILATERAL DE CASOS DE USO & GOVERNANÇA E2E (JAH SUPER APP)
+# 🏛️ MATRIZ TRILATERAL DE CASOS DE USO & GOVERNANÇA E2E (Waesy SUPER APP)
 
 > **Documento Estratégico e Vinculante do Conselho Executivo de BigTech**
 > Mapeamento completo dos 12 Domínios Operacionais sob a ótica dos 3 Atores do Ecossistema:
@@ -54,7 +54,7 @@
 | :--- | :--- | :--- | :--- |
 | **Busca & Ficha do Imóvel** | Filtra por finalidade (*Aluguel* / *Venda*), bairro, número de quartos, vagas, m² e comodidades (piscina, varanda). | Publica ficha técnica completa com fotos em alta definição, tour virtual e termos de garantia locatícia. | Audita anúncios duplicados ou imobiliárias sem CRECI válido; remove anúncios fantasmas. |
 | **Proposta & Locação** | Envia proposta formal com documentação pessoal, comprovante de renda e solicita agendamento de vistoria. | Analisa propostas no pipeline, emite contrato de locação digital e vincula inquilino ao imóvel. | Guarda log imutável de aceite contratual e assinaturas eletrônicas para validade jurídica. |
-| **Central de Manutenção** | Abre chamado de reparo pelo app anexando fotos/vídeos do vazamento/dano e urgência (*Baixa*, *Alta*, *Emergência*). | Recebe chamados em [`workspace.imoveis.manutencoes`](file:///c:/Users/Excelência Tour SMO/Documents/jah/src/routes/workspace.imoveis.manutencoes.tsx), aprova orçamento com prestador e dá baixa na OS. | Dossiê de chamados aberto serve de prova pericial em rescisões litigiosas de contrato de aluguel. |
+| **Central de Manutenção** | Abre chamado de reparo pelo app anexando fotos/vídeos do vazamento/dano e urgência (*Baixa*, *Alta*, *Emergência*). | Recebe chamados em [`workspace.imoveis.manutencoes`](file:///c:/Users/Excelência Tour SMO/Documents/waesy/src/routes/workspace.imoveis.manutencoes.tsx), aprova orçamento com prestador e dá baixa na OS. | Dossiê de chamados aberto serve de prova pericial em rescisões litigiosas de contrato de aluguel. |
 
 ---
 
@@ -140,9 +140,9 @@
 
 | Pilar de Governança | Capacidade Operacional Master | Ferramenta / Contrato Vinculante |
 | :--- | :--- | :--- |
-| **1. Trust & Safety** | Moderação de denúncias com 4 ações: Remover Conteúdo, Advertir Autor, Banir Usuário, Dispensar. | [`admin-master.denuncias.tsx`](file:///c:/Users/Excelência Tour SMO/Documents/jah/src/routes/admin-master.denuncias.tsx) / `resolveModerationReport` |
-| **2. Sanções Granulares** | Punições parciais por tipo de ação (`mute_comments`, `block_posts`, `block_classifieds`, `block_commerce`). | [`admin-master.usuarios.tsx`](file:///c:/Users/Excelência Tour SMO/Documents/jah/src/routes/admin-master.usuarios.tsx) / `applyUserSanction` |
-| **3. KYC & Verificação Facial** | Comparação visual de selfie com documento oficial e concessão de selo verificado. | [`admin-master.kyc.tsx`](file:///c:/Users/Excelência Tour SMO/Documents/jah/src/routes/admin-master.kyc.tsx) / `reviewKycVerification` |
-| **4. Dossiê Judicial 360º** | Snapshot probatório completo de tudo que o usuário fez com certificação criptográfica SHA-256. | `getUser360Dossier` em [`master.functions.ts`](file:///c:/Users/Excelência Tour SMO/Documents/jah/src/services/master.functions.ts) |
+| **1. Trust & Safety** | Moderação de denúncias com 4 ações: Remover Conteúdo, Advertir Autor, Banir Usuário, Dispensar. | [`admin-master.denuncias.tsx`](file:///c:/Users/Excelência Tour SMO/Documents/waesy/src/routes/admin-master.denuncias.tsx) / `resolveModerationReport` |
+| **2. Sanções Granulares** | Punições parciais por tipo de ação (`mute_comments`, `block_posts`, `block_classifieds`, `block_commerce`). | [`admin-master.usuarios.tsx`](file:///c:/Users/Excelência Tour SMO/Documents/waesy/src/routes/admin-master.usuarios.tsx) / `applyUserSanction` |
+| **3. KYC & Verificação Facial** | Comparação visual de selfie com documento oficial e concessão de selo verificado. | [`admin-master.kyc.tsx`](file:///c:/Users/Excelência Tour SMO/Documents/waesy/src/routes/admin-master.kyc.tsx) / `reviewKycVerification` |
+| **4. Dossiê Judicial 360º** | Snapshot probatório completo de tudo que o usuário fez com certificação criptográfica SHA-256. | `getUser360Dossier` em [`master.functions.ts`](file:///c:/Users/Excelência Tour SMO/Documents/waesy/src/services/master.functions.ts) |
 | **5. Intervenção em Empresas** | Bloqueio imediato de checkout, ocultação de catálogo e congelamento de repasses de lojas infratoras. | `toggleStoreStatus` com registro em `forensic_audit_events` |
 | **6. Vault de Consentimento LGPD** | Log forense de todos os aceites de termos com IP, User-Agent, Session ID e versão das políticas. | Tabela `legal_terms_acceptances` e verificação no perfil |

@@ -618,7 +618,7 @@ function PublicLeadPassageirosPage() {
 
       {/* Rodapé institucional silencioso */}
       <footer className="mt-8 text-center text-[11px] text-muted-foreground/60 py-4">
-        Plataforma Segura Wider OS · Criptografia de ponta a ponta
+        Plataforma Segura Waesy · Criptografia de ponta a ponta
       </footer>
     </div>
   );

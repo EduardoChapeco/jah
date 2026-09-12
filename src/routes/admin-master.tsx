@@ -8,17 +8,32 @@ export const Route = createFileRoute("/admin-master")({
   beforeLoad: async () => {
     try {
       const session = await getUserSession();
-      const role = session?.role || session?.user?.user_metadata?.role || session?.user?.role;
+      if (!session) {
+        throw redirect({ to: "/entrar", search: { returnUrl: "/admin-master" } });
+      }
+      const role = session?.role || session?.user?.user_metadata?.role || (session?.user as any)?.role;
       const isMasterFlag = session?.user?.user_metadata?.is_admin_master || session?.user?.user_metadata?.is_superadmin;
-      if (role !== "platform_admin" && role !== "master" && role !== "admin_master" && !isMasterFlag) {
+      const email = session?.email?.toLowerCase() || session?.user?.email?.toLowerCase() || "";
+      const MASTER_EMAILS = [
+        "contato@usewaesy.com",
+        "admin@usewaesy.com",
+        "meuwaesy@gmail.com",
+        "meuwider@gmail.com",
+        "excelenciatour.smo@gmail.com",
+        "admin@jah.com",
+      ];
+      const isMasterEmail = MASTER_EMAILS.includes(email);
+
+      const isAdmin = role === "platform_admin" || role === "master" || role === "admin_master" || isMasterFlag || isMasterEmail;
+      if (!isAdmin) {
         throw redirect({ to: "/entrar", search: { returnUrl: "/admin-master" } });
       }
     } catch (e: any) {
- if (isRedirect(e)) throw e;
- throw redirect({ to: "/entrar", search: { returnUrl: "/admin-master" } });
- }
- },
- component: AdminMasterLayout,
+      if (isRedirect(e)) throw e;
+      throw redirect({ to: "/entrar", search: { returnUrl: "/admin-master" } });
+    }
+  },
+  component: AdminMasterLayout,
 });
 
 const NAV_SECTIONS = [
@@ -88,7 +103,7 @@ function AdminMasterLayout() {
  <Shield className="size-4.5" />
  </div>
  <div>
- <span className="font-bold text-sm tracking-tight block leading-tight">Wider Master</span>
+ <span className="font-bold text-sm tracking-tight block leading-tight">Waesy Master</span>
  <span className="text-[10px] text-muted-foreground font-medium">Administração Global</span>
  </div>
  </div>
@@ -168,7 +183,7 @@ function AdminMasterLayout() {
  <div className="h-14 px-4 border-b border-border/40 flex items-center justify-between shrink-0">
  <div className="flex items-center gap-2 text-primary font-bold text-sm">
  <Shield className="size-5" />
- <span>Wider Master</span>
+ <span>Waesy Master</span>
  </div>
  <Button
  variant="ghost"

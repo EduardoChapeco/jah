@@ -192,7 +192,7 @@ export const getProtectedWhatsAppContact = createServerFn({ method: "POST" })
 
     const messageText = input.custom_message
       ? `${input.custom_message.trim()}\n\nRef: #${leadCode}`
-      : `Olá! Vi o anúncio "${input.entity_title || "no Wider"}" e tenho interesse. Ainda está disponível?\n\nRef: #${leadCode}`;
+      : `Olá! Vi o anúncio "${input.entity_title || "na Waesy"}" e tenho interesse. Ainda está disponível?\n\nRef: #${leadCode}`;
 
     const targetUrl = `https://wa.me/${cleanWithDdi}?text=${encodeURIComponent(messageText)}`;
 

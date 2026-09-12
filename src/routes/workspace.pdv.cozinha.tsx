@@ -126,7 +126,7 @@ function playKitchenChime() {
 }
 
 export const Route = createFileRoute("/workspace/pdv/cozinha")({
- head: () => ({ meta: [{ title: "KDS Cozinha — Estação de Preparo | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "KDS Cozinha — Estação de Preparo | Waesy" }] }),
  loader: async () => {
  try {
  const store = await getStoreSettings().catch(() => null);
@@ -642,7 +642,7 @@ function KDSDashboard() {
  </div>
 
  <div className="border-t border-dashed border-neutral-400 pt-2 text-center text-[10px] text-neutral-500">
- Impresso via Wider Cozinha Inteligente
+ Impresso via Waesy Cozinha Inteligente
  </div>
  </div>
  </div>

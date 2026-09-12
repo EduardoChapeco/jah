@@ -39,7 +39,7 @@ import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-cano
 import { WorkspaceDashboardSheet } from "@/components/workspace/workspace-dashboard-sheet";
 
 export const Route = createFileRoute("/workspace/turismo/propostas/")({
- head: () => ({ meta: [{ title: "Propostas de Viagem | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Propostas de Viagem | Workspace Waesy" }] }),
  validateSearch: (search: Record<string, unknown>): {
   leadId?: string;
   clientName?: string;

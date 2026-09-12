@@ -15,7 +15,7 @@ import {
 } from "@/components/workspace/quick-store-editor-dialog";
 
 export const Route = createFileRoute("/workspace/lojas/")({
- head: () => ({ meta: [{ title: "Minhas Lojas & Negócios | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Minhas Lojas & Negócios | Workspace Waesy" }] }),
   loader: async () => {
     try {
       const stores = await getMyStoresList();
@@ -42,7 +42,7 @@ export default function WorkspaceLojasPage() {
  setSwitchingId(storeId);
  try {
  if (typeof window !== "undefined") {
- window.document.cookie = `jah_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`; window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
+ window.document.cookie = `waesy_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
  }
  const res = await setTenantContext({ data: { store_id: storeId } }).catch(() => null);
  toast.success(`Contexto alterado para ${res?.storeName || storeName}`);
@@ -288,7 +288,7 @@ export default function WorkspaceLojasPage() {
  </h3>
  </div>
  <p className="text-xs text-muted-foreground font-mono">
- jah.os/{st.slug}
+ usewaesy.com/{st.slug}
  </p>
 
  {st.description && (

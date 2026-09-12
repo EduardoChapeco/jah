@@ -15,7 +15,7 @@ export function Logo({ src, className, ...props }: Omit<ComponentProps<"img">, "
  return (
  <img
  src={src}
- alt="Wider — Super App & Comunidade"
+ alt="Waesy — Super App & Comunidade"
  className={cn(
  "h-8 w-auto max-w-[240px] select-none object-contain bg-transparent mix-blend-normal",
  className,
@@ -33,7 +33,7 @@ export function Logo({ src, className, ...props }: Omit<ComponentProps<"img">, "
  className,
  )}
  >
- Wider
+ Waesy
  </span>
  );
 }

@@ -1,4 +1,4 @@
-# G8: Change Propagation Matrix (Matriz de Propagação Jah)
+# G8: Change Propagation Matrix (Matriz de Propagação Waesy)
 
 > **Matriz de Sincronização, Invalidação de Cache e Propagação de Mutações**
 

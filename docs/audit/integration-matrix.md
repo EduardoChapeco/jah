@@ -1,4 +1,4 @@
-# G8: Integration Matrix (Matriz Canônica de Integrações Jah)
+# G8: Integration Matrix (Matriz Canônica de Integrações Waesy)
 
 > **Matriz de Integrações com Serviços Terceiros, Gateways e Invalidações**
 

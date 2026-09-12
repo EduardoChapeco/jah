@@ -98,7 +98,7 @@ export function PublicHeader({
  <Link
  to="/"
  className="flex items-center gap-3 shrink-0"
- aria-label={`${storeName || "Wider"} — início`}
+ aria-label={`${storeName || "Waesy"} — início`}
  >
  <Logo src={logoUrl} className="max-h-12 w-auto h-auto" />
  {logoUrl && storeName && !hideNameWithLogo && (

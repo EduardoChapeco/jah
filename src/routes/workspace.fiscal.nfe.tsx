@@ -48,7 +48,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/fiscal/nfe")({
   head: () => ({
-    meta: [{ title: "Módulo Fiscal & NF-e | Workspace Wider OS" }],
+    meta: [{ title: "Módulo Fiscal & NF-e | Workspace Waesy" }],
   }),
   loader: async () => {
     try {

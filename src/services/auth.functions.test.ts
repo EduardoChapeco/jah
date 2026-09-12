@@ -6,7 +6,7 @@ describe("Autenticação e Identidade — Ciclo 1 Microfase 1.1", () => {
  describe("Validação de Contratos e Schemas Zod", () => {
  it("valida login com identificador por e-mail", () => {
  const validEmailLogin = {
- identifier: "operador@jah.os",
+ identifier: "operador@usewaesy.com",
  password: "Password123!",
  };
  const parsed = LoginSchema.safeParse(validEmailLogin);
@@ -24,7 +24,7 @@ describe("Autenticação e Identidade — Ciclo 1 Microfase 1.1", () => {
 
  it("rejeita senha em branco no login", () => {
  const emptyPasswordLogin = {
- identifier: "usuario@jah.os",
+ identifier: "usuario@usewaesy.com",
  password: "",
  };
  const parsed = LoginSchema.safeParse(emptyPasswordLogin);
@@ -33,8 +33,8 @@ describe("Autenticação e Identidade — Ciclo 1 Microfase 1.1", () => {
 
  it("valida cadastro com consentimento LGPD obrigatório", () => {
  const validRegister = {
- fullName: "Administrador JAH",
- email: "admin@jah.os",
+ fullName: "Administrador Waesy",
+ email: "admin@usewaesy.com",
  password: "SegredoForte2026!",
  isConsentLgpd: true as const,
  };
@@ -45,7 +45,7 @@ describe("Autenticação e Identidade — Ciclo 1 Microfase 1.1", () => {
  it("rejeita cadastro sem consentimento LGPD", () => {
  const invalidRegister = {
  fullName: "Usuário Teste",
- email: "teste@jah.os",
+ email: "teste@usewaesy.com",
  password: "SegredoForte2026!",
  isConsentLgpd: false,
  };

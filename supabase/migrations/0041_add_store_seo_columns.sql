@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0041: Add Store SEO Columns
+-- Waesy Commerce — Migration 0041: Add Store SEO Columns
 -- ============================================================================
 -- Adds missing columns on public.stores that are queried by the application
 -- for store-wide SEO settings.

@@ -11,7 +11,7 @@
  */
 import { useEffect, useRef, useState, useCallback } from "react";
 
-const DRAFT_PREFIX = "jah:classified-draft:";
+const DRAFT_PREFIX = "waesy:classified-draft:";
 const AUTOSAVE_DEBOUNCE_MS = 1500;
 
 export type DraftSaveStatus = "idle" | "saving" | "saved" | "error";

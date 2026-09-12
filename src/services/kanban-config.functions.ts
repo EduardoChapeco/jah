@@ -1,5 +1,5 @@
 /**
- * Kanban Configuration Server Functions (Wider BFF)
+ * Kanban Configuration Server Functions (Waesy BFF)
  * 
  * Permite que lojistas e gestores personalizem colunas, nomes, cores e propósitos de Kanbans
  * (Tarefas, Comercial/CRM, Orçamentos, Suporte, Turismo).

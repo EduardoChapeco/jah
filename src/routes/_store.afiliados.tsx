@@ -70,11 +70,11 @@ import { getProfile } from "@/services/auth.functions";
 export const Route = createFileRoute("/_store/afiliados")({
   head: () => ({
     meta: [
-      { title: "Parceiros & Criadores de Conteúdo | Wider" },
+      { title: "Parceiros & Criadores de Conteúdo | Waesy" },
       {
         name: "description",
         content:
-          "Monetize suas recomendações com vitrines digitais, cupons de lojas locais e acumulação de tokens na rede Wider.",
+          "Monetize suas recomendações com vitrines digitais, cupons de lojas locais e acumulação de tokens na Rede Waesy.",
       },
     ],
   }),
@@ -132,7 +132,7 @@ function AfiliadosPage() {
   const rules = overview?.rules || [];
   const creator = overview?.creatorProfile;
 
-  const siteUrl = typeof window !== "undefined" ? window.location.origin : "https://wider.app.br";
+  const siteUrl = typeof window !== "undefined" ? window.location.origin : "https://usewaesy.com.br";
   const referralHandle = partner?.handle || creator?.handle || "";
   const generalAffiliateUrl = referralHandle ? `${siteUrl}/?ref=${referralHandle}` : "";
   const creatorShowcaseUrl = referralHandle ? `${siteUrl}/u/${referralHandle}` : "";
@@ -316,7 +316,7 @@ function AfiliadosPage() {
       await registerAffiliate({
         data: {
           handle: onboardingHandle.trim().toLowerCase(),
-          displayName: onboardingName.trim() || loaderProfile?.full_name || "Criador Wider",
+          displayName: onboardingName.trim() || loaderProfile?.full_name || "Criador Waesy",
           bio: onboardingBio.trim() || undefined,
           category: onboardingCategory,
         },
@@ -350,7 +350,7 @@ function AfiliadosPage() {
       await upsertCreatorProfile({
         data: {
           handle: referralHandle,
-          stageName: creatorStageName.trim() || partner?.display_name || "Criador Wider",
+          stageName: creatorStageName.trim() || partner?.display_name || "Criador Waesy",
           bio: creatorBio.trim() || undefined,
           category: creatorCategory,
           avatarUrl: creatorAvatarUrl || undefined,
@@ -582,7 +582,7 @@ function AfiliadosPage() {
                         size="sm"
                         onClick={() =>
                           handleShareWhatsApp(
-                            `Acesse as novidades, lojas e cupons exclusivos na minha vitrine Wider:`,
+                            `Acesse as novidades, lojas e cupons exclusivos na minha vitrine Waesy:`,
                             generalAffiliateUrl
                           )
                         }
@@ -1677,7 +1677,7 @@ function AfiliadosPage() {
                 <div className="space-y-1">
                   <h2 className="text-base font-bold text-foreground">Seu Modelo de Monetização</h2>
                   <p className="text-xs text-muted-foreground">
-                    Como você é remunerado na rede Wider de forma transparente:
+                    Como você é remunerado na Rede Waesy de forma transparente:
                   </p>
                 </div>
 

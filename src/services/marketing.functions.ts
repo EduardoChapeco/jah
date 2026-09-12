@@ -179,7 +179,7 @@ export const createCampaign = createServerFn({ method: "POST" })
 
     const { data: camp, error } = await supabase
       .from("eventos_campanhas")
-      .insert({ empresa_id: identity.empresa_id, ...data })
+      .insert({ empresa_id: (identity as any).empresa_id, ...data })
       .select()
       .single();
 
@@ -198,7 +198,7 @@ export const updateCampaignStatus = createServerFn({ method: "POST" })
       .from("eventos_campanhas")
       .update({ status: data.status })
       .eq("id", data.id)
-      .eq("empresa_id", identity.empresa_id);
+      .eq("empresa_id", (identity as any).empresa_id);
 
     if (error) throw error;
     return { ok: true };
@@ -215,7 +215,7 @@ export const deleteCampaign = createServerFn({ method: "POST" })
       .from("eventos_campanhas")
       .delete()
       .eq("id", data.id)
-      .eq("empresa_id", identity.empresa_id);
+      .eq("empresa_id", (identity as any).empresa_id);
 
     if (error) throw error;
     return { ok: true };
@@ -232,13 +232,13 @@ export const duplicateCampaign = createServerFn({ method: "POST" })
       .from("eventos_campanhas")
       .select("*")
       .eq("id", data.id)
-      .eq("empresa_id", identity.empresa_id)
+      .eq("empresa_id", (identity as any).empresa_id)
       .single();
 
     if (fetchErr || !orig) throw fetchErr ?? new Error("Campanha nao encontrada");
 
     const { error } = await supabase.from("eventos_campanhas").insert({
-      empresa_id: identity.empresa_id,
+      empresa_id: (identity as any).empresa_id,
       nome: orig.nome + " (copia)",
       descricao: orig.descricao,
       tipo: orig.tipo,

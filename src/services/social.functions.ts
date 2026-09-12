@@ -3,6 +3,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
 import { getCurrentIdentity } from "@/services/cart-helpers";
+import { getUserSession } from "@/services/auth.functions";
+
 
 export const toggleStoreFollow = createServerFn({ method: "POST" })
  .validator(z.object({ storeId: z.string().optional() }).optional())
@@ -499,7 +501,7 @@ export const getMuralFeed = createServerFn({ method: "GET" })
         id: p.id,
         author: {
           id: p.author_store_id || p.author_profile_id,
-          name: is_store ? store.name : (prof?.full_name || "").trim() || "Membro da Wider",
+          name: is_store ? store.name : (prof?.full_name || "").trim() || "Membro da Waesy",
           avatar_url: is_store ? storeLogo : (prof?.avatar_url ?? null),
           is_store,
         },
@@ -705,7 +707,7 @@ export const createPost = createServerFn({ method: "POST" })
           .upsert({
             id: authorProfileId,
             full_name:
-              user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Membro Wider",
+              user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Membro Waesy",
             email: user?.email || null,
             avatar_url: user?.user_metadata?.avatar_url || null,
             updated_at: new Date().toISOString(),
@@ -1179,7 +1181,7 @@ export const searchStoresForCompanyAutocomplete = createServerFn({ method: "GET"
  });
 
 /**
- * Atualiza os dados do currículo/perfil profissional (LinkedIn style) de forma atômica
+ * Atualiza os dados do currículo/perfil profissional (Padrão Corporativo Waesy) de forma atômica
  */
 export const updateMemberResumeData = createServerFn({ method: "POST" })
  .validator(
@@ -1204,7 +1206,7 @@ export const updateMemberResumeData = createServerFn({ method: "POST" })
  throw new Error(error.message);
  }
 
- // Sincroniza avaliações de empregadores para inteligência comunitária (InfoJobs / Glassdoor style)
+ // Sincroniza avaliações de empregadores para inteligência comunitária (Avaliação Corporativa)
  if (Array.isArray(resumeData.experiences)) {
  for (const exp of resumeData.experiences) {
  if (exp.company && (exp.company_rating || exp.salary_cents || exp.exit_reason || exp.review_text)) {
@@ -1362,7 +1364,7 @@ export const getPublicMemberProfile = createServerFn({ method: "GET" })
 
  rawProfile = {
  id: creatorMatch.user_id,
- full_name: creatorMatch.name || "Criador Wider",
+ full_name: creatorMatch.name || "Criador Waesy",
  username: creatorMatch.handle,
  avatar_url: creatorMatch.avatar_url || null, // NEVER fall back to personal civil face photo!
  cover_url: creatorMatch.cover_url || null,   // NEVER fall back to personal civil cover!
@@ -1638,7 +1640,7 @@ export const getPublicMemberProfile = createServerFn({ method: "GET" })
  city: s.city || "Chapecó",
  state: s.state || "SC",
  segment: s.segment || "Varejo",
- couponCode: `${(creatorProfile.handle || "WIDER").toUpperCase().slice(0, 6)}10`,
+ couponCode: `${(creatorProfile.handle || "WAESY").toUpperCase().slice(0, 6)}10`,
  discountPercent: 10,
  }));
  } catch (err) {
@@ -1914,7 +1916,7 @@ export const listPostComments = createServerFn({ method: "GET" })
  created_at: r.created_at,
  author: {
  id: prof.id || r.profile_id,
- name: prof.full_name || "Membro Wider",
+ name: prof.full_name || "Membro Waesy",
  username: prof.username || null,
  avatar_url: prof.avatar_url || null,
  },
@@ -2421,8 +2423,8 @@ export const getPostById = createServerFn({ method: "GET" })
           title: prod.title,
           price_cents: prod.price_cents,
           image_url: prod.images?.[0] || null,
-          store_name: prod.store?.name || null,
-          store_slug: prod.store?.slug || null,
+          store_name: (prod.store as any)?.name || null,
+          store_slug: (prod.store as any)?.slug || null,
         };
       }
     } else if (post.reference_type === "event" && post.reference_id) {
@@ -2457,11 +2459,11 @@ export const getPostById = createServerFn({ method: "GET" })
       comments_count: commentsCount,
       user_liked: userLiked,
       author: {
-        id: post.profile?.id || "unknown",
-        name: post.profile?.full_name || "Membro da Comunidade",
-        username: post.profile?.username || null,
-        avatar_url: post.profile?.avatar_url || null,
-      },
+        id: (post.profile as any)?.id || (Array.isArray(post.profile) ? (post.profile as any[])[0]?.id : null) || "unknown",
+        name: (post.profile as any)?.full_name || (Array.isArray(post.profile) ? (post.profile as any[])[0]?.full_name : null) || "Membro da Comunidade",
+        is_store: false,
+        avatar_url: (post.profile as any)?.avatar_url || (Array.isArray(post.profile) ? (post.profile as any[])[0]?.avatar_url : null) || null,
+      } as any,
       reference_data: referenceData,
     };
 

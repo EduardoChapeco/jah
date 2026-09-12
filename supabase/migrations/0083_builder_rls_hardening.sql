@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0083: Builder CMS RLS Hardening
+-- Waesy Commerce — Migration 0083: Builder CMS RLS Hardening
 -- ============================================================================
 -- Ativação das regras de acesso completo para gravação, edição e deleção
 -- de Nós (Nodes), Versões (Versions) e Documentos (Documents) do CMS,

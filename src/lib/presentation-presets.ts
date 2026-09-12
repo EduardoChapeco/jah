@@ -1,5 +1,5 @@
 /**
- * Presentation Presets & Post Themes (Derivado do Wider Luma Themes Engine)
+ * Presentation Presets & Post Themes (Waesy Themes Engine)
  * Permite ao autor escolher a cara pública do post sem alterar o dado canônico.
  */
 

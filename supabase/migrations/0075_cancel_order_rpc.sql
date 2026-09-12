@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0075: Cancel Order RPC
+-- Waesy Commerce — Migration 0075: Cancel Order RPC
 -- ============================================================================
 -- Cria a RPC atômica para cancelamento de pedidos, garantindo que o estoque 
 -- seja devolvido à prateleira e as comissões do vendedor sejam estornadas.

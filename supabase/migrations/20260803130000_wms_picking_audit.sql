@@ -1,4 +1,4 @@
--- Jah Commerce — Migration 20260803130000: WMS Picking Audit and Enforcement
+-- Waesy Commerce — Migration 20260803130000: WMS Picking Audit and Enforcement
 
 -- 1. Create wms_picking_sessions
 CREATE TABLE public.wms_picking_sessions (

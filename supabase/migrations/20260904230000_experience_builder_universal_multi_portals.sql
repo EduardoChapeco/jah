@@ -1,5 +1,5 @@
 -- ============================================================================
--- MIGRATION: BUILDER & EDITOR UNIVERSAL DE EXPERIÊNCIAS JAH (MULTI-PORTAL 360)
+-- MIGRATION: BUILDER & EDITOR UNIVERSAL DE EXPERIÊNCIAS Waesy (MULTI-PORTAL 360)
 -- Version: 20260904230000
 -- ============================================================================
 
@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS public.reputation_interactions (
 
 CREATE INDEX IF NOT EXISTS idx_rep_interactions_complaint ON public.reputation_interactions(complaint_id);
 
--- 11. Suíte JAH Office: Documentos, Minutas e Modelos Contratuais
+-- 11. Suíte Waesy Office: Documentos, Minutas e Modelos Contratuais
 CREATE TABLE IF NOT EXISTS public.office_documents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,
@@ -202,7 +202,7 @@ CREATE TABLE IF NOT EXISTS public.office_documents (
 
 CREATE INDEX IF NOT EXISTS idx_office_docs_store_cat ON public.office_documents(store_id, category);
 
--- 12. JAH Creative Studio: Banners, Flyers e Criativos Visuais
+-- 12. Waesy Creative Studio: Banners, Flyers e Criativos Visuais
 CREATE TABLE IF NOT EXISTS public.marketing_creatives (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,

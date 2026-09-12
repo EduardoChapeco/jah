@@ -25,7 +25,7 @@ export function TableOrderComandaSection({
  orderUrl ||
  (typeof window !== "undefined"
  ? `${window.location.origin}/mesa/${tableNumber}`
- : `https://jah.com.br/mesa/${tableNumber}`);
+ : `https://usewaesy.com/mesa/${tableNumber}`);
  const activeQrCode =
  qrCodeUrl ||
  `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(activeOrderUrl)}`;

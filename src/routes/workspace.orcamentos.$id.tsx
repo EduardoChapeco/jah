@@ -41,7 +41,7 @@ import { formatMoney } from "@/lib/money";
 import { formatRelativeTime } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/orcamentos/$id")({
- head: () => ({ meta: [{ title: "Detalhe do Orçamento | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Detalhe do Orçamento | Workspace Waesy" }] }),
  loader: async ({ params }) => {
    try {
  const data = await getQuoteDetail({ data: { quote_id: params.id } });

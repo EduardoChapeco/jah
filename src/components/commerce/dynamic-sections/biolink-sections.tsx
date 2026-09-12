@@ -134,7 +134,7 @@ export function BiolinkPixCardSection({
  pixKey = "contato@studiomaria.com.br",
  pixKeyType = "Chave E-mail",
  beneficiaryName = "Studio Maria Arquitetura LTDA",
- bankName = "Banco Inter / Wider Pay",
+ bankName = "Banco Inter / Waesy Pay",
 }: BiolinkPixCardProps) {
  const [copied, setCopied] = useState(false);
 

@@ -1,5 +1,5 @@
 /**
- * _store.conta.financas.tsx — Gestão Financeira Pessoal (Wider Community Platform)
+ * _store.conta.financas.tsx — Gestão Financeira Pessoal (Plataforma Waesy)
  * Controle de despesas, receitas, saldo, distribuição por categorias e comprovantes com foto.
  * Paradigma Apple HIG & Clean Design, alvos de 44px, fonte Inter e RLS estrito (auth.uid() = profile_id).
  */
@@ -61,7 +61,7 @@ import { formatCents, cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/financas")({
-  head: () => ({ meta: [{ title: "Gestão Financeira Pessoal | Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Gestão Financeira Pessoal | Waesy" }] }),
   loader: async () => {
     try {
     const now = new Date();

@@ -145,7 +145,7 @@ export const getMyInviteOverview = createServerFn({ method: "GET" })
       p_type: "user",
     });
 
-    const code = codeData || `WIDER-${identity.id.substring(0, 6).toUpperCase()}`;
+    const code = codeData || `WAESY-${identity.id.substring(0, 6).toUpperCase()}`;
 
     // 2. Busca link e métricas
     const { data: linkData } = await supabase
@@ -219,7 +219,7 @@ export const getMyInviteOverview = createServerFn({ method: "GET" })
 
     return {
       code,
-      shareUrl: `https://wider.app.br/convite?ref=${code}`,
+      shareUrl: `https://usewaesy.com.br/convite?ref=${code}`,
       totalPoints,
       totalTokens: totalPoints,
       isFounderMember: true, // Membro Fundador perpétuo
@@ -407,13 +407,13 @@ export const getActiveRaffles = createServerFn({ method: "GET" })
     return raffles.map((r: any) => ({
       id: r.id,
       storeId: r.store_id || null,
-      storeName: r.stores?.name || (r.is_official_platform || !r.store_id ? "Wider Oficial" : "Loja Parceira"),
+      storeName: r.stores?.name || (r.is_official_platform || !r.store_id ? "Waesy Oficial" : "Loja Parceira"),
       storeLogoUrl: r.stores?.logo_url || null,
       title: r.title,
       description: r.description,
       imageUrl: r.image_url,
       rules: r.rules || {},
-      termsText: r.terms_text || "Participação aberta a membros cadastrados na plataforma Wider. Sorteio auditado eletronicamente.",
+      termsText: r.terms_text || "Participação aberta a membros cadastrados na plataforma Waesy. Sorteio auditado eletronicamente.",
       isOfficialPlatform: r.is_official_platform || !r.store_id,
       ticketPriceCents: r.ticket_price_cents || 0,
       pointsCost: r.points_cost || 0,
@@ -534,7 +534,7 @@ export const storeListConcursos = createServerFn({ method: "GET" })
   .handler(async () => {
     const { getServerIdentity, assertStoreAccess } = await import("@/lib/server-access");
     const identity = await getServerIdentity();
-    assertStoreAccess(identity, ["owner", "admin", "manager"]);
+    (assertStoreAccess as any)(identity, ["owner", "admin", "manager"]);
 
     const supabase = getServerClient();
     const { data: raffles, error } = await supabase
@@ -579,7 +579,7 @@ export const storeCreateConcurso = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { getServerIdentity, assertStoreAccess } = await import("@/lib/server-access");
     const identity = await getServerIdentity();
-    assertStoreAccess(identity, ["owner", "admin", "manager"]);
+    (assertStoreAccess as any)(identity, ["owner", "admin", "manager"]);
 
     const supabase = getServerClient();
 
@@ -610,7 +610,7 @@ export const storeDrawConcurso = createServerFn({ method: "POST" })
   .handler(async ({ data: { raffleId } }) => {
     const { getServerIdentity, assertStoreAccess } = await import("@/lib/server-access");
     const identity = await getServerIdentity();
-    assertStoreAccess(identity, ["owner", "admin", "manager"]);
+    (assertStoreAccess as any)(identity, ["owner", "admin", "manager"]);
 
     const supabase = getServerClient();
 
@@ -685,7 +685,7 @@ export const storeUpdateConcurso = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { getServerIdentity, assertStoreAccess } = await import("@/lib/server-access");
     const identity = await getServerIdentity();
-    assertStoreAccess(identity, ["owner", "admin", "manager"]);
+    (assertStoreAccess as any)(identity, ["owner", "admin", "manager"]);
 
     const supabase = getServerClient();
 
@@ -728,7 +728,7 @@ export const storeCancelConcurso = createServerFn({ method: "POST" })
   .handler(async ({ data: { raffleId } }) => {
     const { getServerIdentity, assertStoreAccess } = await import("@/lib/server-access");
     const identity = await getServerIdentity();
-    assertStoreAccess(identity, ["owner", "admin", "manager"]);
+    (assertStoreAccess as any)(identity, ["owner", "admin", "manager"]);
 
     const supabase = getServerClient();
 
@@ -759,7 +759,7 @@ export const storeGetConcursoParticipants = createServerFn({ method: "GET" })
   .handler(async ({ data: { raffleId } }) => {
     const { getServerIdentity, assertStoreAccess } = await import("@/lib/server-access");
     const identity = await getServerIdentity();
-    assertStoreAccess(identity, ["owner", "admin", "manager"]);
+    (assertStoreAccess as any)(identity, ["owner", "admin", "manager"]);
 
     const supabase = getServerClient();
 
@@ -857,13 +857,13 @@ export const getAllPublicConcursos = createServerFn({ method: "GET" })
     return raffles.map((r: any) => ({
       id: r.id,
       storeId: r.store_id || null,
-      storeName: r.stores?.name || (r.is_official_platform || !r.store_id ? "Wider Oficial" : "Loja Parceira"),
+      storeName: r.stores?.name || (r.is_official_platform || !r.store_id ? "Waesy Oficial" : "Loja Parceira"),
       storeLogoUrl: r.stores?.logo_url || null,
       title: r.title,
       description: r.description,
       imageUrl: r.image_url,
       rules: r.rules || {},
-      termsText: r.terms_text || "Participação aberta a membros cadastrados na comunidade Wider.",
+      termsText: r.terms_text || "Participação aberta a membros cadastrados na Comunidade Waesy.",
       isOfficialPlatform: r.is_official_platform || !r.store_id,
       ticketPriceCents: r.ticket_price_cents || 0,
       pointsCost: r.points_cost || 0,
@@ -913,13 +913,13 @@ export const getPublicConcursoById = createServerFn({ method: "GET" })
     return {
       id: r.id,
       storeId: r.store_id || null,
-      storeName: r.stores?.name || (r.is_official_platform || !r.store_id ? "Wider Oficial" : "Loja Parceira"),
+      storeName: r.stores?.name || (r.is_official_platform || !r.store_id ? "Waesy Oficial" : "Loja Parceira"),
       storeLogoUrl: r.stores?.logo_url || null,
       title: r.title,
       description: r.description,
       imageUrl: r.image_url,
       rules: r.rules || {},
-      termsText: r.terms_text || "Participação aberta a membros cadastrados na comunidade Wider.",
+      termsText: r.terms_text || "Participação aberta a membros cadastrados na comunidade Waesy.",
       isOfficialPlatform: r.is_official_platform || !r.store_id,
       ticketPriceCents: r.ticket_price_cents || 0,
       pointsCost: r.points_cost || 0,
@@ -1015,7 +1015,7 @@ export const adminListGamification = createServerFn({ method: "GET" })
         const winner = r.winner_user_id ? winnersMap.get(r.winner_user_id) : null;
         return {
           ...r,
-          storeName: r.stores?.name || (r.is_official_platform || !r.store_id ? "Wider Oficial" : "Loja"),
+          storeName: r.stores?.name || (r.is_official_platform || !r.store_id ? "Waesy Oficial" : "Loja"),
           storeLogoUrl: r.stores?.logo_url || null,
           storeSlug: r.stores?.slug || null,
           winnerName: winner?.full_name || null,
@@ -1213,7 +1213,7 @@ export const adminCreateRaffle = createServerFn({ method: "POST" })
         title: data.title,
         description: data.description || null,
         image_url: img,
-        terms_text: data.termsText || "Participação promocional auditada eletronicamente pelo Wider OS.",
+        terms_text: data.termsText || "Participação promocional auditada eletronicamente pela Waesy.",
         points_cost: data.points_cost,
         draw_date: data.draw_date,
         max_tickets_per_user: data.max_tickets_per_user,
@@ -1287,7 +1287,7 @@ export const getMyUserConcursos = createServerFn({ method: "GET" })
       const raffleDTO: RaffleDTO = {
         id: r.id,
         storeId: r.store_id || null,
-        storeName: r.stores?.name || (r.is_official_platform || !r.store_id ? "Wider Oficial" : "Loja Parceira"),
+        storeName: r.stores?.name || (r.is_official_platform || !r.store_id ? "Waesy Oficial" : "Loja Parceira"),
         storeLogoUrl: r.stores?.logo_url || null,
         title: r.title,
         description: r.description,
@@ -1358,7 +1358,7 @@ export const getStoreConcursos = createServerFn({ method: "GET" })
       description: r.description,
       imageUrl: r.image_url,
       rules: r.rules || {},
-      termsText: r.terms_text || "Participação aberta a membros cadastrados na comunidade Wider.",
+      termsText: r.terms_text || "Participação aberta a membros cadastrados na comunidade Waesy.",
       isOfficialPlatform: false,
       ticketPriceCents: r.ticket_price_cents || 0,
       pointsCost: r.points_cost || 0,

@@ -1,5 +1,5 @@
 /**
- * _store.conta.contratos.tsx — Meus Contratos & Certificados (Wider Community Platform)
+ * _store.conta.contratos.tsx — Meus Contratos & Certificados (Plataforma Waesy)
  * Exibe todos os contratos assinados pelo usuário com hash de certificado e status de auditoria.
  * Paradigma Apple HIG Clean — alvos 44px, fonte Inter, sem AI-smell.
  * [REQ-11] — Portal de Contratos do Usuário
@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/conta/contratos")({
-  head: () => ({ meta: [{ title: "Meus Contratos | Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Meus Contratos | Waesy" }] }),
   loader: async (): Promise<{ contracts: SignedContractDTO[] }> => {
     try {
       const contracts = await listMySignedContracts();

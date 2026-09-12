@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration V4: In-Store PDV and Kanban Engine
+-- Waesy Commerce — Migration V4: In-Store PDV and Kanban Engine
 -- ============================================================================
 -- 1. Extend `orders` table with PDV/In-Store features.
 -- ============================================================================

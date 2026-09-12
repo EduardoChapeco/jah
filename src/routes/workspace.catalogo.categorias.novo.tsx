@@ -20,7 +20,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { createCategory, listCategories } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/workspace/catalogo/categorias/novo")({
- head: () => ({ meta: [{ title: "Nova Categoria | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Nova Categoria | Workspace Waesy" }] }),
  loader: async () => {
  try {
  const res = await listCategories();

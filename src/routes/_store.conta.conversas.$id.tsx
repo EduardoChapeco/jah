@@ -13,7 +13,7 @@ import { RmaTicketModal } from "@/components/chat/rma-ticket-modal";
 import { RmaMessageCard } from "@/components/chat/rma-message-card";
 
 export const Route = createFileRoute("/_store/conta/conversas/$id")({
- head: () => ({ meta: [{ title: "Atendimento & SAC | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Atendimento & SAC | Waesy" }] }),
  loader: async ({ params }) => {
    try {
  const res = await getCustomerChatThread({ data: { threadId: params.id } });

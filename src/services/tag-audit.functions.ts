@@ -114,7 +114,7 @@ export const reportTagFraud = createServerFn({ method: "POST" })
  console.warn("[tag-audit] Erro ao registrar denúncia:", e);
  }
 
- return { status: "ok", message: "Denúncia recebida pelo comitê de conformidade da Wider. Analisaremos com prioridade." };
+ return { status: "ok", message: "Denúncia recebida pelo comitê de conformidade da Waesy. Analisaremos com prioridade." };
  });
 
 /**

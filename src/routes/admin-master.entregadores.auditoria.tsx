@@ -41,7 +41,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin-master/entregadores/auditoria")({
   head: () => ({
-    meta: [{ title: "Auditoria Forense de Entregadores | Admin Master Wider" }],
+    meta: [{ title: "Auditoria Forense de Entregadores | Admin Master Waesy" }],
   }),
   loader: async () => {
     try {

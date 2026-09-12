@@ -14,41 +14,41 @@ ALTER TABLE public.stores ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DE
 CREATE INDEX IF NOT EXISTS idx_stores_is_platform_root ON public.stores(is_platform_root);
 CREATE INDEX IF NOT EXISTS idx_stores_slug ON public.stores(slug);
 
--- 2. Garantir que a Loja Raiz da Plataforma (Jah Matriz) existe e está marcada como platform_root
+-- 2. Garantir que a Loja Raiz da Plataforma (Waesy Matriz) existe e está marcada como platform_root
 DO $$
 DECLARE
   v_org_id UUID;
 BEGIN
   -- Obtém ou cria a organização raiz
-  SELECT id INTO v_org_id FROM public.organizations WHERE slug = 'jah-org' OR id = '00000000-0000-0000-0000-000000000001' LIMIT 1;
+  SELECT id INTO v_org_id FROM public.organizations WHERE slug = 'waesy-org' OR id = '00000000-0000-0000-0000-000000000001' LIMIT 1;
   
   IF v_org_id IS NULL THEN
     INSERT INTO public.organizations (id, name, slug)
-    VALUES ('00000000-0000-0000-0000-000000000001', 'Jah Organization', 'jah-org')
+    VALUES ('00000000-0000-0000-0000-000000000001', 'Waesy Organization', 'waesy-org')
     ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name
     RETURNING id INTO v_org_id;
   END IF;
 
-  -- Marca loja existente com slug 'jah' ou 'jah-matriz' como platform_root
-  IF EXISTS (SELECT 1 FROM public.stores WHERE slug IN ('jah-matriz', 'jah') OR id = '00000000-0000-0000-0000-000000000002') THEN
+  -- Marca loja existente com slug 'waesy' ou 'waesy-matriz' como platform_root
+  IF EXISTS (SELECT 1 FROM public.stores WHERE slug IN ('waesy-matriz', 'waesy') OR id = '00000000-0000-0000-0000-000000000002') THEN
     UPDATE public.stores 
     SET is_platform_root = true, is_active = true 
-    WHERE slug IN ('jah-matriz', 'jah') OR id = '00000000-0000-0000-0000-000000000002';
+    WHERE slug IN ('waesy-matriz', 'waesy') OR id = '00000000-0000-0000-0000-000000000002';
   ELSE
     INSERT INTO public.stores (id, organization_id, name, slug, is_platform_root, is_active, settings)
     VALUES (
       '00000000-0000-0000-0000-000000000002',
       v_org_id,
-      'Jah Platform',
-      'jah-matriz',
+      'Waesy Platform',
+      'waesy-matriz',
       true,
       true,
-      '{"show_name": true, "show_logo": true, "description": "Hub Global Jah Community"}'::jsonb
+      '{"show_name": true, "show_logo": true, "description": "Hub Global Waesy Community"}'::jsonb
     )
     ON CONFLICT (id) DO UPDATE SET
       is_platform_root = true,
-      name = COALESCE(public.stores.name, 'Jah Platform'),
-      slug = COALESCE(public.stores.slug, 'jah-matriz');
+      name = COALESCE(public.stores.name, 'Waesy Platform'),
+      slug = COALESCE(public.stores.slug, 'waesy-matriz');
   END IF;
 END $$;
 

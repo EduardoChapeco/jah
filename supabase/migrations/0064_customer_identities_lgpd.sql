@@ -1,4 +1,4 @@
--- Jah Commerce — Migration 0064: Customer Identities and LGPD Consent
+-- Waesy Commerce — Migration 0064: Customer Identities and LGPD Consent
 
 ALTER TABLE public.profiles 
   ADD COLUMN IF NOT EXISTS tax_id VARCHAR(20) UNIQUE,

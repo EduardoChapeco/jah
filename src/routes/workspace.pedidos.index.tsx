@@ -34,7 +34,7 @@ import { formatMoney } from "@/lib/money";
 import { formatDateTime } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/pedidos/")({
- head: () => ({ meta: [{ title: "Emissões & Vendas | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Emissões & Vendas | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const [orders, store] = await Promise.all([
@@ -976,7 +976,7 @@ function AdminOrdersPage() {
  </Badge>
  </div>
  <p className="text-xs font-bold text-foreground mt-1">
- {order.customer_snapshot?.name || "Cliente Wider"}
+ {order.customer_snapshot?.name || "Cliente Waesy"}
  </p>
  <p className="text-[11px] text-muted-foreground">
  {order.customer_snapshot?.address_city || "Localidade não informada"}

@@ -1,6 +1,6 @@
-# Arquitetura — Wider Community Platform
+# Arquitetura — Plataforma Waesy
 
-Documento canônico de arquitetura. Fase 1. A Jah atua como Plataforma Comunitária e CMS Universal, possuindo um modelo de _Context Switching_ para Lojas, Artistas e Pessoas Físicas.
+Documento canônico de arquitetura. Fase 1. A Waesy atua como Plataforma Comunitária e CMS Universal, possuindo um modelo de _Context Switching_ para Lojas, Artistas e Pessoas Físicas.
 
 ## 1. Visão geral em camadas
 

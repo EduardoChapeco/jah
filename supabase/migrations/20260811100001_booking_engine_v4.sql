@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration V4: Advanced Booking Engine
+-- Waesy Commerce — Migration V4: Advanced Booking Engine
 -- ============================================================================
 -- Elevating the booking module to Belasis/Avec standards:
 -- 1. Adds buffers (pre/post) and overbooking rules to services.

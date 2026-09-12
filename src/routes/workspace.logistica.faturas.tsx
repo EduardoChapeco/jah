@@ -26,7 +26,7 @@ import {
 
 export const Route = createFileRoute("/workspace/logistica/faturas")({
  head: () => ({
- meta: [{ title: "Faturas & Repasses de Frota | Workspace Wider OS" }],
+ meta: [{ title: "Faturas & Repasses de Frota | Workspace Waesy" }],
  }),
  component: WorkspaceLogisticsInvoicesPage,
 });

@@ -37,7 +37,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/conta/viagens")({
  head: () => ({
  meta: [
- { title: "Minhas Viagens & Vouchers | Wider OS" },
+ { title: "Minhas Viagens & Vouchers | Waesy" },
  { name: "description", content: "Consulte seus vouchers, reservas de turismo e passeios confirmados." },
  ],
  }),
@@ -74,7 +74,7 @@ function CustomerTripsPage() {
 
  const handleShare = (code: string) => {
  if (typeof window !== "undefined" && navigator.clipboard) {
- navigator.clipboard.writeText(`Voucher Wider Turismo: ${code}`);
+ navigator.clipboard.writeText(`Voucher Waesy Turismo: ${code}`);
  toast.success("Código do voucher copiado!");
  }
  };
@@ -386,7 +386,7 @@ function CustomerTripsPage() {
  </div>
  ) : null}
 
- {/* ── Modal Canônico de Voucher Digital (Padrão TravelAgencias / Wider) ── */}
+ {/* ── Modal Canônico de Voucher Digital (Padrão TravelAgencias / Waesy) ── */}
  <Dialog open={isVoucherOpen} onOpenChange={setIsVoucherOpen}>
  <DialogContent className="sm:max-w-lg sm:rounded-2xl p-5 sm:p-8 bg-card border-border">
  {selectedBooking && (

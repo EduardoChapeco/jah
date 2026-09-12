@@ -28,7 +28,7 @@ import {
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/financeiro/afiliados")({
- head: () => ({ meta: [{ title: "Comissões de Afiliados | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Comissões de Afiliados | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const [performance, summary] = await Promise.all([

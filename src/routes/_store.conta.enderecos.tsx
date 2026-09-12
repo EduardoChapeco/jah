@@ -15,7 +15,7 @@ import { EmptyState } from "@/components/state/states";
 import { CitySelect } from "@/components/ui/city-select";
 
 export const Route = createFileRoute("/_store/conta/enderecos")({
-  head: () => ({ meta: [{ title: "Meus Endereços | Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Meus Endereços | Waesy" }] }),
   loader: async () => {
     try {
       return (await getCustomerAddresses().catch(() => [])) || [];

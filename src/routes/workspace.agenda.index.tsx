@@ -38,7 +38,7 @@ import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/agenda/")({
- head: () => ({ meta: [{ title: "Agenda & Atendimentos | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Agenda & Atendimentos | Workspace Waesy" }] }),
  component: AdminAppointmentsPage,
 });
 

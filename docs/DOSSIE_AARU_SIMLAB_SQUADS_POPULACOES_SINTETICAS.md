@@ -27,7 +27,7 @@ A **Aaru AI** emergiu como a startup pioneira em pesquisa sintética em escala g
   2. **Calibração Psicográfica & Heurísticas de Decisão:** Nível de cinismo publicitário, impulsividade, aversão à perda (Kahneman & Tversky), traços de personalidade Big Five (OCEAN) e restrições orçamentárias severas.
   3. **Memória de Categoria & Hábitos Digitais:** Onde a pessoa pesquisa, marcas nas quais já teve experiências traumáticas no passado e meios de pagamento habituais.
 
-O ecossistema **JAH** incorpora nesta arquitetura a tecnologia proprietária desenvolvida no **SimLab V2** (localizado em simwork e rand-builder-ai), expandindo-a para se tornar uma suíte preditiva superior à própria Aaru, totalmente integrada à operação diária do comércio, da indústria e dos prestadores de serviços brasileiros.
+O ecossistema **Waesy** incorpora nesta arquitetura a tecnologia proprietária desenvolvida no **SimLab V2** (localizado em simwork e rand-builder-ai), expandindo-a para se tornar uma suíte preditiva superior à própria Aaru, totalmente integrada à operação diária do comércio, da indústria e dos prestadores de serviços brasileiros.
 
 ---
 
@@ -287,10 +287,10 @@ Cada slide é renderizado como um documento HTML5 visualmente rico sem necessida
 
 ## 5. ARQUITETURA LEVE, MCP (MODEL CONTEXT PROTOCOL) & EFICIÊNCIA DE INFRAESTRUTURA
 
-Para rodar simulações com até 100 agentes sintéticos simultâneos sem sobrecarregar a CPU dos servidores do JAH ou estourar a cota de APIs:
+Para rodar simulações com até 100 agentes sintéticos simultâneos sem sobrecarregar a CPU dos servidores do Waesy ou estourar a cota de APIs:
 
-### 5.1. O JAH como Servidor MCP (Model Context Protocol)
-O ecossistema implementa o padrão aberto **MCP da Anthropic**, permitindo que qualquer cliente de IA (Claude Desktop, IDEs, agentes externos) ou o próprio frontend consuma os dados do JAH de forma padronizada através de ferramentas seguras:
+### 5.1. O Waesy como Servidor MCP (Model Context Protocol)
+O ecossistema implementa o padrão aberto **MCP da Anthropic**, permitindo que qualquer cliente de IA (Claude Desktop, IDEs, agentes externos) ou o próprio frontend consuma os dados do Waesy de forma padronizada através de ferramentas seguras:
 * 	ools/simlab_run_survey: Executa um teste de aceitação de oferta contra uma amostra sintética estratificada;
 * 	ools/generate_marketing_post: Dispara o pipeline Aria -> Bruno -> Carla para produzir um carrossel pronto;
 * 	ools/analyze_competitor_dna: Executa a varredura e extração do raio-X de um concorrente;
@@ -330,7 +330,7 @@ O sistema implementa a funcionalidade inovadora de **Focus Group Virtual** (/wor
 
 ## 8. PLANO DE EXECUÇÃO EM MICROFASES RECURSIVAS DE ENGENHARIA
 
-A transfusão e implementação no JAH será executada em 6 Fases Estruturadas:
+A transfusão e implementação no Waesy será executada em 6 Fases Estruturadas:
 
 ### FASE 1: DDL das Populações Sintéticas e Biblioteca de Personas
 * **Microfase 1.1:** Criação das tabelas synthetic_population_archetypes, synthetic_agent_memories, simlab_market_experiments, simlab_persona_responses, simlab_statistical_synthesis e squad_generated_posts.
@@ -358,4 +358,4 @@ A transfusão e implementação no JAH será executada em 6 Fases Estruturadas:
 * **Microfase 6.2:** Proteção de chaves com rotação via key-orchestrator.ts e auditoria de consumo de tokens por loja.
 
 ---
-**Fim do Dossiê Canônico: Aaru AI, Simulações Sintéticas e Squads de Criação JAH.**
+**Fim do Dossiê Canônico: Aaru AI, Simulações Sintéticas e Squads de Criação Waesy.**

@@ -24,7 +24,7 @@ export const FLEET_VEHICLE_PRESETS: FleetVehiclePreset[] = [
  id: 'fl-dd-01',
  name: 'Marcopolo Paradiso G8 1800 DD (Double Decker)',
  companyName: 'Viação Ouro e Prata / Frota Própria',
- plate: 'JAH-2026',
+ plate: 'WSY-2026',
  driverName: 'Marcos Silveira',
  driverPhone: '(49) 98877-6655',
  vehicleType: 'bus_double_decker',

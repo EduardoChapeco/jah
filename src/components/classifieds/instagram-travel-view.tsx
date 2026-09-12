@@ -146,7 +146,7 @@ export function InstagramTravelView({
           data: {
             classifiedId: classified.id,
             proposedPriceCents: priceCents,
-            message: `Reserva iniciada via Vitrine/Modo Instagram para "${classified.title}". Valor: ${formatMoney(priceCents)}`,
+            message: `Reserva iniciada via Vitrine/Vitrine Imersiva para "${classified.title}". Valor: ${formatMoney(priceCents)}`,
           },
         }).catch((err) => {
           console.warn("[InstagramTravelView] Aviso ao registrar lead assíncrono:", err);
@@ -168,7 +168,7 @@ export function InstagramTravelView({
           data: {
             classifiedId: classified.id,
             proposedPriceCents: priceCents,
-            message: `Contato direto via WhatsApp no Modo Instagram para "${classified.title}"`,
+            message: `Contato direto via WhatsApp no Vitrine Imersiva para "${classified.title}"`,
           },
         }).catch(() => {});
       } catch {}
@@ -178,7 +178,7 @@ export function InstagramTravelView({
       entityType: "classified",
       entityId: classified.id,
       entityTitle: classified.title,
-      customMessage: `Olá! Vi o anúncio "${classified.title}" no Wider (${maxInstallments}x de ${formatMoney(installmentCents)}) e gostaria de mais informações!`,
+      customMessage: `Olá! Vi o anúncio "${classified.title}" no Waesy (${maxInstallments}x de ${formatMoney(installmentCents)}) e gostaria de mais informações!`,
     });
   };
 
@@ -221,7 +221,7 @@ export function InstagramTravelView({
       </div>
 
       <div className="max-w-xl mx-auto px-4 pt-4 space-y-4">
-        {/* ── Perfil do Resort / Anunciante (Header Instagram) ── */}
+        {/* ── Perfil do Resort / Anunciante (Header Editorial) ── */}
         <div className="flex items-center gap-4 sm:gap-6">
           {/* Avatar Circular com Story Ring Gradiente */}
           <div className="relative shrink-0">

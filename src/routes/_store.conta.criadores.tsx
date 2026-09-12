@@ -33,11 +33,11 @@ import { getProfile, getUserSession } from "@/services/auth.functions";
 export const Route = createFileRoute("/_store/conta/criadores")({
   head: () => ({
     meta: [
-      { title: "Perfis de Criador & Parcerias | Wider OS" },
+      { title: "Perfis de Criador & Parcerias | Waesy" },
       {
         name: "description",
         content:
-          "Gerencie seus perfis de criador de conteúdo, vitrines digitais de afiliados e identidades de publicação na rede Wider.",
+          "Gerencie seus perfis de criador de conteúdo, vitrines digitais de afiliados e identidades de publicação na Rede Waesy.",
       },
     ],
   }),
@@ -180,7 +180,7 @@ function CreatorProfilesManagementPage() {
               const handle = cp.handle;
               const showcaseUrl = typeof window !== "undefined"
                 ? `${window.location.origin}/u/${handle}`
-                : `https://wider.app.br/u/${handle}`;
+                : `https://usewaesy.com.br/u/${handle}`;
 
               return (
                 <div

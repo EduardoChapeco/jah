@@ -73,7 +73,7 @@ function isVideoUrl(url?: string | null): boolean {
 export const Route = createFileRoute("/_store/classificados/")({
   head: () => ({
     meta: [
-      { title: "Classificados, Imóveis & Desapegos | Wider" },
+      { title: "Classificados, Imóveis & Desapegos | Waesy" },
       {
         name: "description",
         content:
@@ -888,7 +888,7 @@ function ClassifiedsMasterPage() {
                             onClick={(e) => {
                               e.preventDefault();
                               trackClassifiedWhatsAppClick({ data: { adId: item.id } }).catch(() => {});
-                                trackAndOpenWhatsApp(targetPhone, `Olá! Vi o anúncio "${item.title}" no Wider e gostaria de saber mais.`, {
+                                trackAndOpenWhatsApp(targetPhone, `Olá! Vi o anúncio "${item.title}" no Waesy e gostaria de saber mais.`, {
                                 classifiedId: item.id,
                                 classifiedTitle: item.title,
                               });
@@ -1015,7 +1015,7 @@ function ClassifiedsMasterPage() {
                                 onClick={(e) => {
                                   e.preventDefault();
                                   trackClassifiedWhatsAppClick({ data: { adId: item.id } }).catch(() => {});
-                                trackAndOpenWhatsApp(targetPhone, `Olá! Vi o anúncio "${item.title}" no Wider e gostaria de falar com você.`, {
+                                trackAndOpenWhatsApp(targetPhone, `Olá! Vi o anúncio "${item.title}" no Waesy e gostaria de falar com você.`, {
                                     classifiedId: item.id,
                                     classifiedTitle: item.title,
                                   });
@@ -1132,7 +1132,7 @@ function ClassifiedsMasterPage() {
                         onClick={(e) => {
                           e.preventDefault();
                           trackClassifiedWhatsAppClick({ data: { adId: item.id } }).catch(() => {});
-                                trackAndOpenWhatsApp(targetPhone, `Olá! Vi o anúncio "${item.title}" no Wider e gostaria de falar com você.`, {
+                                trackAndOpenWhatsApp(targetPhone, `Olá! Vi o anúncio "${item.title}" no Waesy e gostaria de falar com você.`, {
                             classifiedId: item.id,
                             classifiedTitle: item.title,
                           });

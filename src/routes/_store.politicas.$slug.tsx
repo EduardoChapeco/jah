@@ -10,8 +10,8 @@ export const Route = createFileRoute("/_store/politicas/$slug")({
  meta: [
  {
  title: (loaderData as any)?.title
- ? `${(loaderData as any).title} | Wider`
- : "Políticas & Diretrizes | Wider OS",
+ ? `${(loaderData as any).title} | Waesy`
+ : "Políticas & Diretrizes | Waesy",
  },
  ],
  }),

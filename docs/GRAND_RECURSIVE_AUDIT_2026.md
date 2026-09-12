@@ -1,5 +1,5 @@
 # 🏛️ RELATÓRIO DE AUDITORIA RECURSIVA TOTAL (GRAND RECURSIVE AUDIT 2026)
-## Plataforma Wider — Padrão BigTech de Engenharia & 7 Camadas de Completude
+## plataforma Waesy — Padrão BigTech de Engenharia & 7 Camadas de Completude
 
 > **Data de Emissão:** 27 de Agosto de 2026  
 > **Órgão Responsável:** Conselho Executivo de BigTech & Red Team de Engenharia  
@@ -79,4 +79,4 @@ O repositório foi submetido a uma auditoria recursiva profunda cobrindo **203 r
 
 ## 🚀 4. Conclusão da Auditoria
 
-O ecossistema da plataforma Wider atinge o **grau máximo de maturidade e conformidade de BigTech**. Não há mocks, dados fictícios ou inconsistências de schema. Todo o código compila perfeitamente para Cloudflare Pages.
+O ecossistema da plataforma Waesy atinge o **grau máximo de maturidade e conformidade de BigTech**. Não há mocks, dados fictícios ou inconsistências de schema. Todo o código compila perfeitamente para Cloudflare Pages.

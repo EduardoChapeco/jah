@@ -1,6 +1,6 @@
-# Roadmap — Wider Community Platform
+# Roadmap — Plataforma Waesy
 
-Este roadmap detalha as fases de construção da Wider Community Platform (Plataforma Comunitária). Consulte `MASTER_PLAN.md` para a visão geral e `ARCHITECTURE.md`, `DOMAIN_MODEL.md`, `SECURITY.md` para os detalhes técnicos.
+Este roadmap detalha as fases de construção da Plataforma Waesy (Plataforma Comunitária). Consulte `MASTER_PLAN.md` para a visão geral e `ARCHITECTURE.md`, `DOMAIN_MODEL.md`, `SECURITY.md` para os detalhes técnicos.
 
 ## Regra de ouro
 
@@ -17,7 +17,7 @@ Este roadmap detalha as fases de construção da Wider Community Platform (Plata
 
 ### Escopo
 
-- Documentação canônica atualizada (Transição Jah -> Jah).
+- Documentação canônica atualizada (Transição Waesy -> Waesy).
 - Design system aplicado: tokens de cor, tipografia da rua (Inter, Space Grotesk, Oswald, JetBrains Mono) e primitivas genéricas `<Surface>` (zine, flyer, yellow-pages, ticket, polaroid).
 - Layout e navegação: shell público, shell de cliente, shell de admin.
 - Registro de rotas tipado, com metadados de fase, permissão e status ("disponível" / "em breve").
@@ -238,7 +238,7 @@ Este roadmap detalha as fases de construção da Wider Community Platform (Plata
 
 # Roadmap Canônico de Capabilities — Expansão V3
 
-Abaixo estão os capítulos de capability profunda que regem a expansão contínua da JAH.
+Abaixo estão os capítulos de capability profunda que regem a expansão contínua da Waesy.
 
 ---
 

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 20260904180000: Builder Settings (Theme & Pages)
+-- Waesy Commerce — Migration 20260904180000: Builder Settings (Theme & Pages)
 -- ============================================================================
 -- Adds settings JSONB column to experience_documents to persist:
 -- 1. theme: Global Brand Kit (primaryColor, backgroundColor, textColor, fonts, radius, surface)

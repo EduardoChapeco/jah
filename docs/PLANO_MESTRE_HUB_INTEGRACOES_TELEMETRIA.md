@@ -1,6 +1,6 @@
 # 🏛️ Especificação de Engenharia & Esclarecimentos do Conselho Executivo BigTech
 
-> **Documento:** JAH Universal Hub, Telemetria 360°, Motor Fiscal Nacional, Expedição Logística e WebMCP  
+> **Documento:** Waesy Universal Hub, Telemetria 360°, Motor Fiscal Nacional, Expedição Logística e WebMCP  
 > **Data:** 12 de Setembro de 2026  
 > **Classificação:** Diretriz Arquitetural Estratégica & Plano de Ação Industrial  
 > **Padrões Técnicos:** OpenDelivery v1.0 (Abrasel), Meta CAPI v19, Google Enhanced Conversions, SEFAZ/SPED, Padrão Nacional NFS-e (Receita Federal), Schema.org & WebMCP (Model Context Protocol).
@@ -35,7 +35,7 @@ O Conselho Executivo reuniu suas 5 Personas Especialistas para responder a cada 
 * **O Desafio do iOS e AdBlockers:** Mais de 40% das conversões no tráfego pago hoje são perdidas no navegador do usuário devido ao App Tracking Transparency (ATT do iOS da Apple), navegadores com bloqueio estrito de cookies de terceiros (Safari, Brave) e extensões de AdBlocker.
 * **A Solução Dual-Tracking (Meta CAPI + Google Enhanced Conversions):**
   1. *Camada 1 (Navegador):* O script client-side dispara eventos clássicos (`PageView`, `ViewContent`) gerando um identificador de evento único (`event_id`).
-  2. *Camada 2 (Servidor JAH):* A cada transação, adição ao carrinho ou clique no WhatsApp, o backend do JAH (`src/services/pixels.functions.ts`) despacha uma chamada HTTP direta para o endpoint da Meta Graph API (`https://graph.facebook.com/v19.0/{pixel_id}/events`) contendo o mesmo `event_id`, além de dados normalizados e hasheados em SHA-256 (`em`, `ph`, `fbp`, `fbc`, IP e User-Agent).
+  2. *Camada 2 (Servidor Waesy):* A cada transação, adição ao carrinho ou clique no WhatsApp, o backend do Waesy (`src/services/pixels.functions.ts`) despacha uma chamada HTTP direta para o endpoint da Meta Graph API (`https://graph.facebook.com/v19.0/{pixel_id}/events`) contendo o mesmo `event_id`, além de dados normalizados e hasheados em SHA-256 (`em`, `ph`, `fbp`, `fbc`, IP e User-Agent).
   3. *Deduplicação Perfeita:* A Meta compara o evento do servidor com o do navegador através do `event_id`. Se o navegador for bloqueado, o evento do servidor é computado integralmente. Resultado: **100% de precisão nos números de vendas e leads**.
 * **Como os produtos devem ser cadastrados:** Cada produto possui agora campos semânticos para o feed de catálogo dinâmico (DPA): `google_product_category`, `brand/manufacturer`, `sku/gtin` (código de barras EAN-13) e `condition: new`. Isso permite que o algoritmo da Meta exiba anúncios de remarketing especificamente com os produtos que o visitante visualizou.
 
@@ -43,7 +43,7 @@ O Conselho Executivo reuniu suas 5 Personas Especialistas para responder a cada 
 
 ### 1.2 Arquitetura de Hub Centralizado sem Degradação de Performance
 * **Como centralizar 10 marketplaces sem travar o sistema:**
-  * O JAH adota uma arquitetura **Event-Driven (Orientada a Eventos)** com **Transactional Outbox/Inbox**.
+  * O Waesy adota uma arquitetura **Event-Driven (Orientada a Eventos)** com **Transactional Outbox/Inbox**.
   * Quando um pedido é feito no Mercado Livre ou iFood, a plataforma externa dispara um Webhook para `/api/webhooks/marketplaces`.
   * O sistema responde `HTTP 200 OK` em menos de 50ms gravando o evento bruto na tabela `marketplace_webhook_events`.
   * Um worker assíncrono processa o evento:
@@ -58,8 +58,8 @@ O Conselho Executivo reuniu suas 5 Personas Especialistas para responder a cada 
 * **O Cenário das Prefeituras:** O Brasil possui mais de 5.500 municípios, cada um historicamente adotando provedores de software diferentes (Betha, ISSNet, Ginfes, WebISS, Sigcorp, etc.), o que inviabilizava conexões diretas individuais.
 * **A Revolução do Padrão Nacional da NFS-e (Receita Federal do Brasil):**
   * O Governo Federal instituiu o **Portal Nacional da NFS-e (Ambiente de Dados Nacional - ADN)**. MEIs e empresas de serviços estão migrando gradativamente para este emissor único centralizado da Receita Federal.
-  * O JAH implementa a conexão direta ao webservice do **Padrão Nacional da NFS-e** via SOAP/mTLS com certificado A1.
-  * Para municípios que ainda exigem envio proprietário ou para emissão de **NF-e (Modelo 55 - Produtos)** e **NFC-e (Modelo 65 - Balcão/Varejo)** junto à SEFAZ Estadual, o JAH atua como hub multi-gateway, suportando conexões via **Focus NFe**, **Nuvem Fiscal**, **PlugNotas**, **eNotas** e **Webmania**.
+  * O Waesy implementa a conexão direta ao webservice do **Padrão Nacional da NFS-e** via SOAP/mTLS com certificado A1.
+  * Para municípios que ainda exigem envio proprietário ou para emissão de **NF-e (Modelo 55 - Produtos)** e **NFC-e (Modelo 65 - Balcão/Varejo)** junto à SEFAZ Estadual, o Waesy atua como hub multi-gateway, suportando conexões via **Focus NFe**, **Nuvem Fiscal**, **PlugNotas**, **eNotas** e **Webmania**.
 
 ---
 
@@ -75,9 +75,9 @@ O Conselho Executivo reuniu suas 5 Personas Especialistas para responder a cada 
 
 ### 1.5 WebMCP & Indexação para IAs e Google Discovery
 * **O que é o WebMCP:** O *Model Context Protocol* (MCP) é o protocolo padrão aberto criado para permitir que Agentes Inteligentes (Gemini, Claude, ChatGPT, Perplexity) consumam ferramentas e dados de sistemas externos.
-* **Como o JAH implementa:**
+* **Como o Waesy implementa:**
   * O endpoint `/api/webmcp.json` expõe o manifesto declarativo das ferramentas da plataforma (`search_catalog_products`, `get_store_directory_info`, `check_delivery_coverage`).
-  * Quando um usuário pergunta em um assistente de IA: *"Onde encontro pizza de fermentação natural perto de mim?"*, o crawler semântico do MCP consulta diretamente a API pública do JAH e sugere as lojas cadastradas com preço e link de compra instantânea.
+  * Quando um usuário pergunta em um assistente de IA: *"Onde encontro pizza de fermentação natural perto de mim?"*, o crawler semântico do MCP consulta diretamente a API pública do Waesy e sugere as lojas cadastradas com preço e link de compra instantânea.
 * **Google Discovery & Notícias:** Injeção automática das metatags `max-image-preview:large`, JSON-LD `NewsArticle` e geração do sitemap dedicado `/api/sitemap-news.xml`.
 
 ---
@@ -92,7 +92,7 @@ O Conselho Executivo reuniu suas 5 Personas Especialistas para responder a cada 
 
 ### 1.7 Governança Multi-Tenant: Admin Master vs Lojas
 * **A separação estrita de chaves de integração:**
-  * **Painel Admin Master (`/admin-master/integracoes`):** Define as credenciais mestras de desenvolvedor da plataforma JAH (ex: Client ID e Client Secret do App no Mercado Livre Developers, credenciais da conta parceira no Melhor Envio, conta mestre no Focus NFe).
+  * **Painel Admin Master (`/admin-master/integracoes`):** Define as credenciais mestras de desenvolvedor da plataforma Waesy (ex: Client ID e Client Secret do App no Mercado Livre Developers, credenciais da conta parceira no Melhor Envio, conta mestre no Focus NFe).
   * **Workspace do Lojista (`/workspace/integracoes/marketplaces`):** O lojista clica em "Conectar com Mercado Livre" com 1 clique fácil, passando pelo fluxo OAuth seguro da plataforma. As credenciais individuais do lojista (`access_token`, `refresh_token`, `external_account_id`) são criptografadas em AES-256 no banco e isoladas por `store_id`.
 
 ---
@@ -259,7 +259,7 @@ Para maximizar a velocidade de entrega e economizar tokens, o Conselho auditou o
    Esquema completo de formulário fiscal nacional com campos de CFOP, NCM, Inscrição Municipal, CNAE e emissão de notas via provedores nacionais.
 3. **`classificadoswaesy/src/components/marketing/SocialNetworksTab.tsx`:**  
    Catálogo completo de ícones e métricas de conexão para Instagram, Facebook, LinkedIn, TikTok, YouTube, Pinterest e Twitter (X).
-4. **`wider/src/components/offers/blocks/OfferBlockFiscal.tsx`:**  
+4. **`waesy/src/components/offers/blocks/OfferBlockFiscal.tsx`:**  
    Bloco visual de discriminação tributária e emissão de recibos fiscais simplificados.
 
 ---
@@ -268,7 +268,7 @@ Para maximizar a velocidade de entrega e economizar tokens, o Conselho auditou o
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                        ROADMAP INDUSTRIAL DE EXECUÇÃO JAH                              │
+│                        ROADMAP INDUSTRIAL DE EXECUÇÃO Waesy                              │
 ├──────┬─────────────────────────┬────────────────────────────┬──────────────────────────┤
 │ FASE │ DOMÍNIO                 │ CAMADAS ENVOLVIDAS         │ PROVA REAL DE ENTREGA    │
 ├──────┼─────────────────────────┼────────────────────────────┼──────────────────────────┤
@@ -298,4 +298,4 @@ Para maximizar a velocidade de entrega e economizar tokens, o Conselho auditou o
 ---
 
 > **CERTIFICAÇÃO FINAL DO CONSELHO BIGTECH:**  
-> A especificação acima foi aprovada de forma unânime e consolidada no repositório. O sistema JAH passa a contar com a documentação mais avançada de interoperabilidade comercial do Brasil, unindo ponta consumidora, operação lojista e governança administrativa em uma única verdade técnica.
+> A especificação acima foi aprovada de forma unânime e consolidada no repositório. O sistema Waesy passa a contar com a documentação mais avançada de interoperabilidade comercial do Brasil, unindo ponta consumidora, operação lojista e governança administrativa em uma única verdade técnica.

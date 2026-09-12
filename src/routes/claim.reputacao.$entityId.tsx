@@ -23,7 +23,7 @@ import { toast } from 'sonner';
 
 export const Route = createFileRoute('/claim/reputacao/$entityId')({
   head: ({ loaderData }: any) => ({
-    meta: [{ title: `${loaderData?.entity?.name || "Reputação"} | Wider OS Trust` }],
+    meta: [{ title: `${loaderData?.entity?.name || "Reputação"} | Waesy Trust` }],
   }),
   loader: async ({ params }) => {
     try {
@@ -87,7 +87,7 @@ function ClaimReputacaoPage() {
  </Badge>
  </div>
  <p className="text-xs text-muted-foreground mt-1">
- Índice de Confiança e Inteligência Competitiva auditado em tempo real pelo Wider OS.
+ Índice de Confiança e Inteligência Competitiva auditado em tempo real pelo Waesy.
  </p>
  </div>
  </div>

@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS public.creator_showcase_clicks (
   product_id uuid REFERENCES public.products(id) ON DELETE SET NULL,
   store_id uuid REFERENCES public.stores(id) ON DELETE SET NULL,
   referral_handle text,
-  utm_source text DEFAULT 'wider_profile',
+  utm_source text DEFAULT 'waesy_profile',
   utm_medium text DEFAULT 'vitrine',
   ip_hash text,
   user_agent_hash text,

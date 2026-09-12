@@ -5,14 +5,14 @@ import {
 } from './contract-clause-library';
 import { builderRegistry, BUILDER_BLOCK_DEFINITIONS } from '@/lib/builder-registry';
 
-describe('[FASE 6 AUDIT] JAH Office Suite & JAH Creative Studio', () => {
+describe('[FASE 6 AUDIT] Waesy Office Suite & Waesy Creative Studio', () => {
  it('should accurately replace dynamic variables in contract templates', () => {
  const template = 'O CONTRATANTE {{cliente.nome}}, CPF {{cliente.cpf}}, pagará o montante de {{valor_total}} para {{loja.nome}} até {{data_vencimento}}.';
  const variables = {
  'cliente.nome': 'Carlos Eduardo',
  'cliente.cpf': '123.456.789-00',
  'valor_total': 'R$ 5.000,00',
- 'loja.nome': 'JAH Experiências',
+ 'loja.nome': 'Waesy Experiências',
  'data_vencimento': '30/11/2026',
  };
 
@@ -20,7 +20,7 @@ describe('[FASE 6 AUDIT] JAH Office Suite & JAH Creative Studio', () => {
  expect(rendered).toContain('Carlos Eduardo');
  expect(rendered).toContain('123.456.789-00');
  expect(rendered).toContain('R$ 5.000,00');
- expect(rendered).toContain('JAH Experiências');
+ expect(rendered).toContain('Waesy Experiências');
  expect(rendered).toContain('30/11/2026');
  expect(rendered).not.toContain('{{cliente.nome}}');
  });

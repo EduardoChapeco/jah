@@ -8,8 +8,8 @@
 ## 1. Necessidade Humana
 
 **Quem utiliza?** Produtores de Cultura, Artistas, Donos de Casas Noturnas (Lojistas) e Festeiros/Público.
-**Por que utiliza?** O Produtor quer centralizar a venda antecipada, ter previsibilidade de caixa, administrar listas VIP/cortesias e ter um check-in rápido na porta (sem internet caindo). O Público quer achar o rolê no feed, comprar o ingresso rápido (com PIX/Cartão), ter o QR Code salvo na Apple Wallet/Google Pay ou no próprio app da Jah, e não sofrer golpe na porta.
-**Problema que resolve:** Fragmentação. Hoje o produtor vende no Sympla (pagando 10%), faz a divulgação no Instagram, o financeiro em planilha e o PDV do bar na maquininha. A Jah une tudo sob a mesma Organização. O mesmo usuário que posta no feed pode virar ingresso na porta.
+**Por que utiliza?** O Produtor quer centralizar a venda antecipada, ter previsibilidade de caixa, administrar listas VIP/cortesias e ter um check-in rápido na porta (sem internet caindo). O Público quer achar o rolê no feed, comprar o ingresso rápido (com PIX/Cartão), ter o QR Code salvo na Apple Wallet/Google Pay ou no próprio app da Waesy, e não sofrer golpe na porta.
+**Problema que resolve:** Fragmentação. Hoje o produtor vende no Sympla (pagando 10%), faz a divulgação no Instagram, o financeiro em planilha e o PDV do bar na maquininha. A Waesy une tudo sob a mesma Organização. O mesmo usuário que posta no feed pode virar ingresso na porta.
 **Resultado esperado:** Motor escalável de Eventos. Eventos pequenos podem usar apenas modo "Divulgação" (RSVP free). Eventos gigantes ativam Controle de Lotes (Virada automática), Check-in em alta densidade, Repasse Financeiro acoplado e QR Codes Seguros.
 
 ---
@@ -22,7 +22,7 @@
    - Cria **Lote Promocional** (Preço: R$ 30,00, Capacidade: 100, Expira: sexta-feira).
    - Publica o evento.
 2. **Descoberta e Compra:**
-   - Usuário vê o Flyer no Feed da Jah (estilo zine). Clica.
+   - Usuário vê o Flyer no Feed da Waesy (estilo zine). Clica.
    - Seleciona 2 ingressos (Lote Promocional).
    - O sistema trava as 2 vagas temporariamente no carrinho (TTL: 15 min).
    - O usuário paga (ex: Pix).
@@ -43,7 +43,7 @@
 
 - **Venda Esgotada no Pagamento:**
   - Usuário demorou 20 minutos no PIX. O TTL de 15 min expirou. Quando ele paga, o lote virou.
-  - O sistema acata o dinheiro em saldo (Wallet Jah) ou gera o ingresso do Lote 2 cobrando o excedente? A regra Jah: Devolve automaticamente via PIX estorno (se gateway permitir), ou retém em Wallet (com opção de estorno 1 click) mandando push pro cliente.
+  - O sistema acata o dinheiro em saldo (Wallet Waesy) ou gera o ingresso do Lote 2 cobrando o excedente? A regra Waesy: Devolve automaticamente via PIX estorno (se gateway permitir), ou retém em Wallet (com opção de estorno 1 click) mandando push pro cliente.
 - **Cambista / Troca de Titularidade:**
   - Se permitido pelo produtor, o cliente clica no ingresso -> "Transferir".
   - Informa o email/id do amigo.

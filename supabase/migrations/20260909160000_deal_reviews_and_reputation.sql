@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Platform — Migration: Deal Reviews & Verified Company Reputation
+-- Waesy Platform — Migration: Deal Reviews & Verified Company Reputation
 -- Protocolo Harvard / SEC-Driven Engineering & Apple HIG
 -- ============================================================================
 

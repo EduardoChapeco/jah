@@ -1,4 +1,4 @@
-# Requirements Ledger — Jah Commerce
+# Requirements Ledger — Waesy Commerce
 
 > Fonte única de verdade de requisitos por capacidade. Atualizado a cada microfase executada.
 > Gerado em: 2026-07-19 | Módulo atual: Identidade & Autenticação (M-01)

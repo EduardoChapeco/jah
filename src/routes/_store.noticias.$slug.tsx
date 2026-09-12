@@ -18,8 +18,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/noticias/$slug")({
   head: ({ loaderData }: any) => ({
     meta: [
-      { title: loaderData?.article ? `${loaderData.article.title} | Wider Notícias` : "Notícia | Wider OS" },
-      { name: "description", content: loaderData?.article?.subtitle || "Notícia local no Wider." },
+      { title: loaderData?.article ? `${loaderData.article.title} | Waesy Notícias` : "Notícia | Waesy" },
+      { name: "description", content: loaderData?.article?.subtitle || "Notícia local no Waesy." },
     ],
   }),
   loader: async ({ params }) => {
@@ -168,7 +168,7 @@ function NoticiaDetailPage() {
                   )}
                 </div>
                 <div>
-                  <p className="font-bold text-foreground">{article.store_name || "Redação Wider"}</p>
+                  <p className="font-bold text-foreground">{article.store_name || "Redação Waesy"}</p>
                   {article.author_name && <p className="text-[10px]">Por {article.author_name}</p>}
                 </div>
               </div>

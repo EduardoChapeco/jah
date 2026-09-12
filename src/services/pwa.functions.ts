@@ -85,8 +85,8 @@ export const getPublicPwaManifest = createServerFn({ method: "GET" })
 
  if (error || !pwa) {
  return {
- name: "Wider Web App",
- short_name: "Wider",
+ name: "Waesy Web App",
+ short_name: "Waesy",
  start_url: "/",
  display: "standalone",
  background_color: "#000000",

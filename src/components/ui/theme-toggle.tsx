@@ -1,5 +1,5 @@
 /**
- * ThemeToggle — Componente de alternância de tema Wider
+ * ThemeToggle — Componente de alternância de tema Waesy
  *
  * Exibe um botão com ícone de sol/lua que cicla entre:
  * system → light → dark → system

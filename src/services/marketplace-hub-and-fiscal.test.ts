@@ -139,8 +139,8 @@ describe("Hub de Marketplaces, Módulo Fiscal & Telemetria CAPI — Contratos BD
     it("valida configuração fiscal completa da empresa", () => {
       const config = {
         cnpj: "12345678000199",
-        razao_social: "Wider Comércio e Tecnologia LTDA",
-        nome_fantasia: "Wider Store",
+        razao_social: "Waesy Comércio e Tecnologia LTDA",
+        nome_fantasia: "Waesy Store",
         inscricao_estadual: "123456789",
         provider: "focus_nfe" as const,
         regime_tributario: "simples_nacional" as const,
@@ -215,7 +215,7 @@ describe("Hub de Marketplaces, Módulo Fiscal & Telemetria CAPI — Contratos BD
         email: rawEmail,
         conversionValue: 150.0,
         channel: "meta_capi" as const,
-        sourceUrl: "https://wider.app/empresa/pousada-do-sol",
+        sourceUrl: "https://usewaesy.pages.dev/empresa/pousada-do-sol",
       };
 
       const result = LeadConversionTelemetrySchema.safeParse(telemetryPayload);

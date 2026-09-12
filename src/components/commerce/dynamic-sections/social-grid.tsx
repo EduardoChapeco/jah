@@ -15,8 +15,8 @@ interface SocialGridProps {
 
 export function SocialGrid({ content }: SocialGridProps) {
  const posts = content.posts || [];
- const title = content.title || "Siga-nos no Instagram";
- const username = content.username || "wider";
+ const title = content.title || "Galeria de Fotos da Loja";
+ const username = content.username || "waesy";
 
  // As métricas de engajamento agora vêm diretamente dos campos definidos no painel
  // de administração (via CMS Builder), permitindo total flexibilidade sem mock data.
@@ -60,7 +60,7 @@ export function SocialGrid({ content }: SocialGridProps) {
  >
  <img
  src={post.image_url}
- alt={`Instagram post ${idx + 1}`}
+ alt={`Galeria de fotos ${idx + 1}`}
  className="size-full object-cover transition-transform duration-500 group-hover:scale-110"
  loading="lazy"
  />

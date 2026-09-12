@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration: RMA Logistics Tracking
+-- Waesy Commerce — Migration: RMA Logistics Tracking
 -- ============================================================================
 
 ALTER TABLE public.rma_requests

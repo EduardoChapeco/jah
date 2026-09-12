@@ -4,7 +4,7 @@ import { NicheCalculationEngine } from './niche-calculation-engine';
 import { FormFieldEngine, type SemanticFieldDefinition } from './form-field-engine';
 import { SimLabV2Engine } from './simlab-v2-engine';
 
-describe('ONDA 2: MOTORES CENTRAIS DO JAH', () => {
+describe('ONDA 2: MOTORES CENTRAIS DO WAESY', () => {
 
  // ─── 1. CONDITIONAL STEP ENGINE ───
  describe('ConditionalStepEngine', () => {

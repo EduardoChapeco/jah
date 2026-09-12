@@ -25,7 +25,7 @@ import {
 
 export const Route = createFileRoute("/_store/conta/mobilidade")({
  head: () => ({
- meta: [{ title: "Minhas Corridas & Mudanças | Wider OS" }],
+ meta: [{ title: "Minhas Corridas & Mudanças | Waesy" }],
  }),
  loader: async () => {
    try {

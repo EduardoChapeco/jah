@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { getStorePwaConfig, saveStorePwaConfig } from "@/services/pwa.functions";
 
 export const Route = createFileRoute("/workspace/configuracoes/pwa")({
- head: () => ({ meta: [{ title: "Editor de App PWA | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Editor de App PWA | Waesy" }] }),
  component: PwaEditorPage,
 });
 

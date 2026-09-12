@@ -195,7 +195,7 @@ RLS:
 
 PROJETO:
 
-- `Jah`
+- `Waesy`
 
 AMBIENTE:
 

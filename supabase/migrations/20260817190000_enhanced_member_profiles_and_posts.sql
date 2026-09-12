@@ -1,5 +1,5 @@
 -- 20260817190000_enhanced_member_profiles_and_posts.sql
--- Ampliação das capacidades do perfil comunitário 360° (Wider / Waesy) e timeline social
+-- Ampliação das capacidades do perfil comunitário 360° (Waesy / Waesy) e timeline social
 
 -- 1. Enriquecer tabela public.profiles
 ALTER TABLE public.profiles

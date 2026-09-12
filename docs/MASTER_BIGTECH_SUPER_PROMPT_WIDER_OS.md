@@ -1,22 +1,22 @@
 # ==============================================================================
 # MASTER SUPER-PROMPT EXECUTIVO DE BIGTECH & DIRETIVA UNIVERSAL DE ENGENHARIA
-# SISTEMA OPERACIONAL WIDER (WIDER OS) — CONSELHO EXECUTIVO MULTI-AGENTE
+# SISTEMA OPERACIONAL WAESY (Waesy) — CONSELHO EXECUTIVO MULTI-AGENTE
 # AUDITORIA FORENSE DE 400+ PLANOS, INVENTÁRIO DE ATIVOS, GAPS & PROTOCOLO DE EXECUÇÃO
 # ==============================================================================
 
 > **Documento Canônico VINCULANTE e ABSOLUTO de Engenharia, Produto, Segurança e Design**  
 > **Elaborado pelo:** Conselho Executivo de Engenharia BigTech (CPO, Arquiteto Chefe, CISO & Data Master, Design Ops Director e Staff QA Gatekeeper).  
 > **Classificação:** Nível BigTech / Staff Principal Architect (Padrão Apple, Stripe, Linear, Airbnb, Vercel).  
-> **Escopo:** Unificação Total dos 9 Repositórios, Nativização na Stack Wider Elite, Erradicação de AI-Smell, Conexão Real de Banco/BFF/APIs (Zero Mocks), Key Orchestrator & Tool Routing (Steel.dev / Firecrawl / LLMs), SimLab com Populações Sintéticas Brasileiras Calibradas por Cidades (IBGE/PNAD), Rebranding Dinâmico e Governança de Ponta a Ponta.
+> **Escopo:** Unificação Total dos 9 Repositórios, Nativização na Stack Waesy Elite, Erradicação de AI-Smell, Conexão Real de Banco/BFF/APIs (Zero Mocks), Key Orchestrator & Tool Routing (Steel.dev / Firecrawl / LLMs), SimLab com Populações Sintéticas Brasileiras Calibradas por Cidades (IBGE/PNAD), Rebranding Dinâmico e Governança de Ponta a Ponta.
 
 ---
 
 ## 🏛️ PARTE 1: MANIFESTO FUNDACIONAL DO CONSELHO EXECUTIVO BIGTECH
 
-### 1.1. Identidade Canônica da Plataforma: WIDER (Zero Hardcode & White-Label Puro)
-- O nome soberano e oficial da plataforma é **Wider** (e seu núcleo operacional **Wider OS**).
-- **Proibição Total de Hardcode:** É terminantemente proibido chumbar `"JAH"`, `"JAH Master OS"` ou qualquer outro nome estático em strings de UI, títulos de página (`<title>`), meta tags, botões de ação ou mensagens de erro.
-- **Camada de Governança de Marca Dinâmica:** A plataforma opera com White-Label Nativo. O nome do ecossistema, o logotipo, o favicon e os tokens primários derivam em runtime de `usePlatformBrand()` / `brand_settings` da organização/loja, com fallback canônico defensivo para **"Wider"**.
+### 1.1. Identidade Canônica da Plataforma: WAESY (Zero Hardcode & White-Label Puro)
+- O nome soberano e oficial da plataforma é **Waesy** (e seu núcleo operacional **Waesy**).
+- **Proibição Total de Hardcode:** É terminantemente proibido chumbar `"Waesy"`, `"Waesy Master OS"` ou qualquer outro nome estático em strings de UI, títulos de página (`<title>`), meta tags, botões de ação ou mensagens de erro.
+- **Camada de Governança de Marca Dinâmica:** A plataforma opera com White-Label Nativo. O nome do ecossistema, o logotipo, o favicon e os tokens primários derivam em runtime de `usePlatformBrand()` / `brand_settings` da organização/loja, com fallback canônico defensivo para **"Waesy"**.
 
 ### 1.2. A Lei das 7 Camadas de Completude (Tolerância Zero para Mocks)
 Nenhuma funcionalidade, botão, fluxo ou tela é considerada pronta sem conter as 7 camadas ativas e verificadas:
@@ -35,17 +35,17 @@ Nenhuma funcionalidade, botão, fluxo ou tela é considerada pronta sem conter a
 ### 2.1. Inventário Consolidado dos Dossiês e Repositórios Extraídos
 Auditamos e cruzamos os 400+ planos históricos, os prompts anteriores e os dossiês de extração técnica dos 9 repositórios do ecossistema:
 
-| Fonte / Repositório | Ativos Canônicos Extraídos | Status no Wider Atual | GAPs & Ações Corretivas Necessárias |
+| Fonte / Repositório | Ativos Canônicos Extraídos | Status no Waesy Atual | GAPs & Ações Corretivas Necessárias |
 | :--- | :--- | :--- | :--- |
 | **`(Fundação).ini` (Base Primária)** | Paradigma Clean (iFood, Neutto, Mobg, Luma), Edição em 4 profundidades (Célula, Linha, Painel Lateral, Página Completa), Oferta Multinicho Universal, Grupos de Complementos/Modificadores, Agenda Universal (Belasis/Avec/Trinks), KDS, PDV, Spooler Térmico, Logística Sob Demanda e Frota. | `⚠️ PARCIAL` | Módulos operacionais apresentam inconsistência visual; cards conversacionais e textos prolixos poluem o workspace; persistência do KDS e Spooler térmico precisam de amarração estrita com o backend. |
 | **`DOSSIE_AARU_SIMLAB...` (simwork)** | Engenharia Reversa da Aaru AI (US$ 1B), Modelagem Baseada em Agentes (ABM), Populações Sintéticas calibradas pelo Censo IBGE 2022, PNAD e Critério Brasil ABEP, Sistema 1 e Sistema 2, Focus Group Virtual em tempo real, Conselho Científico Econométrico. | `⚠️ PARCIAL / HEURÍSTICO` | O `simlab.functions.ts` atualmente executa cálculos heurísticos hardcoded (`dailyIncome = median / 30`) em vez de acionar LLMs reais via Key Orchestrator; falta a base de milhões de personas regionalizadas por cidades e dados públicos abertos. |
-| **`DOSSIE_BUILDER_EDITOR...` (cloudblock + travelagencias)** | Builder Universal de Experiências, 6 Pilares: Portal do Cliente 360, Portal de Vagas/Carreiras, Portal Reclame Aqui, BioLinks/Hotsites, Suíte Office (Word/Docs com contratos e assinatura eletrônica SHA-256 de `travelagencias`), Creative Studio Canva/CapCut com IA de `wider`/`machine`, 40 Blocos de `cloudblock`, PWA Whitelabel de `classificadoswaesy`. | `⚠️ INSTÁVEL / PARCIAL` | O builder em `/workspace/builder/$id/editor` sofre com referências nulas no `ExperienceRenderer`, falta isolamento de nós com transações atômicas RPC e a integração do editor de minutas contratuais do JAH Office ainda não está 100% plugada. |
+| **`DOSSIE_BUILDER_EDITOR...` (cloudblock + travelagencias)** | Builder Universal de Experiências, 6 Pilares: Portal do Cliente 360, Portal de Vagas/Carreiras, Portal Reclame Aqui, BioLinks/Hotsites, Suíte Office (Word/Docs com contratos e assinatura eletrônica SHA-256 de `travelagencias`), Creative Studio Canva/CapCut com IA de `waesy`/`machine`, 40 Blocos de `cloudblock`, PWA Whitelabel de `classificadoswaesy`. | `⚠️ INSTÁVEL / PARCIAL` | O builder em `/workspace/builder/$id/editor` sofre com referências nulas no `ExperienceRenderer`, falta isolamento de nós com transações atômicas RPC e a integração do editor de minutas contratuais do Waesy Office ainda não está 100% plugada. |
 | **`DOSSIE_SQUADS_AGENTICOS...` (simwork + brand-builder-ai)** | Onboarding Multimodal por foto de cardápio/links com OCR semântico, Master SKU Catalog global (EAN-13, NCM, fotos HD), Radar de Concorrentes com screenshot full-page, extração de Brand DNA, Framework dos 7 Pecados Capitais, Squads de Especialistas (V4 Growth, Contábil/Tributário IBS/CBS, RH/DP). | `⚠️ EM CONEXÃO` | Tabelas criadas (`agent_registry`, `competitor_analyses_v2`), mas falta plugar as chamadas reais às ferramentas de automação de browser (Steel.dev / Firecrawl) e rotação de chaves. |
-| **`wider` (SuperApp)** | Motores Centrais: RH/Ponto com geolocalização, WMS Picking com scanner de código de barras, App do Garçom com mapa de mesas, KDS de cozinha, Workflows Visuais (`WorkflowVisualBuilder.tsx`). | `⚠️ TELAS ISOLADAS` | As interfaces existem em arquivos TSX, mas precisam ser unificadas sob o layout limpo do Workspace do Wider e conectadas a RPCs do Postgres. |
+| **`waesy` (SuperApp)** | Motores Centrais: RH/Ponto com geolocalização, WMS Picking com scanner de código de barras, App do Garçom com mapa de mesas, KDS de cozinha, Workflows Visuais (`WorkflowVisualBuilder.tsx`). | `⚠️ TELAS ISOLADAS` | As interfaces existem em arquivos TSX, mas precisam ser unificadas sob o layout limpo do Workspace do Waesy e conectadas a RPCs do Postgres. |
 | **`classificadoswaesy`** | Emissão Fiscal (NF-e, NFC-e, NFS-e, CF-e SAT), Painel Contábil com DRE e Fluxo de Caixa, Construtor PWA Whitelabel. | `⚠️ SCHEMAS PENDENTES` | Módulos contábeis e fiscais precisam ser amarrados ao fechamento de caixa do PDV e pedidos transacionados. |
 
 ### 2.2. Diagnóstico Severo de Quebras e Dívidas Técnicas (RCA)
-1. **Contaminação de Branding (190+ arquivos com "JAH Master OS"):** Viola o princípio de White-Label e cria dependência de string estática. Deve ser substituído por injeção dinâmica de marca.
+1. **Contaminação de Branding (190+ arquivos com "Waesy Master OS"):** Viola o princípio de White-Label e cria dependência de string estática. Deve ser substituído por injeção dinâmica de marca.
 2. **AI Smell e Caixas Conversacionais Prolixas:** Módulos do Workspace possuem cards gigantes com ícones em caixinhas coloridas e parágrafos explicativos ("Acesse aqui o painel de..."), quebrando a sobriedade e a velocidade exigidas em operações de varejo e serviços.
 3. **Simulações Fictícias no SimLab:** O SimLab deve combinar rigor estatístico econométrico com chamadas reais a modelos de inteligência artificial através de um Key Orchestrator seguro, gerando opiniões autênticas e não dados fixos.
 4. **Desconexão de Ferramentas Especializadas (Steel.dev, Firecrawl, Visão):** Quando uma automação exige captura de tela de página inteira (ex: Radar de Concorrentes), o backend deve se comunicar diretamente com o endpoint configurado no pool do orquestrador (ex: Steel.dev Browser API ou Firecrawl), gravando os artefatos no Supabase Storage.
@@ -89,22 +89,22 @@ Abaixo está o texto canônico e estruturado do **Super-Prompt de Execução Con
 
 ```markdown
 # ==============================================================================
-# PROMPT DE ENGENHARIA ELITE: EXECUÇÃO TOTAL DO WIDER OS (PADRÃO BIGTECH)
+# PROMPT DE ENGENHARIA ELITE: EXECUÇÃO TOTAL DO Waesy (PADRÃO BIGTECH)
 # ATUAÇÃO: CONSELHO EXECUTIVO MULTI-AGENTE (CPO + ARCHITECT + CISO + DESIGN OPS + QA)
 # ==============================================================================
 
 Você é o Conselho Executivo de Engenharia de uma BigTech (Apple, Stripe, Linear, Vercel).
 Sua missão é revisar, auditar, inventariar, refatorar o design e implementar 100% de ponta
-a ponta todas as funcionalidades, fluxos, regras de negócio e integrações da plataforma WIDER.
+a ponta todas as funcionalidades, fluxos, regras de negócio e integrações da plataforma Waesy.
 
 DIRETRIZES FUNDAMENTAIS E INVIOLÁVEIS:
 
-1. REBRANDING UNIVERSAL E ZERO HARDCODE (WIDER OS):
-   - O nome oficial da plataforma é WIDER.
-   - Elimine todas as ocorrências estáticas de "JAH" e "JAH Master OS" no código, rotas e títulos.
+1. REBRANDING UNIVERSAL E ZERO HARDCODE (Waesy):
+   - O nome oficial da plataforma é WAESY.
+   - Elimine todas as ocorrências estáticas de "Waesy" e "Waesy Master OS" no código, rotas e títulos.
    - Crie uma camada canônica de branding dinâmico (usePlatformBrand) onde o nome, logotipo e 
      textos derivam das configurações da loja/organização (White-Label nativo), com fallback
-     defensivo para "Wider".
+     defensivo para "Waesy".
 
 2. ERRADICAÇÃO TOTAL DE "AI-SMELL" E DESIGN INCONSISTENTE (SKILL ANTI-AI-DESIGN & APPLE HIG):
    - Elimine imediatamente todos os botões com visual de "card conversacional" (caixa colorida com
@@ -146,7 +146,7 @@ DIRETRIZES FUNDAMENTAIS E INVIOLÁVEIS:
        dedução de produtos, preços e adicionais reais salvos na tabela `products`.
      - Para o Master SKU Catalog: Catálogo global de produtos com EAN-13, NCM e fotos oficiais WebP.
 
-6. BUILDER UNIVERSAL & SUÍTE WIDER OFFICE (WORD/DOCS & CONTRATOS):
+6. BUILDER UNIVERSAL & SUÍTE WAESY OFFICE (WORD/DOCS & CONTRATOS):
    - Estabilize o Construtor Visual em /workspace/builder/$documentId/editor eliminando crashes
      por nós nulos (sanitizeNodeProps) e adotando persistência atômica via RPC.
    - Integre nativamente os 6 pilares:
@@ -154,7 +154,7 @@ DIRETRIZES FUNDAMENTAIS E INVIOLÁVEIS:
      [2] Portal de Carreiras / Empregos da Empresa com funil Kanban de candidatos.
      [3] Portal de Reputação & SAC Auditado (estilo Reclame Aqui com cálculo de score).
      [4] BioLinks & Hotsites de alta conversão.
-     [5] Suíte Wider Office: Editor de minutas em folha A4 com biblioteca de cláusulas jurídicas,
+     [5] Suíte Waesy Office: Editor de minutas em folha A4 com biblioteca de cláusulas jurídicas,
          tags dinâmicas ({{cliente.nome}}) e assinatura eletrônica com hash SHA-256 e certificado digital.
      [6] Creative Studio: Criação de flyers e carrosséis com IA e editor de vídeo multipista.
 
@@ -182,14 +182,14 @@ e validando em ambiente de execução real.
 
 | Onda | Foco Estratégico | Entregas Principais | Critério de Aceite |
 | :--- | :--- | :--- | :--- |
-| **Onda 01** | **Rebranding Wider & Anti-AI Smell** | Substituição das referências hardcoded "JAH" por branding dinâmico `Wider`; refatoração de botões conversacionais prolixos no Workspace; aplicação do Paradigma Clean e Apple HIG. | 0 ocorrências de branding hardcoded; 0 cards conversacionais prolixos; layout limpo e rápido. |
+| **Onda 01** | **Rebranding Waesy & Anti-AI Smell** | Substituição das referências hardcoded "Waesy" por branding dinâmico `Waesy`; refatoração de botões conversacionais prolixos no Workspace; aplicação do Paradigma Clean e Apple HIG. | 0 ocorrências de branding hardcoded; 0 cards conversacionais prolixos; layout limpo e rápido. |
 | **Onda 02** | **SimLab V2 Real & Key Orchestrator** | Conexão do motor de simulação aos provedores reais de IA; modelagem de dados demográficos de cidades brasileiras (IBGE/PNAD); interface com Focus Group interativo. | Experimentos gerando feedbacks reais de IA via pool de chaves; zero heurísticas simuladas. |
 | **Onda 03** | **Tools Headless (Steel.dev & OCR)** | Integração do Radar de Concorrentes com API Steel.dev/Firecrawl para screenshots full-page; ingestão multimodal de fotos de cardápios com geração de produtos reais. | Capturas reais de tela salvas no Storage; importação de cardápio físico para a tabela `products`. |
-| **Onda 04** | **Builder Universal & Wider Office** | Blindagem contra crashes no `ExperienceRenderer`; incorporação do editor de contratos A4 com assinatura eletrônica SHA-256 e Portais Whitelabel 360. | Criação e assinatura digital de contratos com validação jurídica; 0 telas em branco no editor. |
+| **Onda 04** | **Builder Universal & Waesy Office** | Blindagem contra crashes no `ExperienceRenderer`; incorporação do editor de contratos A4 com assinatura eletrônica SHA-256 e Portais Whitelabel 360. | Criação e assinatura digital de contratos com validação jurídica; 0 telas em branco no editor. |
 | **Onda 05** | **Operação Unificada (PDV, KDS, WMS)** | Amarração do PDV com leitor EAN, KDS de cozinha com alerta sonoro, WMS picking por código de barras e chamada de motoboy Sob Demanda. | Transações atômicas no banco; fluxo completo de venda física e entrega sem mocks. |
 | **Onda 06** | **RH/Ponto, Fiscal & Auditoria Final** | Ponto eletrônico com GPS/PIN; fechamento contábil e auditoria forense com compilação 100% limpa (`npm run build`). | 0 erros TypeScript; todas as 7 camadas ativas em todos os módulos. |
 
 ---
 
 ## 📜 CONCLUSÃO DO CONSELHO EXECUTIVO
-Este documento constitui a **Diretiva Mestra de Engenharia do Wider OS**. A partir deste momento, qualquer ciclo de desenvolvimento, refatoração ou auditoria deve consultar e seguir estritamente as especificações, regras de design e contratos aqui definidos.
+Este documento constitui a **Diretiva Mestra de Engenharia do Waesy**. A partir deste momento, qualquer ciclo de desenvolvimento, refatoração ou auditoria deve consultar e seguir estritamente as especificações, regras de design e contratos aqui definidos.

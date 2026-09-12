@@ -241,7 +241,7 @@ function AffiliateCommissionsPage() {
   const availableBalanceCents = Math.max(0, (profile?.total_commission_cents || 0) - (profile?.paid_commission_cents || 0));
   const affiliateUrl = typeof window !== "undefined"
     ? `${window.location.origin}/convite?ref=${profile?.handle || ""}`
-    : `https://wider.com.br/convite?ref=${profile?.handle || ""}`;
+    : `https://usewaesy.com/convite?ref=${profile?.handle || ""}`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(affiliateUrl);

@@ -40,7 +40,7 @@ import { formatDate } from "@/lib/datetime";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/trocas")({
-  head: () => ({ meta: [{ title: "Trocas e Devoluções (RMA) | Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Trocas e Devoluções (RMA) | Waesy" }] }),
   loader: async () => {
     try {
       const [rmas, orders] = await Promise.all([

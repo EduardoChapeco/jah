@@ -1,5 +1,5 @@
 /**
- * admin-master.carnes.tsx — Governança Bilateral de Carnês & Inadimplência (Wider Platform)
+ * admin-master.carnes.tsx — Governança Bilateral de Carnês & Inadimplência (Waesy Platform)
  * Painel 360° do Super-Admin para auditar recebíveis, gerenciar disputas e forçar conciliação.
  */
 
@@ -48,7 +48,7 @@ import {
 } from "@/services/receivables.functions";
 
 export const Route = createFileRoute("/admin-master/carnes")({
-  head: () => ({ meta: [{ title: "Carnês & Inadimplência Global | Admin Master Wider" }] }),
+  head: () => ({ meta: [{ title: "Carnês & Inadimplência Global | Admin Master Waesy" }] }),
   loader: async () => {
     try {
       const [carnes, overview] = await Promise.all([

@@ -73,7 +73,7 @@ INSERT INTO public.ai_master_prompts (
 (
   'product_importer_default',
   'Importador de Produtos & Cardápios (Padrão)',
-  'Extrai e refina dados brutos de páginas de produtos para o formato estruturado do catálogo Wider com alto padrão de copywriting.',
+  'Extrai e refina dados brutos de páginas de produtos para o formato estruturado do catálogo Waesy com alto padrão de copywriting.',
   'Você é um assistente sênior de catálogo e e-commerce de alto padrão. Sua missão é extrair dados brutos de páginas web e formatá-los de forma impecável, profissional e atraente. Ignore códigos de tracking, avisos de cookies ou scripts. Retorne estritamente um JSON válido seguindo a estrutura solicitada, sem textos adicionais.',
   'Analise o conteúdo bruto da página abaixo e extraia as informações do produto:\n\nURL: {{url}}\nTom de Escrita Solicitado: {{tone}}\nConteúdo Bruto:\n{{raw_content}}\n\nRetorne o JSON com:\n{\n  "title": "Título refinado do produto",\n  "subtitle": "Subtítulo de apoio ou slogan curto",\n  "description": "Descrição detalhada, persuasiva e formatada com quebras de linha",\n  "price_cents": 0,\n  "compare_at_cents": 0,\n  "brand": "Marca ou fabricante",\n  "category_suggestion": "Categoria sugerida",\n  "images": ["url1", "url2"],\n  "attributes": {"material": "...", "peso": "..."},\n  "variants": [{"name": "Padrão", "price_cents": 0, "sku": ""}]\n}',
   'gemini',

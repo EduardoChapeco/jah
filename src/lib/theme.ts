@@ -1,13 +1,13 @@
 /**
  * ============================================================================
- * Canonical Persistent Theme System (Wider Platform)
+ * Canonical Persistent Theme System (Waesy Platform)
  * ============================================================================
  * 
  * Arquitetura de Tema Reativa e Persistente:
  * 1. Singleton External Store com useSyncExternalStore: Zero descompasso de estado entre componentes e rotas.
  * 2. Sincronização Cross-Tab via storage event.
  * 3. Anti-FOUC Instantâneo: Injeção síncrona no <head> com matching de preferência de sistema.
- * 4. Persistência pétrea em localStorage sob a chave "wider-theme".
+ * 4. Persistência pétrea em localStorage sob a chave "waesy-theme".
  * ============================================================================
  */
 
@@ -15,8 +15,8 @@ import { useSyncExternalStore, useCallback, useEffect } from "react";
 
 export type ThemeMode = "system" | "light" | "dark";
 
-const STORAGE_KEY = "wider-theme";
-const THEME_CHANGE_EVENT = "wider-theme-change";
+const STORAGE_KEY = "waesy-theme";
+const THEME_CHANGE_EVENT = "waesy-theme-change";
 
 // ── Funções de Manipulação do DOM ──
 function getSystemPreference(): "light" | "dark" {
@@ -47,7 +47,7 @@ let currentTheme: ThemeMode = "system";
 function getStoredTheme(): ThemeMode {
  if (typeof localStorage === "undefined") return "system";
  try {
- const stored = localStorage.getItem(STORAGE_KEY);
+ const stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("waesy-theme");
  if (stored === "light" || stored === "dark" || stored === "system") {
  return stored;
  }
@@ -127,7 +127,7 @@ export function useTheme() {
 export const themeInitScript = `
 (function() {
  try {
- var stored = localStorage.getItem('${STORAGE_KEY}');
+ var stored = localStorage.getItem('${STORAGE_KEY}') || localStorage.getItem('waesy-theme');
  var isDark = stored === 'dark' || ((!stored || stored === 'system') && window.matchMedia('(prefers-color-scheme: dark)').matches);
  var html = document.documentElement;
  html.classList.remove('light', 'dark');

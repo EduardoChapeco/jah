@@ -1,4 +1,4 @@
-# G7: E2E Flow Map (Mapeamento dos 8 Fluxos Verticais Jah)
+# G7: E2E Flow Map (Mapeamento dos 8 Fluxos Verticais Waesy)
 
 > **Mapeamento de Fluxos Ponta a Ponta Rastreando do Cadastro à Entrega**
 

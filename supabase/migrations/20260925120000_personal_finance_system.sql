@@ -1,6 +1,6 @@
 -- ==============================================================================
 -- MIGRATION: 20260925000000_personal_finance_system.sql
--- Módulo de Gestão Financeira Pessoal (Wider Community Platform)
+-- Módulo de Gestão Financeira Pessoal (Plataforma Waesy)
 -- Tabelas: personal_financial_categories, personal_financial_entries
 -- Isolamento RLS rigoroso (auth.uid() = profile_id), índices e seed inicial
 -- ==============================================================================

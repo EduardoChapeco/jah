@@ -28,7 +28,7 @@ import {
 } from "@/services/automation.functions";
 
 export const Route = createFileRoute("/workspace/automacoes")({
-  head: () => ({ meta: [{ title: "Workflows & Automações | Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Workflows & Automações | Waesy" }] }),
   loader: async () => {
     try {
       const workflows = await listWorkflows();

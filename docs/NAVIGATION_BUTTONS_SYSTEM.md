@@ -1,12 +1,12 @@
-# Sistema Global de Gestão de Botões de Navegação, Mídias & Categorias (JAH Platform)
+# Sistema Global de Gestão de Botões de Navegação, Mídias & Categorias (Waesy Platform)
 
-Este documento é a **Fonte Única de Verdade (Single Source of Truth)** para a arquitetura, taxonomia, rotas e customização visual de todos os botões de navegação, chips de categorias e hotpages panorâmicas da plataforma JAH.
+Este documento é a **Fonte Única de Verdade (Single Source of Truth)** para a arquitetura, taxonomia, rotas e customização visual de todos os botões de navegação, chips de categorias e hotpages panorâmicas da plataforma Waesy.
 
 ---
 
 ## 🏛️ 1. Visão Geral da Arquitetura
 
-O sistema de botões e categorias da JAH foi construído para fornecer **personalização irrestrita de mídias e texturas** em todas as 25+ páginas públicas do marketplace e classificados, mantendo desempenho extremo e legibilidade impecável.
+O sistema de botões e categorias da Waesy foi construído para fornecer **personalização irrestrita de mídias e texturas** em todas as 25+ páginas públicas do marketplace e classificados, mantendo desempenho extremo e legibilidade impecável.
 
 ### Camadas de Completude Quádrupla:
 1. **Banco de Dados (Supabase Postgres):**

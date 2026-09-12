@@ -54,7 +54,7 @@ export const Route = createFileRoute("/workspace/marketing/encartes")({
   head: () => ({
     meta: [
       {
-        title: "Encartes & Tabloides da Semana | Workspace Wider OS",
+        title: "Encartes & Tabloides da Semana | Workspace Waesy",
       },
       {
         name: "description",

@@ -45,7 +45,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/workspace/cms/stories")({
- head: () => ({ meta: [{ title: "Stories & Collabs (CMS) | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Stories & Collabs (CMS) | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const [storiesRes, collabsRes] = await Promise.all([

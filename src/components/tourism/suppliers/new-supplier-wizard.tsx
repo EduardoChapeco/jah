@@ -106,7 +106,7 @@ export function NewSupplierWizard({ isOpen, onClose, onCreated, storeId }: NewSu
  <Input
  value={name}
  onChange={(e) => setName(e.target.value)}
- placeholder="Ex: CVC Corp, Viagens Promo, Orinter, LATAM Airlines"
+ placeholder="Ex: Operadora de Turismo, Viagens Promo, LATAM Airlines"
  className="h-10 text-xs rounded-xl"
  autoFocus
  />
@@ -117,7 +117,7 @@ export function NewSupplierWizard({ isOpen, onClose, onCreated, storeId }: NewSu
  <Input
  value={legalName}
  onChange={(e) => setLegalName(e.target.value)}
- placeholder="Ex: CVC Brasil Operadora e Agência de Viagens S.A."
+ placeholder="Ex: Razão Social da Operadora / Parceiro"
  className="h-10 text-xs rounded-xl"
  />
  </div>

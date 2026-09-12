@@ -1,7 +1,7 @@
 # 🏛️ Documento Mestre de Engenharia BigTech: Hub Universal, Telemetria 360°, Fiscal Nacional & WebMCP
 
 > **Classificação:** Documentação Canônica & Especificação Arquitetural de BigTech  
-> **Plataforma:** JAH / Wider Community OS  
+> **Plataforma:** Waesy / Waesy Community OS  
 > **Padrões Técnicos:** OpenDelivery v1.0 (Abrasel), Meta CAPI v19.0, Google Enhanced Conversions, SEFAZ v4.00, Padrão Nacional NFS-e (Receita Federal / ADN), Schema.org JSON-LD & WebMCP (Model Context Protocol).  
 > **Homologação:** Conselho Executivo de Engenharia de BigTech (CPO, Arquiteto Chefe, CISO, Design Ops Director e Staff QA Gatekeeper).
 
@@ -38,7 +38,7 @@
 
 # SEÇÃO I — Auditoria Forense do Sistema Atual
 
-A auditoria minuciosa da base de código do JAH revelou a exata linha de demarcação entre o que já está homologado em produção e o que ainda requer implementação ou refatoração:
+A auditoria minuciosa da base de código do Waesy revelou a exata linha de demarcação entre o que já está homologado em produção e o que ainda requer implementação ou refatoração:
 
 | Domínio de Funcionalidade | Status Atual no Repositório | O Que Já Foi Entregue | O Que Falta Implementar / Refinar |
 | :--- | :---: | :--- | :--- |
@@ -151,7 +151,7 @@ Abaixo está o mapeamento detalhado das documentações oficiais de desenvolvedo
 
 Historicamente, o Brasil possuía mais de 5.500 sistemas de nota fiscal de serviços municipais (ABRASF, Betha, ISSNet, Ginfes, WebISS). O Governo Federal, através da Receita Federal e do Comitê Gestor da NFS-e, estabeleceu o **Portal Nacional da NFS-e (Ambiente de Dados Nacional - ADN)**.
 
-O ecossistema JAH opera em arquitetura híbrida de alta resiliência:
+O ecossistema Waesy opera em arquitetura híbrida de alta resiliência:
 1. **Padrão Nacional NFS-e (Receita Federal / ADN):** Conexão direta via webservices SOAP/mTLS com certificado digital A1 para prestadores de serviços e MEIs de todo o território nacional.
 2. **NF-e (Modelo 55 - Mercadorias) & NFC-e (Modelo 65 - Varejo):** Comunicação direta com os servidores das Secretarias de Fazenda Estaduais (SEFAZ).
 3. **Multi-Gateway Fallback:** Conexão nativa com os principais orquestradores fiscais homologados do Brasil para contingência automática:
@@ -169,7 +169,7 @@ O ecossistema JAH opera em arquitetura híbrida de alta resiliência:
 
 Com a introdução do iOS 14.5+ (App Tracking Transparency) e o bloqueio de cookies de terceiros, o disparo de pixels exclusivamente pelo navegador perde entre 30% e 45% das conversões reais de campanhas.
 
-O JAH implementa a arquitetura canônica de **Dual-Tracking com Deduplicação Perfeita**:
+O Waesy implementa a arquitetura canônica de **Dual-Tracking com Deduplicação Perfeita**:
 
 ```text
 ┌────────────────────────┐                    ┌─────────────────────────┐
@@ -178,7 +178,7 @@ O JAH implementa a arquitetura canônica de **Dual-Tracking com Deduplicação P
             │ Clique / Compra / Lead
             ▼
 ┌────────────────────────┐                    ┌─────────────────────────┐
-│   Servidor JAH (BFF)   │─── event_id: XYZ ─▶│  Meta CAPI (Servidor)   │ (100% Imutável & Seguro)
+│   Servidor Waesy (BFF)   │─── event_id: XYZ ─▶│  Meta CAPI (Servidor)   │ (100% Imutável & Seguro)
 │  (pixels.functions.ts) │   + Hash SHA-256   └─────────────────────────┘
 └────────────────────────┘
 ```
@@ -221,7 +221,7 @@ A plataforma disponibiliza dois endpoints públicos de dados gerados dinamicamen
 
 ### 5.1 Microdados Schema.org JSON-LD para Produtos, Lojas e Notícias
 
-Cada página pública do ecossistema JAH injeta dinamicamente blocos de microdados semânticos no padrão **Schema.org**:
+Cada página pública do ecossistema Waesy injeta dinamicamente blocos de microdados semânticos no padrão **Schema.org**:
 - **Produtos (`Product` + `Offer`):** Nome, descrição, SKU, GTIN, fotos em alta resolução, moeda BRL, preço e disponibilidade (`InStock` / `OutOfStock`), permitindo a exibição de **Rich Results (Resultados Enriquecidos)** com estrelas e preços diretamente na busca orgânica do Google.
 - **Negócios Locais (`LocalBusiness` / `Store`):** Endereço completo com geolocalização (latitude/longitude), telefone, horário de funcionamento e categoria de negócio para indexação no Google Maps e no pacote local de busca.
 - **Artigos & Notícias (`NewsArticle`):** Título, autor, data de publicação, imagem de destaque e canonical URL para qualificação no **Google Notícias** e no **Google Discover**.
@@ -232,19 +232,19 @@ Cada página pública do ecossistema JAH injeta dinamicamente blocos de microdad
 
 A integração permite que o lojista conecte sua conta Google no Workspace:
 - Sincronização automática de dados institucionais: razão social, horários de atendimento, endereço físico, telefone comercial e link direto do catálogo da loja.
-- Centralização das avaliações e respostas a clientes dentro do próprio painel do JAH.
+- Centralização das avaliações e respostas a clientes dentro do próprio painel do Waesy.
 
 ---
 
 ### 5.3 WebMCP / Model Context Protocol: Como IAs Encontram e Compram na Plataforma
 
-O **Model Context Protocol (MCP)** é a nova fronteira da internet conversacional. Com o WebMCP, agentes autônomos de Inteligência Artificial (Google Gemini, OpenAI ChatGPT, Anthropic Claude, Perplexity AI) navegam na plataforma JAH não como visitantes gráficos convencionais, mas consumindo ferramentas estruturadas em JSON.
+O **Model Context Protocol (MCP)** é a nova fronteira da internet conversacional. Com o WebMCP, agentes autônomos de Inteligência Artificial (Google Gemini, OpenAI ChatGPT, Anthropic Claude, Perplexity AI) navegam na plataforma Waesy não como visitantes gráficos convencionais, mas consumindo ferramentas estruturadas em JSON.
 
 O endpoint `/api/webmcp.json` declara as seguintes capacidades abertas:
 ```json
 {
   "protocol": "mcp/1.0",
-  "server": "JAH-Universal-Commerce",
+  "server": "Waesy-Universal-Commerce",
   "tools": [
     {
       "name": "search_products",
@@ -265,13 +265,13 @@ O endpoint `/api/webmcp.json` declara as seguintes capacidades abertas:
   ]
 }
 ```
-**Resultado Prático:** Quando um usuário pesquisa no ChatGPT ou Gemini: *"Onde posso encomendar doces artesanais em Chapecó com entrega hoje?"*, a IA consulta a API do JAH via WebMCP e apresenta os produtos das lojas cadastradas com link direto para finalização da compra.
+**Resultado Prático:** Quando um usuário pesquisa no ChatGPT ou Gemini: *"Onde posso encomendar doces artesanais em Chapecó com entrega hoje?"*, a IA consulta a API do Waesy via WebMCP e apresenta os produtos das lojas cadastradas com link direto para finalização da compra.
 
 ---
 
 # SEÇÃO VI — Social Publisher & Studio: Gerador de Imagens no Backend
 
-Para erradicar a dependência de designers externos ou ferramentas pagas como o Canva, o JAH integra o **Social Studio**:
+Para erradicar a dependência de designers externos ou ferramentas pagas como o Canva, o Waesy integra o **Social Studio**:
 
 1. **Motor de Renderização Vetorial Server-Side:**
    - O backend compõe uma imagem PNG de altíssima definição (2048x2048px para Feed ou 1080x1920px para Stories) a partir de templates gráficos canônicos.
@@ -386,7 +386,7 @@ USING (store_id = (current_setting('request.jwt.claims', true)::jsonb ->> 'store
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                        ROADMAP INDUSTRIAL DE EXECUÇÃO JAH                              │
+│                        ROADMAP INDUSTRIAL DE EXECUÇÃO Waesy                              │
 ├──────┬─────────────────────────┬────────────────────────────┬──────────────────────────┤
 │ FASE │ DOMÍNIO                 │ CAMADAS ENVOLVIDAS         │ PROVA REAL DE ENTREGA    │
 ├──────┼─────────────────────────┼────────────────────────────┼──────────────────────────┤

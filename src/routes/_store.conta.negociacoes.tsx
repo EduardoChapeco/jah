@@ -31,7 +31,7 @@ import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/negociacoes")({
- head: () => ({ meta: [{ title: "Minhas Negociações & Reservas | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Minhas Negociações & Reservas | Waesy" }] }),
  component: NegociacoesPage,
 });
 
@@ -390,7 +390,7 @@ function NegociacoesPage() {
  <p className="text-[11px] text-muted-foreground">
  {isRental
  ? "Os dados do imóvel e as datas estão registrados na sua agenda."
- : "O acordo foi formalizado entre as partes na plataforma Wider."}
+ : "O acordo foi formalizado entre as partes na plataforma Waesy."}
  </p>
  </div>
  </div>

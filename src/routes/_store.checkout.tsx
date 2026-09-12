@@ -37,7 +37,7 @@ import { toast } from "sonner";
 import { Surface } from "@/components/ui/surface";
 
 export const Route = createFileRoute("/_store/checkout")({
-  head: () => ({ meta: [{ title: "Checkout | Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Checkout | Waesy" }] }),
   validateSearch: (search: Record<string, unknown>): { store?: string } => {
     return {
       store: (search.store as string) || undefined,
@@ -737,7 +737,7 @@ export function CheckoutPage() {
  </div>
  <div className="min-w-0 flex-1">
  <p className="text-xs font-bold text-foreground truncate">
- {userProfile.fullName || "Membro Wider"}
+ {userProfile.fullName || "Membro Waesy"}
  </p>
  <p className="text-[11px] text-muted-foreground truncate">{userProfile.email}</p>
  {(!userProfile.phone || !userProfile.cpf) && (

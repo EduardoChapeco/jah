@@ -89,9 +89,9 @@ DECLARE
   v_random_suffix TEXT;
   v_now TIMESTAMPTZ := NOW();
 BEGIN
-  -- Gera um código human-readable único, ex: JAH-W8F39
+  -- Gera um código human-readable único, ex: Waesy-W8F39
   v_random_suffix := UPPER(SUBSTRING(MD5(RANDOM()::TEXT) FROM 1 FOR 5));
-  v_lead_code := 'JAH-W' || v_random_suffix;
+  v_lead_code := 'Waesy-W' || v_random_suffix;
 
   -- 1. Inserir na tabela de conversões
   INSERT INTO public.whatsapp_lead_conversions (

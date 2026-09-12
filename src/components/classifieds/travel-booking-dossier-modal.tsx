@@ -319,7 +319,7 @@ export function TravelBookingDossierModal({
 
           <p className="text-[11px] text-muted-foreground text-center flex items-center justify-center gap-1">
             <ShieldCheck className="size-3.5 text-emerald-600" />
-            <span>Seus dados são protegidos e salvos na sua conta Wider.</span>
+            <span>Seus dados são protegidos e salvos na sua conta Waesy.</span>
           </p>
         </form>
       </DialogContent>

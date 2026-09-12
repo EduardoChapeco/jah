@@ -1,4 +1,4 @@
-# COMPONENT_CATALOG.md — Jah Platform Design System
+# COMPONENT_CATALOG.md — Waesy Platform Design System
 
 > Componentes canônicos e seus estados obrigatórios. Fonte de verdade de UI
 > junto de `DESIGN.md` e `docs/design-system-audit.md`. Todo componente de dado/ação
@@ -8,17 +8,17 @@
 
 ## Camadas
 
-- `src/components/ui` — primitivos shadcn / Jah Primitives (adaptados por variantes/tokens).
+- `src/components/ui` — primitivos shadcn / Waesy Primitives (adaptados por variantes/tokens).
 - `src/components/commerce` — vitrine pública.
 - `src/components/admin` — painel.
 - `src/components/state` — estados reutilizáveis.
 
-## Primitivos Canônicos Jah (`src/components/ui`)
+## Primitivos Canônicos Waesy (`src/components/ui`)
 
 | Componente      | Variantes / Recursos                                                                                                                | Notas de Estado & Acessibilidade                                                                                        |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `<Surface>`     | `default`, `zine`, `flyer`, `yellow-pages`, `ticket`, `polaroid`, `cardboard`, `charcoal`                                           | Elevações: `none`, `sm`, `md`, `hard`. Usa tokens Oklch semânticos que respondem ao dual theme.                         |
-| `<Button>`      | Variantes: `default`, `destructive`, `outline`, `secondary`, `ghost`, `link`. Tamanhos: `default (44px)`, `sm`, `lg`, `icon (44px)` | Suporta `isLoading` (exibe spinner Jah + `aria-busy`), `loadingText`, `disabled`. Touch target mínimo de 44px para iOS. |
+| `<Button>`      | Variantes: `default`, `destructive`, `outline`, `secondary`, `ghost`, `link`. Tamanhos: `default (44px)`, `sm`, `lg`, `icon (44px)` | Suporta `isLoading` (exibe spinner Waesy + `aria-busy`), `loadingText`, `disabled`. Touch target mínimo de 44px para iOS. |
 | `<Input>`       | Estilo brutalista borda dura 2px                                                                                                    | Suporta `hasError` (`border-destructive`, `aria-invalid`), `disabled`. Touch target mínimo de 44px (`h-11`).            |
 | `<Badge>`       | `default`, `secondary`, `destructive`, `outline`, `info`, `success`, `warning`                                                      | 7 variantes alinhadas com os tokens de status do design system.                                                         |
 | `<ThemeToggle>` | Alternador contextual de tema (`system` → `light` → `dark`)                                                                         | Acessível por teclado, `title` e `aria-label` dinâmicos. Ícone contextual (Monitor / Sol / Lua).                        |
@@ -47,7 +47,7 @@
 
 | Componente                      | Descrição                                     | Notas de estado                                |
 | ------------------------------- | --------------------------------------------- | ---------------------------------------------- |
-| `BrandLogo` / `Logo`            | Marca real Jah (imagem)                       | —                                              |
+| `BrandLogo` / `Logo`            | Marca real Waesy (imagem)                       | —                                              |
 | `PublicHeader`                  | Cabeçalho + menu mobile (Sheet) + ThemeToggle | navegação sempre válida (derivada do registry) |
 | `MobileBottomNav` / `BottomNav` | Navegação inferior sticky (mobile)            | alvos >= 44px, `pb-safe`                       |
 | `PublicFooter`                  | Rodapé com colunas                            | links reais                                    |

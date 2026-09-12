@@ -64,7 +64,7 @@ import { cn } from "@/lib/utils";
 import type { AdminProductRow } from "@/types/catalog";
 
 export const Route = createFileRoute("/workspace/catalogo/produtos/")({
- head: () => ({ meta: [{ title: "Catálogo & Itens | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Catálogo & Itens | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const [products, store] = await Promise.all([
@@ -468,7 +468,7 @@ function AdminProductsPage() {
         <CatalogComplementsTab store={store} />
       ) : (
         <>
-          {/* ── TOOLBAR CANÔNICA SOBERANA JAH ── */}
+          {/* ── TOOLBAR CANÔNICA SOBERANA Waesy ── */}
           <WorkspaceCanonicalToolbar
             tabs={[
               { id: "active", label: "Ativos", count: products.filter((p) => p.status !== "archived").length },

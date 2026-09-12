@@ -1,6 +1,6 @@
 # 🏛️ AUDITORIA GERAL DO CONSELHO BIGTECH & PLANO MESTRE DE VITRINES MODULARES (CMS)
 
-> **Documento Oficial de Engenharia & Governança de Produto (Wider Community Platform)**  
+> **Documento Oficial de Engenharia & Governança de Produto (Plataforma Waesy)**  
 > **Data:** 27 de Agosto de 2026 | **Versão:** 4.0.0-PROD  
 > **Fontes de Verdade:** `docs/DESIGN.md`, `docs/MASTER_PLAN.md`, `docs/ARCHITECTURE.md`, `src/styles.css`
 

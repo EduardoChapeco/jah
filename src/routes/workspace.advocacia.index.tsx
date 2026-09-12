@@ -44,7 +44,7 @@ import { formatDate } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/advocacia/")({
- head: () => ({ meta: [{ title: "Painel Jurídico & Processos 360° | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Painel Jurídico & Processos 360° | Workspace Waesy" }] }),
  loader: async () => {
  try {
  const [demandsRes, lawsuitsRes, monitorsRes, analyticsRes, deadlinesRes, digestRes] =

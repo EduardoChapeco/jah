@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-const BASE_URL = "https://wider.pages.dev";
+const BASE_URL = "https://waesy.pages.dev";
 
 function escapeXml(unsafe: string): string {
   if (!unsafe) return "";
@@ -39,7 +39,7 @@ export const Route = createFileRoute("/sitemap-news.xml")({
     <loc>${BASE_URL}/noticias/${escapeXml(art.slug)}</loc>
     <news:news>
       <news:publication>
-        <news:name>Wider News</news:name>
+        <news:name>Waesy News</news:name>
         <news:language>pt</news:language>
       </news:publication>
       <news:publication_date>${pubDate}</news:publication_date>

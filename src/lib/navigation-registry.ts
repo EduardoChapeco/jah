@@ -252,7 +252,7 @@ export function resolveContextNavigation(pathname: string, session?: any): Conte
  if (pathname.startsWith("/mercado")) {
  return {
  moduleId: "market",
- title: "Mercado Wider",
+ title: "Mercado Waesy",
  subtitle: "Marcas autorais e produtos da comunidade",
  groups: MARKET_NAV_GROUPS,
  action: {

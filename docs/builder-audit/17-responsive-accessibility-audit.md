@@ -1,7 +1,7 @@
 # 17 — Responsive & Accessibility Audit Report
 
 > Data: 2026-07-24  
-> Projeto: Jah Commerce
+> Projeto: Waesy Commerce
 
 ---
 

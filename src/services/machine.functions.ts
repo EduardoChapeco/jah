@@ -71,7 +71,7 @@ export const generateViralCarouselContent = createServerFn({ method: "POST" })
  type: i % 2 === 0 ? 'problem' : 'insight',
  headline: `Passo 0${i - 1}: Dominando ${data.topic}`,
  subheadline: `Dica prática de execução rápida para ${data.niche}.`,
- bodyText: `Ao invés de repetir fórmulas genéricas, aplique a técnica do ecossistema Wider focada em alta conversão e consistência.`,
+ bodyText: `Ao invés de repetir fórmulas genéricas, aplique a técnica do ecossistema Waesy focada em alta conversão e consistência.`,
  visualPrompt: `Card limpo estilo Apple HIG com contraste refinado`,
  suggestedColors: { background: '#1E293B', text: '#F8FAFC', accent: '#3B82F6' },
  layers: [
@@ -102,7 +102,7 @@ Muitas empresas perdem tempo e vendas por não terem clareza nos processos. No c
 
 👇 Qual dessas dicas chamou mais a sua atenção? Comente abaixo!
 
-#${data.niche} #gestao #crescimento #negocios #jah`;
+#${data.niche} #gestao #crescimento #negocios #waesy`;
 
  return {
  id: 'car-' + Math.random().toString(36).substring(2, 9),
@@ -110,7 +110,7 @@ Muitas empresas perdem tempo e vendas por não terem clareza nos processos. No c
  niche: data.niche,
  slides,
  caption,
- hashtags: [data.niche, 'negocios', 'vendas', 'inovacao', 'jah'],
+ hashtags: [data.niche, 'negocios', 'vendas', 'inovacao', 'waesy'],
  viralScore: 88,
  };
  });

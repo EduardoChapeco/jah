@@ -41,8 +41,8 @@ export const Route = createFileRoute("/_store/perfil-da-loja")({
 
     return {
       title: profile?.name
-        ? `${profile.name} — Loja & Cardápio Oficial | Wider`
-        : "Página Oficial da Loja | Wider OS",
+        ? `${profile.name} — Loja & Cardápio Oficial | Waesy`
+        : "Página Oficial da Loja | Waesy",
       meta: [
         {
           name: "description",

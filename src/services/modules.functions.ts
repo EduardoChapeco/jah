@@ -15,7 +15,7 @@ export interface PlatformModuleDTO {
 }
 
 /**
- * Consulta pública de módulos ativos na plataforma Wider.
+ * Consulta pública de módulos ativos na plataforma Waesy.
  */
 export const getPublicPlatformModules = createServerFn({ method: "GET" }).handler(
   async (): Promise<PlatformModuleDTO[]> => {

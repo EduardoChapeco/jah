@@ -1,13 +1,13 @@
 # MODULAR_CONTEXTUAL_SYSTEM_ARCHITECTURE.md — Arquitetura Modular Contextual, Semântica por Nicho & RBAC
 
-> **Documento Canônico de Arquitetura, Semântica de Domínio e Governança Operacional — Plataforma JAH**  
+> **Documento Canônico de Arquitetura, Semântica de Domínio e Governança Operacional — Plataforma Waesy**  
 > Elaborado pelo Conselho Executivo de Engenharia BigTech (CPO, Arquiteto Chefe, Engenharia de Dados & Segurança, Design Ops e QA Gatekeeper).
 
 ---
 
 ## 1. Visão Geral & Filosofia de Modularização Contextual
 
-A plataforma **JAH** opera como um Super App Comunitário e Comercial Urbano. Para que o lojista/operador não se sinta sobrecarregado com menus genéricos ou ferramentas que não pertencem ao seu segmento, o **Workspace** adota uma **Arquitetura Modular Contextual Orientada a Nicho**.
+A plataforma **Waesy** opera como um Super App Comunitário e Comercial Urbano. Para que o lojista/operador não se sinta sobrecarregado com menus genéricos ou ferramentas que não pertencem ao seu segmento, o **Workspace** adota uma **Arquitetura Modular Contextual Orientada a Nicho**.
 
 ### 🎯 Princípio Central:
 > *"Um restaurante não gerencia 'SKUs de vestuário'; ele gerencia 'Pratos, Adicionais e Mesas'. Um salão de beleza não controla 'Tabelas de Frete por KM'; ele controla 'Cadeiras, Profissionais e Agendamentos'. A interface se adapta à mente do operador, e não o operador à interface."*
@@ -29,7 +29,7 @@ graph TD
 
 ## 2. Inventário Canônico dos Módulos do Workspace
 
-O Workspace da JAH é composto por **9 Grandes Famílias Modulares**, divididas em **Submódulos Atômicos**:
+O Workspace da Waesy é composto por **9 Grandes Famílias Modulares**, divididas em **Submódulos Atômicos**:
 
 | Família Modular | Submódulos Canônicos | Finalidade Operacional | Tabelas Supabase Core |
 |---|---|---|---|
@@ -154,7 +154,7 @@ Seguindo o padrão de plataformas corporativas de ponta (como Meta Business Suit
 
 ## 5. Diretrizes de Otimização, Performance & Zero-Legacy Policy
 
-Para garantir que a plataforma JAH mantenha tempos de resposta ultrarrápidos (<100ms) e consuma banda mínima em conexões móveis (3G/4G), adotamos 5 Pilares de Engenharia de Performance:
+Para garantir que a plataforma Waesy mantenha tempos de resposta ultrarrápidos (<100ms) e consuma banda mínima em conexões móveis (3G/4G), adotamos 5 Pilares de Engenharia de Performance:
 
 ### 1. Code-Splitting Granular & Dynamic Imports
 - Componentes pesados (como mapas WebGL `maplibre-gl`, renderizadores canvas do Builder e bibliotecas gráficas) NUNCA são carregados no bundle inicial.

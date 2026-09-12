@@ -35,7 +35,7 @@ import { exportElementAsPdf } from "@/lib/pdf-export";
 
 export const Route = createFileRoute("/workspace/turismo/vouchers/")({
   head: () => ({
-    meta: [{ title: "Central de Vouchers & Boarding Passes | Workspace Wider OS" }],
+    meta: [{ title: "Central de Vouchers & Boarding Passes | Workspace Waesy" }],
   }),
   loader: async () => {
     try {
@@ -145,7 +145,7 @@ export default function WorkspaceVouchersPage() {
 
   return (
     <div className="w-full space-y-6 animate-in fade-in duration-200">
-      {/* ── 1. TOOLBAR CANÔNICA PADRÃO WIDER OS ── */}
+      {/* ── 1. TOOLBAR CANÔNICA PADRÃO Waesy ── */}
       <WorkspaceCanonicalToolbar
         tabs={TABS}
         activeTab={selectedType}

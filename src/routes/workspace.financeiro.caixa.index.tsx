@@ -66,7 +66,7 @@ import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/financeiro/caixa/")({
- head: () => ({ meta: [{ title: "Fluxo de Caixa & Turnos | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Fluxo de Caixa & Turnos | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const [registerRes, historyRes] = await Promise.all([

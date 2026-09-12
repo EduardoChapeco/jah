@@ -58,7 +58,7 @@ const CASA_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/casa")({
  head: () => ({
  meta: [
- { title: "Casa, Móveis, Decoração & Utilidades | Wider OS" },
+ { title: "Casa, Móveis, Decoração & Utilidades | Waesy" },
  {
  name: "description",
  content:

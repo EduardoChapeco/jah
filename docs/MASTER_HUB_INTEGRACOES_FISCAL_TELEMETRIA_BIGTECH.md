@@ -1,6 +1,6 @@
 # Documentação Mestra de Engenharia: Hub de Integrações Multicanal, Módulo Fiscal Brasileiro, Telemetria & Social Studio
 
-> **Status:** Documento Normativo do Conselho Executivo de BigTech (JAH / Wider OS)  
+> **Status:** Documento Normativo do Conselho Executivo de BigTech (Waesy / Waesy)  
 > **Data:** Setembro de 2026  
 > **Classificação:** Arquitetura de Referência & Especificação Funcional
 
@@ -214,7 +214,7 @@ Gera planilha delimitada por vírgula compatível com Facebook Shops e Instagram
 Exposição de ferramentas declarativas que agentes de inteligência artificial podem invocar para consultar produtos e disponibilidade:
 ```json
 {
-  "name": "Wider Store AI Discovery",
+  "name": "Waesy Store AI Discovery",
   "version": "1.0.0",
   "tools": [
     {
@@ -250,7 +250,7 @@ O Social Studio permite gerar ativos visuais de alta qualidade diretamente no na
 ## 7. Roteiro de Execução em Fases
 
 - **Fase 1:** Aplicação da migration de conectores de marketplace, pedidos externos, tabelas fiscais e colunas de canal em caixa/estoque.
-- **Fase 2:** Criação dos contratos BFF em `src/services/marketplace-hub.functions.ts` e `src/services/fiscal-nfe.functions.ts`, com transplante dos adaptadores de `wider-669929d7`.
+- **Fase 2:** Criação dos contratos BFF em `src/services/marketplace-hub.functions.ts` e `src/services/fiscal-nfe.functions.ts`, com transplante dos adaptadores de `waesy-669929d7`.
 - **Fase 3:** Implementação dos endpoints de feeds (`/api/feeds/google-shopping.xml`, `/api/feeds/meta-catalog.csv`) e WebMCP.
 - **Fase 4:** Telas do Workspace: Central de Integrações (`/workspace/integracoes/marketplaces`), Emissor Fiscal (`/workspace/fiscal/nfe`), Badges no Fluxo de Caixa (`/workspace/financeiro/caixa/lancamentos`) e Impressão de Etiquetas na Expedição (`/workspace/pedidos/expedicao`).
 - **Fase 5:** Social Studio Modal para geração de templates visuais em 1 clique.

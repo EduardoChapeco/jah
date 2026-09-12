@@ -12,7 +12,7 @@ import { Shield, Store, LayoutDashboard, ArrowUpRight, Plus, Eye, Edit3, ArrowRi
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/")({
- head: () => ({ meta: [{ title: "Minha Conta | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Minha Conta | Waesy" }] }),
  loader: async () => {
  try {
  const session = await getUserSession().catch(() => null);
@@ -87,14 +87,14 @@ function AccountDashboardPage() {
  const userRole = profile?.role || session?.role || session?.user?.user_metadata?.role || "customer";
  const isMasterAdmin = userRole === "platform_admin" || userRole === "master" || userRole === "admin";
 
- const userName = profile?.fullName || session?.fullName || session?.user?.user_metadata?.full_name || "Membro Wider";
+ const userName = profile?.fullName || session?.fullName || session?.user?.user_metadata?.full_name || "Membro Waesy";
  const userEmail = profile?.email || session?.email || session?.user?.email || "";
  const userHandle = profile?.username || session?.username || session?.user?.user_metadata?.username || userEmail.split("@")[0] || "membro";
  const userAvatar = profile?.avatarUrl || session?.avatarUrl || session?.user?.user_metadata?.avatar_url || "";
 
  // Seta o cookie de tenant ativo e navega para o workspace da loja correta
  const handleOpenWorkspace = (storeId: string) => {
- window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
+ window.document.cookie = `waesy_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
  navigate({ to: "/workspace" });
  };
 
@@ -122,7 +122,7 @@ function AccountDashboardPage() {
  </div>
 
  <div className="space-y-2">
- <h1 className="text-xl font-bold text-foreground">Sua Conta no Wider</h1>
+ <h1 className="text-xl font-bold text-foreground">Sua Conta no Waesy</h1>
  <p className="text-xs text-muted-foreground leading-relaxed">
  Faça login para gerenciar seus pedidos, agendamentos, carteira e acessar o painel das suas empresas.
  </p>

@@ -29,7 +29,7 @@ import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-cano
 import { WorkspaceDashboardSheet } from "@/components/workspace/workspace-dashboard-sheet";
 
 export const Route = createFileRoute("/workspace/orcamentos/")({
-  head: () => ({ meta: [{ title: "Orçamentos | Workspace Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Orçamentos | Workspace Waesy" }] }),
   loader: async () => {
     try {
     const res = await listQuotes({ data: { limit: 50 } }).catch(() => ({ items: [], total: 0 }));

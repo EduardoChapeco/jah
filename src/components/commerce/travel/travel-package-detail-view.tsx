@@ -235,7 +235,7 @@ export function TravelPackageDetailView({
  </div>
  </div>
 
- {/* Destaques em Círculos Estilo Stories do Instagram */}
+ {/* Destaques em Círculos Visuais */}
  <section className="w-full pt-1 pb-2 overflow-x-auto no-scrollbar">
  <div className="flex gap-4 px-4 sm:px-6">
  {(resort.highlights && resort.highlights.length > 0
@@ -385,10 +385,10 @@ export function TravelPackageDetailView({
  </div>
  )}
 
- {/* ── ABA 2: RESORT & HOSPEDAGEM (ESTILO PERFIL INSTAGRAM) ── */}
+ {/* ── ABA 2: RESORT & HOSPEDAGEM (PERFIL VISUAL) ── */}
  {activeTab === "resort" && (
  <div className="px-4 sm:px-6 py-4 space-y-6 animate-in fade-in duration-200">
- {/* Header Perfil Instagram do Resort */}
+ {/* Header Perfil Visual do Resort */}
  <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 space-y-4 shadow-2xs">
  <div className="flex items-center justify-between gap-4">
  {/* Foto com anel gradiente de viagem */}

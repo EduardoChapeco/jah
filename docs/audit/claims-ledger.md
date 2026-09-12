@@ -1,6 +1,6 @@
-# G2: Claims Ledger (Auditoria Sistêmica de Alegações Jah)
+# G2: Claims Ledger (Auditoria Sistêmica de Alegações Waesy)
 
-> Este documento audita de forma adversarial todas as alegações de conclusão da plataforma Jah Commerce, revalidando-as em runtime real (browser + SSR + banco Supabase + Cloudflare Pages).
+> Este documento audita de forma adversarial todas as alegações de conclusão da plataforma Waesy Commerce, revalidando-as em runtime real (browser + SSR + banco Supabase + Cloudflare Pages).
 
 ## Classificações Oficiais
 

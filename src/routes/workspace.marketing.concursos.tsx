@@ -37,7 +37,7 @@ import {
 
 export const Route = createFileRoute("/workspace/marketing/concursos")({
   head: () => ({
-    meta: [{ title: "Sorteios da Loja | Workspace Wider OS" }],
+    meta: [{ title: "Sorteios da Loja | Workspace Waesy" }],
   }),
   loader: async () => {
     try {

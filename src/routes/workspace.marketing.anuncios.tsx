@@ -59,7 +59,7 @@ import {
 import { NicheOperationalGuard } from "@/components/workspace/niche-operational-guard";
 
 export const Route = createFileRoute("/workspace/marketing/anuncios")({
-  head: () => ({ meta: [{ title: "Campanhas de Anúncios | Workspace Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Campanhas de Anúncios | Workspace Waesy" }] }),
   loader: async () => {
     try {
       const [campaigns, storeTargets] = await Promise.all([
@@ -231,7 +231,7 @@ function AnunciosWorkspacePage() {
   return (
     <NicheOperationalGuard requiredNiches={[]}>
       <div className="space-y-6 max-w-7xl mx-auto">
-        {/* ── TOOLBAR CANÔNICA SOBERANA JAH ── */}
+        {/* ── TOOLBAR CANÔNICA SOBERANA Waesy ── */}
         <WorkspaceCanonicalToolbar
           tabs={tabs}
           activeTab={activeTab}

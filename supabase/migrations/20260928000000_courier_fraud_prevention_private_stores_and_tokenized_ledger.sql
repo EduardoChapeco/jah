@@ -159,10 +159,10 @@ INSERT INTO public.legal_documents (
     true,
     true,
     'Diretrizes de autonomia total, não-vínculo empregatício, liberdade de jornada, não-punitividade na recusa de chamados e conformidade de segurança pública.',
-    '# Termos de Parceria, Autonomia e Prestação de Serviços de Logística (Wider Platform v4.0)
+    '# Termos de Parceria, Autonomia e Prestação de Serviços de Logística (Waesy Platform v4.0)
 
 ## 1. Natureza Jurídica e Inexistência de Vínculo Empregatício
-1.1. O presente instrumento regula a relação estritamente comercial de intermediação tecnológica entre a Plataforma Wider e o Entregador/Motorista Parceiro autônomo.
+1.1. O presente instrumento regula a relação estritamente comercial de intermediação tecnológica entre a plataforma Waesy e o Entregador/Motorista Parceiro autônomo.
 1.2. Não há qualquer subordinação jurídica, dependência econômica, habitualidade obrigatória ou vínculo empregatício de qualquer natureza sob as regras da CLT (Consolidação das Leis do Trabalho).
 1.3. O Entregador atua como profissional autônomo, MEI ou pessoa jurídica, detentor exclusivo de seus instrumentos de trabalho (veículo próprio, smartphone e equipamentos).
 

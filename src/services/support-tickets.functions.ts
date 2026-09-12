@@ -133,7 +133,7 @@ export const createSupportTicket = createServerFn({ method: "POST" })
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
- if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+ if (data.store_id !== identity.store_id && !(identity.role === "platform_admin")) {
  throw new Error("Acesso não autorizado para esta organização.");
  }
 
@@ -198,7 +198,7 @@ export const addSupportTicketMessage = createServerFn({ method: "POST" })
  .single();
 
  if (tErr || !ticket) throw new Error("Chamado não encontrado.");
- if (ticket.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+ if (ticket.store_id !== identity.store_id && !(identity.role === "platform_admin")) {
  throw new Error("Acesso não autorizado a este chamado.");
  }
 
@@ -245,7 +245,7 @@ export const updateSupportTicketStatus = createServerFn({ method: "POST" })
  .single();
 
  if (tErr || !ticket) throw new Error("Chamado não encontrado.");
- if (ticket.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+ if (ticket.store_id !== identity.store_id && !(identity.role === "platform_admin")) {
  throw new Error("Acesso não autorizado a este chamado.");
  }
 
@@ -288,7 +288,7 @@ export const handoverSupportTicket = createServerFn({ method: "POST" })
  .single();
 
  if (tErr || !ticket) throw new Error("Chamado não encontrado.");
- if (ticket.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+ if (ticket.store_id !== identity.store_id && !(identity.role === "platform_admin")) {
  throw new Error("Acesso não autorizado a este chamado.");
  }
 
@@ -335,7 +335,7 @@ export const escalateTicketSla = createServerFn({ method: "POST" })
  .single();
 
  if (tErr || !ticket) throw new Error("Chamado não encontrado.");
- if (ticket.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+ if (ticket.store_id !== identity.store_id && !(identity.role === "platform_admin")) {
  throw new Error("Acesso não autorizado a este chamado.");
  }
 
@@ -366,7 +366,7 @@ export const listSupervisionDashboardMetrics = createServerFn({ method: "GET" })
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity, ["owner", "admin", "manager"]);
- if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+ if (data.store_id !== identity.store_id && !(identity.role === "platform_admin")) {
  throw new Error("Acesso não autorizado para esta organização.");
  }
  const db = getServerClient();

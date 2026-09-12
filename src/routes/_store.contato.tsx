@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { submitContactMessage } from "@/services/contact.functions";
 
 export const Route = createFileRoute("/_store/contato")({
- head: () => ({ meta: [{ title: "Fale Conosco & Suporte | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Fale Conosco & Suporte | Waesy" }] }),
  loader: async () => {
  try {
  const brand = await getPublicBrandSettings();
@@ -17,8 +17,8 @@ export const Route = createFileRoute("/_store/contato")({
  } catch {
  return {
  brand: {
- platform_name: "Wider",
- support_email: "suporte@wider.com.br",
+ platform_name: "Waesy",
+ support_email: "suporte@usewaesy.com",
  support_whatsapp: null,
  support_hours: "Segunda a Sexta, das 08h às 18h",
  address: null,
@@ -82,7 +82,7 @@ function ContatoPage() {
  Como podemos ajudar você?
  </h1>
  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
- Entre em contato direto com a equipe oficial do {brand?.platform_name || "Wider"}. Estamos à disposição para dúvidas, suporte a lojistas, parcerias e sugestões.
+ Entre em contato direto com a equipe oficial do {brand?.platform_name || "Waesy"}. Estamos à disposição para dúvidas, suporte a lojistas, parcerias e sugestões.
  </p>
  </div>
 
@@ -103,7 +103,7 @@ function ContatoPage() {
  <Button asChild size="sm" className="w-full rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer">
  <a
  href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(
- `Olá! Gostaria de falar com o suporte da plataforma ${brand?.platform_name || "Wider"}.`
+ `Olá! Gostaria de falar com o suporte da plataforma ${brand?.platform_name || "Waesy"}.`
  )}`}
  target="_blank"
  rel="noopener noreferrer"
@@ -126,11 +126,11 @@ function ContatoPage() {
  </div>
  <h3 className="font-bold text-sm text-foreground">E-mail de Suporte</h3>
  <p className="text-xs text-muted-foreground truncate font-mono">
- {brand?.support_email || "contato@wider.com.br"}
+ {brand?.support_email || "contato@usewaesy.com"}
  </p>
  </div>
  <Button asChild variant="outline" size="sm" className="w-full rounded-xl font-bold text-xs cursor-pointer bg-background">
- <a href={`mailto:${brand?.support_email || "contato@wider.com.br"}`}>
+ <a href={`mailto:${brand?.support_email || "contato@usewaesy.com"}`}>
  Enviar E-mail
  </a>
  </Button>

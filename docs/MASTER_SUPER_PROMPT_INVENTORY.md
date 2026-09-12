@@ -1,8 +1,8 @@
-# MASTER_SUPER_PROMPT_INVENTORY.md — O Super Prompt & Inventário Canônico da Plataforma JAH
+# MASTER_SUPER_PROMPT_INVENTORY.md — O Super Prompt & Inventário Canônico da Plataforma Waesy
 
 > **Documento Canônico VINCULANTE e ABSOLUTO de Engenharia, Produto e Design**  
 > Elaborado pelo Conselho Executivo de Engenharia BigTech (CPO, Arquiteto Chefe, Staff Security & Supabase Master, Design Ops Director e Staff QA Gatekeeper).  
-> **Propósito:** Inventariar, fragmentar e especificar em detalhes cada uma das demandas, módulos, regras de negócio e decisões de design de toda a história do projeto JAH, garantindo **Completude Quádrupla**, **Zero Esquecimento**, **Zero Duplicações** e **Propagação Global**.
+> **Propósito:** Inventariar, fragmentar e especificar em detalhes cada uma das demandas, módulos, regras de negócio e decisões de design de toda a história do projeto Waesy, garantindo **Completude Quádrupla**, **Zero Esquecimento**, **Zero Duplicações** e **Propagação Global**.
 
 ---
 
@@ -79,7 +79,7 @@ Abaixo, cada módulo e demanda histórica está decomposta em um **Super Prompt 
 
 #### 📌 SUPER PROMPT `[REQ-003]`: MURAL SOCIAL DA COMUNIDADE, STORIES & MOMENTS
 ```markdown
-### SPEC DE ENGENHARIA: FEED SOCIAL URBANO DA COMUNIDADE JAH
+### SPEC DE ENGENHARIA: FEED SOCIAL URBANO DA COMUNIDADE Waesy
 - **Objetivo:** Espaço social para moradores e comércios compartilharem vivências, fotos da rua, desapegos e novidades da cidade.
 - **Camada 1 (Database):** `posts`, `post_likes`, `post_comments`, `stories`, `profiles`.
 - **Camada 2 (BFF):** `getMuralFeed()`, `getFeedStories()`, `togglePostLike()`, `addPostComment()`.
@@ -435,8 +435,8 @@ Abaixo, cada módulo e demanda histórica está decomposta em um **Super Prompt 
 
 #### 📌 SUPER PROMPT `[REQ-027]`: ESTÚDIO DE APRESENTAÇÃO EDITORIAL (FLYERS, BIOLINKS & ZINES)
 ```markdown
-### SPEC DE ENGENHARIA: BUILDER CANÔNICO DE PEÇAS DIGITAIS JAH
-- **Objetivo:** Permitir aos comércios e criadores criarem cartazes, flyers, biolinks e páginas autorais com a estética cultural da JAH.
+### SPEC DE ENGENHARIA: BUILDER CANÔNICO DE PEÇAS DIGITAIS Waesy
+- **Objetivo:** Permitir aos comércios e criadores criarem cartazes, flyers, biolinks e páginas autorais com a estética cultural da Waesy.
 - **Camada 1 (Database):** `builder_documents`, `bio_links`.
 - **Camada 2 (BFF):** `saveBuilderDocument()`, `publishBioLink()`.
 - **Camada 3 (UI - /workspace/estudio & /workspace/cms/bio):**
@@ -478,7 +478,7 @@ Abaixo, cada módulo e demanda histórica está decomposta em um **Super Prompt 
 #### 📌 SUPER PROMPT `[REQ-030]`: ADMIN MASTER & GOVERNANÇA GLOBAL DE APIS / INTEGRAÇÕES
 ```markdown
 ### SPEC DE ENGENHARIA: PAINEL DO SUPER ADMINISTRADOR DA PLATAFORMA
-- **Objetivo:** Governança centralizada de todas as chaves de API, webhooks e provedores globais da infraestrutura JAH.
+- **Objetivo:** Governança centralizada de todas as chaves de API, webhooks e provedores globais da infraestrutura Waesy.
 - **Camada 1 (Database):** `stores.settings.integrations` (Tenant Raiz) e `forensic_audit_events`.
 - **Camada 2 (BFF):** `getPlatformApiIntegrations()`, `updatePlatformApiIntegrations()` com mascaramento de segredos.
 - **Camada 3 (UI - /admin-master/integracoes):**

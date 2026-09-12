@@ -50,7 +50,7 @@ import {
 } from "@/services/vehicle-layouts.functions";
 
 export const Route = createFileRoute("/workspace/turismo/frota/")({
- head: () => ({ meta: [{ title: "Frota & Ônibus | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Frota & Ônibus | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const store = await getStoreSettings().catch(() => null);

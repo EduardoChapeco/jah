@@ -27,7 +27,7 @@ import { EmptyState } from "@/components/state/states";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/agenda/recursos")({
-  head: () => ({ meta: [{ title: "Gestão de Recursos | Workspace Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Gestão de Recursos | Workspace Waesy" }] }),
   component: AdminResourcesPage,
 });
 

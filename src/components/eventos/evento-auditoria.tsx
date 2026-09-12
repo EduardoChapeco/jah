@@ -151,7 +151,7 @@ export function EventoAuditoria({ eventId }: EventoAuditoriaProps) {
             <CardTitle className="text-sm font-bold">Histórico de Transações do Evento</CardTitle>
           </div>
           <CardDescription className="text-xs">
-            Trilha auditável em tempo real conectada ao ledger de segurança da Wider.
+            Trilha auditável em tempo real conectada ao ledger de segurança da Waesy.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">

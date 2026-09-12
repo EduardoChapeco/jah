@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0077: CRM RLS Security
+-- Waesy Commerce — Migration 0077: CRM RLS Security
 -- ============================================================================
 -- Resolve a falta de permissão da role 'support' (Suporte) para gerenciar 
 -- as tabelas customers_crm e exchanges.

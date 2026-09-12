@@ -1,17 +1,17 @@
 # SUPER_NICHES_ONTOLOGY_MAP.md — Mapa Ontológico de Super Nichos, Negócios Híbridos & Governança Global
 
-> **Documento Canônico de Arquitetura de Domínio, UX e Interação — Plataforma JAH**  
+> **Documento Canônico de Arquitetura de Domínio, UX e Interação — Plataforma Waesy**  
 > Elaborado pelo Conselho Executivo de Engenharia BigTech (CPO, Arquiteto Chefe, Engenharia de Dados & Segurança, Design Ops e QA Gatekeeper).
 
 ---
 
-## 1. Visão Geral & Ontologia do Ecossistema JAH
+## 1. Visão Geral & Ontologia do Ecossistema Waesy
 
-A plataforma **JAH** é estruturada como um **Super App Comunitário e Comercial Urbano**, projetado para unificar sob uma única experiência ultra-clean todas as verticais do cotidiano de uma cidade, sem fricção e sem confusão ontológica.
+A plataforma **Waesy** é estruturada como um **Super App Comunitário e Comercial Urbano**, projetado para unificar sob uma única experiência ultra-clean todas as verticais do cotidiano de uma cidade, sem fricção e sem confusão ontológica.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                   PLATAFORMA JAH                                      │
+│                                   PLATAFORMA Waesy                                      │
 ├───────────────────┬───────────────────┬───────────────────┬────────────────────────────┤
 │ 1. MARKETPLACE    │ 2. CLASSIFICADOS  │ 3. SERVIÇOS & B2B │ 4. VIVÊNCIA URBANA         │
 │    (B2C Oficial)  │    (C2C / P2P)    │    (Especialistas)│    (Cultura & Sociedade)   │
@@ -57,11 +57,11 @@ A plataforma **JAH** é estruturada como um **Super App Comunitário e Comercial
 
 ## 3. Matriz de Negócios Híbridos & Multi-Setoriais
 
-Muitas empresas atuam simultaneamente em mais de uma vertical ou modelo de negócio (Venda de Produtos + Prestação de Serviços + Locação de Equipamentos). A plataforma JAH atende a essa complexidade de forma nativa e intuitiva:
+Muitas empresas atuam simultaneamente em mais de uma vertical ou modelo de negócio (Venda de Produtos + Prestação de Serviços + Locação de Equipamentos). A plataforma Waesy atende a essa complexidade de forma nativa e intuitiva:
 
 ```mermaid
 graph TD
-    Store["Empresa / Negócio no JAH"] --> Tab1["Aba Produtos / Vendas (Marketplace B2C)"]
+    Store["Empresa / Negócio no Waesy"] --> Tab1["Aba Produtos / Vendas (Marketplace B2C)"]
     Store --> Tab2["Aba Serviços / Orçamentos (BFF Services)"]
     Store --> Tab3["Aba Locações / Equipamentos (Agendamento / Diárias)"]
     

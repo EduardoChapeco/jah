@@ -46,7 +46,7 @@ import {
 import { NicheOperationalGuard } from "@/components/workspace/niche-operational-guard";
 
 export const Route = createFileRoute("/workspace/pedidos/entregadores/")({
-  head: () => ({ meta: [{ title: "Entregadores & Frota | Workspace Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Entregadores & Frota | Workspace Waesy" }] }),
   loader: async () => {
     try {
       const data = await listCouriers({ data: {} });
@@ -206,7 +206,7 @@ function CouriersListPage() {
   return (
     <NicheOperationalGuard requiredNiches={[]}>
       <div className="flex flex-col h-full space-y-6 max-w-7xl mx-auto">
-        {/* ── TOOLBAR CANÔNICA SOBERANA JAH ── */}
+        {/* ── TOOLBAR CANÔNICA SOBERANA Waesy ── */}
         <WorkspaceCanonicalToolbar
           tabs={tabs}
           activeTab={activeTab}

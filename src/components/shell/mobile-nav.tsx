@@ -1,8 +1,8 @@
 /**
- * MobileNav — Barra de Navegação Mobile Unificada (Wider Community Platform)
+ * MobileNav — Barra de Navegação Mobile Unificada (Waesy Platform)
  *
- * Design System: Wider — Anti-AI-Smell, Apple HIG, BigTech Board Compliant
- * Ref: Especificação do usuário & Foto de Referência (Wider project):
+ * Design System: Waesy — Anti-AI-Smell, Apple HIG, BigTech Board Compliant
+ * Ref: Especificação do usuário & Foto de Referência (Waesy project):
  *  - Linha única flutuante (floating dock com squircle/pill e blur)
  *  - Botão [+] fixo à esquerda, contextual por módulo (classificados, feed, mercado bloqueado)
  *  - Seção central com rolagem horizontal (overflow-x-auto) sem sobrepor os botões fixos

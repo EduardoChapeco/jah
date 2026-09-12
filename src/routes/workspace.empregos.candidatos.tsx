@@ -134,7 +134,7 @@ function WorkspaceCandidatesPage() {
  try {
  const generatedMeeting =
  meetingUrl.trim() ||
- `https://meet.jit.si/wider-entrevista-${interviewModalApp.id.slice(0, 8)}`;
+ `https://meet.jit.si/waesy-entrevista-${interviewModalApp.id.slice(0, 8)}`;
 
  await updateJobApplication({
  data: {

@@ -179,7 +179,7 @@ export const Route = createFileRoute("/workspace/pdv/")({
  mesa: typeof search.mesa === "string" ? search.mesa : undefined,
  orderId: typeof search.orderId === "string" ? search.orderId : undefined,
  }),
- head: () => ({ meta: [{ title: "Frente de Caixa (PDV) Pro | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Frente de Caixa (PDV) Pro | Waesy" }] }),
  loader: async () => {
    try {
  const activeRegister = await getActiveRegister();
@@ -1295,7 +1295,7 @@ function PdvTerminal() {
  {/* Mini Preview do Cupom Térmico */}
  <div className="p-4 rounded-xl bg-muted/30 border border-dashed border-border font-mono text-xs space-y-2">
  <div className="text-center border-b border-border/60 pb-2">
- <p className="font-bold">WIDER POS</p>
+ <p className="font-bold">WAESY PDV</p>
  <p className="text-[10px] text-muted-foreground">CUPOM NÃO FISCAL</p>
  <p className="text-[10px] text-muted-foreground">{lastSaleReceipt?.date && formatDateTime(lastSaleReceipt.date)}</p>
  </div>

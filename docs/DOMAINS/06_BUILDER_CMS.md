@@ -1,4 +1,4 @@
-# Dossiê 06: Motor Visual Único (Jah Studio & CMS)
+# Dossiê 06: Motor Visual Único (Waesy Studio & CMS)
 
 **Status**: Especificação Final  
 **Domínio**: CMS, Builder & Visual Renderer
@@ -9,7 +9,7 @@
 
 **Quem utiliza?** Criadores de Conteúdo, Donos de Loja, Bandas e o próprio Sistema (para gerar Ingressos e Recibos).
 **Por que utiliza?** Para personalizar a aparência de suas Lojas (Storefronts), montar Landing Pages (Biolinks, Portfólios) e customizar os templates de Impressão (Recibo de PDV, Ingresso Físico) sem precisar de desenvolvedores.
-**Problema que resolve:** Em e-commerces antigos, a "Home da Loja" é fixa e travada em código. Se a pessoa quer um Biolink, precisa do Linktree. Se quer um site, precisa do Wix. O Builder da Jah unifica isso: um único motor JSON-to-React que desenha Lojas, Perfis e Documentos Visuais sob os padrões rígidos de estética da Rua (Zines, Lambe-lambe, Flyers).
+**Problema que resolve:** Em e-commerces antigos, a "Home da Loja" é fixa e travada em código. Se a pessoa quer um Biolink, precisa do Linktree. Se quer um site, precisa do Wix. O Builder da Waesy unifica isso: um único motor JSON-to-React que desenha Lojas, Perfis e Documentos Visuais sob os padrões rígidos de estética da Rua (Zines, Lambe-lambe, Flyers).
 **Resultado esperado:** Uma arquitetura agnóstica de renderização baseada em Documentos JSON versionados e "Data Bindings". O sistema não guarda um HTML sujo, guarda uma árvore estruturada de nós que herdam de um catálogo fixo de Componentes (Blocks).
 
 ---
@@ -18,7 +18,7 @@
 
 1. **Criação de um Biolink (Perfil Pessoal):**
    - Usuário clica em "Editar Meu Perfil".
-   - Abre o `Jah Studio` em Modo Simplificado. O `document` base do tipo `profile` é carregado.
+   - Abre o `Waesy Studio` em Modo Simplificado. O `document` base do tipo `profile` é carregado.
    - Ele adiciona um bloco "Galeria de Fotos" e um bloco "Classificados Recentes".
    - Ele clica em "Salvar". O JSON vira um draft. "Publicar" gera a `version` ativa.
 2. **Criação de Storefront (Modo Lojista):**
@@ -56,7 +56,7 @@
 ## 5. Regras de Negócio e Concorrência
 
 1. **Catálogo Estrito de Blocos:**
-   - O Builder não é um editor de código livre. É restrito a uma paleta pré-curada (`@/components/ui`, `Surface`, etc). Isso garante que um usuário nunca crie algo esteticamente feio ou fora dos Tokens do Design System da Jah.
+   - O Builder não é um editor de código livre. É restrito a uma paleta pré-curada (`@/components/ui`, `Surface`, etc). Isso garante que um usuário nunca crie algo esteticamente feio ou fora dos Tokens do Design System da Waesy.
 2. **Separação de Dados e UI:**
    - Um bloco de "Produto" deve salvar no JSON `productId: "uuid"`.
    - No runtime (SSR via TanStack Start), a página lê o JSON, identifica todos os `productId` e faz _UMA ÚNICA QUERY_ agregada ao banco para buscar os preços reais atuais, hidratando os blocos no servidor.

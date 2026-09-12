@@ -31,7 +31,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/marketing/promocoes")({
  head: () => ({
- meta: [{ title: "Promoções & Ofertas | Workspace Wider OS" }],
+ meta: [{ title: "Promoções & Ofertas | Workspace Waesy" }],
  }),
  loader: async () => {
    try {

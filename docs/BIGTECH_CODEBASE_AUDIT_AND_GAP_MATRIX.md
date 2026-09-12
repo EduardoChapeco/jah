@@ -1,4 +1,4 @@
-# Relatório Canônico de Auditoria Holística & Matriz de GAPs E2E (Wider Platform)
+# Relatório Canônico de Auditoria Holística & Matriz de GAPs E2E (Waesy Platform)
 
 > **Data da Auditoria:** 28 de Agosto de 2026  
 > **Comitê Responsável:** BigTech Executive Engineering Board & Red Team  
@@ -8,7 +8,7 @@
 
 ## 🏛️ 1. Reconstrução da Intenção & Visão Sistêmica do Produto
 
-A **Wider Community Platform** (JAH) é um Super App hiperlocal e ecossistema operacional para cidades, bairros e comunidades. O produto opera em quatro jornadas simultâneas e integradas:
+A **Plataforma Waesy** (Waesy) é um Super App hiperlocal e ecossistema operacional para cidades, bairros e comunidades. O produto opera em quatro jornadas simultâneas e integradas:
 
 1. **Jornada do Consumidor/Cidadão:** Descoberta visual, compra em 3 toques, agendamento de serviços com pacotes/vouchers, rastreamento de entregas com PIN, contratação e assinatura eletrônica de acordos P2P, e carteira de cashback/tokens de fidelidade.
 2. **Jornada do Lojista/Produtor:** Frente de caixa (PDV), comanda de salão, gestão de pedidos em tempo real (KDS com áudio e impressão térmica 80mm), controle de estoque com matriz de variações (ERP), gestão de frota própria e motoboys sob demanda (MotoLink com Dynamic Surge), e emissão de orçamentos e faturas de recebíveis.

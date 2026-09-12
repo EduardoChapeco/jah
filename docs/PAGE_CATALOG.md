@@ -1,4 +1,4 @@
-# JAH Platform — Catálogo Canônico de Páginas (Page Catalog)
+# Waesy Platform — Catálogo Canônico de Páginas (Page Catalog)
 
 **Versão:** 1.0 — Fonte única de verdade para anatomia, fluxo e design de cada tela.
 **Legenda de Status:**
@@ -25,14 +25,14 @@
 
 ```
 [Context Sidebar 260px] [Main Viewport max-w-7xl]
-- TopBar: Logo JAH + Master Location Pill (GPS/Manual) + Smart Search (Ctrl+K) + Cart/Profile
+- TopBar: Logo Waesy + Master Location Pill (GPS/Manual) + Smart Search (Ctrl+K) + Cart/Profile
 - 1. Top Banners Hero Carousel: Vídeo/GIF/Imagem (21:9 desktop, 16:9 mobile), proporção fixa, máscara/textos configuráveis
 - 2. Stories Rápidos de Lojas e Marcas Locais
 - 3. Hotpages / Categorias Panorâmicas: Grid 6 colunas, cards 16:10 / 4:3, suporte a arte limpa sem texto
 - 4. Rail de Ofertas Relâmpago: Cards retangulares horizontais 320px com Timer Dinâmico (Verde >12h, Amarelo 2-12h, Vermelho <2h)
 - 5. Rail de Lojas & Negócios Locais: Cards ampliados (384px) com banners 160px e avatars 72px
 - 6. Trilhos de Produtos por Nicho: Gastronomia, Mercado, Beleza, Moda
-- 7. Banner de Conversão: "Venda no JAH / Abra sua Loja"
+- 7. Banner de Conversão: "Venda no Waesy / Abra sua Loja"
 ```
 
 ---

@@ -55,8 +55,8 @@ export const Route = createFileRoute("/_store/agendar/$id")({
     meta: [
       {
         title: loaderData?.title
-          ? `${loaderData.title} | Agendamentos Wider`
-          : "Serviço | Wider OS",
+          ? `${loaderData.title} | Agendamentos Waesy`
+          : "Serviço | Waesy",
       },
       {
         name: "description",
@@ -625,7 +625,7 @@ function ServiceDetailPage() {
               <div className="pt-2 flex items-center justify-center gap-4 text-[11px] text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <ShieldCheck size={14} className="text-emerald-500" />
-                  Garantia Wider
+                  Garantia Waesy
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1">

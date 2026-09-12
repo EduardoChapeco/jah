@@ -146,10 +146,10 @@ describe("Feed Algorithm & BigTech Ranking Engine", () => {
   it("validates that createPost accepts up to 10 media URLs and rejects 11", () => {
     const mediaSchema = z.array(z.string()).max(10, "Máximo de 10 mídias");
 
-    const validTen = Array.from({ length: 10 }, (_, i) => `https://cdn.wider.app/photo-${i}.jpg`);
+    const validTen = Array.from({ length: 10 }, (_, i) => `https://cdn.usewaesy.com/photo-${i}.jpg`);
     expect(mediaSchema.safeParse(validTen).success).toBe(true);
 
-    const invalidEleven = Array.from({ length: 11 }, (_, i) => `https://cdn.wider.app/photo-${i}.jpg`);
+    const invalidEleven = Array.from({ length: 11 }, (_, i) => `https://cdn.usewaesy.com/photo-${i}.jpg`);
     expect(mediaSchema.safeParse(invalidEleven).success).toBe(false);
   });
 });

@@ -1,4 +1,4 @@
-# ROUTES.md — Wider Community Platform
+# ROUTES.md — Plataforma Waesy
 
 > Espelho legível do registro tipado em `src/lib/routes.ts` (fonte de verdade
 > programática). Rotas futuras existem no registro e aqui, mas não renderizam

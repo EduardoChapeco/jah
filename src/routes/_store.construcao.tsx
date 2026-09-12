@@ -60,7 +60,7 @@ const CONSTRUCAO_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/construcao")({
  head: () => ({
  meta: [
- { title: "Construção, Ferramentas, Tintas & Casa | Wider OS" },
+ { title: "Construção, Ferramentas, Tintas & Casa | Waesy" },
  {
  name: "description",
  content:

@@ -41,7 +41,7 @@ import {
 import { NicheOperationalGuard } from "@/components/workspace/niche-operational-guard";
 
 export const Route = createFileRoute("/workspace/eventos/")({
-  head: () => ({ meta: [{ title: "Gestão de Eventos & Produtora | Workspace Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Gestão de Eventos & Produtora | Workspace Waesy" }] }),
   loader: async () => {
     try {
       const [events, store] = await Promise.all([
@@ -216,7 +216,7 @@ export default function WorkspaceEventosPage() {
       store={store}
     >
       <div className="w-full space-y-6 animate-in fade-in duration-200">
-        {/* ── 1. TOOLBAR CANÔNICA PADRÃO WIDER OS ── */}
+        {/* ── 1. TOOLBAR CANÔNICA PADRÃO Waesy ── */}
         <WorkspaceCanonicalToolbar
           tabs={TABS}
           activeTab={selectedCategory}
@@ -521,7 +521,7 @@ export default function WorkspaceEventosPage() {
                       id="evt-organizer"
                       value={form.organizer_name}
                       onChange={(e) => setForm({ ...form, organizer_name: e.target.value })}
-                      placeholder="Ex: Wider Eventos e Cultura"
+                      placeholder="Ex: Waesy Eventos e Cultura"
                     />
                   </div>
                   <div className="space-y-1.5">

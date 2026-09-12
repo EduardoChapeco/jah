@@ -1,6 +1,6 @@
-# G7: Use-Case Catalog (Catálogo de Casos de Uso Jah)
+# G7: Use-Case Catalog (Catálogo de Casos de Uso Waesy)
 
-> **Catálogo Canônico dos Casos de Uso Ponta a Ponta da Jah Commerce**
+> **Catálogo Canônico dos Casos de Uso Ponta a Ponta da Waesy Commerce**
 
 ---
 

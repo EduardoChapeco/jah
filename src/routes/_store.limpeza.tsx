@@ -55,7 +55,7 @@ const LIMPEZA_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/limpeza")({
  head: () => ({
  meta: [
- { title: "Produtos de Limpeza, Higiene & Descartáveis | Wider OS" },
+ { title: "Produtos de Limpeza, Higiene & Descartáveis | Waesy" },
  {
  name: "description",
  content:

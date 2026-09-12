@@ -51,7 +51,7 @@ import type { CustomerLoyaltyCard } from "@/services/loyalty.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/marketing/fidelidade")({
- head: () => ({ meta: [{ title: "Programa de Fidelidade | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Programa de Fidelidade | Workspace Waesy" }] }),
  component: LoyaltyDashboardPage,
 });
 

@@ -381,7 +381,7 @@ export function WorkspaceAllToolsDialog({
  </DialogTitle>
  </div>
  <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider hidden sm:inline">
- Workspace • {activeStore?.name || "Jah"}
+ Workspace • {activeStore?.name || "Waesy"}
  </span>
  </div>
 

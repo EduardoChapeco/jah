@@ -1,7 +1,7 @@
 # 06 — Template Library Inventory
 
 > Data: 2026-07-24  
-> Projeto: Jah Commerce
+> Projeto: Waesy Commerce
 
 ---
 

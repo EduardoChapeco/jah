@@ -49,11 +49,11 @@ import {
 export const Route = createFileRoute("/_store/convite")({
   head: () => ({
     meta: [
-      { title: "Membros Fundadores & Concursos de Sorte | Wider" },
+      { title: "Membros Fundadores & Concursos de Sorte | Waesy" },
       {
         name: "description",
         content:
-          "Convide amigos e empresas para a comunidade Wider. Mantenha seu status de Embaixador ativo e participe de concursos de sorte auditados.",
+          "Convide amigos e empresas para a Comunidade Waesy. Mantenha seu status de Embaixador ativo e participe de concursos de sorte auditados.",
       },
     ],
   }),
@@ -107,7 +107,7 @@ function ConvitePage() {
   const handleShareWhatsApp = () => {
     if (!overview?.shareUrl) return;
     const msg = encodeURIComponent(
-      `Olá! Te convido a fazer parte da comunidade Wider na nossa região: notícias, comércio local, eventos e classificados. Conecte-se pelo meu link de membro fundador: ${overview.shareUrl}`
+      `Olá! Te convido a fazer parte da Comunidade Waesy na nossa região: notícias, comércio local, eventos e classificados. Conecte-se pelo meu link de membro fundador: ${overview.shareUrl}`
     );
     window.open(`https://api.whatsapp.com/send?text=${msg}`, "_blank");
   };

@@ -50,7 +50,7 @@ function isVideoUrl(url?: string | null): boolean {
 }
 
 export const Route = createFileRoute("/_store/conta/classificados/")({
-  head: () => ({ meta: [{ title: "Meus Anúncios | Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Meus Anúncios | Waesy" }] }),
   component: ClassificadosIndex,
 });
 

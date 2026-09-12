@@ -37,7 +37,7 @@ export function InstantSearchDialog({ open, onOpenChange }: InstantSearchDialogP
  // Carregar histórico local
  useEffect(() => {
  try {
- const stored = localStorage.getItem("wider_recent_searches");
+ const stored = localStorage.getItem("waesy_recent_searches");
  if (stored) {
  setRecentSearches(JSON.parse(stored).slice(0, 5));
  }
@@ -81,7 +81,7 @@ export function InstantSearchDialog({ open, onOpenChange }: InstantSearchDialogP
  try {
  const updated = [term, ...recentSearches.filter((s) => s !== term)].slice(0, 5);
  setRecentSearches(updated);
- localStorage.setItem("wider_recent_searches", JSON.stringify(updated));
+ localStorage.setItem("waesy_recent_searches", JSON.stringify(updated));
  } catch {}
  };
 
@@ -94,7 +94,7 @@ export function InstantSearchDialog({ open, onOpenChange }: InstantSearchDialogP
  const handleClearHistory = () => {
  setRecentSearches([]);
  try {
- localStorage.removeItem("wider_recent_searches");
+ localStorage.removeItem("waesy_recent_searches");
  } catch {}
  };
 

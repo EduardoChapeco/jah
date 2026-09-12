@@ -9,7 +9,7 @@
 
 **Quem utiliza?** Qualquer indivíduo navegando na plataforma (seja público geral, artistas, empresários, entregadores ou produtores de eventos).
 **Por que utiliza?** Para ter uma única conta de login e transitar de forma fluida entre consumir (comprar ingressos, curtir posts) e produzir (vender produtos, validar tickets da sua festa), sem precisar criar múltiplos e-mails ou deslogar.
-**Problema que resolve:** O sistema legado de E-commerce travava o usuário em um viés estático de "Cliente" ou "Administrador de 1 loja". Na Jah, uma pessoa é polivalente. Ela pode ser dona de um Coletivo (Organização), colaboradora financeira em uma Loja de Discos, e usuária comum no final de semana.
+**Problema que resolve:** O sistema legado de E-commerce travava o usuário em um viés estático de "Cliente" ou "Administrador de 1 loja". Na Waesy, uma pessoa é polivalente. Ela pode ser dona de um Coletivo (Organização), colaboradora financeira em uma Loja de Discos, e usuária comum no final de semana.
 **Resultado esperado:** Uma única identidade atrelada ao Auth (email/senha/OAuth), possuindo um perfil público pessoal por padrão, e capacidades de criar ou aceitar convites para Organizações (Pessoas Jurídicas/Coletivos), Lojas e Projetos, herdando papéis estritos por cada tenant.
 
 ---
@@ -125,7 +125,7 @@
 
 - **Regra de Ouro RLS:** O RLS atua como _Defense in Depth_, mas a validação real ocorre no BFF (Server Functions) para retornar erros de negócio descritivos.
 - **Política RLS em `stores`**: `auth.uid() IN (SELECT profile_id FROM store_members WHERE store_id = stores.id)`.
-- **Ownership:** Nada pertence à "Jah". Tudo pertence ao `store_id`.
+- **Ownership:** Nada pertence à "Waesy". Tudo pertence ao `store_id`.
 
 ---
 

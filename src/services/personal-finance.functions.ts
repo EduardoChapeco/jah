@@ -308,6 +308,8 @@ export const listPersonalFinanceEntries = createServerFn({ method: "GET" })
         isLocked: !!e.is_locked,
         isConfidentialTokenized: isConfidential,
         anonymizedToken: e.anonymized_token || null,
+        transactionToken: e.transaction_token || null,
+        referenceType: e.reference_type || null,
         createdAt: e.created_at,
         updatedAt: e.updated_at,
         category: e.personal_financial_categories

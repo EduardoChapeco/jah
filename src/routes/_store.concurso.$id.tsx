@@ -36,8 +36,8 @@ export const Route = createFileRoute("/_store/concurso/$id")({
     meta: [
       {
         title: loaderData?.raffle?.title
-          ? `${loaderData.raffle.title} | Sorteios Wider`
-          : "Sorteio | Wider",
+          ? `${loaderData.raffle.title} | Sorteios Waesy`
+          : "Sorteio | Waesy",
       },
       {
         name: "description",
@@ -190,7 +190,7 @@ function ConcursoDetailPage() {
           ) : (
             <Badge className="bg-black/70 text-white text-[11px] backdrop-blur-md border-0 gap-1.5 px-3 py-1">
               <Store className="size-3" />
-              <span>{raffle.storeName || "Comunidade Wider"}</span>
+              <span>{raffle.storeName || "Comunidade Waesy"}</span>
             </Badge>
           )}
         </div>

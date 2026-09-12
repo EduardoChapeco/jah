@@ -15,7 +15,7 @@ CREATE POLICY "Deny all client operations on webhooks inbox"
 
 -- 2. Restrições do Catálogo Público
 -- Como o BFF utiliza getAnonServerClient() para leitura de catálogo,
--- e Jah opera um modelo SuperApp B2C, a política 'public_read' (status = 'published')
+-- e Waesy opera um modelo SuperApp B2C, a política 'public_read' (status = 'published')
 -- foi validada como intencional no momento. Nenhuma remoção de RLS do catálogo 
 -- será feita aqui para não quebrar a performance do BFF, porém a superfície
 -- mutável (webhooks) está agora selada contra Zero Trust.

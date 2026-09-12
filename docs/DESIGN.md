@@ -1,14 +1,14 @@
-# JAH DESIGN SYSTEM — Canonical Core, Dual-Universe, Organic Geometry & News Telemetry
+# Waesy DESIGN SYSTEM — Canonical Core, Dual-Universe, Organic Geometry & News Telemetry
 
 > **Documento Canônico VINCULANTE (Single Source of Truth).**
-> Toda a interface visual, superfícies, componentes e interações da JAH devem ser estritamente derivados deste documento e de `src/styles.css`.
+> Toda a interface visual, superfícies, componentes e interações da Waesy devem ser estritamente derivados deste documento e de `src/styles.css`.
 > **Proibição Total de Hardcode**: Não use valores Tailwind literais (ex: `bg-red-500`, `text-white` solto). Use sempre os tokens semânticos (`var(--color-*)`, `var(--radius-*)`).
 
 ---
 
 ## 0. Arquitetura dos Dois Universos Visuais
 
-A JAH unifica dois universos complementares sob a mesma fundação de tokens semânticos:
+A Waesy unifica dois universos complementares sob a mesma fundação de tokens semânticos:
 
 ### 0.1 Universo Social / Descoberta / Notícias / Mural / Mercado / Mapa (Mobile & Desktop)
 - **Foco:** Expressividade visual, retenção, credibilidade editorial e dinamismo comunitário.
@@ -141,7 +141,7 @@ Inspirada nos aplicativos de alta retenção (*iFood, Instagram, Threads, WhatsA
 
 ## 8. O Framework das 7 Camadas de Completude & Ergonomia dos 3 Toques
 
-> **Regra Vinculante de Engenharia:** Toda e qualquer funcionalidade ou página na Wider deve atender rigorosamente às 7 Camadas de Completude antes de ser considerada concluída.
+> **Regra Vinculante de Engenharia:** Toda e qualquer funcionalidade ou página na Waesy deve atender rigorosamente às 7 Camadas de Completude antes de ser considerada concluída.
 
 ### 8.1 As 7 Camadas Canônicas
 1. **Camada 1 (Persistência & RLS):** Tabela, colunas, chaves estrangeiras, índices e RLS deny-by-default via migration aplicada.

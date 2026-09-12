@@ -78,7 +78,7 @@ import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/_store/conta/empresa")({
   head: () => ({
-    meta: [{ title: "Painel da Empresa | Wider OS" }],
+    meta: [{ title: "Painel da Empresa | Waesy" }],
   }),
   beforeLoad: async ({ location }) => {
     let session: any = null;
@@ -966,7 +966,7 @@ function PainelEmpresaPage() {
                   {selectedReceipt.authCode}
                 </p>
                 <p className="text-[9px] text-muted-foreground">
-                  Emitido via Wider OS • Sistema Operacional Comunitário
+                  Emitido via Waesy • Sistema Operacional Comunitário
                 </p>
               </div>
             </div>

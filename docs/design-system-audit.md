@@ -1,4 +1,4 @@
-# Design System Audit — Wider Community Platform
+# Design System Audit — Plataforma Waesy
 
 > **Microfase B0.1** — Auditoria e Canonização Inicial do Design System
 > Data: 2026-08-03 | Status: Auditoria de investigação (nenhum código alterado)
@@ -34,7 +34,7 @@ O `RootShell` injeta CSS dinâmico quando `theme` existe, podendo sobrescrever `
 
 ## 2. Tokens de Cor — Inventário Completo
 
-### 2.1 Tokens Primitivos Jah (`:root`)
+### 2.1 Tokens Primitivos Waesy (`:root`)
 
 | Token                | Valor Oklch           | Hex Aprox.      | L%  | Descrição                      |
 | -------------------- | --------------------- | --------------- | --- | ------------------------------ |
@@ -118,7 +118,7 @@ Inversão simples de `--ink` ↔ `--paper`. Não é um tema escuro projetado:
 
 ## 4. Tipografia — Escala e Utilities
 
-**Utilities canônicas Jah:**
+**Utilities canônicas Waesy:**
 
 | Utility          | Font             | Transform | Weight | Size    |
 | ---------------- | ---------------- | --------- | ------ | ------- |
@@ -189,7 +189,7 @@ Estado `disabled` ausente.
 | `surface.tsx` (polaroid, cardboard)                      | 3          | Background/border hardcoded                             | 🟡 Média                                  |
 | `admin.cms.tema.tsx` (L39)                               | 1          | Cor padrão de tema `#FF4FB8`                            | 🔴 Alta                                   |
 
-**Cor mais problemática:** `#FF4FB8` (rosa vibrante) — não existe no design system Jah. Herança de template genérico. Deve ser substituída por `var(--poster-red)` ou removida.
+**Cor mais problemática:** `#FF4FB8` (rosa vibrante) — não existe no design system Waesy. Herança de template genérico. Deve ser substituída por `var(--poster-red)` ou removida.
 
 ---
 

@@ -30,7 +30,7 @@ export function CarouselWizardModal({
  badge: 'Exclusivo',
  title: 'A Nova Era da Sua Experiência Chegou',
  subtitle: 'Mais agilidade, tecnologia e design refinado.',
- body: 'Descubra como o ecossistema Wider transforma a gestão e o atendimento em uma experiência fluida e moderna.',
+ body: 'Descubra como o ecossistema Waesy transforma a gestão e o atendimento em uma experiência fluida e moderna.',
  ctaText: 'Arraste para o lado',
  backgroundColor: '#0a0f1d',
  accentColor: '#38bdf8',
@@ -87,10 +87,10 @@ export function CarouselWizardModal({
  </div>
  <div>
  <h2 className="text-sm font-bold text-foreground">
- Wider Creative Studio · Gerador de Carrosséis & Flyers
+ Waesy Creative Studio · Gerador de Carrosséis & Flyers
  </h2>
  <p className="text-[11px] text-muted-foreground">
- Motor Escamas Multi-Camadas herdado de Machine & Wider
+ Motor Escamas Multi-Camadas nativo do Waesy
  </p>
  </div>
  </div>

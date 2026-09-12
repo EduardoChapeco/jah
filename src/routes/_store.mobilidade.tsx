@@ -44,7 +44,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/mobilidade")({
   head: () => ({
     meta: [
-      { title: "Solicitar Corrida & Entregas | Wider OS" },
+      { title: "Solicitar Corrida & Entregas | Waesy" },
       {
         name: "description",
         content:
@@ -237,7 +237,7 @@ function MobilityPage() {
  try {
  const res = await fetch(
  `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
- { headers: { "User-Agent": "WiderMobility/1.0" } },
+ { headers: { "User-Agent": "WaesyMobility/1.0" } },
  );
  const data = await res.json();
  if (data && data.display_name) {
@@ -298,7 +298,7 @@ function MobilityPage() {
  setRequestStatus("searching");
 
  const payload = {
- customer_name: recipientName || "Cliente Wider",
+ customer_name: recipientName || "Cliente Waesy",
  customer_phone: recipientPhone || "(49) 99999-9999",
  service_type: selectedService,
  origin_address: originText || origin.label || "Origem selecionada",
@@ -750,7 +750,7 @@ function MobilityPage() {
  <Smartphone className="size-4" />
  </div>
  <div>
- <p className="text-xs font-black text-foreground">Instalar Wider App</p>
+ <p className="text-xs font-black text-foreground">Instalar Waesy App</p>
  <p className="text-[10px] text-muted-foreground">Rápido, offline, notificações</p>
  </div>
  </div>

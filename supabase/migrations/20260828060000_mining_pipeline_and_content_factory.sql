@@ -1,5 +1,5 @@
 -- ============================================================================
--- Wider / Jah Platform: MINING PIPELINE & CONTENT FACTORY
+-- Waesy / Waesy Platform: MINING PIPELINE & CONTENT FACTORY
 -- Migration Unificada, Idempotente e Resiliente a Tabelas Preexistentes
 -- ============================================================================
 

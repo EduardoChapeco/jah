@@ -33,8 +33,8 @@ export const Route = createFileRoute("/_store/contrato/$token")({
  meta: [
  {
  title: loaderData?.contract
- ? `Contrato de Viagem: ${loaderData.contract.destination} | Wider OS`
- : "Assinatura de Contrato | Wider OS",
+ ? `Contrato de Viagem: ${loaderData.contract.destination} | Waesy`
+ : "Assinatura de Contrato | Waesy",
  },
  ],
  }),

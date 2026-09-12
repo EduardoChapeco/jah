@@ -276,7 +276,7 @@ export function ProfessionalResumeEditor({
 
  return (
  <div className="space-y-8 animate-in fade-in duration-200">
- {/* ── 1. Barra de Força do Currículo (Gupy / InfoJobs / LinkedIn Standard) ── */}
+ {/* ── 1. Barra de Força do Currículo (Padrão Executivo Waesy) ── */}
  <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/5 via-card to-primary/10 border border-border/60 space-y-3">
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
  <div className="space-y-0.5">
@@ -285,7 +285,7 @@ export function ProfessionalResumeEditor({
  <h3 className="text-sm font-bold text-foreground">Força do Currículo & Visibilidade para Vagas</h3>
  </div>
  <p className="text-xs text-muted-foreground">
- Currículos completos têm 7x mais chances de serem selecionados por empresas e recrutadores no Wider.
+ Currículos completos têm 7x mais chances de serem selecionados por empresas e recrutadores no Waesy.
  </p>
  </div>
  <div className="flex items-center gap-2 self-start sm:self-auto">
@@ -1167,11 +1167,11 @@ export function ProfessionalResumeEditor({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// COMPONENTES AUXILIARES DE MODAIS / SHEETS (ESTILO APPLE / GUPY ENTERPRISE)
+// COMPONENTES AUXILIARES DE MODAIS / SHEETS (PADRÃO EXECUTIVO ENTERPRISE)
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Modal de Disponibilidade & Vagas (Estilo InfoJobs / Gupy)
+ * Modal de Disponibilidade & Oportunidades
  */
 function AvailabilityEditSheet({
  open,
@@ -1387,7 +1387,7 @@ function ExperienceEditSheet({
   const [description, setDescription] = useState(item?.description || "");
   const [suggestions, setSuggestions] = useState<any[]>([]);
 
-  // Campos de Inteligência de Empregadores (InfoJobs / Glassdoor style)
+  // Campos de Inteligência de Empregadores e Cultura
   const [salaryCents, setSalaryCents] = useState<number | undefined>(item?.salary_cents);
   const [exitReason, setExitReason] = useState<string>(item?.exit_reason || "");
   const [companyRating, setCompanyRating] = useState<number>(item?.company_rating || 0);
@@ -1513,7 +1513,7 @@ function ExperienceEditSheet({
                     >
                       {s.logo_url && <img src={s.logo_url} alt="" className="size-5 rounded-md object-cover" />}
                       <span className="font-bold">{s.name}</span>
-                      <Badge variant="secondary" className="text-[9px] ml-auto">Empresa Wider</Badge>
+                      <Badge variant="secondary" className="text-[9px] ml-auto">Empresa Waesy</Badge>
                     </button>
                   ))}
                 </div>
@@ -1592,7 +1592,7 @@ function ExperienceEditSheet({
               />
             </div>
 
-            {/* ── Avaliação da Empresa & Inteligência de Empregadores (InfoJobs / Glassdoor style) ── */}
+            {/* ── Avaliação da Empresa & Transparência Corporativa ── */}
             <div className="pt-4 border-t border-border/40 space-y-3.5">
               <div className="flex items-center justify-between">
                 <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
@@ -1687,7 +1687,7 @@ function ExperienceEditSheet({
               {/* Review / Feedback Cultural */}
               <div className="space-y-1.5">
                 <Label className="text-[11px] font-medium text-foreground/80">
-                  Comentário sobre ambiente, cultura ou liderança (Estilo InfoJobs)
+                  Comentário sobre ambiente, cultura ou liderança
                 </Label>
                 <Textarea
                   value={reviewText}

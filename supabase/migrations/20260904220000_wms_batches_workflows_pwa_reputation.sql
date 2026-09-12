@@ -1,6 +1,6 @@
 -- =============================================================================
 -- MIGRATION: 20260904220000_wms_batches_workflows_pwa_reputation.sql
--- ECOSSISTEMA JAH: WMS BATCH PICKING, WORKFLOWS EM NÓS, PWA BUILDER & REPUTAÇÃO/CLAIM
+-- ECOSSISTEMA Waesy: WMS BATCH PICKING, WORKFLOWS EM NÓS, PWA BUILDER & REPUTAÇÃO/CLAIM
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------

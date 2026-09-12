@@ -23,7 +23,7 @@ import {
 
 export const Route = createFileRoute("/_store/conta/candidaturas")({
  head: () => ({
- meta: [{ title: "Minhas Candidaturas & Processos Seletivos | Wider OS" }],
+ meta: [{ title: "Minhas Candidaturas & Processos Seletivos | Waesy" }],
  }),
  loader: async () => {
    try {

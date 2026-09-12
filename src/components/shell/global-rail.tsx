@@ -24,12 +24,12 @@ export function GlobalRail({ session }: GlobalRailProps) {
  return (
  <TooltipProvider delayDuration={150}>
  <aside className="hidden md:flex flex-col items-center justify-between w-[68px] shrink-0 h-screen sticky top-0 py-4 bg-background z-30 select-none">
- {/* 1. Topo: Logo Wider */}
+ {/* 1. Topo: Logo Waesy */}
  <div className="flex flex-col items-center gap-3">
  <Link
  to="/"
  className="size-10 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-display font-black text-xl tracking-tighter hover:scale-105 transition-transform"
- aria-label="Wider — Início"
+ aria-label="Waesy — Início"
  >
  W
  </Link>

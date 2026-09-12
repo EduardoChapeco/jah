@@ -40,7 +40,7 @@ import { formatDateTime } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/financeiro/caixa/lancamentos")({
- head: () => ({ meta: [{ title: "Lançamentos de Caixa | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Lançamentos de Caixa | Workspace Waesy" }] }),
   loader: async () => {
     try {
       const register = await getActiveRegister().catch(() => null);

@@ -1,8 +1,8 @@
 -- ============================================================================
--- Jah Community Platform — Migration 20260810190000: Seed Jah Default Store Identity
+-- Waesy Community Platform — Migration 20260810190000: Seed Waesy Default Store Identity
 -- ============================================================================
--- Popula os dados de identidade visual e tema da loja padrão Jah no banco novo.
--- Garante que a plataforma renderize com o Design System Jah correto desde o
+-- Popula os dados de identidade visual e tema da loja padrão Waesy no banco novo.
+-- Garante que a plataforma renderize com o Design System Waesy correto desde o
 -- primeiro acesso, sem depender de configuração manual pelo admin.
 --
 -- Store ID padrão: 00000000-0000-0000-0000-000000000002
@@ -12,12 +12,12 @@
 BEGIN;
 
 -- ---------------------------------------------------------------------------
--- 1. Enriquecer dados da loja padrão com identidade Jah
+-- 1. Enriquecer dados da loja padrão com identidade Waesy
 -- ---------------------------------------------------------------------------
 UPDATE public.stores
 SET
-  name     = 'Jah',
-  slug     = 'jah',
+  name     = 'Waesy',
+  slug     = 'waesy',
   settings = jsonb_build_object(
     'logoUrl',    '',
     'faviconUrl', '/favicon.ico',
@@ -28,7 +28,7 @@ SET
 WHERE id = '00000000-0000-0000-0000-000000000002';
 
 -- ---------------------------------------------------------------------------
--- 2. Seed do tema Jah — Design System da Rua
+-- 2. Seed do tema Waesy — Design System da Rua
 -- ---------------------------------------------------------------------------
 -- Fontes: Oswald (display/editorial) + Inter (UI/leitura)
 -- Cores: paper (#F4F4F0), ink (#1A1A14), poster-red (#E60000)

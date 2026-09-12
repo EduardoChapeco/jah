@@ -1,10 +1,10 @@
-﻿# DOSSIÊ MÁXIMO DE AUDITORIA FORENSE E MEGA PLANO DE ENGENHARIA DE UNIFICAÇÃO (JAH MASTER OS)
+﻿# DOSSIÊ MÁXIMO DE AUDITORIA FORENSE E MEGA PLANO DE ENGENHARIA DE UNIFICAÇÃO (Waesy MASTER OS)
 **Classificação:** Documento Canônico de Arquitetura e Engenharia de Software (Staff / Principal Architect Level)  
-**Repositório Central:** `Documents/jah` (JAH Core Operating System)  
+**Repositório Central:** `Documents/waesy` (Waesy Core Operating System)  
 **Data de Consolidação:** 04 de Setembro de 2026  
 **Status da Auditoria:** 100% de cobertura nos 9 repositórios locais do ecossistema:
-1. `jah` (Core OS Multi-Tenant & Multi-Nicho)
-2. `wider` (SuperApp: RH/Ponto, Courier, Atendimento, 70+ Engines, KDS, PDV, Workflows, Studio Gráfico/Vídeo)
+1. `waesy` (Core OS Multi-Tenant & Multi-Nicho)
+2. `waesy` (SuperApp: RH/Ponto, Courier, Atendimento, 70+ Engines, KDS, PDV, Workflows, Studio Gráfico/Vídeo)
 3. `persona-nexus` (Motor de Eventos, Subpainéis Tokenizados, Kanban, AI Insights, Ingressos)
 4. `simwork` (SimLab V2: Populações sintéticas demográficas, simulador generativo de personas)
 5. `ENGIOS` (Orquestrador de Agentes IA, Servidor MCP, 17 provedores LLM, Squads autônomos)
@@ -18,9 +18,9 @@
 ## 1. DIRETRIZES PÉTREAS DE UNIFICAÇÃO (ZERO DEPRECIAÇÃO & ZERO DUPLICAÇÃO)
 
 1. **Zero Duplicação de Código:**
-   - O JAH já possui alicerces sólidos em `src/services/` (ex: `builder.functions.ts` com 2.847 linhas, `mobility.functions.ts` com 1.048 linhas, `events.functions.ts`, `simlab.functions.ts`, `telemetry.functions.ts`).
-   - Não criaremos novos builders ou serviços concorrentes. Toda tecnologia madura extraída dos satélites será **incorporada, estendida e nativizada** sobre os alicerces existentes do JAH.
-2. **Nativização Estrita para a Stack JAH Elite:**
+   - O Waesy já possui alicerces sólidos em `src/services/` (ex: `builder.functions.ts` com 2.847 linhas, `mobility.functions.ts` com 1.048 linhas, `events.functions.ts`, `simlab.functions.ts`, `telemetry.functions.ts`).
+   - Não criaremos novos builders ou serviços concorrentes. Toda tecnologia madura extraída dos satélites será **incorporada, estendida e nativizada** sobre os alicerces existentes do Waesy.
+2. **Nativização Estrita para a Stack Waesy Elite:**
    - **Roteamento:** Banido `react-router-dom` e `remix`. 100% das páginas rodam em **TanStack Router** (`createFileRoute` tipado em `src/routes/`).
    - **Camada de Dados & Backend:** Banidas queries descontroladas no cliente. Todas as chamadas de banco de dados são encapsuladas em **TanStack Start Server Functions** (`createServerFn({ method: 'POST' }).validator(zodSchema).handler(...)`).
    - **Design System Apple HIG:** Banidas dependências visuais legadas (como `BloesyTabs`). Todos os componentes adotam **Radix UI Primitives + Tailwind CSS v4 + Phosphor/Lucide**, obedecendo ao Apple Human Interface Guidelines:
@@ -34,8 +34,8 @@
 
 ## 2. INVENTÁRIO FORENSE DE TODAS AS ENGINES, CÉREBROS E MÓDULOS
 
-### 2.1. Studio Gráfico e de Vídeo Avançado (`wider/src/components/studio` + `machine`)
-* **Propósito:** Equipar o lojista e o criador de conteúdo com um Canva + CapCut integrado diretamente no painel do JAH.
+### 2.1. Studio Gráfico e de Vídeo Avançado (`waesy/src/components/studio` + `machine`)
+* **Propósito:** Equipar o lojista e o criador de conteúdo com um Canva + CapCut integrado diretamente no painel do Waesy.
 * **Componentes de Imagem & Design:**
   - `StudioCanvas.tsx`: Canvas vetorial com guias magnéticas de alinhamento (`SnapGuides.tsx`), sobreposição de grid (`GridOverlay.tsx`) e elementos manipuláveis (`ImageElement`, `ShapeElement`, `TextElement`).
   - `BrandKitPanel.tsx`: Painel de kit de identidade visual (paletas de cores, tipografia corporativa e logos).
@@ -53,34 +53,34 @@
   - Configuração visual: nome do app (`app_name`), cor primária (`theme_color`), cor de fundo (`background_color`), modo offline (`offline_enabled`).
   - Seções Reordenáveis (`SECTION_TYPES`, `usePwaSections`, `useReorderPwaSections`): vitrines, banners, atalhos de categoria e stories.
   - Campanhas de Push Notification (`useCreatePushCampaign`): disparos segmentados de notificações direto no celular dos clientes.
-  - Acesso a Hardware (`PWASettingsPage.tsx` no Wider): biometria facial/digital (`useBiometricCredentials`), geolocalização e câmera.
+  - Acesso a Hardware (`PWASettingsPage.tsx` no Waesy): biometria facial/digital (`useBiometricCredentials`), geolocalização e câmera.
 
-### 2.3. Portal de Reputação & Reivindicação Estilo "Reclame Aqui" (`wider/src/pages/claim`)
+### 2.3. Portal de Reputação & Reivindicação Estilo "Reclame Aqui" (`waesy/src/pages/claim`)
 * **Propósito:** Hub de confiança e resolução de conflitos empresariais, permitindo reclamações públicas, respostas mediadas e verificação de posse.
 * **Recursos e Contratos:**
   - `ClaimProfilePage.tsx`: Reivindicação de perfil corporativo via e-mail institucional, contrato social/CNPJ, SMS de celular cadastrado na Receita ou verificação social.
   - `ClaimIntelligencePage.tsx`: Painel de inteligência de mercado pós-claim com pontuação de visibilidade (`visibility_score`), menções em notícias, análise regional e monitoramento de concorrentes.
   - `TrustBadge.tsx`: Selo de reputação auditada para ser embutido nos sites das empresas.
 
-### 2.4. Portais de Empregos da Empresa (`wider/src/pages/company` e `classificadoswaesy`)
+### 2.4. Portais de Empregos da Empresa (`waesy/src/pages/company` e `classificadoswaesy`)
 * **Propósito:** Página pública de carreiras própria da empresa para publicação de vagas, recepção de candidaturas e gestão em funil Kanban.
-* **Transição Fluida para o RH:** Ao contratar o candidato no funil, o JAH transfere o perfil para o Hub do Colaborador, ativando imediatamente seu ponto eletrônico e folha de pagamento.
+* **Transição Fluida para o RH:** Ao contratar o candidato no funil, o Waesy transfere o perfil para o Hub do Colaborador, ativando imediatamente seu ponto eletrônico e folha de pagamento.
 
 ### 2.5. SimLab V2: Simulador Estocástico & Generativo de Personas com IA
 * **Propósito:** Populações sintéticas demográficas brasileiras para avaliação em massa de ofertas, produtos e páginas antes de gastar com tráfego pago.
 * **Origem:** `simwork/docs/prds/PRD-SIMLAB-V2.md` e `simwork/simlab/`.
 * **Catálogo `seed_personas.json`:** Personas hiperdetalhadas (como *Carla, 32 anos, mãe de classe média em Porto Alegre, analista administrativa, renda R$ 5.800*), com valores, medos, hábitos de consumo e pesos para 7 gatilhos psicológicos (`urgency`, `social_proof`, `discount`, `hedonic`, `authority`, `social`, `friction`).
 * **Modo Generativo Profundo:** Invoca LLM (`GPT-4o-mini` / Gemini) para simular o comportamento de compra da persona, gerando objeções centrais (`keyObjection`), citações reais (`quote`) e probabilidade de conversão.
-* **Painel:** `SimlabReviewPanel.tsx` no JAH com scorecard de interesse e propensão à ação.
+* **Painel:** `SimlabReviewPanel.tsx` no Waesy com scorecard de interesse e propensão à ação.
 
-### 2.6. Cérebro Cognitivo & ModuleAuditor (`wider/src/core/brain/ModuleAuditor.ts`)
+### 2.6. Cérebro Cognitivo & ModuleAuditor (`waesy/src/core/brain/ModuleAuditor.ts`)
 * **Propósito:** Validador em tempo de execução que atua como barreira (Brain Blocker) contra módulos vazios ou incompletos.
 * **Critérios:** `hasSchema`, `hasEvents`, `hasUI`, `hasCRUD`, `hasPermissions`, `affectsRevenue` e `dependenciesMet`.
 * **Reputação Vetorial:** `TrustVectorRadar.tsx` e `ArchetypeBadge.tsx` calculam em tempo real a confiabilidade do vendedor.
 
 ### 2.7. CloudBlock: 40 Blocos Visuais de Construção de Páginas (`cloudblock/src/components/blocks/`)
 * **Biblioteca:** 40 componentes modulares prontos cobrindo layouts em BentoGrid, itinerários dia a dia, contadores regressivos, links de bio, cotações de serviço, avaliações, FAQs e botões flutuantes de atendimento.
-* **Conexão no JAH:** Integrados diretamente ao motor [builder.functions.ts](file:///C:/Users/Excelência%20Tour%20SMO/Documents/jah/src/services/builder.functions.ts) (2.847 linhas já prontas no JAH).
+* **Conexão no Waesy:** Integrados diretamente ao motor [builder.functions.ts](file:///C:/Users/Excelência%20Tour%20SMO/Documents/waesy/src/services/builder.functions.ts) (2.847 linhas já prontas no Waesy).
 
 ### 2.8. Operações de Campo & Frente de Loja
 * **KDS (Kitchen Display System) para Gastronomia:** `kds.engine.ts` + `KDSDisplay.tsx` com praças de preparo, temporizadores de SLA e recall de pedidos.
@@ -113,32 +113,32 @@
 
 ```
                                   ==============================
-                                         JAH OPERATING OS
+                                         Waesy OPERATING OS
                                   ==============================
                                                 |
                  +------------------------------+------------------------------+
                  |                              |                              |
          [CORE UNIVERSAL]               [MOTORES TRANSVERSAIS]          [DOMÍNIOS DE NICHO]
-       - Identidade / Permissões      - Hub do Colaborador (Ponto/RH)  - @jah/turismo
-       - Ledger Financeiro Multi-Loja - Omnichannel SAC Dual-Layer     - @jah/eventos
-       - Design System Apple HIG      - Mobilidade & Logística Courier  - @jah/gastronomia
-       - Cérebro & ModuleAuditor      - Studio Gráfico & Vídeo Machine  - @jah/varejo-wms
-       - Telemetria de Anúncios       - Construtor PWA & Page Builder   - @jah/servicos-saude
-                                      - Workflows & SimLab Personas     - @jah/juridico-jus
+       - Identidade / Permissões      - Hub do Colaborador (Ponto/RH)  - @waesy/turismo
+       - Ledger Financeiro Multi-Loja - Omnichannel SAC Dual-Layer     - @waesy/eventos
+       - Design System Apple HIG      - Mobilidade & Logística Courier  - @waesy/gastronomia
+       - Cérebro & ModuleAuditor      - Studio Gráfico & Vídeo Machine  - @waesy/varejo-wms
+       - Telemetria de Anúncios       - Construtor PWA & Page Builder   - @waesy/servicos-saude
+                                      - Workflows & SimLab Personas     - @waesy/juridico-jus
 ```
 
 ### Casos de Uso Especializados:
-1. **Turismo & Viagens (`@jah/turismo`):**
+1. **Turismo & Viagens (`@waesy/turismo`):**
    Agência monta viagem rodoviária -> Define layout de poltronas de ônibus com mapa visual -> Passageiro compra e escolhe assento -> Emite voucher com QR Code -> Guia realiza check-in no embarque via leitura óptica.
-2. **Gastronomia & Bares (`@jah/gastronomia`):**
+2. **Gastronomia & Bares (`@waesy/gastronomia`):**
    Garçom anota pedido no salão via `GarcomApp` -> Pedido cai instantaneamente na cozinha no `KDSDisplay` com timer de SLA -> Prato pronto é despachado -> Cliente paga com divisão PIX + Cartão no `MultiPaymentPanel`.
-3. **Eventos & Festivais (`@jah/eventos`):**
+3. **Eventos & Festivais (`@waesy/eventos`):**
    Produtor cria evento -> Cria sub-painéis operacionais isolados ("Bar Pista", "Bar VIP", "Portaria") -> Fornece link tokenizado para cada operador -> Operador transaciona no PDV isolado sem ver o financeiro global -> IA (`AIInsights`) projeta lotação e consumo.
-4. **Varejo, Moda & WMS (`@jah/varejo-wms`):**
+4. **Varejo, Moda & WMS (`@waesy/varejo-wms`):**
    Loja vende produtos com grade de variação -> Pedido cai na expedição -> Operador de armazém usa `PickingPage` bipando código de barras com leitor óptico -> Romaneio térmico e etiqueta despachada.
-5. **Serviços & Clínicas (`@jah/servicos-saude`):**
+5. **Serviços & Clínicas (`@waesy/servicos-saude`):**
    Consultório cadastra profissionais e consultórios -> Paciente agenda horário na agenda visual -> Profissional atende e registra evolução no prontuário -> Pagamento registrado.
-6. **Jurídico & Escritórios (`@jah/juridico-jus`):**
+6. **Jurídico & Escritórios (`@waesy/juridico-jus`):**
    Cliente abre demanda no portal -> Escritório envia proposta de honorários -> Contrato assinado na tela com `SignaturePad` -> Prazos processuais são monitorados na timeline.
 
 ---
@@ -157,7 +157,7 @@
   └── Microfase 1.4: Migration de WMS Picking, Workflows Visuais, PWA Builder e Claim/Reputação estilo Reclame Aqui
       └── [GATE 1]: Auditoria DDL (Foreign Keys, RLS Multi-Tenant store_id e Zero Colunas Órfãs)
 
-[ONDA 2: INGESTÃO DE ENGINES CENTRAIS NO CORE JAH]
+[ONDA 2: INGESTÃO DE ENGINES CENTRAIS NO CORE Waesy]
   ├── Microfase 2.1: Ingestão de `conditional-step-engine.ts` e `NicheCalculationEngine.ts` em `src/lib/engines/`
   ├── Microfase 2.2: Ingestão de `FormFieldEngine.ts` com 20+ tipos de campos semânticos
   ├── Microfase 2.3: Ingestão do `ModuleAuditor.ts` (Validador de integridade em runtime)

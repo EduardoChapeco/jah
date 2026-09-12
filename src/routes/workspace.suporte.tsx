@@ -46,7 +46,7 @@ import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-cano
 import { WorkspaceDashboardSheet } from "@/components/workspace/workspace-dashboard-sheet";
 
 export const Route = createFileRoute("/workspace/suporte")({
-  head: () => ({ meta: [{ title: "Suporte Técnico | Workspace Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Suporte Técnico | Workspace Waesy" }] }),
   loader: async () => {
     try {
     const store = await getStoreSettings().catch(() => null);
@@ -647,7 +647,7 @@ function WorkspaceSupportPage() {
                 }`}
               >
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground font-mono">
-                  <span>{m.is_staff_reply ? "Equipe de Suporte Wider" : "Você (Operador)"}</span>
+                  <span>{m.is_staff_reply ? "Equipe de Suporte Waesy" : "Você (Operador)"}</span>
                   <span>{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                 </div>
                 <p className="whitespace-pre-wrap leading-relaxed">{m.message}</p>

@@ -235,7 +235,7 @@ export function buildEscPosReceipt(data: EscPosReceiptData): Uint8Array {
     b.align("center").line("Escaneie para acompanhar o pedido");
   }
 
-  b.align("center").line("Obrigado pela preferencia!").line("Wider Community Platform");
+  b.align("center").line("Obrigado pela preferencia!").line("Waesy Platform");
 
   b.cut();
   return b.toBytes();

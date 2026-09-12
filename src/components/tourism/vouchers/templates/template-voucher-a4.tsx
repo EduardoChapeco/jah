@@ -10,7 +10,7 @@ interface TemplateVoucherA4Props {
 
 export function TemplateVoucherA4({
  voucher,
- agencyName = 'Agência Wider Turismo',
+ agencyName = 'Agência Waesy Turismo',
 }: TemplateVoucherA4Props) {
  const isFlight = voucher.voucher_type === 'flight';
  const isHotel = voucher.voucher_type === 'hotel';
@@ -158,7 +158,7 @@ export function TemplateVoucherA4({
  <span className="text-[10px] font-mono tracking-widest text-sky-400 uppercase">Validação Criptográfica Digital</span>
  <h4 className="text-sm font-bold">Apresente este voucher no balcão de atendimento</h4>
  <p className="text-[11px] text-slate-400 max-w-md">
- Documento com hash SHA-256 e conferência em tempo real via sistema Wider TravelOS.
+ Documento com hash SHA-256 e conferência em tempo real via sistema Waesy Travel.
  </p>
  </div>
 

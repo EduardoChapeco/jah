@@ -153,7 +153,7 @@ describe('Dossiê Deep-Tech: Populações Sintéticas (Aaru AI), SimLab V2, Focu
         body: 'Implemente uma esteira previsível de ofertas com garantia incondicional.',
         slideIndex: 1,
         totalSlides: 5,
-        companyName: 'Wider Turismo & Varejo',
+        companyName: 'Waesy Turismo & Varejo',
         template: 'bold-color',
         cta: 'Saiba Mais',
       });
@@ -164,7 +164,7 @@ describe('Dossiê Deep-Tech: Populações Sintéticas (Aaru AI), SimLab V2, Focu
       expect(html).toContain('fonts.googleapis.com');
       expect(html).toContain('O segredo que dobra suas vendas');
       expect(html).toContain('Slide 1 de 5');
-      expect(html).toContain('Wider Turismo & Varejo');
+      expect(html).toContain('Waesy Turismo & Varejo');
     });
 
     it('deve orquestrar post completo pelo pipeline Aria -> Bruno -> Carla -> Diego', async () => {
@@ -184,7 +184,7 @@ describe('Dossiê Deep-Tech: Populações Sintéticas (Aaru AI), SimLab V2, Focu
     });
   });
 
-  describe('6. Servidor MCP (Model Context Protocol) do Ecossistema Wider', () => {
+  describe('6. Servidor MCP (Model Context Protocol) do Ecossistema Waesy', () => {
     it('deve expor o manifesto com as 4 ferramentas canônicas do protocolo MCP', () => {
       const toolNames = MCP_TOOLS_MANIFEST.map(t => t.name);
 

@@ -42,7 +42,7 @@ import {
 } from "@/services/legal.functions";
 
 export const Route = createFileRoute("/admin-master/termos")({
- head: () => ({ meta: [{ title: "Termos & Políticas da Plataforma | Wider Master" }] }),
+ head: () => ({ meta: [{ title: "Termos & Políticas da Plataforma | Waesy Master" }] }),
  loader: async () => {
    try {
  const [documents, logsRes, stats] = await Promise.all([

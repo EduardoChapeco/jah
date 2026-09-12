@@ -1,5 +1,5 @@
 /**
- * Wider Classifieds — Taxonomia Canônica Global & Dicionários Estruturados
+ * Waesy Classifieds — Taxonomia Canônica Global & Dicionários Estruturados
  * 
  * Fonte canônica única para mensuração de mercado, analytics de preços,
  * filtros padronizados e formulários inteligentes sem digitação livre divergente.

@@ -18,7 +18,7 @@ import type { CashRegisterHistoryItem, CashRegisterStatus } from "@/lib/cash";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/financeiro/caixa/turnos")({
- head: () => ({ meta: [{ title: "Turnos de Caixa | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Turnos de Caixa | Workspace Waesy" }] }),
  loader: async () => {
    try {
  return await listRegisterHistory();

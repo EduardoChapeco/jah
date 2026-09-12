@@ -181,7 +181,7 @@ export function MotionStudioViewport({
                   style={{ opacity }}
                 >
                   <div className="rounded-full border border-white/20 bg-black/40 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white/90 backdrop-blur-md">
-                    {badgeSeq.eyebrow || "JAH Motion"}
+                    {badgeSeq.eyebrow || "Waesy Motion"}
                   </div>
                   {badgeSeq.accentText && (
                     <div
@@ -199,7 +199,7 @@ export function MotionStudioViewport({
           {showLogo && (
             <div className="absolute top-4 right-4 z-10 pointer-events-none flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/30 border border-white/10 backdrop-blur-md text-[10px] font-semibold text-white/80">
               <Zap className="size-3 text-amber-400" />
-              <span>JAH Loja</span>
+              <span>Waesy Loja</span>
             </div>
           )}
 
@@ -273,7 +273,7 @@ export function MotionStudioViewport({
           {captionsEnabled && (
             <div className="absolute bottom-4 left-4 right-4 z-20 pointer-events-none">
               <div className="rounded-xl border border-white/10 bg-black/60 px-3 py-1.5 text-center text-[10px] text-white/90 backdrop-blur-md truncate">
-                {activeSequences[0]?.body || activeSequences[0]?.headline || "JAH Motion Studio"}
+                {activeSequences[0]?.body || activeSequences[0]?.headline || "Waesy Motion Studio"}
               </div>
             </div>
           )}

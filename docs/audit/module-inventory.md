@@ -1,7 +1,7 @@
-# G3: Module Inventory (Inventário Canônico dos 38 Módulos Jah)
+# G3: Module Inventory (Inventário Canônico dos 38 Módulos Waesy)
 
 > **Inventário Oficial de Cobertura Sistêmica dos 38 Módulos Funcionais**
-> Este documento registra o mapeamento completo dos 38 módulos da plataforma Jah Commerce.
+> Este documento registra o mapeamento completo dos 38 módulos da plataforma Waesy Commerce.
 
 ## Classificações Oficiais
 

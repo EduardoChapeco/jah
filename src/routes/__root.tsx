@@ -105,10 +105,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
  const store = storeRaw?.data || storeRaw;
  const brand = (loaderData as any)?.brand;
  const theme = (loaderData as any)?.theme;
- const storeName = (brand?.platform_name && brand.platform_name !== "Wider") ? brand.platform_name : (store?.name && store.name !== "Wider" ? store.name : "Wider");
+ const storeName = brand?.platform_name || store?.name || "Waesy";
 
- const seoTitle = store?.seo_title || `${storeName} OS`;
+ const seoTitle = brand?.seo_title || store?.seo_title || storeName;
  const seoDesc =
+ brand?.seo_description ||
  store?.seo_description ||
  store?.description ||
  "Explore mercado, farmácia, gastronomia, empregos, eventos culturais, mobilidade e classificados na sua região.";

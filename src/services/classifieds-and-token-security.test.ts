@@ -39,7 +39,7 @@ vi.mock("./identity.functions", () => ({
   getIdentity: vi.fn().mockResolvedValue({
     id: "user-test-uuid-1",
     role: "authenticated",
-    email: "cliente@wider.com.br",
+    email: "cliente@usewaesy.com",
   }),
 }));
 
@@ -76,7 +76,7 @@ vi.mock("@/lib/supabase", () => ({
               single: vi.fn().mockResolvedValue({
                 data: {
                   id: "user-test-uuid-1",
-                  full_name: "Morador Verificado Wider",
+                  full_name: "Morador Verificado Waesy",
                   role: "user",
                   avatar_url: null,
                 },

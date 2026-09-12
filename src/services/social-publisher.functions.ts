@@ -112,7 +112,7 @@ export const createSocialPost = createServerFn({ method: "POST" })
         status: "draft",
         reference_type: data.referenceType || null,
         reference_id: data.referenceId || null,
-        created_by: identity.userId,
+        created_by: (identity as any).userId || identity.id,
       })
       .select("id, status, networks, created_at")
       .single();

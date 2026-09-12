@@ -68,7 +68,7 @@ export const Route = createFileRoute("/api/webhooks/marketplaces")({
       GET: async () => {
         return new Response(
           JSON.stringify({
-            service: "Wider Marketplace Webhook Receiver",
+            service: "Waesy Marketplace Webhook Receiver",
             status: "active",
             supportedPlatforms: ["mercadolivre", "ifood", "focus_nfe", "nuvem_fiscal", "shopee", "melhorenvio", "correios"],
             timestamp: new Date().toISOString(),

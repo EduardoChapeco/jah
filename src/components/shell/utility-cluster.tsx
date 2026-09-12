@@ -69,7 +69,7 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
  userMeta?.full_name ||
  session?.user?.email?.split("@")[0] ||
  session?.email?.split("@")[0] ||
- "Membro Wider";
+ "Membro Waesy";
  const userHandle =
  userMeta?.username ||
  session?.user?.email?.split("@")[0] ||
@@ -101,7 +101,7 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
  setIsSwitching(true);
  try {
  if (typeof window !== "undefined") {
- window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
+ window.document.cookie = `waesy_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
  }
  await setTenantContext({ data: { store_id: storeId } }).catch(() => null);
  toast.success("Acessando painel da empresa...");
@@ -424,7 +424,7 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
  <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
  <DialogContent className="sm:max-w-lg sm:rounded-2xl p-4 sm:top-[20%] sm:translate-y-0">
  <DialogHeader className="sr-only">
- <DialogTitle>Buscar no Wider</DialogTitle>
+ <DialogTitle>Buscar no Waesy</DialogTitle>
  </DialogHeader>
  <form onSubmit={handleSearchSubmit} className="relative">
  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />

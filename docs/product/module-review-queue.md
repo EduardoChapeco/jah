@@ -1,4 +1,4 @@
-# Module Review Queue — Jah Commerce
+# Module Review Queue — Waesy Commerce
 
 > Fila de execução sequencial de revisão de módulos. Atualizado a cada gate concluído.
 > Gerado em: 2026-07-19

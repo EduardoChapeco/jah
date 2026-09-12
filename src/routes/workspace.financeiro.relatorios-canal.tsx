@@ -25,7 +25,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/financeiro/relatorios-canal")({
   head: () => ({
-    meta: [{ title: "DRE por Canal | Workspace Wider OS" }],
+    meta: [{ title: "DRE por Canal | Workspace Waesy" }],
   }),
   loader: async () => {
     try {

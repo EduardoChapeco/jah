@@ -43,7 +43,7 @@ import {
 import { getCreatorNicheLabel } from "@/lib/constants/creator-niches";
 
 export const Route = createFileRoute("/_store/conta/perfil")({
-  head: () => ({ meta: [{ title: "Meu Perfil | Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Meu Perfil | Waesy" }] }),
   validateSearch: (search: Record<string, unknown>) => ({
     tab: typeof search.tab === "string" ? search.tab : undefined,
   }),
@@ -133,7 +133,7 @@ function ProfilePage() {
     Array.isArray(profile?.biolinks) ? profile.biolinks : []
   );
 
-  // Perfil Profissional / Currículo (Gupy / InfoJobs / LinkedIn Enterprise Style)
+  // Perfil Profissional / Currículo (Padrão Executivo Waesy)
   const [resumeData, setResumeData] = useState<ResumeDataDTO>({
     headline: initialResume?.headline || "",
     summary: initialResume?.summary || "",
@@ -712,7 +712,7 @@ function ProfilePage() {
           </div>
         </TabsContent>
 
- {/* ── ABA 2: Perfil Profissional (Gupy / InfoJobs / LinkedIn Style) ── */}
+ {/* ── ABA 2: Perfil Profissional (Padrão Executivo Waesy) ── */}
  <TabsContent value="profissional" className="space-y-6">
  <ProfessionalResumeEditor
  resumeData={resumeData}
@@ -1053,7 +1053,7 @@ function ProfilePage() {
                   />
                 </div>
                 <p className="text-[10px] text-muted-foreground">
-                  Identificador único da sua vitrine pública (ex: wider.app/membro/@{creatorHandle || "suamarca"}).
+                  Identificador único da sua vitrine pública (ex: usewaesy.com/membro/@{creatorHandle || "suamarca"}).
                 </p>
               </div>
 

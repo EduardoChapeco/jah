@@ -160,7 +160,7 @@ function AdminMasterModulosPage() {
             </h1>
           </div>
           <p className="text-xs text-muted-foreground">
-            Ligue ou desligue qualquer recurso público da plataforma Wider em tempo real com controle transacional e persistência no banco.
+            Ligue ou desligue qualquer recurso público da plataforma Waesy em tempo real com controle transacional e persistência no banco.
           </p>
         </div>
 

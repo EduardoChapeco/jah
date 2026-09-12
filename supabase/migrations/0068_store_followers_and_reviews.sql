@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0068: Store Followers & Reviews
+-- Waesy Commerce — Migration 0068: Store Followers & Reviews
 -- ============================================================================
 
 -- 1. Create store_followers table

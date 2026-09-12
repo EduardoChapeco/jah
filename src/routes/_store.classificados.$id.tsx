@@ -92,14 +92,14 @@ export const Route = createFileRoute("/_store/classificados/$id")({
  meta: [
  {
  title: classified?.title
- ? `${classified.title} | Classificados Wider`
- : "Classificado | Wider OS",
+ ? `${classified.title} | Classificados Waesy`
+ : "Classificado | Waesy",
  },
  {
  name: "description",
- content: classified?.content?.slice(0, 160) || "Anúncio comunitário na plataforma Wider.",
+ content: classified?.content?.slice(0, 160) || "Anúncio comunitário na plataforma Waesy.",
  },
- { property: "og:title", content: classified?.title || "Classificado Wider" },
+ { property: "og:title", content: classified?.title || "Classificado Waesy" },
  { property: "og:description", content: classified?.content?.slice(0, 160) || "" },
  { property: "og:image", content: cover },
  { property: "og:type", content: "website" },
@@ -268,9 +268,9 @@ function ClassifiedDetailPage() {
     }
   };
 
- // Job Candidacy State (Microfase 78B — BigTech InfoJobs & LinkedIn Style)
+ // Job Candidacy State (BigTech Executive Standard)
  const [applyModalOpen, setApplyModalOpen] = useState(false);
- const [applyTab, setApplyTab] = useState<"perfil_wider" | "upload_cv" | "whatsapp">("perfil_wider");
+ const [applyTab, setApplyTab] = useState<"perfil_waesy" | "upload_cv" | "whatsapp">("perfil_waesy");
  const [coverNote, setCoverNote] = useState("");
  const [candidateName, setCandidateName] = useState(currentProfile?.fullName || currentProfile?.full_name || "");
  const [candidateEmail, setCandidateEmail] = useState(currentProfile?.email || "");
@@ -545,7 +545,7 @@ const handleDownloadDigitalFile = async () => {
           priceCents={classified?.price_cents || 0}
           currency="BRL"
           imageUrl={classified?.images?.[0]}
-          brandName={classified?.store_name || "Comunidade Wider"}
+          brandName={classified?.store_name || "Comunidade Waesy"}
           categoryName={classified?.category || "Turismo & Viagens"}
           sku={classified?.id}
           inStock={classified?.status === "active"}
@@ -570,7 +570,7 @@ const handleDownloadDigitalFile = async () => {
  priceCents={classified?.price_cents || 0}
  currency="BRL"
  imageUrl={classified?.images?.[0]}
- brandName={classified?.store_name || "Comunidade Wider"}
+ brandName={classified?.store_name || "Comunidade Waesy"}
  categoryName={classified?.category || "Classificados"}
  sku={classified?.id}
  inStock={classified?.status === "active"}
@@ -1201,7 +1201,7 @@ const handleDownloadDigitalFile = async () => {
  </div>
  )}
 
- {/* Ficha Técnica de Vaga de Emprego & Oportunidade (Microfase 78B — BigTech InfoJobs & LinkedIn Style) */}
+ {/* Ficha Técnica de Vaga de Emprego & Oportunidade (BigTech Executive Standard) */}
  {(classified.category === "job" || classified.attributes?.niche === "vaga") && (
  <div className=" pt-4 space-y-4">
  <div className="flex items-center justify-between">
@@ -1277,7 +1277,7 @@ const handleDownloadDigitalFile = async () => {
  </div>
  )}
 
- {/* Widget de Mensuração e Estatísticas de Candidatos (Estilo InfoJobs / LinkedIn) */}
+ {/* Widget de Mensuração e Estatísticas de Candidatos (Padrão Corporativo Waesy) */}
  <div className="mt-4 p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-3">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
@@ -1643,7 +1643,7 @@ const handleDownloadDigitalFile = async () => {
                   <div className="min-w-0">
                     <p className="text-[11px] text-muted-foreground font-medium">Anunciado por</p>
                     <p className="text-sm font-bold text-foreground truncate">
-                      {author?.full_name || "Membro Verificado Wider"}
+                      {author?.full_name || "Membro Verificado Waesy"}
                     </p>
                   </div>
                 </div>
@@ -1727,7 +1727,7 @@ const handleDownloadDigitalFile = async () => {
    </div>
  )}
 
- {/* Simulador de Frete & Logística Wider Express (Exclusivo para produtos físicos/desapegos) */}
+ {/* Simulador de Frete & Logística Waesy Express (Exclusivo para produtos físicos/desapegos) */}
  {niche.showDeliveryBadges && classified.attributes?.delivery_mode !== "pickup" && (
  <div className="border border-primary/20 rounded-2xl p-4 bg-primary/5 space-y-2.5">
  <div className="flex items-center justify-between">
@@ -1736,7 +1736,7 @@ const handleDownloadDigitalFile = async () => {
  <span>Calcular Entrega no seu Endereço</span>
  </div>
  <Badge variant="default" className="text-[9px] font-mono bg-primary text-primary-foreground">
- Wider Express
+ Waesy Express
  </Badge>
  </div>
 
@@ -1762,7 +1762,7 @@ const handleDownloadDigitalFile = async () => {
  <Package className="size-3.5" />
  </div>
  <div>
- <p className="font-semibold text-xs text-foreground">Ponto PUDO / Locker Wider</p>
+ <p className="font-semibold text-xs text-foreground">Ponto PUDO / Locker Waesy</p>
  <p className="text-[10px] text-muted-foreground">Retire no ponto credenciado</p>
  </div>
  </div>
@@ -1857,7 +1857,7 @@ const handleDownloadDigitalFile = async () => {
                       entityTitle={classified.title}
                       storeId={(classified as any).store_id || null}
                       niche={classified.category || "empregos"}
-                      customMessage={`Olá! Vi a oportunidade de "${classified.title}" no portal Wider e gostaria de me candidatar.`}
+                      customMessage={`Olá! Vi a oportunidade de "${classified.title}" no portal Waesy e gostaria de me candidatar.`}
                       variant="outline"
                       size="lg"
                       label="Falar com o Recrutador via WhatsApp"
@@ -1887,7 +1887,7 @@ const handleDownloadDigitalFile = async () => {
  Identifique-se para reservar
  </DialogTitle>
  <DialogDescription className="text-xs text-muted-foreground">
- Faça login na sua conta Wider para reservar este imóvel por temporada com
+ Faça login na sua conta Waesy para reservar este imóvel por temporada com
  garantia e suporte regional.
  </DialogDescription>
  </div>
@@ -2025,7 +2025,7 @@ const handleDownloadDigitalFile = async () => {
  Identifique-se para negociar
  </DialogTitle>
  <DialogDescription className="text-xs text-muted-foreground">
- Para enviar ofertas personalizadas, faça login na sua conta Wider.
+ Para enviar ofertas personalizadas, faça login na sua conta Waesy.
  </DialogDescription>
  </div>
  <Button
@@ -2172,7 +2172,7 @@ const handleDownloadDigitalFile = async () => {
                   Identifique-se para agendar
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
-                  Faça login na sua conta Wider para solicitar o agendamento com segurança e garantias regionais.
+                  Faça login na sua conta Waesy para solicitar o agendamento com segurança e garantias regionais.
                 </DialogDescription>
               </div>
               <Button
@@ -2358,7 +2358,7 @@ const handleDownloadDigitalFile = async () => {
           entityTitle={classified.title}
           storeId={(classified as any).store_id || null}
           niche={classified.category || "service"}
-          customMessage={`Olá! Vi o seu serviço "${classified.title}" no portal Wider e gostaria de tirar dúvidas sobre atendimento.`}
+          customMessage={`Olá! Vi o seu serviço "${classified.title}" no portal Waesy e gostaria de tirar dúvidas sobre atendimento.`}
           variant="outline"
           size="lg"
           label="Falar com o Prestador via WhatsApp"
@@ -2425,7 +2425,7 @@ const handleDownloadDigitalFile = async () => {
  </DialogTitle>
  <DialogDescription className="text-xs text-muted-foreground">
  Para enviar propostas, negociar valores e trocar itens com segurança,
- faça login na sua conta Wider.
+ faça login na sua conta Waesy.
  </DialogDescription>
  </div>
  <Button
@@ -2553,7 +2553,7 @@ const handleDownloadDigitalFile = async () => {
  <p className="font-semibold text-foreground">Negociação Segura</p>
  <p>
  Prefira encontros em locais públicos e formalize acordos de valor via proposta na
- Wider.
+ Waesy.
  </p>
  </div>
  </div>

@@ -379,7 +379,7 @@ function FullscreenMapaPage() {
  <div className="min-w-0 flex-1 space-y-0.5">
  <div className="flex items-center justify-between gap-1">
  <span className="text-[11px] font-bold text-foreground truncate">
- {m.author_name || "Membro Wider"}
+ {m.author_name || "Membro Waesy"}
  </span>
  <span className="text-[9px] text-muted-foreground font-mono shrink-0">
  {formatRelativeTime(m.created_at || new Date().toISOString())}

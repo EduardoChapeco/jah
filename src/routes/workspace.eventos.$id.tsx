@@ -81,7 +81,7 @@ export const Route = createFileRoute("/workspace/eventos/$id")({
  {
  title: loaderData?.event?.title
  ? `${loaderData.event.title} — Gestão do Evento`
- : "Gestão do Evento | Workspace Wider OS",
+ : "Gestão do Evento | Workspace Waesy",
  },
  ],
  }),

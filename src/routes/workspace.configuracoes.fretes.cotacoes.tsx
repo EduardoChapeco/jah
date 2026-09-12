@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/configuracoes/fretes/cotacoes")({
- head: () => ({ meta: [{ title: "Cotações de Frete | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Cotações de Frete | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const [zonesRes, pendingRes] = await Promise.all([

@@ -44,7 +44,7 @@ import { ptBR } from "date-fns/locale";
 
 export const Route = createFileRoute("/workspace/marketing/publicacoes")({
   head: () => ({
-    meta: [{ title: "Publicações em Redes Sociais | Workspace Wider OS" }],
+    meta: [{ title: "Publicações em Redes Sociais | Workspace Waesy" }],
   }),
   loader: async () => {
     try {

@@ -1,17 +1,17 @@
 -- ============================================================================
--- Jah Commerce — Migration 0022: Seed default tenant & fix trigger
+-- Waesy Commerce — Migration 0022: Seed default tenant & fix trigger
 -- ============================================================================
 
 -- 1. Ensure the default Organization exists
 INSERT INTO public.organizations (name, slug)
-VALUES ('Jah Organization', 'jah-org')
+VALUES ('Waesy Organization', 'waesy-org')
 ON CONFLICT (slug) DO NOTHING;
 
 -- 2. Ensure the default Store exists
 INSERT INTO public.stores (organization_id, name, slug)
-SELECT id, 'Jah', 'jah'
+SELECT id, 'Waesy', 'waesy'
 FROM public.organizations
-WHERE slug = 'jah-org'
+WHERE slug = 'waesy-org'
 ON CONFLICT (organization_id, slug) DO NOTHING;
 
 -- 3. Replace the overly complex trigger function with a strict, predictable one
@@ -27,8 +27,8 @@ BEGIN
   SELECT NOT EXISTS (SELECT 1 FROM public.profiles LIMIT 1) INTO is_first_user;
   
   -- Always grab the strictly seeded default organization and store
-  SELECT id INTO default_org_id FROM public.organizations WHERE slug = 'jah-org' LIMIT 1;
-  SELECT id INTO default_store_id FROM public.stores WHERE slug = 'jah' AND organization_id = default_org_id LIMIT 1;
+  SELECT id INTO default_org_id FROM public.organizations WHERE slug = 'waesy-org' LIMIT 1;
+  SELECT id INTO default_store_id FROM public.stores WHERE slug = 'waesy' AND organization_id = default_org_id LIMIT 1;
 
   IF is_first_user THEN
     user_role := 'owner';

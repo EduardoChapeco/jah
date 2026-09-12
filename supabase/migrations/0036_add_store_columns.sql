@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0036: Add Store Columns
+-- Waesy Commerce — Migration 0036: Add Store Columns
 -- ============================================================================
 -- Adds missing columns on public.stores that are queried by the application
 -- but were never defined in the base schema.

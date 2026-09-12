@@ -36,8 +36,8 @@ export const Route = createFileRoute("/_store/trocas-e-devolucoes")({
     meta: [
       {
         title: (loaderData as any)?.doc?.title
-          ? `${(loaderData as any).doc.title} | Wider`
-          : "Políticas de Trocas, Devoluções e Cancelamentos | Wider OS",
+          ? `${(loaderData as any).doc.title} | Waesy`
+          : "Políticas de Trocas, Devoluções e Cancelamentos | Waesy",
       },
     ],
   }),

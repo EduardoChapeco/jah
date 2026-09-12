@@ -1,4 +1,4 @@
-# 🏛️ Plano Diretor de Engenharia BigTech: Auditoria Completa, Diagnóstico de Recursos & Expansão de Módulos (JAH Super App)
+# 🏛️ Plano Diretor de Engenharia BigTech: Auditoria Completa, Diagnóstico de Recursos & Expansão de Módulos (Waesy Super App)
 
 > **Documento Executivo de Auditoria e Especificação Funcional**  
 > Emitido pelo Conselho Executivo de Engenharia (BigTech Board) em resposta à análise minuciosa de requisitos, consistência de dados, fluxos de negócio reais e referências visuais móveis (iFood / Super App Engine).

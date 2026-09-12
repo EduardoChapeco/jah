@@ -1,4 +1,4 @@
-# G11: Recovery Queue (Fila Canônica de Recuperação Priorizada Jah)
+# G11: Recovery Queue (Fila Canônica de Recuperação Priorizada Waesy)
 
 > **Fila Priorizada de Manutenção e Refatoração Estrutural por Risco Operacional**
 

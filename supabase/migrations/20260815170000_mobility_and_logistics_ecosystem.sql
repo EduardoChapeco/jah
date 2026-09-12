@@ -1,6 +1,6 @@
 -- Migration: 20260815170000_mobility_and_logistics_ecosystem.sql
 -- Propósito: Ecossistema completo de Mobilidade Urbana, Entregas Expressas,
--- Fretes de Mudança e Gestão de Frotas de Logística (Weasy/Wider Integration).
+-- Fretes de Mudança e Gestão de Frotas de Logística (Weasy/Waesy Integration).
 
 -- ============================================================
 -- 1. Enums de Mobilidade & Logística

@@ -782,7 +782,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
  pixKey: "contato@suamarca.com.br",
  pixKeyType: "Chave E-mail",
  beneficiaryName: "Sua Loja Oficial LTDA",
- bankName: "Wider Pay Instant",
+ bankName: "Waesy Pay",
  },
  },
  ],

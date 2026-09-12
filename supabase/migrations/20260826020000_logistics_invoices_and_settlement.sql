@@ -1,5 +1,5 @@
 -- ============================================================
--- Migration: Logistics Invoices & Fleet Settlements (Wider Logistics)
+-- Migration: Logistics Invoices & Fleet Settlements (Waesy Logistics)
 -- Tabela e políticas para persistência real de faturas e repasses de frotas
 -- ============================================================
 

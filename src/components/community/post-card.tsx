@@ -94,7 +94,7 @@ export function PostCard(props: PostCardProps) {
  navigator
  .share({
  title: item.author.name,
- text: item.content_text || "Confira este momento na Wider!",
+ text: item.content_text || "Confira este momento na Waesy!",
  url: permalinkUrl,
  })
  .catch(() => {});
@@ -200,7 +200,7 @@ export function PostCard(props: PostCardProps) {
  </div>
  </div>
 
- {/* ── 1.5 Parceria Comercial Paga (Estilo Instagram Collabs) ── */}
+ {/* ── 1.5 Parceria Comercial Paga (Collab Verificada) ── */}
  {(item.paid_partner_handle || item.metadata?.sponsored_collab) && (
  <div className="mb-3 flex items-center justify-between px-3 py-1.5 rounded-xl bg-muted/40 border border-border/50 text-xs">
  <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -261,7 +261,7 @@ export function PostCard(props: PostCardProps) {
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
  <Badge className="bg-info text-white font-black text-[10px] tracking-wider uppercase px-2 py-0.5 rounded-md">
- {item.metadata?.source || "Wider News"}
+ {item.metadata?.source || "Waesy News"}
  </Badge>
  <span className="text-[11px] text-white/70 font-mono">
  {item.metadata?.news_date || formatRelativeTime(item.created_at)}
@@ -573,7 +573,7 @@ export function PostCard(props: PostCardProps) {
  </div>
  </div>
  ) : (item.post_type === "instagram_carousel" || (item.layout_style === "carousel" && item.media_urls.length > 1)) && item.media_urls.length > 0 ? (
- /* TEMPLATE: CARROSSEL INSTAGRAM (1:1 ou 4:5) */
+ /* TEMPLATE: CARROSSEL VISUAL (1:1 ou 4:5) */
  <div className="relative mb-3 overflow-hidden rounded-2xl bg-black aspect-square sm:aspect-[4/5] group select-none">
  {isVideoUrl(item.media_urls[activeSlide]) ? (
  <video
@@ -779,7 +779,7 @@ export function PostCard(props: PostCardProps) {
  <span>{item.likes_count}</span>
  </button>
 
- {/* Comentar Post Geral (Abre Drawer estilo Instagram com Media Shrink) */}
+ {/* Comentar Post Geral (Abre Drawer Interativo com Media Shrink) */}
  <button
  onClick={() => setIsCommentsOpen(true)}
  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${

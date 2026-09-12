@@ -42,7 +42,7 @@ const DOACOES_CATEGORIES: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/doacoes")({
  head: () => ({
  meta: [
- { title: "Doações, Solidariedade & Voluntariado | Wider OS" },
+ { title: "Doações, Solidariedade & Voluntariado | Waesy" },
  {
  name: "description",
  content:

@@ -85,7 +85,7 @@ export const markInstallmentPaid = createServerFn({ method: 'POST' })
       throw new Error("Parcela não encontrada.");
     }
 
-    if (installment.store_id !== identity.store_id && !identity.is_super_admin) {
+    if (installment.store_id !== identity.store_id && !(identity.role === "platform_admin")) {
       throw new Error("Acesso não autorizado para esta loja.");
     }
 

@@ -11,7 +11,7 @@
 
 ## 🏛️ 1. Manifesto de Governança do Conselho Executivo BigTech
 
-Este documento representa o ápice da governança de engenharia da plataforma JAH. Ele consolida, analisa, audita e **reescreve na íntegra os últimos 500 prompts e ciclos de desenvolvimento** executados no ecossistema ao longo de 13 sessões históricas.
+Este documento representa o ápice da governança de engenharia da plataforma Waesy. Ele consolida, analisa, audita e **reescreve na íntegra os últimos 500 prompts e ciclos de desenvolvimento** executados no ecossistema ao longo de 13 sessões históricas.
 
 Nenhum detalhe solicitado pelo usuário foi desconsiderado. Cada demanda foi processada através do crivo das **5 Personas Especialistas do Conselho Executivo**:
 
@@ -79,7 +79,7 @@ Abaixo está o mapeamento cronológico completo das 13 conversações histórica
 | **Onda 9** | `f03ce600-424a-49f6-a46f-ca293506a950` | 90 | 08/09 - 09/09 | Resgate de 40 prompts pendentes por limite de tokens, auditoria de persistência real, tokens e carteiras. |
 | **Onda 8** | `0faa8140-5586-4afc-a00a-73e43993011c` | 74 | 06/09/2026 | Dossiê de 30 prompts, deploy no Cloudflare Pages com injeção de ambiente Supabase, build limpo. |
 | **Onda 7** | `3faf76f9-8771-49a3-8cc0-018714b41434` | 67 | 06/09/2026 | Continuidade de fases operacionais, padronização de rotas TanStack e componentes Radix. |
-| **Onda 6** | `e8ff3af5-88fe-45e8-b60d-4d6052cecc54` | 7 | 05/09/2026 | Extração de capacidades modulares a partir de projetos satélites de referência (waeys, wider, personanexus, simlabs). |
+| **Onda 6** | `e8ff3af5-88fe-45e8-b60d-4d6052cecc54` | 7 | 05/09/2026 | Extração de capacidades modulares a partir de projetos satélites de referência (waeys, waesy, personanexus, simlabs). |
 | **Onda 5** | `18772ba6-3796-4a2b-9843-ec843fe8073e` | 14 | 05/09/2026 | Elevação a BigTech standards, refatoração de código legado e eliminação de cascas vazias. |
 | **Onda 4** | `5d2514f9-7850-4b9a-939d-80f35e2271e7` | 28 | 04/09/2026 | PROTOCOLO MASTER DE AUDITORIA FORENSE: proibição de estrelas/sparkles, eliminação de scrollbars cinzas, ultra mobile-first. |
 | **Onda 3** | `477d5f87-16a6-43ad-9bec-b7229a641fbb` | 38 | 04/09/2026 | Semântica e terminologias de nichos (Turismo vs Food vs Serviços vs JUS), isolamento contextual. |
@@ -394,7 +394,7 @@ Todos os 13 módulos operam segundo o mesmo pipeline de dados estrito, sem atalh
 
 ## 📋 7. Padronização Canônica do Master Implementation Plan (As 7 Camadas)
 
-Todo novo ciclo ou incremento de engenharia no repositório JAH deve ser formalizado obedecendo às **7 Camadas de Completude Séptupla**:
+Todo novo ciclo ou incremento de engenharia no repositório Waesy deve ser formalizado obedecendo às **7 Camadas de Completude Séptupla**:
 
 ```markdown
 # [Nome da Funcionalidade] — Master Implementation Plan

@@ -125,7 +125,7 @@ BEGIN
   v_unlock_date := NOW() + (v_vesting_days || ' days')::INTERVAL;
 
   -- 2. Gera selo criptográfico tamper-seal
-  v_tamper_seal := md5(p_referrer_id::text || ':' || v_tokens_amount || ':' || v_unlock_date::text || ':wider_secure_vesting_token');
+  v_tamper_seal := md5(p_referrer_id::text || ':' || v_tokens_amount || ':' || v_unlock_date::text || ':waesy_secure_vesting_token');
 
   -- 3. Registra indicação
   INSERT INTO public.affiliate_referrals (

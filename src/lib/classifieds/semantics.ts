@@ -1,5 +1,5 @@
 /**
- * Wider Classifieds — Biblioteca Semântica & Taxonomia Modular de Nichos
+ * Waesy Classifieds — Biblioteca Semântica & Taxonomia Modular de Nichos
  * 
  * Regras Invioláveis:
  * 1. NUNCA exibir "Retirada & Entrega Local" para imóveis, hospedagens, veículos ou serviços.
@@ -113,7 +113,7 @@ export const NICHE_DEFINITIONS: Record<ClassifiedNicheId, ClassifiedNicheDefinit
  icon: Tag,
  badge: "Desapego da Região",
  priceSuffix: "",
- primaryActionLabel: "Comprar com Garantia Wider",
+ primaryActionLabel: "Comprar com Garantia Waesy",
  secondaryActionLabel: "Fazer Oferta ao Vendedor",
  showDeliveryBadges: true,
  showTechnicalSpecs: false,

@@ -117,7 +117,7 @@ export function RequestQuoteModal({
  if (!storePhone) return;
  const cleanPhone = storePhone.replace(/\D/g, "");
  const msg = encodeURIComponent(
- `Olá ${storeName}, solicitei um orçamento pelo Super App Wider para o serviço "${category}". Meu nome é ${name}. Descrição: ${description}`
+ `Olá ${storeName}, solicitei um orçamento pelo Super App Waesy para o serviço "${category}". Meu nome é ${name}. Descrição: ${description}`
  );
  window.open(`https://wa.me/55${cleanPhone}?text=${msg}`, "_blank");
  };

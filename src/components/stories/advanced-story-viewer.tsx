@@ -1,5 +1,5 @@
 /**
- * advanced-story-viewer.tsx — Visualizador de Stories Instagram-Grade
+ * advanced-story-viewer.tsx — Visualizador de Stories Imersivo
  * Suporte a Fotos, Vídeos de até 60s, Interrupção de Vídeos Longos (5s countdown), Stickers, Collabs e Telemetria
  */
 

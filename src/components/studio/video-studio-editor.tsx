@@ -32,10 +32,10 @@ export function VideoStudioEditor({
  </div>
  <div>
  <h2 className="text-sm font-bold text-foreground">
- Wider Video Studio · Editor & Legendador de Reels e Vídeos
+ Waesy Video Studio · Editor & Legendador de Reels e Vídeos
  </h2>
  <p className="text-[11px] text-muted-foreground">
- Composição em timeline multi-faixas herdada de Wider
+ Composição em timeline multi-faixas nativa do Waesy
  </p>
  </div>
  </div>
@@ -86,7 +86,7 @@ export function VideoStudioEditor({
  <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto text-white backdrop-blur-sm">
  {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
  </div>
- <p className="text-xs text-white/80 font-medium">Prévia do Vídeo Promocional Wider</p>
+ <p className="text-xs text-white/80 font-medium">Prévia do Vídeo Promocional Waesy</p>
  <div className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold inline-block">
  Legenda Ativa: "Venha conhecer nossa nova coleção!"
  </div>

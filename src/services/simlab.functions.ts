@@ -134,7 +134,7 @@ export const createSimLabExperiment = createServerFn({ method: 'POST' })
 
 /**
  * Avalia um lote de personas sintéticas usando chamada estruturada à IA Real (Gemini / Groq / OpenAI)
- * via chaves ativas do Key Orchestrator da plataforma Wider.
+ * via chaves ativas do Key Orchestrator da plataforma Waesy.
  */
 async function evaluateBatchWithRealAI(
   personas: SyntheticArchetype[],

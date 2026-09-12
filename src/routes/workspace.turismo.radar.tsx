@@ -63,7 +63,7 @@ import type {
 } from '@/types/destination-intelligence';
 
 export const Route = createFileRoute('/workspace/turismo/radar')({
-  head: () => ({ meta: [{ title: 'Radar Global de Destinos & IA | Workspace Wider OS' }] }),
+  head: () => ({ meta: [{ title: 'Radar Global de Destinos & IA | Workspace Waesy' }] }),
   loader: async () => {
     try {
       const store = await getStoreSettings().catch(() => null);

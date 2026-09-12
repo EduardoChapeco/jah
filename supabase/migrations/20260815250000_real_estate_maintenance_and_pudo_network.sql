@@ -167,7 +167,7 @@ BEGIN
       id, tracking_code, pudo_location_id, sender_name, recipient_name, recipient_phone, recipient_document, security_pickup_code, status, has_damage
     ) VALUES (
       'da000000-0000-0000-0000-000000000001',
-      'JAH-PUDO-88219',
+      'Waesy-PUDO-88219',
       'd0000000-0000-0000-0000-000000000001',
       'Tech Express Chapecó',
       'Mariana Silveira',

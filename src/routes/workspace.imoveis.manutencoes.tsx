@@ -39,7 +39,7 @@ import {
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/imoveis/manutencoes")({
-  head: () => ({ meta: [{ title: "Manutenções & Reparos de Imóveis | Workspace Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Manutenções & Reparos de Imóveis | Workspace Waesy" }] }),
   loader: async () => {
     try {
       return (await listPropertyMaintenanceRequests().catch(() => [])) || [];

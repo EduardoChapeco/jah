@@ -1,5 +1,5 @@
 /**
- * system-flags.ts — Flags de Governança & Transição de Módulos (Wider OS)
+ * system-flags.ts — Flags de Governança & Transição de Módulos (Waesy)
  * Permite chavear comportamentos globais de engenharia (como o modo padrão de onboarding de empresas).
  */
 

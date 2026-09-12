@@ -149,7 +149,7 @@ const SERVICE_CATEGORIES: ServiceCategory[] = [
 export const Route = createFileRoute("/_store/servicos")({
  head: () => ({
  meta: [
- { title: "Serviços Especializados & Orçamentos | Wider OS" },
+ { title: "Serviços Especializados & Orçamentos | Waesy" },
  {
  name: "description",
  content:

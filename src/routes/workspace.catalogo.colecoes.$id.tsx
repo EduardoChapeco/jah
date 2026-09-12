@@ -22,7 +22,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { getCollectionById, updateCollection } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/workspace/catalogo/colecoes/$id")({
-  head: ({ loaderData }) => ({ meta: [{ title: `${(loaderData as any)?.collection?.name || (loaderData as any)?.name || "Coleção"} | Workspace Wider OS` }] }),
+  head: ({ loaderData }) => ({ meta: [{ title: `${(loaderData as any)?.collection?.name || (loaderData as any)?.name || "Coleção"} | Workspace Waesy` }] }),
   loader: async ({ params }): Promise<any> => {
     try {
       const res = await getCollectionById({ data: { id: params.id } });

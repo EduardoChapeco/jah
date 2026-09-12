@@ -112,7 +112,7 @@ const DISCOVERY_CATEGORIES: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/")({
   head: () => ({
     meta: [
-      { title: "Wider — Comunidade, Negócios e Serviços Locais" },
+      { title: "Waesy — Comunidade, Negócios e Serviços Locais" },
       {
         name: "description",
         content:
@@ -124,7 +124,7 @@ export const Route = createFileRoute("/_store/")({
     try {
       let activeCity: string | undefined = (location.search as any)?.city;
       if (!activeCity && typeof document !== "undefined") {
-        const match = document.cookie.match(/wider_city=([^;]+)/);
+        const match = document.cookie.match(/waesy_city=([^;]+)/);
         if (match) {
           try {
             activeCity = decodeURIComponent(match[1]);
@@ -468,7 +468,7 @@ function CommunityHomePage() {
         id: "module-afiliados",
         pillar: "afiliados",
         badge: "Afiliados",
-        title: "Programa de Afiliados Wider",
+        title: "Programa de Afiliados Waesy",
         image: null,
         to: "/afiliados",
         priceOrDate: "Comissões & Tokens",
@@ -635,7 +635,7 @@ function CommunityHomePage() {
                             onClick={() =>
                               trackAndOpenWhatsApp({
                                 phone: item.contact_whatsapp || item.contact_phone || "",
-                                message: `Olá! Vi o perfil da ${item.business_name} no Places do Wider.`,
+                                message: `Olá! Vi o perfil da ${item.business_name} no Places do Waesy.`,
                                 storeId: (item as any).store_id || null,
                                 entityType: "directory",
                                 entityId: item.id,
@@ -1039,7 +1039,7 @@ function CommunityHomePage() {
                       Afiliados
                     </Badge>
                     <h3 className="text-base sm:text-lg font-bold text-foreground">
-                      Programa de Afiliados Wider
+                      Programa de Afiliados Waesy
                     </h3>
                     <p className="text-xs text-muted-foreground leading-relaxed">
                       Indique empresas para a plataforma e receba comissões e benefícios na sua conta.
@@ -1137,7 +1137,7 @@ function CommunityHomePage() {
                         onClick={() =>
                           trackAndOpenWhatsApp({
                             phone: item.phone || "",
-                            message: `Olá! Vi o anúncio "${item.title}" no Wider.`,
+                            message: `Olá! Vi o anúncio "${item.title}" no Waesy.`,
                             storeId: null,
                             entityType: item.pillar,
                             entityId: item.id,
@@ -1226,7 +1226,7 @@ function CommunityHomePage() {
                           onClick={() =>
                             trackAndOpenWhatsApp({
                               phone: item.phone || "",
-                              message: `Olá! Vi o anúncio "${item.title}" no Wider.`,
+                              message: `Olá! Vi o anúncio "${item.title}" no Waesy.`,
                               storeId: null,
                               entityType: item.pillar,
                               entityId: item.id,

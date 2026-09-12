@@ -25,7 +25,7 @@ const FORMAT_OPTIONS: FormatOption[] = [
   {
     value: "story-916",
     label: "Story (9:16)",
-    desc: "Voucher ou Story de Instagram",
+    desc: "Voucher ou Story Vertical (9:16)",
     icon: Smartphone,
   },
   {

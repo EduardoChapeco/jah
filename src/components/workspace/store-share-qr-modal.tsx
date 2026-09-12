@@ -50,7 +50,7 @@ export function StoreShareQrModal({
 
  if (!store || !semantics) return null;
 
- const origin = typeof window !== "undefined" ? window.location.origin : "https://jah.com.br";
+ const origin = typeof window !== "undefined" ? window.location.origin : "https://usewaesy.pages.dev";
  const storeUrl = store.slug
  ? `${origin}/@${store.slug}`
  : `${origin}/perfil-da-loja?storeId=${store.id}`;

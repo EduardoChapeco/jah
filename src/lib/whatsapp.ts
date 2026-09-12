@@ -57,18 +57,18 @@ export function buildTrackedWhatsAppMessage({
 
  switch (entityType) {
  case "product":
- return `Olá! Vi o produto "${entityTitle || "anunciado"}" no Wider e gostaria de mais informações sobre disponibilidade e entrega.\n\nRef: #${leadCode}`;
+ return `Olá! Vi o produto "${entityTitle || "anunciado"}" no Waesy e gostaria de mais informações sobre disponibilidade e entrega.\n\nRef: #${leadCode}`;
  case "classified":
- return `Olá! Vi seu anúncio "${entityTitle || "no Wider"}" e tenho interesse. Ainda está disponível?\n\nRef: #${leadCode}`;
+ return `Olá! Vi seu anúncio "${entityTitle || "no Waesy"}" e tenho interesse. Ainda está disponível?\n\nRef: #${leadCode}`;
  case "job":
- return `Olá! Vi a oportunidade "${entityTitle || "de emprego"}" no portal Wider e gostaria de me candidatar.\n\nRef: #${leadCode}`;
+ return `Olá! Vi a oportunidade "${entityTitle || "de emprego"}" no portal Waesy e gostaria de me candidatar.\n\nRef: #${leadCode}`;
  case "tourism":
- return `Olá! Vi a atração/pousada "${entityTitle || "no Wider"}" e gostaria de consultar tarifas e reservas.\n\nRef: #${leadCode}`;
+ return `Olá! Vi a atração/pousada "${entityTitle || "no Waesy"}" e gostaria de consultar tarifas e reservas.\n\nRef: #${leadCode}`;
  case "directory":
  case "store":
- return `Olá! Encontrei o perfil de vocês no guia Wider e gostaria de fazer um orçamento.\n\nRef: #${leadCode}`;
+ return `Olá! Encontrei o perfil de vocês no guia Waesy e gostaria de fazer um orçamento.\n\nRef: #${leadCode}`;
  default:
- return `Olá! Vi o anúncio "${entityTitle || "no Wider"}" e gostaria de mais detalhes.\n\nRef: #${leadCode}`;
+ return `Olá! Vi o anúncio "${entityTitle || "no Waesy"}" e gostaria de mais detalhes.\n\nRef: #${leadCode}`;
  }
 }
 

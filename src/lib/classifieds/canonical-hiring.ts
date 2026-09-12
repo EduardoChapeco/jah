@@ -1,7 +1,7 @@
 /**
  * canonical-hiring.ts
  * Taxonomia Canônica e Mensuração Padronizada de Vagas, Carreiras e Talentos
- * Padrão InfoJobs / Gupy / LinkedIn Jobs / Catho
+ * Padrão Corporativo de Recrutamento & Gestão de Pessoas
  */
 
 export interface CanonicalSelectOption {

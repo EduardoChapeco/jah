@@ -1,4 +1,4 @@
--- Jah Commerce — Migration 0021: Customer Credits
+-- Waesy Commerce — Migration 0021: Customer Credits
 
 CREATE TABLE IF NOT EXISTS public.customer_credits (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah / Wider — Migration 20260930030000: CRM Leads Commercial Enterprise Parity
+-- Waesy / Waesy — Migration 20260930030000: CRM Leads Commercial Enterprise Parity
 -- ============================================================================
 -- Alinha public.leads_crm com 100% da inteligência e campos de travelagencias:
 -- 1. Campos ricos de passageiros/família (pax_list) e saúde/acessibilidade (pcd, TEA, mobilidade)

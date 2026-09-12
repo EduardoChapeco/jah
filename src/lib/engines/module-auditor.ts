@@ -1,5 +1,5 @@
 /**
- * JAH Runtime Module Auditor
+ * Waesy Runtime Module Auditor
  * Cérebro validador em tempo de execução de completude e integridade operacional do workspace por nicho.
  */
 

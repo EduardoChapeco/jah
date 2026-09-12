@@ -36,7 +36,7 @@ BEGIN
     NEW.id,
     coalesce(
       NEW.raw_user_meta_data->>'full_name',
-      coalesce(split_part(NEW.email, '@', 1), 'Membro Wider')
+      coalesce(split_part(NEW.email, '@', 1), 'Membro Waesy')
     ),
     v_assigned_role
   )
@@ -49,21 +49,21 @@ BEGIN
 
   -- Se for o platform_admin inicial, garante acesso à org default
   IF v_user_count < 2 THEN
-    SELECT id INTO default_org_id FROM public.organizations WHERE slug = 'jah-org' LIMIT 1;
+    SELECT id INTO default_org_id FROM public.organizations WHERE slug = 'waesy-org' LIMIT 1;
     IF default_org_id IS NULL THEN
       INSERT INTO public.organizations (name, slug)
-      VALUES ('Jah Organization', 'jah-org')
+      VALUES ('Waesy Organization', 'waesy-org')
       RETURNING id INTO default_org_id;
     END IF;
 
     SELECT id INTO default_store_id
     FROM public.stores
-    WHERE slug = 'jah' AND organization_id = default_org_id
+    WHERE slug = 'waesy' AND organization_id = default_org_id
     LIMIT 1;
 
     IF default_store_id IS NULL THEN
       INSERT INTO public.stores (organization_id, name, slug)
-      VALUES (default_org_id, 'Jah', 'jah')
+      VALUES (default_org_id, 'Waesy', 'waesy')
       RETURNING id INTO default_store_id;
     END IF;
 

@@ -1,6 +1,6 @@
 /**
  * private-store.functions.ts — BFF Server Functions para Lojas Ocultas,
- * Acesso Restrito por Senha e Marketplace Seletivo (Wider Platform).
+ * Acesso Restrito por Senha e Marketplace Seletivo (Waesy Platform).
  */
 
 import { createServerFn } from "@tanstack/react-start";
@@ -96,7 +96,7 @@ export const updateStorePrivacySettings = createServerFn({ method: "POST" })
 
     // Se senha fornecida, armazena hash base64 com salt
     if (data.accessType === "password_protected" && data.accessPassword && data.accessPassword.trim()) {
-      const salted = `wider_priv:${data.storeId}:${data.accessPassword.trim()}`;
+      const salted = `waesy_priv:${data.storeId}:${data.accessPassword.trim()}`;
       payload.access_password_hash = Buffer.from(salted).toString("base64");
     } else if (data.accessType === "public") {
       payload.access_password_hash = null;
@@ -164,7 +164,7 @@ export const verifyStoreAccessPassword = createServerFn({ method: "POST" })
     }
 
     const expectedHash = store.access_password_hash;
-    const providedHash = Buffer.from(`wider_priv:${store.id}:${password.trim()}`).toString("base64");
+    const providedHash = Buffer.from(`waesy_priv:${store.id}:${password.trim()}`).toString("base64");
 
     if (providedHash !== expectedHash) {
       throw new Error("Senha incorreta. Solicite a senha de acesso diretamente ao lojista.");

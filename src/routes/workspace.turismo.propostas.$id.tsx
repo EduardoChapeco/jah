@@ -32,7 +32,7 @@ import { exportElementAsPdf, exportElementAsImage } from "@/lib/pdf-export";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/turismo/propostas/$id")({
-  head: () => ({ meta: [{ title: "Studio de Propostas & Lâminas | Workspace Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Studio de Propostas & Lâminas | Workspace Waesy" }] }),
   loader: async ({ params }) => {
     if (params.id === "novo" || params.id === "new") {
       throw redirect({

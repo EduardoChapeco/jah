@@ -56,7 +56,7 @@ import { formatDate } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/reservas")({
- head: () => ({ meta: [{ title: "Reservas de Mesas & Salão | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Reservas de Mesas & Salão | Workspace Waesy" }] }),
  loader: async () => {
  try {
  const store = await getStoreSettings().catch(() => null);

@@ -7,6 +7,7 @@ import { getServerClient } from "./supabase";
 export interface LogSystemErrorParams {
   route: string;
   error: unknown;
+  operation?: string;
   payload?: any;
   userId?: string;
   pageUrl?: string;

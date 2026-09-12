@@ -7,7 +7,7 @@ import { formatDate } from "@/lib/datetime";
 import { ShoppingBag, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/_store/conta/pedidos/")(({
-  head: () => ({ meta: [{ title: "Pedidos | Wider" }] }),
+  head: () => ({ meta: [{ title: "Pedidos | Waesy" }] }),
   loader: async () => {
     try {
       return (await listCustomerOrders().catch(() => [])) || [];

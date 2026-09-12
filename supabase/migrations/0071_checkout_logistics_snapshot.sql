@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce â€” Migration 0071: Checkout Logistics Snapshot
+-- Waesy Commerce â€” Migration 0071: Checkout Logistics Snapshot
 -- ============================================================================
 -- Capture physical dimensions and weight during checkout so that Fulfillment 
 -- always has access to the exact logistics data at the time of purchase.

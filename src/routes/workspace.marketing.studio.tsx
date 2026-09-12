@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/marketing/studio")({
   head: () => ({
-    meta: [{ title: "Social Studio & Gerador de Cards | Workspace Wider OS" }],
+    meta: [{ title: "Social Studio & Gerador de Cards | Workspace Waesy" }],
   }),
   component: WorkspaceSocialStudioPage,
 });
@@ -93,7 +93,7 @@ export default function WorkspaceSocialStudioPage() {
         <PageHeader
           eyebrow="Marketing & Criação"
           title="Social Studio"
-          description="Crie peças publicitárias com design editorial de alto padrão para Instagram, Stories, WhatsApp e Threads em segundos."
+          description="Crie peças publicitárias com design editorial de alto padrão para Redes Sociais, Stories, WhatsApp e Comunidade em segundos."
         />
         <div className="flex items-center gap-2">
           <Button
@@ -188,7 +188,7 @@ export default function WorkspaceSocialStudioPage() {
               >
                 <MessageSquareQuote className="size-4" />
                 <span className="text-xs font-bold block">Quote / X Card</span>
-                <span className="text-[10px] text-muted-foreground">Estilo Threads / X</span>
+                <span className="text-[10px] text-muted-foreground">Estilo Microblog & Notícias</span>
               </button>
             </div>
 
@@ -396,7 +396,7 @@ export default function WorkspaceSocialStudioPage() {
 
             {/* Rodapé: Chamada de Ação / Branding */}
             <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[10px] text-neutral-400 z-10">
-              <span>Wider Community OS</span>
+              <span>Waesy Community OS</span>
               <span className="font-semibold text-white">Toque para Saber Mais</span>
             </div>
           </div>

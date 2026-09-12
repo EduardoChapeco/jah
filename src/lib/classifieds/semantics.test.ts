@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { resolveClassifiedNiche, getSemanticBadges, NICHE_DEFINITIONS } from "./semantics";
 
-describe("Wider Classifieds — Biblioteca Semântica & Taxonomia Modular de Nichos", () => {
+describe("Waesy Classifieds — Biblioteca Semântica & Taxonomia Modular de Nichos", () => {
   it("resolve corretamente o nicho de Viagem / Turismo para pacotes e resorts", () => {
     const classified = {
       category: "travel",

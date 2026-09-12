@@ -56,7 +56,7 @@ const AGENDA_FILTER_CHIPS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/agenda")({
   head: () => ({
     meta: [
-      { title: "Agenda Cultural & Calendário | Wider" },
+      { title: "Agenda Cultural & Calendário | Waesy" },
       {
         name: "description",
         content:

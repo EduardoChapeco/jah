@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce â€” Migration 0072: Variant Display Name
+-- Waesy Commerce â€” Migration 0072: Variant Display Name
 -- ============================================================================
 -- Adds a dedicated display name to variants so that they can be presented
 -- elegantly in the storefront (e.g. "Azul BebÃª") instead of relying solely

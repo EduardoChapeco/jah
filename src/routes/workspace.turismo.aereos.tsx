@@ -50,8 +50,8 @@ const CONSOLIDATOR_PRESETS = [
   'Flytour Gapnet',
   'Sakura Consolidadora',
   'Confiança Turismo',
-  'CVC Corp / Trend',
-  'Decolar Partners',
+  'Consolidadora Nacional Aérea',
+  'Agência Parceira de Emissão',
   'Smiles Fidelidade',
   'LATAM Pass',
   'Livelo / TudoAzul',
@@ -59,7 +59,7 @@ const CONSOLIDATOR_PRESETS = [
 ];
 
 export const Route = createFileRoute('/workspace/turismo/aereos')({
-  head: () => ({ meta: [{ title: 'Emissões Aéreas & Bilhetes GDS | Workspace Wider OS' }] }),
+  head: () => ({ meta: [{ title: 'Emissões Aéreas & Bilhetes GDS | Workspace Waesy' }] }),
   loader: async () => {
     try {
       const store = await getStoreSettings().catch(() => null);

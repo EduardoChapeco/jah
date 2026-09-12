@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 20260726020000: CRM Lead Pipeline Enrichment
+-- Waesy Commerce — Migration 20260726020000: CRM Lead Pipeline Enrichment
 -- ============================================================================
 -- Adds enrichment fields to leads_crm:
 -- - notes: internal notes from staff on the lead

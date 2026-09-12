@@ -27,8 +27,8 @@ export function SlideRenderer({
  slide,
  aspectRatio = '1:1',
  className = '',
- brandName = 'Wider Store',
- brandHandle = '@jahstore',
+ brandName = 'Waesy Store',
+ brandHandle = '@waesystore',
 }: SlideRendererProps) {
  const aspectClass =
  aspectRatio === '9:16'

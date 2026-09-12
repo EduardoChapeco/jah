@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_store/conta/creditos")({
- head: () => ({ meta: [{ title: "Meus Créditos | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Meus Créditos | Waesy" }] }),
  loader: async () => {
    try {
  return (

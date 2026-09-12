@@ -24,7 +24,7 @@ import {
 } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/workspace/catalogo/categorias/$id")({
- head: () => ({ meta: [{ title: "Editar Categoria | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Editar Categoria | Workspace Waesy" }] }),
  loader: async ({ params }) => {
  try {
  const [resCategory, resAll] = await Promise.all([

@@ -23,7 +23,7 @@ export function BetaExplanationModal({
 }: BetaExplanationModalProps) {
   const handleOpenWhatsApp = () => {
     const text = encodeURIComponent(
-      "Olá equipe Wider! Estou navegando na plataforma Beta e gostaria de enviar um feedback/sugestão."
+      "Olá equipe Waesy! Estou navegando na plataforma Beta e gostaria de enviar um feedback/sugestão."
     );
     window.open(`https://wa.me/${supportWhatsApp.replace(/\D/g, "")}?text=${text}`, "_blank");
   };
@@ -40,11 +40,11 @@ export function BetaExplanationModal({
           </div>
 
           <DialogTitle className="text-xl font-bold text-foreground font-display tracking-tight">
-            Wider OS em Evolução Contínua
+            Waesy em Evolução Contínua
           </DialogTitle>
 
           <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
-            Bem-vindo à fase aberta do Wider. A plataforma está sendo construída e aprimorada
+            Bem-vindo à fase aberta do Waesy. A plataforma está sendo construída e aprimorada
             diariamente em conjunto com os moradores, empreendedores e visitantes da nossa região.
           </DialogDescription>
         </DialogHeader>

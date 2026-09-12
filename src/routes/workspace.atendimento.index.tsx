@@ -38,7 +38,7 @@ import { RmaMessageCard } from "@/components/chat/rma-message-card";
 import { Customer360Sidebar } from "@/components/chat/customer-360-sidebar";
 
 export const Route = createFileRoute("/workspace/atendimento/")({
- head: () => ({ meta: [{ title: "Central de Atendimento Omnichannel | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Central de Atendimento Omnichannel | Waesy" }] }),
  loader: async () => {
  try {
  const [res, store] = await Promise.all([

@@ -64,7 +64,7 @@ export function StudioCanvas({ onExportToHero, className = '' }: StudioCanvasPro
 
  const handleExport = () => {
  // In real app, creates canvas data URL. For now, emits svg / placeholder data url
- const fakeUrl = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400"><rect width="800" height="400" fill="%230f172a"/><text x="40" y="100" fill="%2338bdf8" font-size="32" font-family="sans-serif">PROMOÇÃO WIDER</text></svg>';
+ const fakeUrl = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400"><rect width="800" height="400" fill="%230f172a"/><text x="40" y="100" fill="%2338bdf8" font-size="32" font-family="sans-serif">PROMOÇÃO WAESY</text></svg>';
  if (onExportToHero) onExportToHero(fakeUrl);
  };
 

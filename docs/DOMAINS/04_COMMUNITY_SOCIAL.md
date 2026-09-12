@@ -9,7 +9,7 @@
 
 **Quem utiliza?** Toda a base de usuários.
 **Por que utiliza?** Para descobrir o que está acontecendo ao seu redor (Eventos, Oportunidades, Discos Novos, Bandas) e interagir com o ecossistema.
-**Problema que resolve:** Elimina o abismo entre "plataforma de compra" (e-commerce frio) e "rede social" (engajamento sem transação). A Jah junta os dois: O usuário vê um post sobre um show, e ali mesmo pode garantir o ingresso.
+**Problema que resolve:** Elimina o abismo entre "plataforma de compra" (e-commerce frio) e "rede social" (engajamento sem transação). A Waesy junta os dois: O usuário vê um post sobre um show, e ali mesmo pode garantir o ingresso.
 **Resultado esperado:** Um Feed unificado (Timeline) e um Diretório de Serviços (Páginas Amarelas) hiper-locais. Toda entidade publicável (Produto, Evento, Artigo) deve poder ser "encapsulada" num modelo visual (Renderer) para o Feed.
 
 ---

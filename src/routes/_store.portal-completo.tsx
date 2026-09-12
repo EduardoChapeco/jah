@@ -44,8 +44,8 @@ import { getUserSession } from "@/services/auth.functions";
 export const Route = createFileRoute("/_store/portal-completo")({
   head: () => ({
     meta: [
-      { title: "Portal Completo & Workspace Pro | Wider OS" },
-      { name: "description", content: "Conheça os módulos avançados de gestão, PDV e automação do Wider OS para sua empresa." },
+      { title: "Portal Completo & Workspace Pro | Waesy" },
+      { name: "description", content: "Conheça os módulos avançados de gestão, PDV e automação do Waesy para sua empresa." },
     ],
   }),
   loader: async () => {
@@ -248,7 +248,7 @@ function PortalCompletoPage() {
 
                 <div className="pt-2 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground font-mono">
                   <span>Status: Integrado</span>
-                  <span className="text-primary font-bold">Wider OS</span>
+                  <span className="text-primary font-bold">Waesy</span>
                 </div>
               </div>
             ))}

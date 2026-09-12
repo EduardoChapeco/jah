@@ -49,7 +49,7 @@ describe("Canonical Hiring Taxonomy & Measurable Market Scale (Microfase 78B)", 
  expect(getWorkplaceModelLabel("presencial")).toBe("100% Presencial na Empresa");
  });
 
- it("valida a presença de benefícios e habilidades recomendadas pelo mercado (InfoJobs/Gupy)", () => {
+ it("valida a presença de benefícios e habilidades recomendadas pelo mercado corporativo", () => {
  expect(CANONICAL_JOB_BENEFITS).toContain("Vale Refeição (VR)");
  expect(CANONICAL_JOB_BENEFITS).toContain("Plano de Saúde");
  expect(CANONICAL_JOB_BENEFITS).toContain("Gympass / TotalPass");

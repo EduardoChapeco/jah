@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Community Platform — Microfase 2 (Community Entities)
+-- Waesy Community Platform — Microfase 2 (Community Entities)
 -- Migration 0081: Events, Tickets, Classifieds, Directory
 -- ============================================================================
 

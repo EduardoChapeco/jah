@@ -42,21 +42,21 @@ interface SocialCardGeneratorModalProps {
 
 const FORMAT_CONFIGS = {
   stories: {
-    label: "Instagram Stories",
+    label: "Stories Vertical (9:16)",
     ratioLabel: "9:16",
     width: 1080,
     height: 1920,
     icon: Smartphone,
   },
   feed: {
-    label: "Instagram Feed",
+    label: "Feed Quadrado (1:1)",
     ratioLabel: "1:1",
     width: 1080,
     height: 1080,
     icon: Square,
   },
   threads: {
-    label: "Threads & Twitter (X)",
+    label: "Microblog & Notícias (16:9)",
     ratioLabel: "16:9",
     width: 1200,
     height: 675,
@@ -134,7 +134,7 @@ export function SocialCardGeneratorModal({
 
       ctx.fillStyle = "#f59e0b";
       ctx.font = "bold 28px -apple-system, BlinkMacSystemFont, 'Inter', sans-serif";
-      const badgeText = data.badge || data.storeName || "Wider Oficial";
+      const badgeText = data.badge || data.storeName || "Waesy Oficial";
       ctx.fillText(badgeText.toUpperCase(), textX, badgeY);
 
       // 3. Título Principal
@@ -171,7 +171,7 @@ export function SocialCardGeneratorModal({
       ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
       ctx.font = "24px -apple-system, BlinkMacSystemFont, 'Inter', sans-serif";
       const footerY = cfg.height - 70;
-      ctx.fillText("Disponível na plataforma Wider • Saiba mais no link", textX, footerY);
+      ctx.fillText("Disponível na plataforma Waesy • Saiba mais no link", textX, footerY);
     };
 
     if (data.imageUrl) {
@@ -243,7 +243,7 @@ export function SocialCardGeneratorModal({
             <Sparkles className="size-4 text-amber-500" /> Gerador Social Studio
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Gere cards gráficos em alta resolução prontos para Instagram Stories, Feed ou Threads.
+            Gere cards gráficos em alta resolução prontos para Stories, Feed ou Microblog.
           </DialogDescription>
         </DialogHeader>
 

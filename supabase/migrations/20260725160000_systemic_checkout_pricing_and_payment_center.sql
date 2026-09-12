@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 20260725160000: Systemic Pricing Authority & Remediation
+-- Waesy Commerce — Migration 20260725160000: Systemic Pricing Authority & Remediation
 -- ============================================================================
 -- 1. Garante que process_checkout_atomic utiliza a autoridade do catálogo (effective_price_cents)
 --    como fonte única de verdade no cálculo de unit_price_cents, eliminando divergências.

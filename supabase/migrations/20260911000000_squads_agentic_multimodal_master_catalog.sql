@@ -1,7 +1,7 @@
 -- ==============================================================================
 -- MIGRAÇÃO DEFINITIVA: SQUADS AGÊNTICOS, ONBOARDING MULTIMODAL, 
 -- INTELIGÊNCIA COMPETITIVA & GLOBAL MASTER CATALOG
--- Protocolo Big Tech Principal Architect Level - Plataforma JAH
+-- Protocolo Big Tech Principal Architect Level - Plataforma Waesy
 -- ==============================================================================
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

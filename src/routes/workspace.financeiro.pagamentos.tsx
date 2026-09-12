@@ -20,7 +20,7 @@ import { useRouter } from "@tanstack/react-router";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/financeiro/pagamentos")({
- head: () => ({ meta: [{ title: "Pagamentos | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Pagamentos | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const res = await listPayments();

@@ -48,7 +48,7 @@ export const Route = createFileRoute("/workspace/simulacao")({
     meta: [
       {
         title:
-          "SimLab — Enxame de Validação Preditiva Censo IBGE | Workspace Wider OS",
+          "SimLab — Enxame de Validação Preditiva Censo IBGE | Workspace Waesy",
       },
     ],
   }),

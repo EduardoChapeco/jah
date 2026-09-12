@@ -109,7 +109,7 @@ function ClaimGiftCardPage() {
  <div className="flex justify-between items-start">
  <div>
  <span className="text-xs font-semibold text-accent">VALE-PRESENTE</span>
- <h3 className="font-sans text-muted-foreground font-bold text-white text-xl mt-1">Wider</h3>
+ <h3 className="font-sans text-muted-foreground font-bold text-white text-xl mt-1">Waesy</h3>
  </div>
  <div className="size-10 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
  <Gift className="size-5 text-white" />

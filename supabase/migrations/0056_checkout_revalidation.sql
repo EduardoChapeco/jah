@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0055: Checkout Revalidation Engine
+-- Waesy Commerce — Migration 0055: Checkout Revalidation Engine
 -- ============================================================================
 -- Resolve o problema de "Preço Congelado" e "Venda sem Estoque (Overselling)".
 

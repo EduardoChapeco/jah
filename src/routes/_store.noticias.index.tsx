@@ -34,10 +34,10 @@ import { NewsSponsorBanner } from "@/components/news/news-sponsor-banner";
 export const Route = createFileRoute("/_store/noticias/")({
   head: () => ({
     meta: [
-      { title: "Notícias & Jornalismo Local | Wider OS" },
+      { title: "Notícias & Jornalismo Local | Waesy" },
       {
         name: "description",
-        content: "Acompanhe as últimas notícias, urgências, reportagens e coberturas locais no Wider.",
+        content: "Acompanhe as últimas notícias, urgências, reportagens e coberturas locais no Waesy.",
       },
     ],
   }),
@@ -266,7 +266,7 @@ export function NoticiasFeedPage() {
 
               <div className="pt-3 border-t border-border/40 flex items-center justify-between">
                 <span className="text-xs font-bold text-foreground/80">
-                  {featuredArticle.store_name || "Redação Wider"}
+                  {featuredArticle.store_name || "Redação Waesy"}
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground group-hover:text-primary transition-colors">
                   <span>Ler Matéria Completa</span>

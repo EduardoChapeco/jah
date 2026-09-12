@@ -25,7 +25,7 @@ import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-cano
 import { WorkspaceDashboardSheet } from "@/components/workspace/workspace-dashboard-sheet";
 
 export const Route = createFileRoute("/workspace/rh/ponto")({
-  head: () => ({ meta: [{ title: "Espelho de Ponto Eletrônico | Gestão RH Wider" }] }),
+  head: () => ({ meta: [{ title: "Espelho de Ponto Eletrônico | Gestão RH Waesy" }] }),
   component: WorkspaceRHPontoPage,
 });
 

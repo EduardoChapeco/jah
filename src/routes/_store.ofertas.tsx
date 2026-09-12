@@ -38,16 +38,16 @@ const NICHE_CHIPS = [
 export const Route = createFileRoute("/_store/ofertas")({
  head: () => ({
  meta: [
- { title: "Ofertas & Promoções — As Melhores Ofertas da Região | Wider OS" },
+ { title: "Ofertas & Promoções — As Melhores Ofertas da Região | Waesy" },
  {
  name: "description",
  content:
  "Descubra as melhores promoções e descontos de todos os segmentos: gastronomia, mercado, farmácia, moda, eletrônicos, beleza, pet shop e mais.",
  },
- { property: "og:title", content: "Ofertas & Promoções — Wider" },
+ { property: "og:title", content: "Ofertas & Promoções — Waesy" },
  {
  property: "og:description",
- content: "As melhores promoções de todos os segmentos da plataforma Wider em um só lugar.",
+ content: "As melhores promoções de todos os segmentos da plataforma Waesy em um só lugar.",
  },
  ],
  }),

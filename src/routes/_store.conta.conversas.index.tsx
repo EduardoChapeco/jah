@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_store/conta/conversas/")(({
-  head: () => ({ meta: [{ title: "Mensagens | Wider" }] }),
+  head: () => ({ meta: [{ title: "Mensagens | Waesy" }] }),
   loader: async () => {
     try {
       return (await listCustomerChatThreads().catch(() => [])) || [];

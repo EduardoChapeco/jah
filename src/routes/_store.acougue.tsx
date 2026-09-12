@@ -58,7 +58,7 @@ const ACOUQUE_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/acougue")({
  head: () => ({
  meta: [
- { title: "Boutiques de Carnes, Açougues & Churrasco | Wider OS" },
+ { title: "Boutiques de Carnes, Açougues & Churrasco | Waesy" },
  {
  name: "description",
  content:

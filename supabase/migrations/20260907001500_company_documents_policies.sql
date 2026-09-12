@@ -1,6 +1,6 @@
 -- ============================================================================
 -- Migration: 20260907001500_company_documents_policies.sql
--- Módulo de Documentos Corporativos, Manuais & Políticas para Colaboradores (Wider/JAH)
+-- Módulo de Documentos Corporativos, Manuais & Políticas para Colaboradores (Waesy/Waesy)
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.company_documents (

@@ -1,4 +1,4 @@
-# MASTER_AUDIT_REPORT.md — Relatório Canônico de Auditoria & Inventário de Módulos (Wider Platform)
+# MASTER_AUDIT_REPORT.md — Relatório Canônico de Auditoria & Inventário de Módulos (Waesy Platform)
 
 > Documento oficial de inventário, auditoria de schemas, tabelas, contratos BFF, interfaces visuais e validação de bilateralidade.
 > Nenhuma informação é fictícia ou conceitual — este documento reflete o código-fonte real e as migrações aplicadas no banco de dados Supabase.

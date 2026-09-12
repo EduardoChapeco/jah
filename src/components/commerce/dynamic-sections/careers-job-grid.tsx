@@ -47,7 +47,7 @@ export function CareersJobGrid({ content, design_tokens }: CareersJobGridProps) 
  work_model: "remote",
  employment_type: "pj",
  salary_range: "R$ 9.000 - R$ 14.000",
- description_markdown: "Atuação direta na evolução do motor de experiências e Server Functions do ecossistema Wider.",
+ description_markdown: "Atuação direta na evolução do motor de experiências e Server Functions do ecossistema Waesy.",
  },
  {
  id: "job-3",

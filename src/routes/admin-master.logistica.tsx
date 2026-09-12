@@ -16,7 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin-master/logistica")({
- head: () => ({ meta: [{ title: "CMS Logística & MotoLink | Wider Master" }] }),
+ head: () => ({ meta: [{ title: "CMS Logística & MotoLink | Waesy Master" }] }),
  loader: async () => {
  try {
  const settings = await getLogisticsPresentationSettings();
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/admin-master/logistica")({
  title: "Logística Integrada & MotoLink",
  subtitle: "Conecte-se aos entregadores autônomos da sua cidade sem intermediários e com zero taxa de frete.",
  badge: "Zero Taxa de Intermediação",
- disclaimer: "O Wider é uma infraestrutura tecnológica aberta. Não intermediamos pagamentos de fretes nem cobramos comissão entre entregadores e empresas. A relação comercial e operacional é direta e independente entre as partes.",
+ disclaimer: "O Waesy é uma infraestrutura tecnológica aberta. Não intermediamos pagamentos de fretes nem cobramos comissão entre entregadores e empresas. A relação comercial e operacional é direta e independente entre as partes.",
  image_desktop_url: null,
  image_tablet_url: null,
  image_mobile_url: null,
@@ -205,7 +205,7 @@ function AdminMasterLogisticaPage() {
 
  <div className="space-y-1.5">
  <Label className="text-xs font-medium text-muted-foreground">
- Nome da Solução de Despacho (Ex: MotoLink, Wider Log)
+ Nome da Solução de Despacho (Ex: MotoLink, Waesy Log)
  </Label>
  <Input
  value={motolinkName}
@@ -238,7 +238,7 @@ function AdminMasterLogisticaPage() {
  onChange={(e) => setDisclaimer(e.target.value)}
  rows={3}
  className="w-full rounded-2xl border border-border bg-background p-3 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary leading-relaxed resize-none"
- placeholder="A Wider não cobra comissões sobre entregas..."
+ placeholder="A Waesy não cobra comissões sobre entregas..."
  />
  </div>
  </Card>

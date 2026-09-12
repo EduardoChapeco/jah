@@ -1,5 +1,5 @@
 /**
- * JAH Form Field Engine
+ * Waesy Form Field Engine
  * Motor Semântico de Campos Dinâmicos (20+ tipos), Validações Zod e Máscaras Canônicas.
  */
 

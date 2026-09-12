@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS public.invite_rewards (
 INSERT INTO public.invite_rewards (title, description, points_required, reward_type, stock, active)
 SELECT * FROM (VALUES
   ('Destaque Ouro no Classificados (30 dias)', 'Coloque seu anúncio no topo de todas as buscas com selo Ouro.', 300, 'boost', 100, true),
-  ('Voucher R$ 50 em Restaurantes Parceiros', 'Válido em qualquer restaurante credenciado na plataforma Wider.', 800, 'voucher', 25, true),
+  ('Voucher R$ 50 em Restaurantes Parceiros', 'Válido em qualquer restaurante credenciado na plataforma Waesy.', 800, 'voucher', 25, true),
   ('Ingresso Parque Beto Carrero World', 'Passaporte de 1 dia para o maior parque temático da América Latina.', 2500, 'ticket', 10, true),
   ('Café Colonial para 2 Pessoas em Hotel Fazenda', 'Experiência gastronômica completa no turismo regional.', 1800, 'experience', 15, true),
   ('Acesso VIP a Grandes Festivais & Shows', 'Ingresso com acesso à área VIP e open bar no próximo evento regional.', 3000, 'ticket', 5, true)
@@ -132,10 +132,10 @@ CREATE TABLE IF NOT EXISTS public.raffles (
 INSERT INTO public.raffles (title, description, image_url, rules, ticket_price_cents, points_cost, max_tickets_per_user, draw_date, status)
 SELECT * FROM (VALUES
   (
-    'Sorteio Oficial Wider: Fim de Semana em Pousada & Termas',
+    'Sorteio Oficial Waesy: Fim de Semana em Pousada & Termas',
     'Concorra a um fim de semana completo com acompanhante em chalé com hidromassagem e café colonial.',
     'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80',
-    '{"regulamento": "Sorteio auditado pelo sistema Wider. O resultado é apurado automaticamente na data marcada.", "cidade": "Regional SC"}'::jsonb,
+    '{"regulamento": "Sorteio auditado pelo sistema Waesy. O resultado é apurado automaticamente na data marcada.", "cidade": "Regional SC"}'::jsonb,
     0,
     50,
     10,

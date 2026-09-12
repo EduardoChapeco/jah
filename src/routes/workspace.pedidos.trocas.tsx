@@ -38,7 +38,7 @@ import {
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/workspace/pedidos/trocas")({
-  head: () => ({ meta: [{ title: "Trocas e Devoluções | Workspace Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Trocas e Devoluções | Workspace Waesy" }] }),
   loader: async () => {
     try {
       const data = await listExchanges();

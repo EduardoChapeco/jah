@@ -1,5 +1,5 @@
 -- ============================================================================
--- JAH MASTER PLATFORM — GOVERNANCE, TRUST & SAFETY, KYC, LGPD & AUDIT SCHEMA
+-- Waesy MASTER PLATFORM — GOVERNANCE, TRUST & SAFETY, KYC, LGPD & AUDIT SCHEMA
 -- ============================================================================
 
 -- 1. Sanções Granulares de Usuários (Punições & Bloqueios Parciais)

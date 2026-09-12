@@ -21,7 +21,7 @@ import {
 import { getContractById, sealAndIssueContract } from "@/services/contracts.functions";
 
 export const Route = createFileRoute("/workspace/contratos/$id/editor")({
- head: () => ({ meta: [{ title: "Editor de Contrato | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Editor de Contrato | Workspace Waesy" }] }),
   loader: async ({ params }) => {
     try {
       return await getContractById({ data: params.id });

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_store/feed")({
   head: () => ({
     meta: [
-      { title: "Feed Social da Comunidade | Wider" },
+      { title: "Feed Social da Comunidade | Waesy" },
       {
         name: "description",
         content:

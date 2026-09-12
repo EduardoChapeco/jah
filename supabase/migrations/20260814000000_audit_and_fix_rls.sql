@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Auditoria e Endurecimento RLS
+-- Waesy Commerce — Auditoria e Endurecimento RLS
 -- Migration: 20260814000000_audit_and_fix_rls.sql
 -- ============================================================================
 

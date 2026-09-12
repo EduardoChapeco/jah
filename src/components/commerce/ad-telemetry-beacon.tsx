@@ -34,10 +34,10 @@ export function AdTelemetryBeacon({
   const getSessionHash = (): string => {
     if (typeof window === "undefined") return "server_ssr";
     try {
-      let hash = sessionStorage.getItem("wider_session_hash");
+      let hash = sessionStorage.getItem("waesy_session_hash");
       if (!hash) {
         hash = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        sessionStorage.setItem("wider_session_hash", hash);
+        sessionStorage.setItem("waesy_session_hash", hash);
       }
       return hash;
     } catch {

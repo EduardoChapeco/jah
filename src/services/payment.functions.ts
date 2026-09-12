@@ -216,7 +216,7 @@ export const confirmPayment = createServerFn({ method: "POST" })
  }
  }
 
- // 5. Check for Ticket Lots and generate real Tickets (Wider Community)
+ // 5. Check for Ticket Lots and generate real Tickets (Waesy Community)
  const { data: orderItems } = await supabase
  .from("order_items")
  .select("variant_id, qty")

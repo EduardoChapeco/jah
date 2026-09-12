@@ -34,7 +34,7 @@ export function LeadPushNotificationPrompt({ storeId }: LeadPushNotificationProm
       if (perm === "granted") {
         // Tentar obter ou simular chave push do service worker
         let pushEndpoint = `https://fcm.googleapis.com/fcm/send/${Math.random().toString(36).substring(2)}`;
-        let p256dh = btoa("mock-p256dh-key-wider-" + Date.now());
+        let p256dh = btoa("mock-p256dh-key-waesy-" + Date.now());
         let auth = btoa("mock-auth-" + Date.now());
 
         if ("serviceWorker" in navigator) {

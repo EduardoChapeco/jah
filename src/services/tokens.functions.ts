@@ -419,7 +419,7 @@ export const grantBonusTokensAdmin = createServerFn({ method: "POST" })
  payload_snapshot: {
  amount: data.tokens,
  balance_after: newBalance,
- description: `Bônus concedido pela Administração Wider: ${data.reason}`,
+ description: `Bônus concedido pela Administração Waesy: ${data.reason}`,
  reason: data.reason,
  },
  });
@@ -466,7 +466,7 @@ export const getStoreGrowthAndBounties = createServerFn({ method: "GET" }).handl
  0,
  );
 
- const referralUrl = `https://wider.com.br/@${store.slug}?ref=${store.id.slice(0, 8)}`;
+ const referralUrl = `https://usewaesy.pages.dev/@${store.slug}?ref=${store.id.slice(0, 8)}`;
 
  return {
  store_id: store.id,
@@ -560,7 +560,7 @@ export const getUserTokenWallet = createServerFn({ method: "GET" })
 
     return {
       user_id: identity.id,
-      full_name: profile?.full_name || "Cliente Wider",
+      full_name: profile?.full_name || "Cliente Waesy",
       balance: userTokens.balance ?? 0,
       balance_pending_maturity: (userTokens as any).balance_pending_maturity ?? 0,
       vesting_unlock_date: (userTokens as any).vesting_unlock_date ?? null,
@@ -922,7 +922,7 @@ export const getSecurityAuditEventsAdmin = createServerFn({ method: "GET" }).han
 
 // ============================================================
 // 11. CALCULADORA DE ECONOMIA COMPARATIVA (TRUTHFUL COMPARATOR)
-// Compara vendas reais na Wider vs iFood (23%), Sympla (10%) e Shopify
+// Compara vendas reais na Waesy vs iFood (23%), Sympla (10%) e Shopify
 // ============================================================
 export const getStoreEconomyComparison = createServerFn({ method: "GET" })
  .validator(
@@ -940,39 +940,41 @@ export const getStoreEconomyComparison = createServerFn({ method: "GET" })
  // 3. Shopify / E-commerce (Mensalidade R$ 380 + 2% taxa)
  const shopifyCost = Math.round(380 + sales * 0.02);
 
- // 4. Wider (0% Comissão + R$ 89 em pacote de 2 Milhões de Tokens de Aceleração)
- const widerEstimatedCost = 89;
+  // 4. Waesy (0% Comissão + R$ 89 em pacote de 2 Milhões de Tokens de Aceleração)
+  const waesyEstimatedCost = 89;
 
- return {
- monthly_sales_brl: sales,
- wider: {
- commission_rate: "0%",
- fixed_fee_brl: 0,
- tokens_investment_brl: widerEstimatedCost,
- total_cost_brl: widerEstimatedCost,
- net_retained_brl: sales - widerEstimatedCost,
- },
- comparisons: [
+  const waesySummary = {
+    commission_rate: "0%",
+    fixed_fee_brl: 0,
+    tokens_investment_brl: waesyEstimatedCost,
+    total_cost_brl: waesyEstimatedCost,
+    net_retained_brl: sales - waesyEstimatedCost,
+  };
+
+  return {
+    monthly_sales_brl: sales,
+    waesy: waesySummary,
+    comparisons: [
  {
  platform: "iFood (Delivery & Cardápio)",
  rate_desc: "23% comissão + R$ 130/mês mensalidade",
  cost_brl: ifoodCost,
- savings_brl: Math.max(0, ifoodCost - widerEstimatedCost),
- savings_percent: Math.round(((ifoodCost - widerEstimatedCost) / ifoodCost) * 100),
+ savings_brl: Math.max(0, ifoodCost - waesyEstimatedCost),
+ savings_percent: Math.round(((ifoodCost - waesyEstimatedCost) / ifoodCost) * 100),
  },
  {
  platform: "Sympla / Ticket 360 (Ingressos)",
  rate_desc: "10% taxa de conveniência/serviço",
  cost_brl: symplaCost,
- savings_brl: Math.max(0, symplaCost - widerEstimatedCost),
- savings_percent: Math.round(((symplaCost - widerEstimatedCost) / symplaCost) * 100),
+ savings_brl: Math.max(0, symplaCost - waesyEstimatedCost),
+ savings_percent: Math.round(((symplaCost - waesyEstimatedCost) / symplaCost) * 100),
  },
  {
  platform: "Shopify / Nuvemshop (E-commerce)",
  rate_desc: "R$ 380/mês de plano + 2% de transação",
  cost_brl: shopifyCost,
- savings_brl: Math.max(0, shopifyCost - widerEstimatedCost),
- savings_percent: Math.round(((shopifyCost - widerEstimatedCost) / shopifyCost) * 100),
+ savings_brl: Math.max(0, shopifyCost - waesyEstimatedCost),
+ savings_percent: Math.round(((shopifyCost - waesyEstimatedCost) / shopifyCost) * 100),
  },
  ],
  };

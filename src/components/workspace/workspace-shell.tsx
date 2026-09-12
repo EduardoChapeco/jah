@@ -279,7 +279,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
  setIsSwitching(true);
  try {
  if (typeof window !== "undefined") {
- window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
+ window.document.cookie = `waesy_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
  }
  const res = await setTenantContext({ data: { store_id: storeId } }).catch(() => null);
  const storeName = res?.storeName || "Espaço";

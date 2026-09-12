@@ -222,13 +222,13 @@ export const Route = createFileRoute("/_store/destaques/$slug")({
  head: ({ loaderData }: { loaderData?: any }) => ({
  meta: [
  {
- title: `${loaderData?.hotpage?.title || "Destaques"} | Wider OS`,
+ title: `${loaderData?.hotpage?.title || "Destaques"} | Waesy`,
  },
  {
  name: "description",
  content:
  loaderData?.hotpage?.description ||
- "Aproveite as melhores seleções, ofertas e entregas rápidas na plataforma Wider.",
+ "Aproveite as melhores seleções, ofertas e entregas rápidas na plataforma Waesy.",
  },
  ],
  }),
@@ -286,8 +286,8 @@ function DedicatedHotpageView() {
  badgeBg: "bg-white/20 text-white",
  icon: Tag,
  defaultBadge: " Coleção Especial",
- heroPills: ["⭐ Seleção Wider", "🚚 Entrega Rápida", "💳 Pagamento Online"],
- tagLine: "Produtos e lojas selecionadas na curadoria Wider",
+ heroPills: ["⭐ Seleção Waesy", "🚚 Entrega Rápida", "💳 Pagamento Online"],
+ tagLine: "Produtos e lojas selecionadas na curadoria Waesy",
  featuredRailTitle: "Destaques da Curadoria",
  };
 
@@ -353,7 +353,7 @@ function DedicatedHotpageView() {
  if (navigator.share) {
  try {
  await navigator.share({
- title: `${title} | Wider OS`,
+ title: `${title} | Waesy`,
  text: description,
  url: window.location.href,
  });

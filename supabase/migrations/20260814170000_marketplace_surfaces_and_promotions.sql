@@ -126,7 +126,7 @@ CREATE POLICY "Store members can manage their promotion products" ON promotion_p
 -- 7. SEEDS CANÔNICOS DA SUPERFÍCIE GLOBAL DO MERCADO
 -- ============================================================
 INSERT INTO marketplace_surfaces (id, slug, title, description, is_global)
-VALUES ('00000000-0000-0000-0000-000000000001', 'home_mercado', 'Mercado Central JAH', 'Superfície de descoberta contínua e comércio comunitário', true)
+VALUES ('00000000-0000-0000-0000-000000000001', 'home_mercado', 'Mercado Central Waesy', 'Superfície de descoberta contínua e comércio comunitário', true)
 ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO marketplace_sections (surface_id, type, title, subtitle, data_source, ranking_strategy, layout_variant, item_limit, sort_order)

@@ -38,7 +38,7 @@ import { getStoreSettings } from "@/services/store.functions";
 
 export const Route = createFileRoute("/workspace/marketing/brand-kit")({
   head: () => ({
-    meta: [{ title: "Brand Kit & DNA Visual | Workspace JAH OS" }],
+    meta: [{ title: "Brand Kit & DNA Visual | Workspace Waesy" }],
   }),
   loader: async () => {
     try {

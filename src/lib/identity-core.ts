@@ -7,20 +7,29 @@
  */
 
 export interface ServerIdentity {
- /** auth.users.id — null se não autenticado */
- id: string | null;
- /** role do perfil no contexto ativo — 'customer' como fallback */
- role: string;
- /** store_id do contexto ativo (loja sendo acessada) — null se puramente pessoal */
- store_id: string | null;
- /** Lista de lojas/workspaces que o usuário faz parte e seus respectivos papéis */
- memberships: {
- store_id: string;
- role: string;
- name?: string;
- slug?: string;
- logo_url?: string;
- }[];
+  /** auth.users.id — null se não autenticado */
+  id: string | null;
+  /** role do perfil no contexto ativo — 'customer' como fallback */
+  role: string;
+  /** store_id do contexto ativo (loja sendo acessada) — null se puramente pessoal */
+  store_id: string | null;
+  /** Lista de lojas/workspaces que o usuário faz parte e seus respectivos papéis */
+  memberships: {
+    store_id: string;
+    role: string;
+    name?: string;
+    slug?: string;
+    logo_url?: string;
+  }[];
+  // Extended optional fields used by legacy/extended services
+  empresa_id?: string | null;
+  tenant_id?: string | null;
+  user_id?: string | null;
+  customer_id?: string | null;
+  /** @deprecated use (identity.role === "platform_admin") instead */
+  isPlatformAdmin?: boolean;
+  /** @deprecated use identity.id instead */
+  userId?: string | null;
 }
 
 export const STAFF_ROLES = [
@@ -39,27 +48,32 @@ export const STAFF_ROLES = [
  * Lança Error se não autorizado.
  */
 export function assertStoreAccess(
- identity: ServerIdentity,
- allowedRoles: readonly string[] | string[] = STAFF_ROLES,
+  identity: ServerIdentity,
+  allowedRoles: readonly string[] | string[] = STAFF_ROLES,
+  targetStoreId?: string | null,
 ): asserts identity is ServerIdentity & { id: string; store_id: string } {
- if (!identity.id) {
- throw new Error("Unauthorized: User not authenticated.");
- }
+  if (!identity.id) {
+    throw new Error("Unauthorized: User not authenticated.");
+  }
 
- if (!identity.store_id) {
- if (identity.memberships?.[0]?.store_id) {
- (identity as any).store_id = identity.memberships[0].store_id;
- } else {
- throw new Error("Unauthorized: No active store context found.");
- }
- }
+  // If targetStoreId is provided, enforce cross-tenant isolation
+  const effectiveStoreId = targetStoreId || identity.store_id;
 
- if (identity.role === "platform_admin" || identity.role === "master") {
- return; // Global admins have access
- }
+  if (!effectiveStoreId) {
+    if (identity.memberships?.[0]?.store_id) {
+      (identity as any).store_id = identity.memberships[0].store_id;
+    } else {
+      throw new Error("Unauthorized: No active store context found.");
+    }
+  } else {
+    (identity as any).store_id = effectiveStoreId;
+  }
 
- if (!(allowedRoles as readonly string[]).includes(identity.role)) {
- throw new Error(`Unauthorized: Insufficient role (${identity.role}). Required one of: ${allowedRoles.join(", ")}`);
- }
+  if (identity.role === "platform_admin" || identity.role === "master") {
+    return; // Global admins have access
+  }
+
+  if (!(allowedRoles as readonly string[]).includes(identity.role)) {
+    throw new Error(`Unauthorized: Insufficient role (${identity.role}). Required one of: ${allowedRoles.join(", ")}`);
+  }
 }
-

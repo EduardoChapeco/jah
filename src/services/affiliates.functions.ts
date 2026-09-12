@@ -160,7 +160,7 @@ export const getMyAffiliateTokensOverview = createServerFn({ method: "GET" }).ha
         .insert({
           user_id: effectiveUserId,
           handle: creator.handle,
-          display_name: creator.name || "Criador Wider",
+          display_name: creator.name || "Criador Waesy",
           bio: creator.bio || null,
           commission_rate_percent: 0,
           status: "active",
@@ -212,7 +212,7 @@ export const getMyAffiliateTokensOverview = createServerFn({ method: "GET" }).ha
           {
             user_id: effectiveUserId,
             handle: partner.handle,
-            name: partner.display_name || "Criador Wider",
+            name: partner.display_name || "Criador Waesy",
             bio: partner.bio || "Criador de Conteúdo & Parceiro Oficial",
             niche: "Geral",
             status: "active",
@@ -266,7 +266,7 @@ export const getMyAffiliateTokensOverview = createServerFn({ method: "GET" }).ha
 });
 
 /**
- * Cadastra o usuário autenticado como parceiro/influenciador da plataforma Wider.
+ * Cadastra o usuário autenticado como parceiro/influenciador da plataforma Waesy.
  * Onboarding com modelo seguro de afiliação e criação de persona pública.
  */
 export const registerAffiliate = createServerFn({ method: "POST" })
@@ -558,7 +558,7 @@ export const getMyCreatorProfile = createServerFn({ method: "GET" }).handler(asy
           {
             user_id: effectiveUserId,
             handle: partner.handle,
-            name: partner.display_name || "Criador Wider",
+            name: partner.display_name || "Criador Waesy",
             bio: partner.bio || null,
             niche: "Geral",
             status: "active",
@@ -955,7 +955,7 @@ export const getAffiliateLink = createServerFn({ method: "POST" })
         .insert({
           user_id: identity.id,
           handle,
-          display_name: identity.name || "Parceiro Wider",
+          display_name: identity.name || "Parceiro Waesy",
           commission_rate_percent: 0,
           status: "active",
         })
@@ -966,7 +966,7 @@ export const getAffiliateLink = createServerFn({ method: "POST" })
     }
 
     const host = data?.baseUrl || "";
-    const handle = partner?.handle || "jah";
+    const handle = partner?.handle || "waesy";
     const link = host ? `${host}/?ref=${handle}` : `/?ref=${handle}`;
 
     return { link };
@@ -1189,7 +1189,7 @@ export const recordShowcaseClick = createServerFn({ method: "POST" })
       creatorHandle: z.string(),
       productId: z.string().uuid().optional(),
       storeId: z.string().uuid().optional(),
-      utmSource: z.string().default("wider_profile"),
+      utmSource: z.string().default("waesy_profile"),
       utmMedium: z.string().default("vitrine"),
     })
   )

@@ -12,7 +12,7 @@ interface ReputationBadgesStripProps {
 export function ReputationBadgesStrip({ content, design_tokens }: ReputationBadgesStripProps) {
  const badges = content?.badges || [
  { title: "Selo RA1000", desc: "Excelência máxima comprovada em atendimento ao consumidor." },
- { title: "Empresa 100% Verificada", desc: "CNPJ e quadro societário auditados pelo Wider Trust Center." },
+ { title: "Empresa 100% Verificada", desc: "CNPJ e quadro societário auditados pelo Waesy Trust Center." },
  { title: "Atendimento Humanizado", desc: "Sem robôs em looping: atendentes reais prontos para resolver." },
  { title: "Transparência Total", desc: "Todas as ocorrências registradas em blockchain e banco público." },
  ];

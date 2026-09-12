@@ -33,8 +33,12 @@ async function requirePlatformAdmin() {
  const { data: userData } = await db.auth.admin.getUserById(identity.id).catch(() => ({ data: { user: null } }));
  const email = userData?.user?.email?.toLowerCase();
  const MASTER_EMAILS = [
+ "contato@usewaesy.com",
+ "admin@usewaesy.com",
+ "meuwaesy@gmail.com",
  "meuwider@gmail.com",
- "admin@wider.com.br",
+ "excelenciatour.smo@gmail.com",
+ "admin@jah.com",
  ];
 
  if (email && MASTER_EMAILS.includes(email)) {
@@ -123,8 +127,8 @@ export const toggleStoreStatus = createServerFn({ method: "POST" })
  .eq("id", data.storeId)
  .single();
 
- if (targetStore?.is_platform_root || targetStore?.slug === "wider") {
- throw new Error("A loja oficial da plataforma (Wider Root) é protegida contra suspensão ou exclusão.");
+ if (targetStore?.is_platform_root || targetStore?.slug === "waesy" || targetStore?.slug === "waesy") {
+ throw new Error("A loja oficial da plataforma (Waesy Root) é protegida contra suspensão ou exclusão.");
  }
 
  const { error } = await db
@@ -656,186 +660,299 @@ export const adminTriggerPasswordReset = createServerFn({ method: "POST" })
  * Se nenhuma loja tiver is_platform_root=true, seleciona a loja padrão e a marca como matriz.
  */
 export async function resolvePlatformRootStore(db: any) {
- // 1. Tenta buscar por is_platform_root=true ou slugs canônicos
- const { data: store } = await db
- .from("stores")
- .select("id, name, address, city, state, settings, is_platform_root, slug")
- .or("is_platform_root.eq.true,slug.eq.wider-matriz,slug.eq.wider,slug.eq.matriz")
- .limit(1)
- .maybeSingle();
+  // 1. Tenta buscar por is_platform_root=true ou slugs canônicos
+  const { data: store } = await db
+    .from("stores")
+    .select("id, name, address, city, state, settings, is_platform_root, slug")
+    .or("is_platform_root.eq.true,slug.eq.waesy,slug.eq.waesy-matriz,slug.eq.matriz")
+    .limit(1)
+    .maybeSingle();
 
- if (store) return store;
+  if (store) return store;
 
- // 2. Fallback de resiliência: primeira store registrada
- const { data: firstStore } = await db
- .from("stores")
- .select("id, name, address, city, state, settings, is_platform_root, slug")
- .order("created_at", { ascending: true })
- .limit(1)
- .maybeSingle();
+  // 2. Fallback de resiliência: primeira store registrada
+  const { data: firstStore } = await db
+    .from("stores")
+    .select("id, name, address, city, state, settings, is_platform_root, slug")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
- if (firstStore) {
- try {
- await db.from("stores").update({ is_platform_root: true }).eq("id", firstStore.id);
- } catch {}
- return { ...firstStore, is_platform_root: true };
- }
+  if (firstStore) {
+    try {
+      await db.from("stores").update({ is_platform_root: true }).eq("id", firstStore.id);
+    } catch {}
+    return { ...firstStore, is_platform_root: true };
+  }
 
- return null;
+  return null;
 }
 
 /**
  * Busca as configurações públicas de identidade e canais da plataforma.
+ * Consulta prioritariamente a tabela canônica platform_brand_settings.
  * Acesso livre para renderização no Super App, cabeçalhos, rodapés e página de contato.
  */
 export const getPublicBrandSettings = createServerFn({ method: "GET" }).handler(async () => {
- const db = getServerClient();
- const store = await resolvePlatformRootStore(db);
+  const db = getServerClient();
 
- const settings = (store?.settings as Record<string, any>) || {};
- const storeName = store?.name && store.name !== "Wider" ? store.name : DEFAULT_BRAND_NAME;
+  // 1. Tenta ler da tabela canônica de marca
+  const { data: brandRow } = await db
+    .from("platform_brand_settings")
+    .select("*")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
- return {
- store_id: store?.id || null,
- platform_name: storeName,
- logo_url: settings.logoUrl || settings.logo_url || null,
- favicon_url: settings.faviconUrl || settings.favicon_url || null,
- show_name: settings.show_name !== false,
- show_logo: settings.show_logo !== false,
- support_email: settings.support_email || "contato@wider.com.br",
- support_whatsapp: settings.support_whatsapp || null,
- support_hours: settings.support_hours || "Segunda a Sexta, das 08h às 18h",
- login_split_image_url: settings.login_split_image_url || null,
- login_bg_desktop_url: settings.login_bg_desktop_url || settings.login_split_image_url || null,
- login_bg_tablet_url: settings.login_bg_tablet_url || settings.login_split_image_url || null,
- login_bg_mobile_url: settings.login_bg_mobile_url || settings.login_split_image_url || null,
- social_instagram: settings.social_instagram || null,
- social_facebook: settings.social_facebook || null,
- social_linkedin: settings.social_linkedin || null,
- address: store?.address || null,
- city: store?.city || null,
- state: store?.state || null,
- };
+  if (brandRow) {
+    return {
+      store_id: null,
+      platform_name: brandRow.platform_name || DEFAULT_BRAND_NAME,
+      logo_url: brandRow.logo_url || null,
+      favicon_url: brandRow.favicon_url || null,
+      show_name: brandRow.show_name !== false,
+      show_logo: brandRow.show_logo !== false,
+      support_email: brandRow.support_email || "contato@usewaesy.com",
+      support_whatsapp: brandRow.support_whatsapp || null,
+      support_hours: brandRow.support_hours || "Segunda a Sexta, das 08h às 18h",
+      login_split_image_url: brandRow.login_split_image_url || null,
+      login_bg_desktop_url: brandRow.login_bg_desktop_url || null,
+      login_bg_tablet_url: brandRow.login_bg_tablet_url || null,
+      login_bg_mobile_url: brandRow.login_bg_mobile_url || null,
+      social_instagram: brandRow.social_instagram || null,
+      social_facebook: brandRow.social_facebook || null,
+      social_linkedin: brandRow.social_linkedin || null,
+      address: brandRow.address || null,
+      city: brandRow.city || null,
+      state: brandRow.state || null,
+      seo_title: brandRow.seo_title || "Waesy",
+      seo_description: brandRow.seo_description || "Plataforma Comunitária de Comércio Local, Serviços, Turismo e Comunidade",
+    };
+  }
+
+  // 2. Fallback resiliente para a loja raiz
+  const store = await resolvePlatformRootStore(db);
+  const settings = (store?.settings as Record<string, any>) || {};
+  const storeName = store?.name || DEFAULT_BRAND_NAME;
+
+  return {
+    store_id: store?.id || null,
+    platform_name: storeName,
+    logo_url: settings.logoUrl || settings.logo_url || null,
+    favicon_url: settings.faviconUrl || settings.favicon_url || null,
+    show_name: settings.show_name !== false,
+    show_logo: settings.show_logo !== false,
+    support_email: settings.support_email || "contato@usewaesy.com",
+    support_whatsapp: settings.support_whatsapp || null,
+    support_hours: settings.support_hours || "Segunda a Sexta, das 08h às 18h",
+    login_split_image_url: settings.login_split_image_url || null,
+    login_bg_desktop_url: settings.login_bg_desktop_url || settings.login_split_image_url || null,
+    login_bg_tablet_url: settings.login_bg_tablet_url || settings.login_split_image_url || null,
+    login_bg_mobile_url: settings.login_bg_mobile_url || settings.login_split_image_url || null,
+    social_instagram: settings.social_instagram || null,
+    social_facebook: settings.social_facebook || null,
+    social_linkedin: settings.social_linkedin || null,
+    address: store?.address || null,
+    city: store?.city || null,
+    state: store?.state || null,
+    seo_title: store?.seo_title || "Waesy",
+    seo_description: store?.seo_description || "Plataforma Comunitária de Comércio Local, Serviços, Turismo e Comunidade",
+  };
 });
 
 /**
  * Busca as configurações globais de identidade visual da plataforma para o Admin Master.
  */
 export const getPlatformBrandSettings = createServerFn({ method: "GET" }).handler(async () => {
- await requirePlatformAdmin();
- const db = getServerClient();
- const store = await resolvePlatformRootStore(db);
+  await requirePlatformAdmin();
+  const db = getServerClient();
 
- const settings = (store?.settings as Record<string, any>) || {};
- const storeName = store?.name && store.name !== "Wider" ? store.name : DEFAULT_BRAND_NAME;
+  // 1. Tenta buscar da tabela canônica
+  const { data: brandRow } = await db
+    .from("platform_brand_settings")
+    .select("*")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
- return {
- store_id: store?.id || null,
- platform_name: storeName,
- logo_url: settings.logoUrl || settings.logo_url || null,
- favicon_url: settings.faviconUrl || settings.favicon_url || null,
- show_name: settings.show_name !== false,
- show_logo: settings.show_logo !== false,
- support_email: settings.support_email || "contato@wider.com.br",
- support_whatsapp: settings.support_whatsapp || null,
- support_hours: settings.support_hours || "Segunda a Sexta, das 08h às 18h",
- login_split_image_url: settings.login_split_image_url || null,
- login_bg_desktop_url: settings.login_bg_desktop_url || settings.login_split_image_url || null,
- login_bg_tablet_url: settings.login_bg_tablet_url || settings.login_split_image_url || null,
- login_bg_mobile_url: settings.login_bg_mobile_url || settings.login_split_image_url || null,
- social_instagram: settings.social_instagram || null,
- social_facebook: settings.social_facebook || null,
- social_linkedin: settings.social_linkedin || null,
- address: store?.address || null,
- city: store?.city || null,
- state: store?.state || null,
- };
+  const store = await resolvePlatformRootStore(db);
+
+  if (brandRow) {
+    return {
+      store_id: store?.id || null,
+      brand_id: brandRow.id,
+      platform_name: brandRow.platform_name || DEFAULT_BRAND_NAME,
+      logo_url: brandRow.logo_url || null,
+      favicon_url: brandRow.favicon_url || null,
+      show_name: brandRow.show_name !== false,
+      show_logo: brandRow.show_logo !== false,
+      support_email: brandRow.support_email || "contato@usewaesy.com",
+      support_whatsapp: brandRow.support_whatsapp || null,
+      support_hours: brandRow.support_hours || "Segunda a Sexta, das 08h às 18h",
+      login_split_image_url: brandRow.login_split_image_url || null,
+      login_bg_desktop_url: brandRow.login_bg_desktop_url || null,
+      login_bg_tablet_url: brandRow.login_bg_tablet_url || null,
+      login_bg_mobile_url: brandRow.login_bg_mobile_url || null,
+      social_instagram: brandRow.social_instagram || null,
+      social_facebook: brandRow.social_facebook || null,
+      social_linkedin: brandRow.social_linkedin || null,
+      address: brandRow.address || store?.address || null,
+      city: brandRow.city || store?.city || null,
+      state: brandRow.state || store?.state || null,
+      seo_title: brandRow.seo_title || "Waesy",
+      seo_description: brandRow.seo_description || "Plataforma Comunitária de Comércio Local, Serviços, Turismo e Comunidade",
+    };
+  }
+
+  const settings = (store?.settings as Record<string, any>) || {};
+  const storeName = store?.name || DEFAULT_BRAND_NAME;
+
+  return {
+    store_id: store?.id || null,
+    brand_id: null,
+    platform_name: storeName,
+    logo_url: settings.logoUrl || settings.logo_url || null,
+    favicon_url: settings.faviconUrl || settings.favicon_url || null,
+    show_name: settings.show_name !== false,
+    show_logo: settings.show_logo !== false,
+    support_email: settings.support_email || "contato@usewaesy.com",
+    support_whatsapp: settings.support_whatsapp || null,
+    support_hours: settings.support_hours || "Segunda a Sexta, das 08h às 18h",
+    login_split_image_url: settings.login_split_image_url || null,
+    login_bg_desktop_url: settings.login_bg_desktop_url || settings.login_split_image_url || null,
+    login_bg_tablet_url: settings.login_bg_tablet_url || settings.login_split_image_url || null,
+    login_bg_mobile_url: settings.login_bg_mobile_url || settings.login_split_image_url || null,
+    social_instagram: settings.social_instagram || null,
+    social_facebook: settings.social_facebook || null,
+    social_linkedin: settings.social_linkedin || null,
+    address: store?.address || null,
+    city: store?.city || null,
+    state: store?.state || null,
+    seo_title: store?.seo_title || "Waesy",
+    seo_description: store?.seo_description || "Plataforma Comunitária de Comércio Local, Serviços, Turismo e Comunidade",
+  };
 });
 
 /**
  * Atualiza configurações globais de identidade visual da plataforma.
- * Requer role platform_admin. Faz merge seguro das settings existentes.
+ * Requer role platform_admin. Persiste tanto em platform_brand_settings quanto na loja matriz.
  */
 export const updatePlatformBrandSettings = createServerFn({ method: "POST" })
- .validator(
- z.object({
- logo_url: z.string().url().nullable().optional(),
- favicon_url: z.string().url().nullable().optional(),
- show_name: z.boolean().optional(),
- show_logo: z.boolean().optional(),
- platform_name: z.string().min(1).max(64).optional(),
- support_email: z.string().email().nullable().optional(),
- support_whatsapp: z.string().nullable().optional(),
- support_hours: z.string().nullable().optional(),
- login_split_image_url: z.string().url().nullable().optional(),
- login_bg_desktop_url: z.string().url().nullable().optional(),
- login_bg_tablet_url: z.string().url().nullable().optional(),
- login_bg_mobile_url: z.string().url().nullable().optional(),
- social_instagram: z.string().nullable().optional(),
- social_facebook: z.string().nullable().optional(),
- social_linkedin: z.string().nullable().optional(),
- }),
- )
- .handler(async ({ data: input }) => {
- await requirePlatformAdmin();
- const db = getServerClient();
+  .validator(
+    z.object({
+      logo_url: z.string().url().nullable().optional(),
+      favicon_url: z.string().url().nullable().optional(),
+      show_name: z.boolean().optional(),
+      show_logo: z.boolean().optional(),
+      platform_name: z.string().min(1).max(64).optional(),
+      support_email: z.string().email().nullable().optional(),
+      support_whatsapp: z.string().nullable().optional(),
+      support_hours: z.string().nullable().optional(),
+      login_split_image_url: z.string().url().nullable().optional(),
+      login_bg_desktop_url: z.string().url().nullable().optional(),
+      login_bg_tablet_url: z.string().url().nullable().optional(),
+      login_bg_mobile_url: z.string().url().nullable().optional(),
+      social_instagram: z.string().nullable().optional(),
+      social_facebook: z.string().nullable().optional(),
+      social_linkedin: z.string().nullable().optional(),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    await requirePlatformAdmin();
+    const db = getServerClient();
 
- // Busca a loja raiz com fallback resiliente
- let store = await resolvePlatformRootStore(db);
+    // 1. Atualizar ou inserir na tabela canônica platform_brand_settings
+    const { data: existingBrand } = await db
+      .from("platform_brand_settings")
+      .select("id")
+      .limit(1)
+      .maybeSingle();
 
- if (!store) {
- // Se não existir nenhuma store no banco, cria a loja raiz oficial
- const { data: newStore, error: createErr } = await db
- .from("stores")
- .insert({
- name: input.platform_name || "Wider",
- slug: "wider-matriz",
- is_platform_root: true,
- is_active: true,
- settings: {},
- })
- .select()
- .single();
+    const brandPayload: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+      ...(input.platform_name !== undefined && { platform_name: input.platform_name, seo_title: input.platform_name }),
+      ...(input.logo_url !== undefined && { logo_url: input.logo_url }),
+      ...(input.favicon_url !== undefined && { favicon_url: input.favicon_url }),
+      ...(input.show_name !== undefined && { show_name: input.show_name }),
+      ...(input.show_logo !== undefined && { show_logo: input.show_logo }),
+      ...(input.support_email !== undefined && { support_email: input.support_email }),
+      ...(input.support_whatsapp !== undefined && { support_whatsapp: input.support_whatsapp }),
+      ...(input.support_hours !== undefined && { support_hours: input.support_hours }),
+      ...(input.login_split_image_url !== undefined && { login_split_image_url: input.login_split_image_url }),
+      ...(input.login_bg_desktop_url !== undefined && { login_bg_desktop_url: input.login_bg_desktop_url }),
+      ...(input.login_bg_tablet_url !== undefined && { login_bg_tablet_url: input.login_bg_tablet_url }),
+      ...(input.login_bg_mobile_url !== undefined && { login_bg_mobile_url: input.login_bg_mobile_url }),
+      ...(input.social_instagram !== undefined && { social_instagram: input.social_instagram }),
+      ...(input.social_facebook !== undefined && { social_facebook: input.social_facebook }),
+      ...(input.social_linkedin !== undefined && { social_linkedin: input.social_linkedin }),
+    };
 
- if (createErr || !newStore) {
- throw new Error("Erro ao inicializar loja matriz da plataforma.");
- }
- store = newStore;
- }
+    if (existingBrand?.id) {
+      await db
+        .from("platform_brand_settings")
+        .update(brandPayload)
+        .eq("id", existingBrand.id);
+    } else {
+      await db
+        .from("platform_brand_settings")
+        .insert({
+          platform_name: input.platform_name || "Waesy",
+          ...brandPayload,
+        });
+    }
 
- const existingSettings = (store.settings as Record<string, any>) || {};
+    // 2. Sincronizar com a loja matriz stores para retrocompatibilidade
+    let store = await resolvePlatformRootStore(db);
 
- // Merge seguro: preserva todas as configurações existentes
- const updatedSettings = {
- ...existingSettings,
- ...(input.logo_url !== undefined && { logoUrl: input.logo_url, logo_url: input.logo_url }),
- ...(input.favicon_url !== undefined && { faviconUrl: input.favicon_url, favicon_url: input.favicon_url }),
- ...(input.show_name !== undefined && { show_name: input.show_name }),
- ...(input.show_logo !== undefined && { show_logo: input.show_logo }),
- ...(input.support_email !== undefined && { support_email: input.support_email }),
- ...(input.support_whatsapp !== undefined && { support_whatsapp: input.support_whatsapp }),
- ...(input.support_hours !== undefined && { support_hours: input.support_hours }),
- ...(input.login_split_image_url !== undefined && { login_split_image_url: input.login_split_image_url }),
- ...(input.login_bg_desktop_url !== undefined && { login_bg_desktop_url: input.login_bg_desktop_url }),
- ...(input.login_bg_tablet_url !== undefined && { login_bg_tablet_url: input.login_bg_tablet_url }),
- ...(input.login_bg_mobile_url !== undefined && { login_bg_mobile_url: input.login_bg_mobile_url }),
- ...(input.social_instagram !== undefined && { social_instagram: input.social_instagram }),
- ...(input.social_facebook !== undefined && { social_facebook: input.social_facebook }),
- ...(input.social_linkedin !== undefined && { social_linkedin: input.social_linkedin }),
- };
+    if (!store) {
+      const { data: newStore, error: createErr } = await db
+        .from("stores")
+        .insert({
+          name: input.platform_name || "Waesy",
+          slug: "waesy",
+          is_platform_root: true,
+          is_active: true,
+          settings: {},
+        })
+        .select()
+        .single();
 
- const updatePayload: Record<string, any> = { settings: updatedSettings, is_platform_root: true };
- if (input.platform_name) updatePayload.name = input.platform_name;
+      if (createErr || !newStore) {
+        throw new Error("Erro ao inicializar loja matriz da plataforma.");
+      }
+      store = newStore;
+    }
 
- const { error: updateErr } = await db
- .from("stores")
- .update(updatePayload)
- .eq("id", store.id);
+    const existingSettings = (store.settings as Record<string, any>) || {};
 
- if (updateErr) throw new Error("Erro ao atualizar identidade da marca: " + updateErr.message);
+    const updatedSettings = {
+      ...existingSettings,
+      ...(input.logo_url !== undefined && { logoUrl: input.logo_url, logo_url: input.logo_url }),
+      ...(input.favicon_url !== undefined && { faviconUrl: input.favicon_url, favicon_url: input.favicon_url }),
+      ...(input.show_name !== undefined && { show_name: input.show_name }),
+      ...(input.show_logo !== undefined && { show_logo: input.show_logo }),
+      ...(input.support_email !== undefined && { support_email: input.support_email }),
+      ...(input.support_whatsapp !== undefined && { support_whatsapp: input.support_whatsapp }),
+      ...(input.support_hours !== undefined && { support_hours: input.support_hours }),
+      ...(input.login_split_image_url !== undefined && { login_split_image_url: input.login_split_image_url }),
+      ...(input.login_bg_desktop_url !== undefined && { login_bg_desktop_url: input.login_bg_desktop_url }),
+      ...(input.login_bg_tablet_url !== undefined && { login_bg_tablet_url: input.login_bg_tablet_url }),
+      ...(input.login_bg_mobile_url !== undefined && { login_bg_mobile_url: input.login_bg_mobile_url }),
+      ...(input.social_instagram !== undefined && { social_instagram: input.social_instagram }),
+      ...(input.social_facebook !== undefined && { social_facebook: input.social_facebook }),
+      ...(input.social_linkedin !== undefined && { social_linkedin: input.social_linkedin }),
+    };
 
- return { success: true, settings: updatedSettings };
- });
+    const updatePayload: Record<string, any> = { settings: updatedSettings, is_platform_root: true };
+    if (input.platform_name) updatePayload.name = input.platform_name;
+
+    await db
+      .from("stores")
+      .update(updatePayload)
+      .eq("id", store.id);
+
+    return { success: true, settings: updatedSettings };
+  });
 
 // ============================================================
 // 9. GESTÃO GLOBAL DE APIS & INTEGRAÇÕES
@@ -882,7 +999,7 @@ export const getPlatformApiIntegrations = createServerFn({ method: "GET" }).hand
  const { data: store, error } = await db
  .from("stores")
  .select("settings")
- .or("slug.eq.wider-matriz,is_platform_root.eq.true")
+ .or("slug.eq.waesy-matriz,is_platform_root.eq.true")
  .limit(1)
  .maybeSingle();
 
@@ -967,7 +1084,7 @@ export const updatePlatformApiIntegrations = createServerFn({ method: "POST" })
  const { data: store, error: fetchErr } = await db
  .from("stores")
  .select("id, settings")
- .or("slug.eq.wider-matriz,is_platform_root.eq.true")
+ .or("slug.eq.waesy-matriz,is_platform_root.eq.true")
  .limit(1)
  .maybeSingle();
 
@@ -1070,7 +1187,7 @@ export const DEFAULT_LOGISTICS_PRESENTATION: LogisticsPresentationSettings = {
  title: "Logística Integrada & MotoLink",
  subtitle: "Conecte-se aos entregadores autônomos da sua cidade sem intermediários e com zero taxa de frete.",
  badge: "Zero Taxa de Intermediação",
- disclaimer: "O Wider é uma infraestrutura tecnológica aberta. Não intermediamos pagamentos de fretes nem cobramos comissão entre entregadores e empresas. A relação comercial e operacional é direta e independente entre as partes.",
+ disclaimer: "A Waesy é uma infraestrutura tecnológica aberta. Não intermediamos pagamentos de fretes nem cobramos comissão entre entregadores e empresas. A relação comercial e operacional é direta e independente entre das partes.",
  image_desktop_url: null,
  image_tablet_url: null,
  image_mobile_url: null,
@@ -1236,7 +1353,7 @@ export const getPlatformSystemHealth = createServerFn({ method: "GET" }).handler
  total_wallets: walletsCount.count || 0,
  },
  algorithm: {
- name: "Wider Pulse Multi-Signal v1",
+ name: "Waesy Pulse Multi-Signal v1",
  total_weights_percent: totalWeights,
  is_calibrated: totalWeights === 100,
  weights: {

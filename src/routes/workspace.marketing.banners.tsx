@@ -36,7 +36,7 @@ import { MediaUploader } from "@/components/ui/media-uploader";
 import { DestinationPicker } from "@/components/ui/destination-picker";
 
 export const Route = createFileRoute("/workspace/marketing/banners")({
- head: () => ({ meta: [{ title: "Banners da Loja | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Banners da Loja | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const banners = await listActiveBanners({ data: { placement: "store" } }).catch(() => []);

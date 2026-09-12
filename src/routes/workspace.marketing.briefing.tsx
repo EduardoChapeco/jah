@@ -1,7 +1,7 @@
 /**
  * workspace.marketing.briefing.tsx
  * Transplantado de: brand-builder-ai/src/pages/BriefingPage.tsx
- * Nativizado para: JAH OS — TanStack Router + BFF functions + UI canônica
+ * Nativizado para: Waesy — TanStack Router + BFF functions + UI canônica
  *
  * Lógica de negócio preservada:
  * - Serialização JSONB (company / audience / content / market / channels)
@@ -41,7 +41,7 @@ import { getStoreSettings } from "@/services/store.functions";
 // ── Rota ─────────────────────────────────────────────────────────────────────
 export const Route = createFileRoute("/workspace/marketing/briefing")({
   head: () => ({
-    meta: [{ title: "Brand Briefing & DNA Estratégico | Workspace JAH OS" }],
+    meta: [{ title: "Brand Briefing & DNA Estratégico | Workspace Waesy" }],
   }),
   loader: async () => {
     try {
@@ -160,7 +160,7 @@ function calculateCompleteness(f: BriefingForm): number {
   return Math.min(score, 100);
 }
 
-// ── Subcomponentes de formulário canônicos (JAH Clean Paradigm) ───────────────
+// ── Subcomponentes de formulário canônicos (Waesy Clean Paradigm) ───────────────
 function Field({
   label,
   value,
@@ -437,7 +437,7 @@ export function BrandBriefingPage() {
                 label="Nome da Empresa"
                 value={form.company_name}
                 onChange={(v) => updateForm({ company_name: v })}
-                placeholder="JAH, Nubank, Apple..."
+                placeholder="Sua Marca, Referência 1, Referência 2..."
                 required
               />
               <Field

@@ -125,7 +125,7 @@ export default function VerifySerialPage() {
  ) : null}
 
  <div className="pt-2 text-center text-[11px] text-muted-foreground border-t border-border/50">
- Esta certidão comprova a inviolabilidade do documento assinado eletronicamente sob guarda do sistema Wider OS.
+ Esta certidão comprova a inviolabilidade do documento assinado eletronicamente sob guarda do sistema Waesy.
  </div>
  </div>
  </div>

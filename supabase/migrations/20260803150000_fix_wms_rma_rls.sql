@@ -1,4 +1,4 @@
--- Jah Commerce — Migration 20260803150000: Fix WMS and RMA RLS Policies
+-- Waesy Commerce — Migration 20260803150000: Fix WMS and RMA RLS Policies
 
 -- Drop broken WMS policies
 DROP POLICY IF EXISTS "Staff can view picking sessions for their store" ON public.wms_picking_sessions;

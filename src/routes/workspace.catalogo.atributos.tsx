@@ -94,7 +94,7 @@ type FormValues = z.infer<typeof formSchema>;
 import { getNicheOptionGroupPresets, type OptionGroupPreset } from "@/lib/niche-presets";
 
 export const Route = createFileRoute("/workspace/catalogo/atributos")({
- head: () => ({ meta: [{ title: "Adicionais & Grades | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Adicionais & Grades | Workspace Waesy" }] }),
  loader: async () => {
  try {
  const [groupsRes, storeRes] = await Promise.all([

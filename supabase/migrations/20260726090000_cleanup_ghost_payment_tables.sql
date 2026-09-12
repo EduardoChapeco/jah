@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 20260726090000: Cleanup Ghost Payment Tables
+-- Waesy Commerce — Migration 20260726090000: Cleanup Ghost Payment Tables
 -- ============================================================================
 -- Drop the unused 'payment_transactions' table created in migration 0028
 -- and consolidates the schema around the canonical 'payments' table.

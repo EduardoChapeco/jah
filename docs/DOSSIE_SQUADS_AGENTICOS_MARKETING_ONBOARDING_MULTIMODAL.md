@@ -12,7 +12,7 @@
 - Motor de Inteligência de Mercado & Radar de Concorrentes (Scraping, Screenshots full-page, extração de Brand DNA e análise competitiva)
 - Frameworks Estratégicos Psicológicos (O Canvas dos 7 Pecados Capitais, Matriz SWOT e SimLab V2 de Personas Sintéticas)
 - Orquestração de Squads Agênticos Especializados com Currículos de PhD (Growth Marketing V4, Contabilidade & Reforma Tributária, RH & DP, Estratégia de Negócios)
-- Arquitetura de Chaves Multi-Provedores e Integração 100% Opcional no Ecossistema JAH
+- Arquitetura de Chaves Multi-Provedores e Integração 100% Opcional no Ecossistema Waesy
 
 ---
 
@@ -22,7 +22,7 @@ O maior gargalo de adoção de sistemas de gestão, e-commerce e vitrines para p
 
 Paralelamente, as empresas operam sem inteligência estratégica de mercado: desconhecem a fundo a comunicação de seus concorrentes, não possuem times capacitados de marketing de alta performance (padrão V4 Company), sofrem com as complexidades da Reforma Tributária brasileira e enfrentam burocracias pesadas na gestão de pessoas e departamento pessoal.
 
-O ecossistema **JAH** incorpora nesta especificação a **Engenharia Agêntica Autônoma**, unificando tecnologias proprietárias desenvolvidas nos projetos simwork, rand-builder-ai, classificadoswaesy, persona-nexus e wider:
+O ecossistema **Waesy** incorpora nesta especificação a **Engenharia Agêntica Autônoma**, unificando tecnologias proprietárias desenvolvidas nos projetos simwork, rand-builder-ai, classificadoswaesy, persona-nexus e waesy:
 
 1. **Onboarding Multimodal em 1 Clique:** O empresário simplesmente envia fotos do seu cardápio impresso, fotos da fachada/loja ou links do iFood/Mercado Livre. Agentes de visão computacional multimodal realizam OCR semântico, deduzem categorias, porções, variações e preços, cadastrando produtos reais e editáveis no banco de dados.
 2. **Master Catalog Global de Produtos:** Uma base centralizada de produtos de alta demanda (bebidas, snacks, mercearia, cosméticos) com fotos em alta definição em WebP, descrição persuasiva, código de barras EAN-13 e tributação pronta para vincular à loja em 1 clique.
@@ -64,9 +64,9 @@ ame, dna_text, screenshot_url e aw_markdown.
 
 ---
 
-## 3. ARQUITETURA DE DADOS COMPLETA NO JAH (DDL POSTGRESQL + RLS)
+## 3. ARQUITETURA DE DADOS COMPLETA NO Waesy (DDL POSTGRESQL + RLS)
 
-Abaixo está o DDL unificado em PostgreSQL que integra nativamente o motor de squads, a inteligência de mercado, o onboarding multimodal e o catálogo global dentro da arquitetura multi-tenant do JAH, vinculado à tabela stores:
+Abaixo está o DDL unificado em PostgreSQL que integra nativamente o motor de squads, a inteligência de mercado, o onboarding multimodal e o catálogo global dentro da arquitetura multi-tenant do Waesy, vinculado à tabela stores:
 
 `sql
 -- ============================================================================
@@ -357,7 +357,7 @@ O processo elimina o atrito manual através do pipeline de visão multimodal int
 4. **Tela de Revisão Humana em 1 Clique (Human-in-the-Loop):**
    - O lojista vê uma tabela visual lado a lado com a foto original e os produtos extraídos organizados.
    - Pode ajustar qualquer valor ou clicar em **Aprovar e Publicar Todos**.
-   - O sistema insere todos os registros na tabela oficial products do JAH, gerando categorias e variantes instantaneamente.
+   - O sistema insere todos os registros na tabela oficial products do Waesy, gerando categorias e variantes instantaneamente.
 
 ### 4.2. Ingestão por Links Externos (iFood, Mercado Livre, E-commerce Existente)
 Se o lojista já possui operação em outros canais:
@@ -366,7 +366,7 @@ Se o lojista já possui operação em outros canais:
 - As imagens são baixadas e re-hospedadas de forma segura no bucket store-assets da loja, tornando-o independente de plataformas terceiras.
 
 ### 4.3. Banco Centralizado Global de Produtos (Master Catalog)
-Para supermercados, empórios, conveniências, farmácias e mercearias, o JAH disponibiliza o **Master Catalog Central**:
+Para supermercados, empórios, conveniências, farmácias e mercearias, o Waesy disponibiliza o **Master Catalog Central**:
 * **Acervo Inicial de 5.000+ SKUs Populares:**
   - Refrigerantes, cervejas, energéticos, sucos e águas;
   - Chocolates, biscoitos, salgadinhos e guloseimas;
@@ -416,9 +416,9 @@ O agente multimodal The Visionary e o estrategista The Identity Engineer realiza
 ### 6.1. A Engenharia Psicológica das 7 Alavancas Subconscientes
 Metodologia desenvolvida no marketing de alta conversão brasileiro (popularizada por grandes estrategistas de posicionamento) que parte da premissa de que **toda decisão de compra humana é motivada por uma ou mais forças viscerais subconscientes**.
 
-O JAH estrutura o **Canvas dos 7 Pecados** como um framework nativo de inteligência:
+O Waesy estrutura o **Canvas dos 7 Pecados** como um framework nativo de inteligência:
 
-| Pecado Capital | Motivação Subconsciente | Alavanca de Posicionamento & Copywriting | Caso de Uso Prático na Loja JAH |
+| Pecado Capital | Motivação Subconsciente | Alavanca de Posicionamento & Copywriting | Caso de Uso Prático na Loja Waesy |
 | :--- | :--- | :--- | :--- |
 | **Orgulho / Vaidade** | Busca por status, superioridade social, autoridade e validação de pares. | 'Para quem não aceita o comum', selos VIP, edições limitadas e produtos de assinatura exclusiva. | O cliente exibe o produto da loja como símbolo de conquista e refinamento pessoal. |
 | **Ganância** | Desejo de enriquecimento, economia financeira agressiva e maximização de ROI. | 'Pague 1 e Leve 2', 'Economia de R$ 1.400 no ano', 'Retorno financeiro acelerado em 30 dias'. | Vitrines de atacarejo, planos anuais com desconto massivo e combos econômicos. |
@@ -454,7 +454,7 @@ Cada squad atua como um departamento executivo autônomo dentro da empresa, oper
      - *Currículo:* PhD em Comunicação Persuasiva, especialista em gatilhos mentais do Canvas dos 7 Pecados, fórmulas AIDA, PAS e Storytelling de impacto.
      - *Entregas:* Textos para anúncios no Meta/Google, copys de landing pages, roteiros para vídeos curtos (Reels/TikTok) e sequências automáticas de WhatsApp.
   3. **Diretor de Arte & Designer Gráfico (Creative Studio Integration):**
-     - *Currículo:* Diretor de arte premiado, especialista em tipografia, hierarquia visual e composição no JAH Creative Studio.
+     - *Currículo:* Diretor de arte premiado, especialista em tipografia, hierarquia visual e composição no Waesy Creative Studio.
      - *Entregas:* Peças gráficas prontas para publicação, carrosséis educativos, banners de vitrine e capas promocionais.
   4. **Gestor de Tráfego Pago & Media Buyer:**
      - *Currículo:* Certificado Google Ads Master e Meta Certified Media Buying Professional, com mais de R$ 50M gerenciados em mídia de performance.
@@ -505,7 +505,7 @@ Cada squad atua como um departamento executivo autônomo dentro da empresa, oper
 
 ## 8. PLANO DE EXECUÇÃO EM MICROFASES RECURSIVAS DE ENGENHARIA
 
-A transfusão e nativização completa desta suíte tecnológica no ecossistema JAH será realizada em 6 Grandes Fases estruturadas em microfases atômicas de precisão:
+A transfusão e nativização completa desta suíte tecnológica no ecossistema Waesy será realizada em 6 Grandes Fases estruturadas em microfases atômicas de precisão:
 
 ### FASE 1: Fundação de Dados, Migração Unificada & Catálogo de Agentes
 * **Microfase 1.1:** Execução da migration DDL contendo gent_registry, squad_templates, squad_template_agents, store_squads, store_squad_runs, rand_dna_profiles, market_competitors, competitor_snapshots, global_master_catalog e multimodal_onboarding_sessions.
@@ -528,8 +528,8 @@ A transfusão e nativização completa desta suíte tecnológica no ecossistema 
 * **Microfase 4.2:** Motor de geração de campanhas automáticas cruzando o produto em destaque com a alavanca psicológica selecionada (ex: 'Campanha de Orgulho/Status' ou 'Campanha de Ganância/Economia').
 * **Microfase 4.3:** Conexão com o motor SimLab V2 para testes de aceitação sintética com 10 personas antes de veicular anúncios.
 
-### FASE 5: Interface de Gestão de Squads no Workspace JAH
-* **Microfase 5.1:** Criação da página /workspace/squads no JAH exibindo os 4 squads como escritórios virtuais independentes (Marketing, Fiscal/Contábil, RH/DP e Estratégia).
+### FASE 5: Interface de Gestão de Squads no Workspace Waesy
+* **Microfase 5.1:** Criação da página /workspace/squads no Waesy exibindo os 4 squads como escritórios virtuais independentes (Marketing, Fiscal/Contábil, RH/DP e Estratégia).
 * **Microfase 5.2:** Criação da gaveta de detalhes do agente (Drawer / Sheet) exibindo o currículo completo, formação acadêmica, senioridade e histórico de tarefas entregues.
 * **Microfase 5.3:** Implementação do modo de execução 'Human-in-the-Loop', onde o empresário revisa e aprova cada peça ou documento antes de sua aplicação definitiva.
 
@@ -538,4 +538,4 @@ A transfusão e nativização completa desta suíte tecnológica no ecossistema 
 * **Microfase 6.2:** Habilitar os squads para criar e atualizar seções dinâmicas no site (ex: Squad de Marketing cria um novo banner de oferta e o publica no hero do site em 1 clique).
 
 ---
-**Fim do Dossiê Canônico: Squads Agênticos, Onboarding Multimodal e Inteligência de Mercado JAH.**
+**Fim do Dossiê Canônico: Squads Agênticos, Onboarding Multimodal e Inteligência de Mercado Waesy.**

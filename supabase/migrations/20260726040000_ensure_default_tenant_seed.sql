@@ -1,16 +1,16 @@
 -- ============================================================================
--- Jah Commerce — Migration 20260726040000: Ensure Default Tenant Seed
+-- Waesy Commerce — Migration 20260726040000: Ensure Default Tenant Seed
 -- ============================================================================
 -- Ensures default organization and store ALWAYS exist in the database,
 -- preventing 500 errors on public storefront routes when database is empty.
 -- ============================================================================
 
 INSERT INTO public.organizations (id, name, slug)
-VALUES ('00000000-0000-0000-0000-000000000001', 'Jah Organization', 'jah-org')
+VALUES ('00000000-0000-0000-0000-000000000001', 'Waesy Organization', 'waesy-org')
 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
 
 INSERT INTO public.stores (id, organization_id, name, slug)
-VALUES ('00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 'Jah', 'jah')
+VALUES ('00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 'Waesy', 'waesy')
 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
 
 -- Ensure default theme settings exist for default store

@@ -1,4 +1,4 @@
-# JAH Platform — Manual Canônico de Fluxos e Regras de Negócio
+# Waesy Platform — Manual Canônico de Fluxos e Regras de Negócio
 
 **Versão:** 1.0 — Documento vivo, atualizado a cada sprint.
 **Fonte de verdade:** Este documento é derivado de rotas reais (`src/routes/**`), schemas de banco (`supabase/migrations/**`), serviços BFF (`src/services/**`) e conversas de design com o Product Owner.
@@ -28,7 +28,7 @@
 
 ## Módulo 0 — Arquitetura Canônica de Dados e UI (A "Fundação")
 
-Esta seção define o comportamento estrutural exigido para o ecossistema JAH, independentemente do nicho. As regras aqui sobrepõem qualquer tela legada.
+Esta seção define o comportamento estrutural exigido para o ecossistema Waesy, independentemente do nicho. As regras aqui sobrepõem qualquer tela legada.
 
 ### 0.1 Profundidades de Edição (A Arquitetura de Formulários)
 
@@ -41,7 +41,7 @@ Toda tela de gestão (PDV, Catálogo, CRM) deve respeitar a _progressive disclos
 
 ### 0.2 O Modelo Universal de Oferta (Taxonomia)
 
-A JAH não usa o conceito restrito de "Produto com Variações". Ela modela o _commerce_ como uma **Oferta Universal**, que usa _blueprints_ para assumir formatos de nicho (Roupa, Hambúrguer, Agendamento, Vaga).
+A Waesy não usa o conceito restrito de "Produto com Variações". Ela modela o _commerce_ como uma **Oferta Universal**, que usa _blueprints_ para assumir formatos de nicho (Roupa, Hambúrguer, Agendamento, Vaga).
 Para não haver colapso, a taxonomia de personalização é rígida:
 
 - **Variante (SKU):** Uma unidade que muda radicalmente o item base. Geralmente tem SKU próprio, preço base próprio e controla estoque fisicamente (Ex: "Camisa Preta Tamanho M").
@@ -84,7 +84,7 @@ Para não haver colapso, a taxonomia de personalização é rígida:
 
 ### 16.1 Conceito e Arquitetura do Enxame
 
-O módulo **JAH SimLab** (derivado do _Simwork Engine_) permite que lojistas, marcas e produtores culturais simulem o impacto de um produto, lote de ingressos, campanha ou flyer antes do lançamento público.
+O módulo **Waesy SimLab** (derivado do _Simwork Engine_) permite que lojistas, marcas e produtores culturais simulem o impacto de um produto, lote de ingressos, campanha ou flyer antes do lançamento público.
 
 - **Catálogo de Seed Personas:** Conjunto calibrado de arquétipos demográficos e psicográficos brasileiros (ex: Carla/32 anos/Analista Administrativa/Porto Alegre; Gabriel/26 anos/Empreendedor Digital/São Paulo; Vera/52 anos/Comerciante/Chapecó; Mateus/21 anos/Estudante e Músico/Florianópolis).
 - **Vetores de Calibração:**
@@ -110,16 +110,16 @@ O módulo **JAH SimLab** (derivado do _Simwork Engine_) permite que lojistas, ma
 
 ---
 
-## Módulo 17 — Motor de Apresentação e Temas Visuais (Wider / Luma Presets)
+## Módulo 17 — Motor de Apresentação e Temas Visuais (Waesy / Luma Presets)
 
 ### 17.1 Separação Canônica entre Dado e Apresentação
 
-Para preservar a neutralidade e o silêncio visual do sistema operacional sem perder a riqueza cultural da JAH:
+Para preservar a neutralidade e o silêncio visual do sistema operacional sem perder a riqueza cultural da Waesy:
 
 - **Dado Canônico:** Permanece imutável no banco (`title`, `description`, `price_cents`, `media_urls`, `author_id`).
 - **Presentation Preset:** Atributo visual opcional (`preset_id`, `theme_id`, `typography`, `gradient`, `animation`, `custom_badge`).
 
-### 17.2 Catálogo de Temas do Wider
+### 17.2 Catálogo de Temas do Waesy
 
 1. **Clean:** Fundo branco, tipografia Inter, bordas ultra-finas (padrão neutro).
 2. **Dark Glow:** Fundo escuro com gradientes sutis e iluminação neon suave.
@@ -130,7 +130,7 @@ Para preservar a neutralidade e o silêncio visual do sistema operacional sem pe
 
 ---
 
-## Módulo 18 — Perfil 360 do Usuário e Criador (Waesy / Wider Identity)
+## Módulo 18 — Perfil 360 do Usuário e Criador (Waesy / Waesy Identity)
 
 ### 18.1 Visão Pública do Membro
 
@@ -139,7 +139,7 @@ Para preservar a neutralidade e o silêncio visual do sistema operacional sem pe
 - **Header:** Foto/Avatar em `MediaSquircle`, nome artístico/comercial, bio concisa, badges de reputação verificada.
 - **Tabs Contextuais:**
   - `Mural`: Momentos, posts e publicações criadas pelo membro.
-  - `Desapegos & Anúncios`: Classificados ativos do membro no Waesy/JAH Marketplace.
+  - `Desapegos & Anúncios`: Classificados ativos do membro no Waesy/Waesy Marketplace.
   - `Agenda & Eventos`: Festas, shows ou aulas organizadas pelo criador.
   - `Avaliações`: Histórico de feedbacks recebidos em compras, vendas e serviços.
   - `Links`: Botões rápidos para WhatsApp, Instagram, Spotify e portfólio externo.
@@ -719,7 +719,7 @@ Para preservar a neutralidade e o silêncio visual do sistema operacional sem pe
 
 ### 8.1 Promise Engine (O Motor de Tempo de Entrega)
 
-O tempo prometido ao cliente na vitrine e no checkout NÃO é um campo estático. O "Promise Engine" da JAH calcula a promessa dinamicamente, considerando:
+O tempo prometido ao cliente na vitrine e no checkout NÃO é um campo estático. O "Promise Engine" da Waesy calcula a promessa dinamicamente, considerando:
 
 - **Tempo Base do Item/Serviço** (ex: hambúrguer = 15m; prato feito = 25m).
 - **Fila de Produção Atual** (KDS da unidade).
@@ -1074,7 +1074,7 @@ Permite criar grupos de escolhas reutilizáveis para lanches, restaurantes e pro
 
 ---
 
-## Módulo 21 — Mobilidade Urbana, Entregas Expressas, Mudanças & Frotas de Logística (Weasy/Wider Integration)
+## Módulo 21 — Mobilidade Urbana, Entregas Expressas, Mudanças & Frotas de Logística (Weasy/Waesy Integration)
 
 ### 21.1 Tipos de Serviços Suportados
 1. **Moto Passageiro (`ride_moto`):** Deslocamento rápido e econômico para 1 passageiro.
@@ -1095,10 +1095,10 @@ Permite criar grupos de escolhas reutilizáveis para lanches, restaurantes e pro
 
 ---
 
-## Módulo 22 — Imóveis, Aluguel Residencial/Comercial, Venda e Hospedagem por Temporada (Airbnb Engine)
+## Módulo 22 — Imóveis, Aluguel Residencial/Comercial, Venda e Hospedagem por Temporada (Motor de Diárias & Temporada)
 
 ### 22.1 Taxonomia Canônica e Verticais Imobiliárias
-A vertical de Imóveis na JAH é tratada como um ecossistema de alto valor agregado, dividido em três modalidades canônicas (`deal_type`):
+A vertical de Imóveis na Waesy é tratada como um ecossistema de alto valor agregado, dividido em três modalidades canônicas (`deal_type`):
 
 1. **Aluguel Mensal (Residencial & Comercial):**
    - **Preço:** Base mensal em centavos (`price_cents` / mês).
@@ -1110,7 +1110,7 @@ A vertical de Imóveis na JAH é tratada como um ecossistema de alto valor agreg
    - **Atributos:** Ano de construção, valor de condomínio, IPTU anual, aceitação de permuta / veículo como parte de pagamento (`negotiable = true`).
    - **Fluxo de Compra:** Anúncio ➔ Agendamento de Visita Presencial ➔ Proposta Formal de Compra ➔ Minuta de Promessa de Compra e Venda ➔ Conclusão com Escritura.
 
-3. **Hospedagem & Aluguel por Temporada (Airbnb-Style Engine):**
+3. **Hospedagem & Aluguel por Temporada (Motor de Diárias & Temporada):**
    - **Preço:** Diária em centavos (`rental_period = 'diaria'`) + Taxa Única de Limpeza (`cleaning_fee_cents`).
    - **Parâmetros de Estadia:** Capacidade máxima de hóspedes (`max_guests`), horário de Check-in (ex: 14:00) e Check-out (ex: 11:00), estadia mínima (ex: 2 diárias).
    - **Comodidades & Amenidades:** Array estruturado (`amenities`): Jacuzzi Aquecida, Lareira a Lenha, Wi-Fi Alta Velocidade, Fechadura Digital (Check-in Autônomo), Piscina, Ar Condicionado, Pet Friendly, Cozinha Completa, Estacionamento Coberto.
@@ -1120,10 +1120,10 @@ A vertical de Imóveis na JAH é tratada como um ecossistema de alto valor agreg
 
 | Persona | Papel no Módulo de Imóveis & Hospedagem | Ações Principais |
 | :--- | :--- | :--- |
-| **Autor / Anfitrião / Corretor** | Dono do imóvel, imobiliária ou host Airbnb | Publica fotos em alta definição, define tipo de negócio (Venda, Aluguel ou Temporada), regras da casa, comodidades e valores. |
+| **Autor / Anfitrião / Corretor** | Dono do imóvel, imobiliária ou anfitrião de temporada | Publica fotos em alta definição, define tipo de negócio (Venda, Aluguel ou Temporada), regras da casa, comodidades e valores. |
 | **Consumidor / Hóspede / Inquilino** | Usuário buscando moradia ou lazer | Filtra por quartos, vagas, m² ou diárias, calcula custo total de hospedagem com taxa de limpeza, agenda visitas ou reserva direto via WhatsApp / Lead. |
 | **Operador / Gestor Imobiliário** | Imobiliária parceira ou Administradora | Gerencia carteira de imóveis, aprova propostas de locação, envia contratos digitais para assinatura e controla recebíveis mensais. |
-| **Administrador da Plataforma** | Conselho de Moderação JAH | Valida corretores (verificação CRECI), modera anúncios contra duplicidade ou fraudes e audita denúncias de usuários. |
+| **Administrador da Plataforma** | Conselho de Moderação Waesy | Valida corretores (verificação CRECI), modera anúncios contra duplicidade ou fraudes e audita denúncias de usuários. |
 
 ### 22.3 Máquina de Estados Canônica do Imóvel
 ```text
@@ -1144,7 +1144,7 @@ A vertical de Imóveis na JAH é tratada como um ecossistema de alto valor agreg
 ## Módulo 23 — Motor de Telemetria Comportamental, Pontuação de Afinidade e Algoritmo de Recomendação Preditiva
 
 ### 23.1 Matriz de Pesos por Evento (Scoring Matrix)
-O algoritmo JAH Behavioral Engine aprende continuamente com cada interação do usuário na plataforma, atribuindo pontos de afinidade (`weight_score`) por categoria/nicho:
+O algoritmo Waesy Behavioral Engine aprende continuamente com cada interação do usuário na plataforma, atribuindo pontos de afinidade (`weight_score`) por categoria/nicho:
 
 | Evento de Comportamento (`event_type`) | Peso Atribuído (`weight_score`) | Intenção Capturada |
 | :--- | :---: | :--- |
@@ -1174,7 +1174,7 @@ $$\text{Score}_{\text{novo}} = (\text{Score}_{\text{anterior}} \times 0.95) + \t
 
 ## Módulo 13 — Logística Contextual & Regras Canônicas de Entrega (Padrão iFood vs E-commerce)
 
-Para evitar poluição visual e garantir uma experiência de compra instantânea e natural, a exibição de frete na plataforma JAH segue regras estritas de contexto geográfico e nicho:
+Para evitar poluição visual e garantir uma experiência de compra instantânea e natural, a exibição de frete na plataforma Waesy segue regras estritas de contexto geográfico e nicho:
 
 ### 13.1 Comércio Local (Gastronomia, Supermercado, Farmácia, Conveniência)
 1. **Sem Formulários Redundantes de Simulação**:
@@ -1235,7 +1235,7 @@ Para evitar poluição visual e garantir uma experiência de compra instantânea
 ## Módulo 25 — Ontologia dos Processos Mestres & Subprocessos Comerciais por Nicho
 
 > **Princípio Fundamental da Continuidade Sistêmica (The Seamless Commercial Backbone):**  
-> Nenhuma ferramenta, tela ou botão da plataforma Wider/Jah pode operar isolada ou como uma "casca desconexa". Cada ação do usuário faz parte de um **Processo Mestre (Master Process)** composto por **Subprocessos sequenciais e auditáveis**. Os dados fluem de ponta a ponta sem qualquer necessidade de redigitação manual.
+> Nenhuma ferramenta, tela ou botão da plataforma Waesy/Waesy pode operar isolada ou como uma "casca desconexa". Cada ação do usuário faz parte de um **Processo Mestre (Master Process)** composto por **Subprocessos sequenciais e auditáveis**. Os dados fluem de ponta a ponta sem qualquer necessidade de redigitação manual.
 
 ```mermaid
 graph TD

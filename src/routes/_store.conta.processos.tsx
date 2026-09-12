@@ -27,7 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/processos")({
- head: () => ({ meta: [{ title: "Meus Processos & Demandas | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Meus Processos & Demandas | Waesy" }] }),
  component: UserLawsuitsPage,
 });
 

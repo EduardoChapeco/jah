@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Logo } from "@/components/commerce/logo";
 
 export function PublicFooter({ menuItems = [], store }: { menuItems?: any[]; store?: any }) {
- const storeName = store?.name || "Wider";
+ const storeName = store?.name || "Waesy";
  const storeDesc =
  store?.description ||
  "Plataforma da comunidade para produtores culturais, negócios e artistas locais.";

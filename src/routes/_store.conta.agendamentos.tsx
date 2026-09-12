@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/conta/agendamentos")({
  head: () => ({
- meta: [{ title: "Minha Agenda | Wider OS" }],
+ meta: [{ title: "Minha Agenda | Waesy" }],
  }),
   loader: async () => {
     try {

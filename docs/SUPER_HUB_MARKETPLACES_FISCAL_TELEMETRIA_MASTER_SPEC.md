@@ -119,7 +119,7 @@ O Brasil opera em transição para o **Emissor Nacional Unificado de NFS-e** (pa
 
 ### 🌐 PILAR 7: Padrão Open Global (OpenDelivery, OpenAPI 3.1 & Open Finance)
 - **OpenDelivery v1:** Compatibilidade nativa com o padrão aberto nacional de delivery, permitindo que qualquer app de entrega conecte seu cardápio e ordens sem adaptações proprietárias.
-- **Contratos OpenAPI 3.1:** Documentação interativa em endpoints REST para desenvolvedores externos integrarem ERPs legados (Bling, Tiny, Omie, Protheus) ao ecossistema Wider.
+- **Contratos OpenAPI 3.1:** Documentação interativa em endpoints REST para desenvolvedores externos integrarem ERPs legados (Bling, Tiny, Omie, Protheus) ao ecossistema Waesy.
 
 ---
 

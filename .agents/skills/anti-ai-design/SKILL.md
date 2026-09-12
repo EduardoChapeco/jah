@@ -3,7 +3,7 @@ name: anti-ai-design
 description: "Regras estritas para erradicar o 'AI Smell' visual: elimina botões conversacionais prolixos, caixas explicativas desnecessárias, excesso de ícones decorativos e layouts redundantes. Impõe design humano, limpo e direto padrão Apple, Stripe, Linear e iFood."
 ---
 
-# Anti-AI Design & Human Simplicity Protocol (JAH / Wider)
+# Anti-AI Design & Human Simplicity Protocol (Waesy)
 
 > **DIRETRIZ CENTRAL:** O design de software de alto padrão (Apple HIG, Stripe, Linear, iFood) **não tenta explicar o óbvio a cada clique**. Interfaces maduras são diretas, autoexplicativas e silenciosas.
 

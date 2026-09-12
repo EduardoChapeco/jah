@@ -1,7 +1,7 @@
 # Mapeamento de Contratos de Dados (Data Contract Map)
 
 > Data: 2026-07-24  
-> Projeto: Jah Commerce
+> Projeto: Waesy Commerce
 
 ---
 

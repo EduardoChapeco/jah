@@ -14,14 +14,14 @@ import { getUserSession } from "@/services/auth.functions";
 import { getUserTokenWallet } from "@/services/tokens.functions";
 
 export const Route = createFileRoute("/_store/conta/tokens")({
- head: () => ({ meta: [{ title: "Tokens de Fidelidade | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Tokens de Fidelidade | Waesy" }] }),
  loader: async () => {
    try {
  const session = await getUserSession().catch(() => null);
 
  const wallet = await getUserTokenWallet().catch(() => ({
  user_id: "",
- full_name: "Cliente Wider",
+ full_name: "Cliente Waesy",
  balance: 0,
  lifetime_earned: 0,
  lifetime_redeemed: 0,

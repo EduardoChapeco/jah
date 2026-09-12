@@ -1,5 +1,5 @@
 -- ============================================================================
--- JAH -- Migration: Fix handle_new_user (INCIDENT-IDENTITY-001)
+-- Waesy -- Migration: Fix handle_new_user (INCIDENT-IDENTITY-001)
 -- ============================================================================
 -- PROBLEMA: O trigger anterior inseria TODOS os novos usuarios em
 -- workspace_members com a store padrao, incluindo clientes comuns com
@@ -25,7 +25,7 @@ BEGIN
   FROM public.workspace_members wm
   WHERE wm.role = 'customer'
     AND wm.store_id IN (
-      SELECT id FROM public.stores WHERE slug = 'jah'
+      SELECT id FROM public.stores WHERE slug = 'waesy'
     );
   
   RAISE NOTICE '[IDENTITY-001] workspace_members com role=customer na store padrao encontrados e sendo removidos: %', v_spurious_count;
@@ -33,7 +33,7 @@ BEGIN
   DELETE FROM public.workspace_members wm
   WHERE wm.role = 'customer'
     AND wm.store_id IN (
-      SELECT id FROM public.stores WHERE slug = 'jah'
+      SELECT id FROM public.stores WHERE slug = 'waesy'
     );
 END;
 $$;
@@ -53,23 +53,23 @@ BEGIN
   IF v_owner_count < 2 THEN
     SELECT id INTO default_org_id
     FROM public.organizations
-    WHERE slug = 'jah-org'
+    WHERE slug = 'waesy-org'
     LIMIT 1;
 
     IF default_org_id IS NULL THEN
       INSERT INTO public.organizations (name, slug)
-      VALUES ('Jah Organization', 'jah-org')
+      VALUES ('Waesy Organization', 'waesy-org')
       RETURNING id INTO default_org_id;
     END IF;
 
     SELECT id INTO default_store_id
     FROM public.stores
-    WHERE slug = 'jah' AND organization_id = default_org_id
+    WHERE slug = 'waesy' AND organization_id = default_org_id
     LIMIT 1;
 
     IF default_store_id IS NULL THEN
       INSERT INTO public.stores (organization_id, name, slug)
-      VALUES (default_org_id, 'Jah', 'jah')
+      VALUES (default_org_id, 'Waesy', 'waesy')
       RETURNING id INTO default_store_id;
     END IF;
 

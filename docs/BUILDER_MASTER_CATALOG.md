@@ -1,4 +1,4 @@
-# 📐 DOSSIÊ ARQUITETURAL MASTER: O CONSTRUTOR VISUAL WIX STUDIO STANDARD (JAH PLATFORM)
+# 📐 DOSSIÊ ARQUITETURAL MASTER: O CONSTRUTOR VISUAL WIX STUDIO STANDARD (Waesy PLATFORM)
 
 > **Documento Canônico de Referência de Engenharia e Design Ops**  
 > **Fontes de Inspiração & Benchmarks:** Wix Studio, Editor X, Shopify 2.0 (Liquid Sections), Webflow, Framer.  
@@ -58,7 +58,7 @@ Documento de Experiência (experience_documents)
 
 ## 2. A MATRIZ DE CUSTOMIZAÇÃO QUÁDRUPLA INVIOLÁVEL
 
-Para erradicar o sintoma em que *"o configurador não bate com os blocos"*, todo e qualquer bloco cadastrado na plataforma Wider JAH deve obrigatoriamente responder às 4 abas do Inspetor:
+Para erradicar o sintoma em que *"o configurador não bate com os blocos"*, todo e qualquer bloco cadastrado na plataforma Waesy Waesy deve obrigatoriamente responder às 4 abas do Inspetor:
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -82,7 +82,7 @@ Para erradicar o sintoma em que *"o configurador não bate com os blocos"*, todo
 
 ## 3. CATÁLOGO MASTER DE SEÇÕES POR SUPER-NICHOS
 
-Abaixo está o mapeamento detalhado das dezenas de seções canônicas projetadas para o ecossistema JAH, seus casos de uso e variáveis de customização:
+Abaixo está o mapeamento detalhado das dezenas de seções canônicas projetadas para o ecossistema Waesy, seus casos de uso e variáveis de customização:
 
 ### 3.1. Varejo & E-commerce Multicanal
 
@@ -226,7 +226,7 @@ Estrutura Hierárquica do Documento (settings.pages):
 
 ## 6. INFRAESTRUTURA DE SEO CANÔNICO & GEO (GENERATIVE ENGINE OPTIMIZATION)
 
-Para que as lojas e páginas criadas no JAH alcancem posições de topo no Google e sejam compreendidas e recomendadas por **Inteligências Artificiais Generativas (ChatGPT Search, Perplexity AI, Claude e Google Gemini)**, o sistema implementa:
+Para que as lojas e páginas criadas no Waesy alcancem posições de topo no Google e sejam compreendidas e recomendadas por **Inteligências Artificiais Generativas (ChatGPT Search, Perplexity AI, Claude e Google Gemini)**, o sistema implementa:
 
 ### A. Metatags & OpenGraph Automatizados
 Cada página armazena em seu registro:

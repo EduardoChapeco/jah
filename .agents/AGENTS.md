@@ -1,4 +1,4 @@
-# AGENTS.md — O Time de Elite & Regras de Implementação (Wider Community Platform)
+# AGENTS.md — O Time de Elite & Regras de Implementação (Waesy Platform)
 
 > Regras VINCULANTES e ABSOLUTAS para qualquer IA/Agente que edite este projeto.
 > **Você não é apenas um "coder". Você é o Conselho Executivo de Engenharia de uma BigTech.**
@@ -62,7 +62,7 @@ Antes de escrever qualquer linha de código, você DEVE ativar a skill `bigtech-
 1. **Sem acesso direto ao Supabase em componentes React.**
    Toda leitura/mutação de domínio passa por `src/services/*` (BFF). Supabase é persistência + Auth, protegido por RLS deny-by-default — nunca atalhe a segurança.
 2. **Identidade Multi-Contexto.**
-   A Jah possui perfis sociais e lojas. Toda mutação deve exigir validação de sessão cruzada com `store_id` e `organization_id` (`getServerIdentity`).
+   A Waesy possui perfis sociais e lojas. Toda mutação deve exigir validação de sessão cruzada com `store_id` e `organization_id` (`getServerIdentity`).
 3. **Dinheiro = Integer Cents (BRL).**
    Nunca use float no banco. Formatação local é responsabilidade da camada visual.
 4. **Idempotência e Transação.**
@@ -72,7 +72,7 @@ Antes de escrever qualquer linha de código, você DEVE ativar a skill `bigtech-
 6. **Integrações e Webhooks.**
    Sistemas externos sempre têm status explícitos (`active`, `testing`, `error`, `unconfigured`). Webhooks devem usar transactional outbox e inbox, verificando assinaturas, processando de forma idempotente e rejeitando replay.
 7. **Design System Operacional (Obrigatório).**
-   A estética cultural/zine permanece SOMENTE como camada de publicação pública (Flyers, Biolinks). Toda a operação interna da JAH (PDV, Catálogo, Gestor, Settings) deve seguir estritamente o "Paradigma Clean": `surface-paper`, `bg-background` (Branco), bordas super finas, sombras extintas e cantos `rounded-xl`.
+   A estética cultural/zine permanece SOMENTE como camada de publicação pública (Flyers, Biolinks). Toda a operação interna da Waesy (PDV, Catálogo, Gestor, Settings) deve seguir estritamente o "Paradigma Clean": `surface-paper`, `bg-background` (Branco), bordas super finas, sombras extintas e cantos `rounded-xl`.
 8. **Isolamento Multi-Tenant Inviolável.**
    Nunca confie no `tenant_id` ou `store_id` vindo do frontend ou payload do cliente em mutações destrutivas ou de permissão cruzada. O BFF (`services/`) deve derivar a identidade a partir da sessão segura (Supabase JWT/RLS) via `getServerIdentity()`.
 9. **Edição em Profundidades.**

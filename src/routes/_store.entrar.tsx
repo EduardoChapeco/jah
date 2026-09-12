@@ -26,7 +26,7 @@ import { LegalTermsSheet } from "@/components/legal/legal-terms-sheet";
 
 export const Route = createFileRoute("/_store/entrar")({
  head: () => ({
- meta: [{ title: "Acessar Conta — Wider OS" }],
+ meta: [{ title: "Acessar Conta — Waesy" }],
  }),
  validateSearch: (search: Record<string, unknown>): { returnUrl?: string; error?: string } => {
  return {
@@ -34,31 +34,45 @@ export const Route = createFileRoute("/_store/entrar")({
  error: typeof search.error === "string" ? search.error : undefined,
  };
  },
- loader: async () => {
- try {
- const session = await getUserSession();
- if (session?.id) {
- const searchStr = typeof window !== "undefined" ? window.location.search : "";
- const role = session?.role || session?.user?.user_metadata?.role;
- const isMaster = role === "platform_admin" || role === "master";
+  loader: async ({ search }: { search: { returnUrl?: string; error?: string } }) => {
+    try {
+      const session = await getUserSession();
+      if (session?.id) {
+        const returnUrl = search?.returnUrl;
+        const role = session?.role || session?.user?.user_metadata?.role;
+        const email = session?.email?.toLowerCase() || session?.user?.email?.toLowerCase() || "";
+        const MASTER_EMAILS = [
+          "contato@usewaesy.com",
+          "admin@usewaesy.com",
+          "meuwaesy@gmail.com",
+          "meuwider@gmail.com",
+          "excelenciatour.smo@gmail.com",
+          "admin@jah.com",
+        ];
+        const isMaster =
+          role === "platform_admin" ||
+          role === "master" ||
+          role === "admin_master" ||
+          session?.user?.user_metadata?.is_admin_master ||
+          session?.user?.user_metadata?.is_superadmin ||
+          MASTER_EMAILS.includes(email);
 
- if (searchStr.includes("returnUrl=%2Fadmin-master") || searchStr.includes("returnUrl=/admin-master")) {
- if (isMaster) {
- throw redirect({ to: "/admin-master" });
- }
- }
- if (searchStr.includes("returnUrl=%2Fworkspace") || searchStr.includes("returnUrl=/workspace")) {
- throw redirect({ to: "/workspace" });
- }
- if (!searchStr.includes("returnUrl")) {
- throw redirect({ to: "/" });
- }
- }
- } catch (e: any) {
- if (isRedirect(e)) {
- throw e;
- }
- }
+        if (returnUrl && returnUrl.startsWith("/")) {
+          if (returnUrl.startsWith("/admin-master")) {
+            if (isMaster) {
+              throw redirect({ to: "/admin-master" });
+            }
+          } else if (!returnUrl.startsWith("/entrar")) {
+            throw redirect({ to: returnUrl as any });
+          }
+        }
+        throw redirect({ to: isMaster ? "/admin-master" : "/workspace" });
+      }
+    } catch (e: any) {
+      if (isRedirect(e)) {
+        throw e;
+      }
+    }
  try {
  const brand = await getPublicBrandSettings();
  return { brand };
@@ -293,13 +307,13 @@ function StepByStepAuthPage() {
  try {
  const cleanEmail = identifier.includes("@")
  ? identifier.trim().toLowerCase()
- : `${identifier.replace(/\D/g, "") || "usuario"}@jah.os`;
+ : `${identifier.replace(/\D/g, "") || "usuario"}@usewaesy.com`;
 
  const result = await signUpWithPassword({
  data: {
  email: cleanEmail,
  password,
- fullName: fullName.trim() || identifier.split("@")[0] || "Membro Wider",
+ fullName: fullName.trim() || identifier.split("@")[0] || "Membro Waesy",
  redirectTo: returnUrl,
  isConsentLgpd: true,
  },
@@ -310,7 +324,7 @@ function StepByStepAuthPage() {
  return;
  }
 
- toast.success("Conta criada com sucesso! Bem-vindo(a) ao Wider!");
+ toast.success("Conta criada com sucesso! Bem-vindo(a) ao Waesy!");
  await getUserSession().catch(() => null);
  window.location.href = returnUrl || "/";
  } catch (err: any) {
@@ -395,7 +409,7 @@ function StepByStepAuthPage() {
  return (
  <main
  role="main"
- aria-label="Autenticação Wider OS"
+ aria-label="Autenticação Waesy"
  className="min-h-screen w-full relative select-none flex flex-col justify-between p-4 sm:p-6 md:p-8 bg-background text-foreground overflow-x-hidden"
  >
  {/* ── 1. Background com Mídia Responsiva (Apenas se cadastrado no Master) ── */}
@@ -423,7 +437,7 @@ function StepByStepAuthPage() {
  className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-black/50 backdrop-blur-xl border border-white/15 text-white hover:border-white/30 transition-colors min-h-[44px]"
  >
  <span className="bg-primary text-primary-foreground font-black text-xs px-2 py-0.5 rounded-lg tracking-wider uppercase">
- {brand?.platform_name && brand.platform_name !== "Wider" ? brand.platform_name : "Wider"}
+ {brand?.platform_name && brand.platform_name !== "Waesy" ? brand.platform_name : "Waesy"}
  </span>
  <span className="text-xs font-semibold tracking-tight text-white/90 hidden sm:inline">
  Master OS
@@ -1054,7 +1068,7 @@ function StepByStepAuthPage() {
  <Download className="size-4" />
  </div>
  <div className="min-w-0">
- <h4 className="text-xs font-bold text-foreground">Instalar Wider App</h4>
+ <h4 className="text-xs font-bold text-foreground">Instalar Waesy App</h4>
  <p className="text-[10px] text-muted-foreground truncate">Rápido, offline e notificações</p>
  </div>
  </div>

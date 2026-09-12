@@ -68,7 +68,7 @@ describe("Multimodal Onboarding, Master Catalog & Squads — Big Tech Architectu
         store_id: "22222222-2222-2222-2222-222222222222",
         status: "extracted" as const,
         input_sources: {
-          image_urls: ["https://storage.jah.os/cardapio.jpg"],
+          image_urls: ["https://storage.usewaesy.com/cardapio.jpg"],
           external_links: [],
         },
         extracted_business_profile: { niche: "Gastronomia" },

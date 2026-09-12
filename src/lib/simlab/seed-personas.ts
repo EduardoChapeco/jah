@@ -1,5 +1,5 @@
 /**
- * Catálogo Canônico de Seed Personas (Wider SimLab — derivado do Simwork Engine)
+ * Catálogo Canônico de Seed Personas (Waesy SimLab)
  * Personas brasileiras calibradas para simulação de mercado, produtos e eventos.
  */
 

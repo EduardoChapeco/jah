@@ -13,7 +13,7 @@ import { getPlatformBrandSettings, updatePlatformBrandSettings } from "@/service
 import { uploadBrandAsset } from "@/services/storage.functions";
 
 export const Route = createFileRoute("/admin-master/marca")({
- head: () => ({ meta: [{ title: "Identidade da Marca & CMS | Admin Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Identidade da Marca & CMS | Admin Waesy" }] }),
  loader: async () => {
  try {
  const brand = await getPlatformBrandSettings();
@@ -22,21 +22,21 @@ export const Route = createFileRoute("/admin-master/marca")({
  return {
  brand: {
  store_id: null,
- platform_name: "Wider",
+ platform_name: "Waesy",
  logo_url: null,
  favicon_url: null,
  show_name: true,
  show_logo: true,
- support_email: "contato@wider.com.br",
- support_whatsapp: "+5549991716233",
+ support_email: "contato@usewaesy.com",
+ support_whatsapp: "+554988416296",
  support_hours: "Segunda a Sexta, das 08h às 18h",
  login_split_image_url: null,
  login_bg_desktop_url: null,
  login_bg_tablet_url: null,
  login_bg_mobile_url: null,
- social_instagram: "@wider.app",
+ social_instagram: "@waesy.app",
  social_facebook: null,
- social_linkedin: "linkedin.com/company/wider",
+ social_linkedin: null,
  address: null,
  city: null,
  state: null,
@@ -52,7 +52,7 @@ function AdminMasterMarcaPage() {
  const router = useRouter();
 
  // Estados dos Campos
- const [platformName, setPlatformName] = useState(initialBrand.platform_name && initialBrand.platform_name !== "Wider" ? initialBrand.platform_name : "Wider");
+ const [platformName, setPlatformName] = useState(initialBrand.platform_name || "Waesy");
  const [showName, setShowName] = useState(initialBrand.show_name !== false);
  const [showLogo, setShowLogo] = useState(initialBrand.show_logo !== false);
  const [logoUrl, setLogoUrl] = useState<string | null>(initialBrand.logo_url || null);
@@ -70,7 +70,7 @@ function AdminMasterMarcaPage() {
  );
 
  // Canais de Suporte
- const [supportEmail, setSupportEmail] = useState(initialBrand.support_email || "contato@wider.com.br");
+ const [supportEmail, setSupportEmail] = useState(initialBrand.support_email || "contato@usewaesy.com");
  const [supportWhatsapp, setSupportWhatsapp] = useState(initialBrand.support_whatsapp || "");
  const [supportHours, setSupportHours] = useState(initialBrand.support_hours || "Segunda a Sexta, das 08h às 18h");
  const [socialInstagram, setSocialInstagram] = useState(initialBrand.social_instagram || "");
@@ -94,7 +94,7 @@ function AdminMasterMarcaPage() {
  // Verificação de Alterações Pendentes (Dirty State)
  const isDirty = useMemo(() => {
  return (
- platformName !== (initialBrand.platform_name || "Wider") ||
+ platformName !== (initialBrand.platform_name || "Waesy") ||
  showName !== (initialBrand.show_name !== false) ||
  showLogo !== (initialBrand.show_logo !== false) ||
  logoUrl !== (initialBrand.logo_url || null) ||
@@ -102,7 +102,7 @@ function AdminMasterMarcaPage() {
  loginBgDesktopUrl !== (initialBrand.login_bg_desktop_url || initialBrand.login_split_image_url || null) ||
  loginBgTabletUrl !== (initialBrand.login_bg_tablet_url || initialBrand.login_split_image_url || null) ||
  loginBgMobileUrl !== (initialBrand.login_bg_mobile_url || initialBrand.login_split_image_url || null) ||
- supportEmail !== (initialBrand.support_email || "contato@wider.com.br") ||
+ supportEmail !== (initialBrand.support_email || "contato@usewaesy.com") ||
  supportWhatsapp !== (initialBrand.support_whatsapp || "") ||
  supportHours !== (initialBrand.support_hours || "Segunda a Sexta, das 08h às 18h") ||
  socialInstagram !== (initialBrand.social_instagram || "") ||
@@ -252,7 +252,7 @@ function AdminMasterMarcaPage() {
  id="platform-name"
  value={platformName}
  onChange={(e) => setPlatformName(e.target.value)}
- placeholder="Ex: JAH"
+ placeholder="Ex: Waesy"
  className="rounded-xl h-10 text-sm font-semibold bg-background"
  />
  </div>
@@ -646,7 +646,7 @@ function AdminMasterMarcaPage() {
  <Input
  value={supportEmail}
  onChange={(e) => setSupportEmail(e.target.value)}
- placeholder="Ex: suporte@wider.com.br"
+ placeholder="Ex: suporte@usewaesy.com"
  className="rounded-xl h-9 text-xs bg-background"
  />
  </div>
@@ -686,7 +686,7 @@ function AdminMasterMarcaPage() {
  <Input
  value={socialInstagram}
  onChange={(e) => setSocialInstagram(e.target.value)}
- placeholder="@wider.app"
+ placeholder="@waesy.app"
  className="rounded-xl h-9 text-xs bg-background"
  />
  </div>
@@ -699,7 +699,7 @@ function AdminMasterMarcaPage() {
  <Input
  value={socialLinkedin}
  onChange={(e) => setSocialLinkedin(e.target.value)}
- placeholder="linkedin.com/company/wider"
+ placeholder="https://linkedin.com/company/waesy"
  className="rounded-xl h-9 text-xs bg-background"
  />
  </div>
@@ -762,7 +762,7 @@ function AdminMasterMarcaPage() {
  ) : null}
  {(showName || !logoUrl) && (
  <span className="font-display font-black text-base tracking-tight text-foreground">
- {platformName || "Wider"}
+ {platformName || "Waesy"}
  </span>
  )}
  {!showLogo && !showName && (
@@ -896,7 +896,7 @@ function AdminMasterMarcaPage() {
  {/* Topo do Login */}
  <div className="absolute top-2 left-2 right-2 flex items-center justify-between z-10">
  <div className="px-2 py-0.5 rounded-lg bg-black/60 backdrop-blur-md border border-white/20 text-white text-[9px] font-bold">
- {platformName || "WIDER"}
+ {platformName || "WAESY"}
  </div>
  <div className="px-2 py-0.5 rounded-lg bg-black/60 backdrop-blur-md border border-white/20 text-white/80 text-[8px]">
  Voltar
@@ -908,7 +908,7 @@ function AdminMasterMarcaPage() {
  <div className="flex items-center justify-between">
  <span className="text-[10px] font-bold text-white">Acessar Conta</span>
  <Badge className="bg-primary text-primary-foreground text-[8px] px-1.5 py-0">
- {platformName || "Wider"}
+ {platformName || "Waesy"}
  </Badge>
  </div>
  <div className="h-6 rounded-md bg-white/10 border border-white/15 px-2 flex items-center justify-between text-[9px] text-white/60">
@@ -935,7 +935,7 @@ function AdminMasterMarcaPage() {
  )}
  </div>
  <span className="text-xs text-foreground font-medium truncate flex-1">
- {platformName || "Wider"} — Wider OS
+ {platformName || "Waesy"} — Waesy
  </span>
  <span className="text-xs text-muted-foreground ml-1">×</span>
  </div>

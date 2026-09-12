@@ -31,7 +31,7 @@ import {
 export const Route = createFileRoute("/_store/concursos")({
   head: () => ({
     meta: [
-      { title: "Sorteios & Prêmios | Comunidade Wider" },
+      { title: "Sorteios & Prêmios | Comunidade Waesy" },
       {
         name: "description",
         content:
@@ -185,7 +185,7 @@ function ConcursosPublicPage() {
           onClick={() => handleFilterChange("official")}
           className="h-9 px-3.5 rounded-xl text-xs font-semibold cursor-pointer"
         >
-          Oficiais Wider
+          Oficiais Waesy
         </Button>
         <Button
           type="button"

@@ -403,7 +403,7 @@ function WorkspaceGroupTourDetailPage() {
 
  <div className="pt-6 border-t border-slate-200 flex justify-between text-[10px] text-slate-500 font-mono">
  <span>Total de Passageiros Embarcados: {occupiedSeats.length}</span>
- <span>Documento emitido digitalmente pela plataforma Wider</span>
+ <span>Documento emitido digitalmente pela plataforma Waesy</span>
  </div>
  </div>
  </div>

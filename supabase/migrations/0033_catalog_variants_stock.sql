@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0031: Catalog Variants & Stock Reservations
+-- Waesy Commerce — Migration 0031: Catalog Variants & Stock Reservations
 -- ============================================================================
 -- Introduz o RPC de reserva de estoque no carrinho e atualiza o checkout 
 -- para gerenciar a dedução correta dos counters de estoque.

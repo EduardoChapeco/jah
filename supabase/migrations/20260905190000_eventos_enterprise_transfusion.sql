@@ -1,5 +1,5 @@
 -- Migration: 20260905190000_eventos_enterprise_transfusion.sql
--- Description: Transplants full event management suite from persona-nexus to Wider OS
+-- Description: Transplants full event management suite from persona-nexus to Waesy
 -- Tables: eventos_quadros, eventos_quadros_colunas, eventos_tarefas, eventos_orcamentos, eventos_setores, eventos_parceiros, eventos_lineup, eventos_documentos
 
 -- ============================================================================

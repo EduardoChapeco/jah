@@ -1,4 +1,4 @@
-# 🏛️ AUDITORIA FORENSE SISTÊMICA & PLATAFORMA EVOLUTIVA JAH
+# 🏛️ AUDITORIA FORENSE SISTÊMICA & PLATAFORMA EVOLUTIVA Waesy
 ## Confronto de 30 Prompts (Solicitado vs. Executado), Escada de Maturidade, Storyboards de Negócio e Opportunity Maps
 
 > **Status:** Documento Canônico de Auditoria Sistêmica e Rastreabilidade Anti-Esquecimento.  
@@ -9,14 +9,14 @@
 
 ## 1. 🏛️ PARECER DO CONSELHO EXECUTIVO DE BIGTECH
 
-O Conselho Executivo de Engenharia da JAH reuniu suas 7 Personas Especialistas para realizar uma auditoria vertical e transversal sem concessões sobre os últimos 30 prompts, confrontando a intenção humana com as evidências de código, banco de dados, contratos BFF e comportamento de interface:
+O Conselho Executivo de Engenharia da Waesy reuniu suas 7 Personas Especialistas para realizar uma auditoria vertical e transversal sem concessões sobre os últimos 30 prompts, confrontando a intenção humana com as evidências de código, banco de dados, contratos BFF e comportamento de interface:
 
-1. **CPO & Presidente do Conselho:** "A plataforma atingiu uma massa crítica impressionante: 697 arquivos TypeScript, 246 rotas, 252 migrações SQL e 250 tabelas. No entanto, funcionalidades maduras não podem ser avaliadas apenas pelo 'caminho feliz'. A JAH precisa ser uma plataforma evolutiva: transformar momentos em que o sistema diz 'não' (sem estoque, restaurante fechado, profissional sem horário) em **captura de intenção comercial** (encomenda, lista de espera, agendamento futuro)."
+1. **CPO & Presidente do Conselho:** "A plataforma atingiu uma massa crítica impressionante: 697 arquivos TypeScript, 246 rotas, 252 migrações SQL e 250 tabelas. No entanto, funcionalidades maduras não podem ser avaliadas apenas pelo 'caminho feliz'. A Waesy precisa ser uma plataforma evolutiva: transformar momentos em que o sistema diz 'não' (sem estoque, restaurante fechado, profissional sem horário) em **captura de intenção comercial** (encomenda, lista de espera, agendamento futuro)."
 2. **Chief Software Architect:** "Identificamos e sanamos imediatamente um blocker crítico nesta sessão: 7 rotas utilizavam a anotação `as any` dentro de `createFileRoute()`, impedindo o AST parser do `@tanstack/router-generator` de compilar a árvore de rotas. O código agora segue rigorosamente a assinatura canônica de string literal."
 3. **Staff Security & Data Engineer:** "Auditamos as 250 tabelas de banco de dados. 248 possuem RLS estrito com políticas restritivas baseadas em `getServerIdentity()` e `is_store_staff()`. Apenas a tabela de histórico de handle e a sintaxe de particionamento demandavam hardening."
 4. **Principal Design Ops & UI/UX Director:** "A interface evoluiu para o 'Paradigma Clean' no Workspace e 'Editorial Zine' na vitrine pública. Erradicamos caixas conversacionais prolixas e impusemos a largura unificada `max-w-6xl` para eliminar o 'efeito sanfona'. Touch targets respeitam o mínimo de 44px (Apple HIG)."
 5. **Staff QA & Verification Gatekeeper:** "Completude séptupla comprovada: toda ação relevante agora possui Tabela no BD ➔ Contrato BFF com Zod ➔ UI com estados reais de feedback ➔ Gestão no Workspace ➔ Silêncio Visual ➔ Ergonomia em 3 toques ➔ Zero CLS."
-6. **Opportunity Discovery Agent:** "Mapeamos onde a JAH hoje perde vendas e leads. O comércio não precisa parar na falta de estoque se suportar encomenda (`preorder`) ou lista de espera (`waitlist`). O mesmo vale para agendamentos e mesas."
+6. **Opportunity Discovery Agent:** "Mapeamos onde a Waesy hoje perde vendas e leads. O comércio não precisa parar na falta de estoque se suportar encomenda (`preorder`) ou lista de espera (`waitlist`). O mesmo vale para agendamentos e mesas."
 7. **Niche Simulation Agent:** "Simulamos o sistema contra Gastronomia, Advocacia/JUS, Turismo, Varejo e Serviços. Constatamos que a modularização por capabilities e schemas compartilháveis funciona sem duplicar código nem criar forks por nicho."
 
 ---
@@ -44,19 +44,19 @@ Abaixo está o confronto minucioso entre o que foi solicitado em cada iteração
 | **#15** | 6086 | Gestão de entregadores, frotas e logística com persistência e rastreamento. | Atualização do módulo de frotas (`workspace.pedidos.frota.tsx`) e `fleet.functions.ts`. | Despacho de pedidos para entregadores próprios ou autônomos cadastrados. | WebSocket de telemetria contínua a cada segundo. | 🟡 PARCIALMENTE REALTIME |
 | **#16** | 6352 | **Turismo & Turis OS**: agências de viagem, tarefas diárias, assentos de ônibus e excursões. | Migrations de assentos, tokens de passageiro, check-in e caixa de excursão. Rotas `workspace.turismo.*` e `workspace.tarefas.tsx`. | Editor 2D de assentos, central de embarque com check-in e link público do passageiro. | As rotas usavam `as any`, o que causou quebra no build do Vite. | 🔴 CORRIGIDO NESTA SESSÃO |
 | **#17** | 7134 | Validação de contratos BFF e segurança dos novos fluxos de turismo. | Schemas Zod criados em `vehicle-layouts.functions.ts` e `group-tour-boarding.functions.ts`. | Endpoints protegidos por sessão de staff e validação de tokens temporários. | — | ✅ COMPROVADO |
-| **#18** | 7271 | Manutenção do padrão de design limpo nas telas de tarefas e turismo. | Telas construídas com componentes canônicos (`PageHeader`, `Badge`, `Button`, `Dialog`). | Coerência visual absoluta com o restante do Workspace Wider. | — | ✅ COMPROVADO |
+| **#18** | 7271 | Manutenção do padrão de design limpo nas telas de tarefas e turismo. | Telas construídas com componentes canônicos (`PageHeader`, `Badge`, `Button`, `Dialog`). | Coerência visual absoluta com o restante do Workspace Waesy. | — | ✅ COMPROVADO |
 | **#19** | 7400 | Design limpo, sem ícones excessivos, sem títulos redundantes, fácil de acessar. | Poda de descrições óbvias nas páginas operacionais de gestão. | Superfície de trabalho mais ampla e foco nos dados e controles operacionais. | — | ✅ COMPROVADO |
 | **#20** | 7409 | Incremento de microfases em KDS de cozinha e reservas de mesas. | Planejamento da decomposição do KDS em estações de preparo e mapa de salão. | Base para o KDS multi-estação estruturada. | — | ✅ COMPROVADO |
 | **#21** | 7416 | Continuidade sem duplicação de autoridades de dados. | Reutilização da tabela canônica `orders` e `order_items` para alimentar o KDS. | Zero tabelas redundantes para pedidos de cozinha. | — | ✅ COMPROVADO |
-| **#22** | 7423 | **Protocolo Padrão de Referências Externas**: não copiar estética; extrair produto e arquitetura. | Documentação do protocolo canônico em regras e prompts mestres. | Padronização metodológica para qualquer análise de benchmark no projeto JAH. | — | ✅ FORMALIZADO |
+| **#22** | 7423 | **Protocolo Padrão de Referências Externas**: não copiar estética; extrair produto e arquitetura. | Documentação do protocolo canônico em regras e prompts mestres. | Padronização metodológica para qualquer análise de benchmark no projeto Waesy. | — | ✅ FORMALIZADO |
 | **#23** | 7431 | Continuidade de microfases completas com runtime proof. | Implementação da Fase A de Gastronomia: KDS Cozinha com Estações de Preparo. | Filtro por Chapa, Forno, Bebidas, Sobremesas; SLAs coloridos (Verde/Amarelo/Vermelho). | Notificação sonora no celular do garçom. | ✅ COMPROVADO |
-| **#24** | 7444 | Tratar o JAH como produto real de produção em vez de tarefas pontuais. | Implementação da Fase B de Gastronomia: Mapa 2D de Mesas e Salão (`workspace.reservas.tsx`). | Salão visual em grid 4×3 com coloração por status e Sheet lateral de detalhes. | Drag-and-drop de reposicionamento livre das mesas. | ✅ COMPROVADO |
+| **#24** | 7444 | Tratar o Waesy como produto real de produção em vez de tarefas pontuais. | Implementação da Fase B de Gastronomia: Mapa 2D de Mesas e Salão (`workspace.reservas.tsx`). | Salão visual em grid 4×3 com coloração por status e Sheet lateral de detalhes. | Drag-and-drop de reposicionamento livre das mesas. | ✅ COMPROVADO |
 | **#25** | 7451 | Continuidade de microfases de relatórios e inteligência operacional. | Implementação da Fase C de Gastronomia: `workspace.relatorios.gastronomia.tsx`. | KPIs diários/mensais, ticket médio, canais, heatmap de horário de pico e top 10 produtos. | Exportação em PDF/Excel. | ✅ COMPROVADO |
 | **#26** | 7589 | Design humano, silencioso, sem cards conversacionais, navegação fluida em 3 toques. | Auditoria de ergonomia e touch targets em botões de ação e abas. | Alvos de toque de 44px e remoção de botões conversacionais prolixos. | — | ✅ COMPROVADO |
 | **#27** | 7770 | Protocolo de referências aplicado a delivery/food com rigor em RLS. | Verificação de RLS e queries server-side em todos os serviços de pedidos. | Segurança confirmada: deny-by-default ativo em toda a camada de dados. | — | ✅ COMPROVADO |
 | **#28** | 7778 | Continuidade de microfases em frotas e suporte ao lojista. | Criação da central de chamados em `workspace.suporte.tsx` e `support-tickets.functions.ts`. | Abertura e resolução de chamados técnicos e operacionais por categoria e SLA. | Rota usava `as any` (corrigido!). | 🔴 CORRIGIDO NESTA SESSÃO |
 | **#29** | 7787 | Sincronização final de contratos e preparação para auditoria profunda. | Verificação de integridade entre `routeTree.gen.ts` e arquivos de rotas. | Detecção das anomalias de tipagem que bloqueavam a compilação. | — | ✅ COMPROVADO |
-| **#30** | 8468 | **Auditoria Sistêmica, Storyboards de Negócio, Escada de Maturidade e Opportunity Maps**. | Execução desta auditoria completa: correção das 7 rotas com `as any`, compilação Vite, inventário e mapas. | Diagnóstico forense absoluto da JAH, identificação de carências e plano de microfases. | Executar as microfases de Prazos do JUS e Cardápio 3 toques. | 🔄 EM ANDAMENTO |
+| **#30** | 8468 | **Auditoria Sistêmica, Storyboards de Negócio, Escada de Maturidade e Opportunity Maps**. | Execução desta auditoria completa: correção das 7 rotas com `as any`, compilação Vite, inventário e mapas. | Diagnóstico forense absoluto da Waesy, identificação de carências e plano de microfases. | Executar as microfases de Prazos do JUS e Cardápio 3 toques. | 🔄 EM ANDAMENTO |
 
 ---
 
@@ -134,7 +134,7 @@ Abaixo está o confronto minucioso entre o que foi solicitado em cada iteração
 
 ---
 
-## 4. 🪜 ESCADA DE MATURIDADE DA PLATAFORMA JAH
+## 4. 🪜 ESCADA DE MATURIDADE DA PLATAFORMA Waesy
 
 | Domínio / Módulo | Nível Atual | Diagnóstico da Realidade | O Que Impede Nível Superior |
 | :--- | :---: | :--- | :--- |
@@ -152,9 +152,9 @@ Abaixo está o confronto minucioso entre o que foi solicitado em cada iteração
 
 ## 5. 🗺️ CAPABILITY OPPORTUNITY MAP & LOST OPPORTUNITY MAP
 
-### 5.1 Lost Opportunity Map (Onde a JAH responde "não" vs. Oportunidade)
+### 5.1 Lost Opportunity Map (Onde a Waesy responde "não" vs. Oportunidade)
 
-| Situação Atual de Bloqueio | Resposta Atual | Consequência Comercial | Solução Canônica da JAH (Captura de Intenção) |
+| Situação Atual de Bloqueio | Resposta Atual | Consequência Comercial | Solução Canônica da Waesy (Captura de Intenção) |
 | :--- | :--- | :--- | :--- |
 | **Produto sem estoque no catálogo** | "Indisponível" (botão desabilitado) | Perda imediata da venda; cliente compra no concorrente. | **Modo Encomenda (`preorder`)**: Lojista define lead time (ex: "Produção em 5 dias") ou ativa "Avise-me quando voltar" capturando WhatsApp/Email. |
 | **Restaurante fechado (ex: 11h20)** | "Loja Fechada" | Cliente sai do app sem pedir o almoço das 12h. | **Pedido Agendado (`scheduled_order`)**: Permite montar o pedido com promessa de entrega no primeiro slot de abertura. |
@@ -167,7 +167,7 @@ Abaixo está o confronto minucioso entre o que foi solicitado em cada iteração
 ## 6. 🎬 STORYBOARDS DE NEGÓCIO (14 CENAS)
 
 ### Storyboard 1: Jornada de Assistência Jurídica & Contratação de Honorários (JUS)
-- **Cena 1 — Descoberta:** Cidadão acessa `/conta/processos` no portal Wider ou consulta por CPF.
+- **Cena 1 — Descoberta:** Cidadão acessa `/conta/processos` no portal Waesy ou consulta por CPF.
 - **Cena 2 — Entrada:** Vê seus processos ativos ou clica em "Solicitar Advogado".
 - **Cena 3 — Estado Inicial:** Formulário direto com seleção de Área Jurídica (Trabalhista, Cível, Família, etc.) e Urgência.
 - **Cena 4 — Intenção:** Cidadão descreve os fatos: "Empresa não pagou minhas verbas rescisórias há 3 meses".

@@ -785,7 +785,7 @@ export const importArticleFromUrl = createServerFn({ method: "POST" })
 
  if (!rawContent) {
  const fetchRes = await fetch(input.url, {
- headers: { "User-Agent": "Mozilla/5.0 (compatible; WiderBot/1.0)" },
+ headers: { "User-Agent": "Mozilla/5.0 (compatible; WaesyBot/1.0)" },
  signal: AbortSignal.timeout(8000),
  });
  if (!fetchRes.ok) throw new Error(`Não foi possível acessar a URL (HTTP ${fetchRes.status})`);

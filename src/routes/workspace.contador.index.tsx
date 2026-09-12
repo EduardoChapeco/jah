@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/table";
 
 export const Route = createFileRoute("/workspace/contador/")({
-  head: () => ({ meta: [{ title: "Painel Contábil & DRE | Workspace Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Painel Contábil & DRE | Workspace Waesy" }] }),
   loader: async () => {
     try {
       const summary = await getAccountantFinancialSummary({ data: {} }).catch(() => null);

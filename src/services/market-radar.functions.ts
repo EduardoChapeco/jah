@@ -784,7 +784,7 @@ Diferenciais Competitivos: ${briefing.differentials}`;
       swot_analysis: {
         strengths: [briefing.differentials || "Autoridade e atendimento exclusivo", "Flexibilidade e proximidade local"],
         weaknesses: ["Escala de distribuição inicial", "Volume de tráfego orgânico"],
-        opportunities: ["Explorar vulnerabilidades de concorrentes padronizados", "Fidelização via cashback e ecossistema Wider"],
+        opportunities: ["Explorar vulnerabilidades de concorrentes padronizados", "Fidelização via cashback e ecossistema Waesy"],
         threats: ["Pressão de preços por marketplaces massivos", "Custo crescente de anúncios pagos"],
       },
       seven_sins_triggers: {

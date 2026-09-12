@@ -63,14 +63,14 @@ export const Route = createFileRoute("/_store/turismo/$id")({
  meta: [
  {
  title: loaderData?.experience
- ? `${loaderData.experience.title} — Turismo Wider`
- : "Experiência Turística — Wider",
+ ? `${loaderData.experience.title} — Turismo Waesy`
+ : "Experiência Turística — Waesy",
  },
  {
  name: "description",
  content: loaderData?.experience?.description
  ? `${loaderData.experience.description.slice(0, 160)}...`
- : "Descubra passeios, hospedagens e roteiros turísticos autênticos no Wider.",
+ : "Descubra passeios, hospedagens e roteiros turísticos autênticos no Waesy.",
  },
  ],
  }),
@@ -644,7 +644,7 @@ function TourismDetailPage() {
  <div className="pt-3 space-y-2 text-[11px] text-muted-foreground">
  <div className="flex items-center gap-2">
  <ShieldCheck size={16} weight="bold" className="text-foreground shrink-0" />
- <span>Experiência verificada e curada pelo ecossistema Wider.</span>
+ <span>Experiência verificada e curada pelo ecossistema Waesy.</span>
  </div>
  </div>
  </div>

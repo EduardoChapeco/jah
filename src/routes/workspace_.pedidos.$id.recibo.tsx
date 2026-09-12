@@ -232,7 +232,7 @@ function ReceiptPrintPage() {
       {/* Rodapé do Recibo */}
       <div className="text-center text-[10px] text-neutral-500 mt-12 pt-4 border-t border-dashed border-neutral-300 space-y-1">
         <p>Agradecemos a sua preferência!</p>
-        <p>Wider Commerce • Sistema Integrado de Gestão & Conformidade Fiscal</p>
+        <p>Waesy Commerce • Sistema Integrado de Gestão & Conformidade Fiscal</p>
       </div>
 
       {/* Estilos para impressão limpa */}

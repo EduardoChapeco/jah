@@ -92,7 +92,7 @@ export const Route = createFileRoute("/_store/eventos")({
   validateSearch: (search: Record<string, unknown>) => SearchSchema.parse(search),
   head: () => ({
     meta: [
-      { title: "Marketplace de Eventos, Shows e Ingressos | Wider" },
+      { title: "Marketplace de Eventos, Shows e Ingressos | Waesy" },
       {
         name: "description",
         content:
@@ -883,7 +883,7 @@ function EventosPage() {
             <div className="flex items-center gap-2">
               <Sparkle size={16} weight="fill" className="text-primary" />
               <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                Descubra Também no Wider
+                Descubra Também no Waesy
               </h2>
             </div>
             <ProceduralInfiniteFeed

@@ -55,7 +55,7 @@ const IMOVEIS_CATEGORIES: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/imoveis")({
  head: () => ({
  meta: [
- { title: "Imóveis, Casas, Apartamentos & Aluguel | Wider OS" },
+ { title: "Imóveis, Casas, Apartamentos & Aluguel | Waesy" },
  {
  name: "description",
  content:

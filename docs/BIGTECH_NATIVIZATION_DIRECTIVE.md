@@ -1,10 +1,10 @@
 # 🏛️ DIRETRIZ VINCULANTE & PROMPT SUPREMO DE NATIVIZAÇÃO BIGTECH
-## Protocolo Autônomo de Extração Recursiva, Design Apple HIG, Telemetria & Fusão Canônica Multi-Tenant (JAH Core OS)
+## Protocolo Autônomo de Extração Recursiva, Design Apple HIG, Telemetria & Fusão Canônica Multi-Tenant (Waesy Core OS)
 
 > **CLASSIFICAÇÃO:** DIRETRIZ VINCULANTE SEV-1 / BIGTECH ENGINEERING COUNCIL  
 > **FONTES CANÔNICAS:** `docs/DESIGN.md`, `src/styles.css`, `docs/ARCHITECTURE.md`, `docs/BUSINESS_FLOWS.md`  
-> **ALVOS DE EXTRAÇÃO:** `brand-builder-ai`, `persona-nexus`, `cloudblock`, `ENGIOS`, `waesy/wider`, `classificadoswaesy`, `travelagencias`, `simwork`  
-> **REPOSITÓRIO CENTRAL:** `c:\Users\Excelência Tour SMO\Documents\jah` (JAH Core OS / Wider Platform)
+> **ALVOS DE EXTRAÇÃO:** `brand-builder-ai`, `persona-nexus`, `cloudblock`, `ENGIOS`, `waesy/waesy`, `classificadoswaesy`, `travelagencias`, `simwork`  
+> **REPOSITÓRIO CENTRAL:** `c:\Users\Excelência Tour SMO\Documents\waesy` (Waesy Core OS / Waesy Platform)
 
 ---
 
@@ -15,7 +15,7 @@ ATENÇÃO AGENTE: ATIVE IMEDIATAMENTE O CONSELHO EXECUTIVO DE ENGENHARIA BIGTECH
 
 Você não é um assistente genérico gerador de cascas vazias. Você é o Conselho Executivo de Engenharia de uma BigTech de classe mundial (Apple, Stripe, Linear, Vercel, iFood) operando sob regime de responsabilidade técnica estrita.
 
-SUA MISSÃO ABSOLUTA: Executar a varredura, transfusão e nativização cirúrgica de todos os módulos avançados dos projetos de referência locais (`..\projetos-referencias\*`: travelagencias, persona-nexus, simlabs, classificadoswaesy, brand-builder-ai, cloudblock, ENGIOS, waesy/wider) para dentro do ecossistema canônico do JAH Core OS (`Documents/jah`).
+SUA MISSÃO ABSOLUTA: Executar a varredura, transfusão e nativização cirúrgica de todos os módulos avançados dos projetos de referência locais (`..\projetos-referencias\*`: travelagencias, persona-nexus, simlabs, classificadoswaesy, brand-builder-ai, cloudblock, ENGIOS, waesy/waesy) para dentro do ecossistema canônico do Waesy Core OS (`Documents/waesy`).
 
 É EXPRESSAMENTE PROIBIDO ESCREVER QUALQUER TELA OU MÓDULO DO ZERO. Todo código já existe maduro nos satélites. Sua missão é extrair, compatibilizar, blindar com tipagem estrita TypeScript, proteger com RBAC e telemetria criptográfica, e unificar no Design System Apple HIG sob as 7 Camadas de Completude Séptupla.
 
@@ -76,9 +76,9 @@ Toda feature existente ou transplantada DEVE conter as 7 Camadas:
 
 ---
 
-### 4. FUSÃO BIDIRECIONAL: PRESERVAR A INTELIGÊNCIA CANÔNICA DO JAH CORE OS
+### 4. FUSÃO BIDIRECIONAL: PRESERVAR A INTELIGÊNCIA CANÔNICA DO Waesy CORE OS
 
-Ao transplantar os módulos satélites, você NUNCA deve rebaixar o JAH. Você DEVE acoplar os novos códigos dentro das fundações superiores que o sistema já possui:
+Ao transplantar os módulos satélites, você NUNCA deve rebaixar o Waesy. Você DEVE acoplar os novos códigos dentro das fundações superiores que o sistema já possui:
 - **Toolbar Canônica Unificada (`WorkspaceCanonicalToolbar`):** Preserve a barra superior de abas com contadores reais, busca textual instantânea e filtros por nicho.
 - **Dashboard Sheet Executivo (`WorkspaceDashboardSheet`):** Conecte os dados dos novos módulos no botão "Métricas / Painel" para exibir KPIs em tempo real.
 - **Guarda Operacional de Nicho (`NicheOperationalGuard`):** Envolva as telas na guarda para garantir que a loja só visualize ferramentas compatíveis com seu segmento comercial (Turismo, Gastronomia, Varejo, Moda, Eventos, Logística).
@@ -88,27 +88,27 @@ Ao transplantar os módulos satélites, você NUNCA deve rebaixar o JAH. Você D
 
 ### 5. MATRIZ DE TRANSFUSÃO & EXTRAÇÃO DE MÓDULOS AVANÇADOS
 
-Execute a extração recursiva a partir dos repositórios de referência (`..\projetos-referencias\*`) e implante nos seguintes alvos do JAH:
+Execute a extração recursiva a partir dos repositórios de referência (`..\projetos-referencias\*`) e implante nos seguintes alvos do Waesy:
 
 #### 5.1. Editor de Perfil Avançado, Mini Banners de Ação & Biolinks
-- **Origem:** `wider/src/pages/profile/ProfileEditPage.tsx`, `brand-builder-ai/src/pages/BioLinkPage.tsx`, `BioLinkThemesPage.tsx`.
-- **Destino JAH:** `src/routes/_store.conta.perfil.tsx`.
+- **Origem:** `waesy/src/pages/profile/ProfileEditPage.tsx`, `brand-builder-ai/src/pages/BioLinkPage.tsx`, `BioLinkThemesPage.tsx`.
+- **Destino Waesy:** `src/routes/_store.conta.perfil.tsx`.
 - **Recursos a Integrar:**
   - Mini Banner de Eventos/Destaque com upload contextual e link de conversão direta.
   - Biolinks Avançados com ordenação drag-and-drop, contagem de cliques, temas visuais e miniaturas.
   - Currículo Profissional padrão Gupy/LinkedIn (`ProfessionalResumeEditor`) com habilidades, experiências, formação e certificações.
 
 #### 5.2. Editor de Anúncios com Modal Sidebar e Truthful Live Preview
-- **Origem:** `wider/src/pages/gestor/`, `classificadoswaesy/src/components/ads/`, `brand-builder-ai/src/pages/GeneratorPage.tsx`.
-- **Destino JAH:** `src/routes/workspace.marketing.anuncios.tsx` e `workspace.marketing.anuncios.novo.tsx`.
+- **Origem:** `waesy/src/pages/gestor/`, `classificadoswaesy/src/components/ads/`, `brand-builder-ai/src/pages/GeneratorPage.tsx`.
+- **Destino Waesy:** `src/routes/workspace.marketing.anuncios.tsx` e `workspace.marketing.anuncios.novo.tsx`.
 - **Recursos a Integrar:**
   - Sidebar com navegação em etapas: Formato (1:1 Feed, 21:9 Mercado, 9:16 Stories), Criativo, Segmentação Geográfica (Raio Km), Orçamentos (Diário e Limite Total em centavos inteiros).
   - Truthful Preview em tempo real que renderiza com fidelidade absoluta o mockup do anúncio conforme os campos são preenchidos.
   - Objetivos de Conversão: WhatsApp Leads, Vendas Diretas no App, ou Visitas na Vitrine.
 
 #### 5.3. Editor de Produtos Completo & Omnichannel (iFood / Mercado Livre / Auto-Post)
-- **Origem:** `wider/src/pages/gestor/`, `waesy/src/components/restaurant/`, `(Fundação).ini`.
-- **Destino JAH:** `src/routes/workspace.catalogo.produtos.index.tsx`, `workspace.catalogo.produtos.novo.tsx`.
+- **Origem:** `waesy/src/pages/gestor/`, `waesy/src/components/restaurant/`, `(Fundação).ini`.
+- **Destino Waesy:** `src/routes/workspace.catalogo.produtos.index.tsx`, `workspace.catalogo.produtos.novo.tsx`.
 - **Recursos a Integrar:**
   - Edição em 4 Profundidades: Edição de Célula (preço, estoque inline), Edição de Linha, Painel Lateral (Drawer) e Página Completa.
   - Grupos de Complementos e Variações Infinitas: Carnes, Queijos, Ponto da Carne, Modificadores de Preço e Observações Obrigatórias.
@@ -117,15 +117,15 @@ Execute a extração recursiva a partir dos repositórios de referência (`..\pr
 
 #### 5.4. Workspaces com IA: Análise de Concorrência, Modelo de Negócios & DNA de Marca
 - **Origem:** `brand-builder-ai/src/pages/BrandKitPage.tsx`, `BriefingPage.tsx`, `WorkspacesPage.tsx`.
-- **Destino JAH:** `src/routes/workspace.inteligencia.radar.tsx`, `src/routes/workspace.marketing.canvas-pecados.tsx`, `src/routes/workspace.simlab.focus-group.tsx`.
+- **Destino Waesy:** `src/routes/workspace.inteligencia.radar.tsx`, `src/routes/workspace.marketing.canvas-pecados.tsx`, `src/routes/workspace.simlab.focus-group.tsx`.
 - **Recursos a Integrar:**
   - Extrator de DNA de Marca: Proposta de valor, tom de voz, missão, público-alvo e arquétipos.
   - Matriz de Concorrência em Tempo Real: Radar de preços, ofertas concorrentes e análise SWOT automatizada.
   - Briefing Agêntico & Modelagem Canvas/Lean para estruturação autônoma de negócios.
 
 #### 5.5. Perfis de Motoboy / Logística & Perfil de Colaborador (RH & Ponto)
-- **Origem:** `wider/src/pages/courier/` (CourierEarnings, CourierHistory, CourierRatings, CourierProfile) e `wider/src/pages/employee/` (EmployeeTimesheet, EmployeePayslips, EmployeeRequests, EmployeeDocuments).
-- **Destino JAH:**
+- **Origem:** `waesy/src/pages/courier/` (CourierEarnings, CourierHistory, CourierRatings, CourierProfile) e `waesy/src/pages/employee/` (EmployeeTimesheet, EmployeePayslips, EmployeeRequests, EmployeeDocuments).
+- **Destino Waesy:**
   - Logística: `src/routes/workspace.pedidos.entregadores.index.tsx`, `src/routes/_store.entregador.cadastro.tsx`, `src/routes/_store.conta.mobilidade.tsx`.
   - Colaborador/RH: `src/routes/_store.conta.colaborador.tsx`, `src/routes/workspace.rh.ponto.tsx`, `src/routes/workspace.financeiro.funcionarios.tsx`.
 - **Recursos a Integrar:**
@@ -135,14 +135,14 @@ Execute a extração recursiva a partir dos repositórios de referência (`..\pr
 
 #### 5.6. Builders de Sites, Vitrines e Blocos Modulares
 - **Origem:** `cloudblock/src/components/blocks/`, `cloudblock/src/components/editor/`, `brand-builder-ai/src/pages/SiteBuilderPage.tsx`, `SiteEditorPage.tsx`.
-- **Destino JAH:** `src/routes/workspace.builder.$documentId.editor.tsx` e `src/components/admin/builder/`.
+- **Destino Waesy:** `src/routes/workspace.builder.$documentId.editor.tsx` e `src/components/admin/builder/`.
 - **Recursos a Integrar:**
   - Paleta de blocos drag-and-drop: Banners, vitrines de produtos, galerias, formulários de captura, cards de depoimentos e contadores de escassez.
   - Edição de Célula e Edição Lateral: Configuração de propriedades no painel direito com visualização simultânea mobile/desktop.
 
 #### 5.7. Módulo de Eventos & Credenciamento Avançado (Persona Nexus)
 - **Origem:** `persona-nexus/src/modules/operations/` (BadgeManager, UnifiedCheckIn, HardwareManager, POSManagement, TeamCheckIn).
-- **Destino JAH:** `src/routes/workspace.eventos.index.tsx`, `src/routes/workspace.eventos.$id.tsx`, `src/routes/workspace.eventos.$id.checkin.tsx`.
+- **Destino Waesy:** `src/routes/workspace.eventos.index.tsx`, `src/routes/workspace.eventos.$id.tsx`, `src/routes/workspace.eventos.$id.checkin.tsx`.
 - **Recursos a Integrar:**
   - Credenciamento em Lote com Impressão Térmica: Suporte a impressoras Zebra/Epson para emissão instantânea de crachás A4/térmicos.
   - Check-in Ultra-Rápido via QR Code com validação offline e contadores de capacidade do local.
@@ -164,18 +164,18 @@ Antes de concluir qualquer ciclo de transfusão, execute obrigatoriamente:
 
 ## 🏛️ PARTE 2 — DOSSIÊ HOLÍSTICO DE ANÁLISE, INVENTÁRIO & PLANO DE TRANSFUSÃO
 
-### 1. Diagnóstico do Estado Atual do JAH Core OS vs. Projetos Satélites
+### 1. Diagnóstico do Estado Atual do Waesy Core OS vs. Projetos Satélites
 
-| Dimensão | Estado Anterior do JAH | Satélites de Referência | Estado Nativizado no JAH Core OS |
+| Dimensão | Estado Anterior do Waesy | Satélites de Referência | Estado Nativizado no Waesy Core OS |
 |---|---|---|---|
-| **Design System** | Conflito entre aesthetic underground e telas limpas | Apple HIG no `wider`, Tailwind limpo no `classificados` | **Paradigma Clean Unificado:** `surface-paper`, tokens CSS semânticos, zero AI-smell, alvos de 44px e container unificado. |
+| **Design System** | Conflito entre aesthetic underground e telas limpas | Apple HIG no `waesy`, Tailwind limpo no `classificados` | **Paradigma Clean Unificado:** `surface-paper`, tokens CSS semânticos, zero AI-smell, alvos de 44px e container unificado. |
 | **BFF & Roteamento** | Mutações diretas dispersas | APIs REST e Edge Functions em satélites | **BFF TanStack Start:** `createServerFn` com Zod estrito, identidade por sessão (`getServerIdentity()`), zero-crash loaders. |
 | **Turismo & Agências** | CRUD simples de viagens e cotações básicas | `travelagencias`: ProposalStudio (6 templates), VoucherStudio (A4/Story), 70kb CardDetailPanel | **100% Nativizado:** Kanban de Cotações com avanço de estágio, NewGroupTourWizard (7 etapas), Guia de Embarque PDF e Rooming List. |
 | **Eventos & Produção** | Lista de eventos simples | `persona-nexus`: BadgeManager, UnifiedCheckIn, HardwareManager térmico, Subpainéis | **100% Nativizado:** `events.functions.ts` com 1.272 linhas de IA preditiva de público, subpainéis, orçamento e crachás térmicos. |
-| **Perfil & Biolinks** | Edição de dados pessoais simples | `wider` / `brand-builder-ai`: Mini banner de eventos, biolinks com analytics, currículo Gupy | **Em Operação:** `_store.conta.perfil.tsx` conta com `featuredBannerUrl`, `biolinks` e `ProfessionalResumeEditor`. |
-| **Marketing & Ads** | Campanhas estáticas sem preview | `wider`: Wizard lateral de criativos com truthful preview, estimativa de alcance | **Em Operação:** `workspace.marketing.anuncios.novo.tsx` possui truthful preview 1:1, 21:9 e 9:16 com estimativa de alcance em tempo real. |
+| **Perfil & Biolinks** | Edição de dados pessoais simples | `waesy` / `brand-builder-ai`: Mini banner de eventos, biolinks com analytics, currículo Gupy | **Em Operação:** `_store.conta.perfil.tsx` conta com `featuredBannerUrl`, `biolinks` e `ProfessionalResumeEditor`. |
+| **Marketing & Ads** | Campanhas estáticas sem preview | `waesy`: Wizard lateral de criativos com truthful preview, estimativa de alcance | **Em Operação:** `workspace.marketing.anuncios.novo.tsx` possui truthful preview 1:1, 21:9 e 9:16 com estimativa de alcance em tempo real. |
 | **Produtos & Gastronomia** | Cadastro plano de produto | `(Fundação).ini` + `waesy`: Edição em 4 profundidades, grupos de complementos infinitos, OCR iFood | **Em Expansão:** Importador multimodal com OCR de cardápio físico e links de concorrentes. |
-| **Logística & Motoboy** | Lista de pedidos expedidos | `wider/courier`: Portal do entregador com extrato de repasses, ratings, score e telemetria | **Alvo Mapeado:** Conexão do `CourierEarnings` com o motor de `dynamic-surge-pricing` (taxa de chuva e pico de demanda). |
+| **Logística & Motoboy** | Lista de pedidos expedidos | `waesy/courier`: Portal do entregador com extrato de repasses, ratings, score e telemetria | **Alvo Mapeado:** Conexão do `CourierEarnings` com o motor de `dynamic-surge-pricing` (taxa de chuva e pico de demanda). |
 | **Workspaces com IA** | Telas de simlab estáticas | `brand-builder-ai`: DNA de marca, briefing agêntico e análise de concorrentes | **Alvo Mapeado:** Radar de Inteligência conectado ao `BrandKit` e `BriefingPage`. |
 | **Builders & Studios** | Editor de páginas estático | `cloudblock` + `studiomachine`: Blocos modulares drag-and-drop e editor lateral | **Alvo Mapeado:** Unificação no `workspace.builder.$documentId.editor.tsx`. |
 
@@ -195,7 +195,7 @@ Antes de concluir qualquer ciclo de transfusão, execute obrigatoriamente:
    - Órgãos canônicos: Engine de execução agêntica com WebContainers, streaming SSE, parser de artifacts/actions e telemetria avançada.
 6. **`classificadoswaesy`:**
    - Órgãos canônicos: Esteira de 7 passos com FIPE, negociação P2P com proposta e contraproposta, moderação KYC no Workspace.
-7. **`waesy` / `wider`:**
+7. **`waesy` / `waesy`:**
    - Órgãos canônicos: `courier/` (portal de motoboy com repasses e telemetria), `employee/` (ponto eletrônico, holerites, solicitações de RH), `integrations/` (gestor de APIs externas, multi-chaves e webhooks), `profile/` (perfil social e comercial completo).
 
 ---
@@ -205,7 +205,7 @@ Antes de concluir qualquer ciclo de transfusão, execute obrigatoriamente:
 Para cada módulo transplantado:
 1. **Localizar o Arquivo Doador** em `..\projetos-referencias\<repositório>\...`
 2. **Copiar o Código Real** para o caminho hospedeiro correspondente em `src/...`
-3. **Substituir Imports Genéricos** pelos Shims Canônicos do JAH (`src/components/ui/*`, `src/services/*`, `src/lib/formatters.ts`).
+3. **Substituir Imports Genéricos** pelos Shims Canônicos do Waesy (`src/components/ui/*`, `src/services/*`, `src/lib/formatters.ts`).
 4. **Conectar a Persistência Real** criando ou enriquecendo as tabelas do Supabase via migration e expondo o contrato via `createServerFn`.
 5. **Envolver no Layout Canônico** utilizando `WorkspaceCanonicalToolbar`, `WorkspaceDashboardSheet` e `NicheOperationalGuard`.
 6. **Validar a Compilação** com `npm run build` e comprovar ausência total de regressões.

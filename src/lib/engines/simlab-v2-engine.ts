@@ -1,5 +1,5 @@
 /**
- * Wider SimLab V2 Engine
+ * Waesy SimLab V2 Engine
  * Simulador de Personas Sintéticas, Análise de Elasticidade de Preço e Testes de Mercado com IA.
  */
 

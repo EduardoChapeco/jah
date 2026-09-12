@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0051: Builder Enums and Constraints
+-- Waesy Commerce — Migration 0051: Builder Enums and Constraints
 -- ============================================================================
 -- Transforms the Builder node_type and block_type from blind TEXT into
 -- strict ENUMs to guarantee schema integrity at the database level.

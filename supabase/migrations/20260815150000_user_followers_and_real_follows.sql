@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Platform — Migration: User Followers & Real Social Follows
+-- Waesy Platform — Migration: User Followers & Real Social Follows
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.user_followers (

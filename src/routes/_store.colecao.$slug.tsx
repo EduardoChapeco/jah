@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_store/colecao/$slug")({
  const description = data?.collection?.seo_description || data?.collection?.description || "";
  return {
  meta: [
- { title: `${title} | Wider` },
+ { title: `${title} | Waesy` },
  { name: "description", content: description },
  ],
  };

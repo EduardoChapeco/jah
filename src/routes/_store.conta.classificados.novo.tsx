@@ -73,7 +73,7 @@ const ClassifiedSearchSchema = z.object({
 
 export const Route = createFileRoute("/_store/conta/classificados/novo")({
  validateSearch: ClassifiedSearchSchema,
- head: () => ({ meta: [{ title: "Criar Classificado | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Criar Classificado | Waesy" }] }),
  component: NovoClassificadoPage,
 });
 
@@ -107,9 +107,9 @@ const NICHE_CARDS: NicheDefinition[] = [
     canonicalCategory: "travel",
     title: "Viagens, Turismo & Resorts",
     subtitle: "Pacotes, Roteiros & Destinos",
-    description: "Pacotes turísticos completos com voos, All Inclusive, timeline de itinerário e template visual Modo Instagram.",
+    description: "Pacotes turísticos completos com voos, All Inclusive, timeline de itinerário e template visual Vitrine Imersiva.",
     icon: Key,
-    badge: "Modo Instagram",
+    badge: "Vitrine Imersiva",
     gradient: "from-amber-500/15 via-rose-500/10 to-purple-600/10",
   },
   {
@@ -136,11 +136,11 @@ const NICHE_CARDS: NicheDefinition[] = [
     id: "hospedagem",
     canonicalCategory: "real_estate",
     title: "Hospedagem & Temporada",
-    subtitle: "Chalés, Cabanas, Pousadas & Airbnb",
+    subtitle: "Chalés, Cabanas, Pousadas & Temporada",
     description:
       "Aluguel por diária, chalés com hidro, cabanas na serra, casas de campo, pousadas e suítes com check-in.",
     icon: Key,
-    badge: "Diárias / Airbnb",
+    badge: "Diárias / Temporada",
     gradient: "from-amber-500/10 via-rose-500/5 to-transparent",
   },
   {
@@ -508,7 +508,7 @@ function SpecializedClassifiedEditor({
  const [mobileTab, setMobileTab] = useState<"edit" | "preview">("edit");
  const [jobWorkSchedule, setJobWorkSchedule] = useState("integral_44h");
  const [jobAcceptedMethods, setJobAcceptedMethods] = useState<string[]>([
- "perfil_wider",
+ "perfil_waesy",
  "upload_cv",
  "whatsapp",
  ]);
@@ -527,7 +527,7 @@ function SpecializedClassifiedEditor({
  const [images, setImages] = useState<string[]>([]);
  const [activePreviewImage, setActivePreviewImage] = useState(0);
 
-  // Template de Exibição (Padrão Comercial vs Modo Instagram / Glamour)
+  // Template de Exibição (Padrão Comercial vs Vitrine Imersiva / Glamour)
   const [templateStyle, setTemplateStyle] = useState<"standard" | "instagram">(
     initialData?.attributes?.template_style || (niche.id === "viagem" ? "instagram" : "standard")
   );
@@ -775,7 +775,7 @@ function SpecializedClassifiedEditor({
  const [jobSalaryRange, setJobSalaryRange] = useState("");
  const [jobMinEducation, setJobMinEducation] = useState("Ensino Médio Completo");
  const [jobExperienceLevel, setJobExperienceLevel] = useState("Júnior (1 a 2 anos)");
- const [jobApplicationType, setJobApplicationType] = useState<"perfil_wider" | "whatsapp" | "email_cv">("perfil_wider");
+ const [jobApplicationType, setJobApplicationType] = useState<"perfil_waesy" | "whatsapp" | "email_cv">("perfil_waesy");
  const [jobBenefits, setJobBenefits] = useState<string[]>([
  "Vale Refeição / Alimentação",
  "Vale Transporte",
@@ -1185,12 +1185,12 @@ function SpecializedClassifiedEditor({
               <span>1. Informações Básicas do Anúncio</span>
             </div>
 
-            {/* Seletor de Template Visual (Padrão vs Modo Instagram) */}
+            {/* Seletor de Template Visual (Padrão vs Vitrine Imersiva) */}
             <div className="space-y-1.5 pb-1">
               <Label className="text-xs text-foreground font-semibold flex items-center justify-between">
                 <span>Estilo Visual da Página</span>
                 <span className="text-[11px] text-muted-foreground font-normal">
-                  {templateStyle === "instagram" ? "✨ Modo Instagram / Editorial" : "🏷️ Padrão Comercial"}
+                  {templateStyle === "instagram" || templateStyle === "immersive" ? "✨ Vitrine Imersiva / Editorial" : "🏷️ Padrão Comercial"}
                 </span>
               </Label>
               <div className="grid grid-cols-2 gap-2">
@@ -1219,11 +1219,11 @@ function SpecializedClassifiedEditor({
                   }`}
                 >
                   <p className="text-xs font-bold text-foreground flex items-center gap-1">
-                    <span>Modo Instagram</span>
+                    <span>Vitrine Imersiva</span>
                     <span className="size-1.5 rounded-full bg-rose-500 animate-pulse" />
                   </p>
                   <p className="text-[10px] text-muted-foreground mt-0.5">
-                    Stories, 4 abas, voos e roteiro
+                    Stories, abas imersivas, voos e roteiro
                   </p>
                 </button>
               </div>
@@ -1313,13 +1313,13 @@ function SpecializedClassifiedEditor({
  </div>
 
  {/* Seção 2: Especificações Técnicas do Anúncio */}
-            {/* Viagens, Turismo & Resorts (Modo Instagram) */}
+            {/* Viagens, Turismo & Resorts (Vitrine Imersiva) */}
             {(niche.id === "viagem" || templateStyle === "instagram") && (
               <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
                 <div className="flex items-center justify-between pb-2.5 border-b border-border/40">
                   <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground">
                     <Key className="size-4 text-primary shrink-0" />
-                    <span>2. Dossiê de Viagem & Resort (Modo Instagram)</span>
+                    <span>2. Dossiê de Viagem & Resort (Vitrine Imersiva)</span>
                   </div>
                   <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground">
                     4 Abas + Stories
@@ -2243,7 +2243,7 @@ function SpecializedClassifiedEditor({
  </div>
  )}
 
- {/* Oportunidade / Vaga Master InfoJobs & Gupy Style */}
+ {/* Oportunidade / Vaga Master Padrão Corporativo Waesy */}
  {niche.id === "vaga" && (
             <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
  <div className="flex items-center justify-between">
@@ -2489,7 +2489,7 @@ function SpecializedClassifiedEditor({
  <Label className="text-xs text-foreground font-medium">Formas de Candidatura Permitidas</Label>
  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
  {[
- { id: "perfil_wider", label: "Perfil Profissional Wider (1-Clique)", desc: "Currículo digital sincronizado" },
+ { id: "perfil_waesy", label: "Perfil Profissional Waesy (1-Clique)", desc: "Currículo digital sincronizado" },
  { id: "upload_cv", label: "Upload de Currículo (PDF/DOCX)", desc: "Arquivo anexado direto" },
  { id: "whatsapp", label: "Contato via WhatsApp Oficial", desc: "Triagem imediata por mensagem" },
  ].map((method) => {
@@ -2623,7 +2623,7 @@ function SpecializedClassifiedEditor({
  <span>3. Logística de Envio & Retirada</span>
  </div>
  <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground">
- Wider Express
+ Waesy Express
  </Badge>
  </div>
 
@@ -2634,7 +2634,7 @@ function SpecializedClassifiedEditor({
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
- <SelectItem value="both">📦 Entrega Expressa Wider & Retirada em Mãos (Recomendado)</SelectItem>
+ <SelectItem value="both">📦 Entrega Expressa Waesy & Retirada em Mãos (Recomendado)</SelectItem>
  <SelectItem value="pickup">🏠 Somente Retirada no Local</SelectItem>
  <SelectItem value="local_delivery">🛵 Somente Entrega Local (Motoboy / Frota)</SelectItem>
  <SelectItem value="shipping">🚚 Envio Nacional (Correios / Transportadora)</SelectItem>
@@ -3091,7 +3091,7 @@ function SpecializedClassifiedEditor({
  {deliveryMode === "local_delivery" && (
  <Badge variant="outline" className="text-[10px] font-medium gap-1 bg-muted/40">
  <Truck className="size-3 text-primary" />
- <span>Entrega Wider Express</span>
+ <span>Entrega Waesy Express</span>
  </Badge>
  )}
  {deliveryMode === "pickup" && (
@@ -3159,7 +3159,7 @@ function SpecializedClassifiedEditor({
  </p>
  </div>
 
- {/* Simulador de Frete & Logística Wider Express na Prévia (Apenas para Desapego) */}
+ {/* Simulador de Frete & Logística Waesy Express na Prévia (Apenas para Desapego) */}
  {niche.id === "desapego" && (deliveryMode === "both" || deliveryMode === "local_delivery" || deliveryMode === "shipping") && (
  <div className="border border-primary/30 rounded-2xl p-4 bg-primary/5 space-y-2.5">
  <div className="flex items-center justify-between">
@@ -3168,7 +3168,7 @@ function SpecializedClassifiedEditor({
  <span>Simulação de Frete & Entrega (Comprador)</span>
  </div>
  <Badge variant="default" className="text-[9px] font-mono bg-primary text-primary-foreground">
- Wider Express
+ Waesy Express
  </Badge>
  </div>
 
@@ -3194,7 +3194,7 @@ function SpecializedClassifiedEditor({
  <Package className="size-3.5" />
  </div>
  <div>
- <p className="font-semibold text-xs text-foreground">Ponto PUDO / Locker Wider</p>
+ <p className="font-semibold text-xs text-foreground">Ponto PUDO / Locker Waesy</p>
  <p className="text-[10px] text-muted-foreground">Retire no ponto credenciado</p>
  </div>
  </div>

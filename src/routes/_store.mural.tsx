@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_store/mural")({
   head: () => ({
     meta: [
-      { title: "Mural da Comunidade | Feed Social Wider" },
+      { title: "Mural da Comunidade | Feed Social Waesy" },
       {
         name: "description",
         content: "Acompanhe publicações, novidades, fotos e histórias compartilhadas por pessoas, criadores e lojas locais.",

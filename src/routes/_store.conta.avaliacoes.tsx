@@ -12,7 +12,7 @@ import { formatDate } from "@/lib/datetime";
 // ---------------------------------------------------------------------------
 
 export const Route = createFileRoute("/_store/conta/avaliacoes")({
- head: () => ({ meta: [{ title: "Minhas Avaliações | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Minhas Avaliações | Waesy" }] }),
  loader: async () => {
    try {
  return (await listCustomerReviews().catch(() => [])) || [];

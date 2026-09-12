@@ -44,7 +44,7 @@ import { WorkspaceDashboardSheet } from "@/components/workspace/workspace-dashbo
 
 export const Route = createFileRoute("/workspace/turismo/cotacoes")({
  head: () => ({
- meta: [{ title: "Cotações & Leads | Workspace Wider OS" }],
+ meta: [{ title: "Cotações & Leads | Workspace Waesy" }],
  }),
  validateSearch: (search: Record<string, unknown>): {
     leadName?: string;
@@ -372,7 +372,7 @@ export default function AgencyQuotesPage() {
                       colQuotes.map((q) => {
                         const cleanWhatsapp = (q.contact_whatsapp || "").replace(/\D/g, "");
                         const waMessage = encodeURIComponent(
-                          `Olá ${q.contact_name}! Sou da agência de viagens no Wider e preparei opções para ${q.destination_city}.`,
+                          `Olá ${q.contact_name}! Sou da agência de viagens no Waesy e preparei opções para ${q.destination_city}.`,
                         );
                         return (
                           <Card
@@ -507,7 +507,7 @@ export default function AgencyQuotesPage() {
  : "🛂 Visto Americano";
 
  const waMessage = encodeURIComponent(
- `Olá ${q.contact_name}! Sou da agência de viagens no Wider e recebi sua solicitação de cotação para ${q.destination_city} (${q.adults_count} adultos${q.children_count > 0 ? `, ${q.children_count} crianças` : ""}). Preparei algumas opções incríveis para você!`
+ `Olá ${q.contact_name}! Sou da agência de viagens no Waesy e recebi sua solicitação de cotação para ${q.destination_city} (${q.adults_count} adultos${q.children_count > 0 ? `, ${q.children_count} crianças` : ""}). Preparei algumas opções incríveis para você!`
  );
 
  const statusBadgeVariant =

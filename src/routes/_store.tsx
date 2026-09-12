@@ -120,13 +120,13 @@ function StoreLayout() {
  }, [carts, globalCarts, initCart]);
 
  const storeData = store?.data || store;
- const storeName = brand?.platform_name || storeData?.name || "Wider";
+ const storeName = brand?.platform_name || storeData?.name || "Waesy";
  const logoUrl =
  brand?.logo_url ||
  storeData?.logoUrl ||
  storeData?.settings?.logoUrl ||
  storeData?.settings?.logo_url;
- const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://wider.com.br";
+ const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://usewaesy.pages.dev";
 
  // JSON-LD Structured Data (Organization + WebSite with SearchAction)
  const contactPhone = brand?.support_whatsapp || storeData?.contactPhone || storeData?.phone;
@@ -170,7 +170,7 @@ function StoreLayout() {
  favicon_url: brand?.favicon_url || storeData?.faviconUrl || storeData?.settings?.faviconUrl || null,
  show_logo: brand?.show_logo !== false && storeData?.settings?.show_logo !== false,
  show_name: brand?.show_name !== false && storeData?.settings?.show_name !== false,
- platform_name: brand?.platform_name || storeData?.name || "Wider",
+ platform_name: brand?.platform_name || storeData?.name || "Waesy",
  };
 
  return (

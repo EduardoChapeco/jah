@@ -1,4 +1,4 @@
-# EXECUTION LOG — AUDITORIA RECURSIVA & MICROFASES JAH
+# EXECUTION LOG — AUDITORIA RECURSIVA & MICROFASES Waesy
 
 ## Ciclo 74 — Microfase 74A
 
@@ -359,25 +359,25 @@
 ## Ciclo 79 — Microfase 1 (Autenticação, Identidade & Resolução de Tenant)
 
 - **Data/Hora:** 2026-09-04T20:13:00-03:00
-- **Módulo:** Autenticação, Identidade e Resolução de Tenant JAH Master OS
+- **Módulo:** Autenticação, Identidade e Resolução de Tenant Waesy Master OS
 - **Commit Base:** `61a76ce`
 - **Commit Final:** `f02439c`
 - **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
 
 ### Diagnóstico Forense & Causa Raiz
-1. `src/routes/_store.motorista.$slug.tsx`: Erro sintático TS1005 na linha 16 decorrente de template string malformada (`| JAH Master OS`dade`), introduzida por substituição em lote anterior, quebrando a validação de compilação.
-2. `src/services/auth.functions.ts`: Presença de fallback textual estático `"Membro Wider"` na linha 101 da Server Function `getUserSession`.
-3. `src/lib/tenant.server.ts` e `src/services/identity.functions.ts`: Resolução e persistência de tenant operavam exclusivamente sob o cookie `wider_active_tenant`, sem sincronização canônica com `jah_active_tenant`.
+1. `src/routes/_store.motorista.$slug.tsx`: Erro sintático TS1005 na linha 16 decorrente de template string malformada (`| Waesy Master OS`dade`), introduzida por substituição em lote anterior, quebrando a validação de compilação.
+2. `src/services/auth.functions.ts`: Presença de fallback textual estático `"Membro Waesy"` na linha 101 da Server Function `getUserSession`.
+3. `src/lib/tenant.server.ts` e `src/services/identity.functions.ts`: Resolução e persistência de tenant operavam exclusivamente sob o cookie `waesy_active_tenant`, sem sincronização canônica com `jah_active_tenant`.
 4. Auditoria estática profunda revelou 346 erros TypeScript em 66 arquivos introduzidos em incrementos rápidos recentes (em especial importações inexistentes de `@/lib/supabase.server` em serviços de viagens e 6 migrações pendentes no banco de dados remoto Supabase).
 
 ### Ações Executadas
 1. **Saneamento de Sintaxe & Rebranding em Rota de Mobilidade**:
-   - Em `src/routes/_store.motorista.$slug.tsx`, corrigida a template string do título e normalizado texto do link WhatsApp para referenciar `JAH`.
-2. **Identidade Canônica JAH Master OS**:
-   - Em `src/services/auth.functions.ts`, erradicado o fallback `"Membro Wider"` para `"Membro JAH"` na Server Function `getUserSession`.
+   - Em `src/routes/_store.motorista.$slug.tsx`, corrigida a template string do título e normalizado texto do link WhatsApp para referenciar `Waesy`.
+2. **Identidade Canônica Waesy Master OS**:
+   - Em `src/services/auth.functions.ts`, erradicado o fallback `"Membro Waesy"` para `"Membro Waesy"` na Server Function `getUserSession`.
 3. **Resolução de Tenant Bilateral e Resiliente**:
-   - Em `src/lib/tenant.server.ts`, busca ativa pelo cookie `jah_active_tenant` com fallback retrocompatível para `wider_active_tenant`.
-   - Em `src/services/identity.functions.ts`, persistência atômica simultânea de ambos os cookies (`jah_active_tenant` e `wider_active_tenant`).
+   - Em `src/lib/tenant.server.ts`, busca ativa pelo cookie `jah_active_tenant` com fallback retrocompatível para `waesy_active_tenant`.
+   - Em `src/services/identity.functions.ts`, persistência atômica simultânea de ambos os cookies (`jah_active_tenant` e `waesy_active_tenant`).
 4. **Validação em Runtime e Testes Unitários**:
    - 34 suítes e 174 testes unitários aprovados com 100% de sucesso no Vitest.
    - Sonda HTTP em runtime ativo (`http://localhost:8080/motorista/test-slug` e `/workspace`) retornando HTTP 200 OK.
@@ -390,7 +390,7 @@
 - **Status:** `MICROFASES COMPROVADAS EM RUNTIME E INTEGRADAS`
 
 ### Diagnóstico Forense & Causa Raiz
-1. O ecossistema JAH necessitava da transfusão nativa dos módulos de marketing autônomo descritos no Dossiê Big Tech, sem o uso de mocks locais ou stubs estáticos.
+1. O ecossistema Waesy necessitava da transfusão nativa dos módulos de marketing autônomo descritos no Dossiê Big Tech, sem o uso de mocks locais ou stubs estáticos.
 2. Inexistência prévia das tabelas relacionais de squads, agentes, catálogo mestre e sessões de onboarding no Supabase.
 3. Necessidade de criação de BFF handlers tipados para alimentar o runtime agêntico e a navegação do lojista.
 
@@ -432,7 +432,7 @@
 ## Ciclo 82 — Design Silencioso Apple HIG, Anti-Pill & Ultra-Mobile-First
 
 - **Data/Hora:** 2026-09-04T21:20:00-03:00
-- **Módulo:** Design System JAH, Tipografia Inter, Elevação em Camadas e Responsividade
+- **Módulo:** Design System Waesy, Tipografia Inter, Elevação em Camadas e Responsividade
 - **Commit Base:** `8ca9011`
 - **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
 
@@ -466,7 +466,7 @@
    - Criação automática de documento `home` em `experience_documents`, versão publicada em `experience_versions` e nós hierárquicos (`hero_banner`, `product_grid`) em `experience_nodes`.
 2. **Validação**: Testes unitários criados e validados em `multimodal-onboarding.test.ts`.
 
-## Ciclo 84 — Navegação Global, Resolução de Rotas Órfãs e Identidade Canônica JAH Master OS
+## Ciclo 84 — Navegação Global, Resolução de Rotas Órfãs e Identidade Canônica Waesy Master OS
 
 - **Data/Hora:** 2026-09-04T21:35:00-03:00
 - **Módulo:** Navegação Modular do Workspace e Higienização de Identidade de Marca
@@ -475,7 +475,7 @@
 
 ### Diagnóstico Forense & Causa Raiz
 1. As novas rotas de inteligência (`/workspace/squads`, `/workspace/simlab/focus-group`, `/workspace/inteligencia/radar`, `/workspace/marketing/canvas-pecados`) estavam órfãs da barra lateral de navegação do workspace.
-2. Existência de fallbacks de branding satélite ("Wider") no título da janela em `__root.tsx`, manifest PWA e painel master.
+2. Existência de fallbacks de branding satélite ("Waesy") no título da janela em `__root.tsx`, manifest PWA e painel master.
 
 ### Ações Executadas
 1. **Indexação Universal na Sidebar**:
@@ -483,7 +483,7 @@
    - Preservado o grupo em todos os nichos de negócio da plataforma.
    - Auditoria via browser comprovou os 4 links renderizados perfeitamente na barra lateral.
 2. **Higienização de Identidade Canônica**:
-   - Normalizados fallbacks de título em `__root.tsx` (`${storeName} Master OS | JAH`), `admin-master.tsx`, `api.pwa.manifest[.]json.ts` e rotas específicas.
+   - Normalizados fallbacks de título em `__root.tsx` (`${storeName} Master OS | Waesy`), `admin-master.tsx`, `api.pwa.manifest[.]json.ts` e rotas específicas.
    - Validados 197 testes unitários passando 100% no Vitest.
 
 ## Ciclo 85 — Saneamento de Contratos do SimLab, Correção de Importações e Build de Produção
@@ -508,7 +508,7 @@
 3. **Design Silencioso Apple HIG & Mobile-First**:
    - Refatoradas as rotas `admin-master.simlabs.tsx` e `workspace.simulacao.tsx`. Erradicado `squircle-soft`, botões e inputs com `h-11` (touch target mínimo de 44px), badges anti-pill `rounded-md font-medium text-[11px] px-2 py-0.5`, tabs com `no-scrollbar`.
    - Erradicado ícone proibido Sparkle de `src/routes/workspace.simlab.focus-group.tsx` e `admin-master.simlabs.tsx`.
-   - Higienizado branding residual "Wider" em `src/components/shell/top-bar.tsx`.
+   - Higienizado branding residual "Waesy" em `src/components/shell/top-bar.tsx`.
 4. **Validação Rigorosa**:
    - Build de produção completo (`vite build`) executou com **código 0**, gerando bundles Client, SSR e Cloudflare Nitro Pages com sucesso.
    - Vitest: 38 test files, 197 testes passando 100%.

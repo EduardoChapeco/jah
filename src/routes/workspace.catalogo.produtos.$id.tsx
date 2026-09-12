@@ -103,7 +103,7 @@ import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/catalogo/produtos/$id")({
- head: () => ({ meta: [{ title: "Editor Avançado de Produto | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Editor Avançado de Produto | Workspace Waesy" }] }),
  loader: async ({ params }) => {
  try {
  const [product, catsRes, typesRes, groupsRes, storeRes] = await Promise.all([

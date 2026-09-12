@@ -61,7 +61,7 @@ import { listAdminPages, createPage, deletePage } from "@/services/cms.functions
 import { createExperienceDocument, duplicateExperienceDocument } from "@/services/builder.functions";
 
 export const Route = createFileRoute("/workspace/cms/paginas/")({
- head: () => ({ meta: [{ title: "Páginas & Landing Pages | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Páginas & Landing Pages | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const res = await listAdminPages();

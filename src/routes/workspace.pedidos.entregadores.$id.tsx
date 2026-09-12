@@ -36,7 +36,7 @@ import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/workspace/pedidos/entregadores/$id")({
  head: () => ({
- meta: [{ title: "Detalhe do Entregador | Workspace Wider OS" }],
+ meta: [{ title: "Detalhe do Entregador | Workspace Waesy" }],
  }),
  loader: async ({ params }) => {
    try {

@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
- Printer,
- Download,
- Share2,
- ArrowLeft,
- Loader2,
- Check,
- Compass,
+  Printer,
+  Download,
+  Share2,
+  ArrowLeft,
+  Loader2,
+  Check,
+  Compass,
 } from "lucide-react";
 import { WhatsappLogo } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
@@ -21,14 +21,13 @@ export const Route = createFileRoute("/_store/voucher/$token")({
  meta: [
  {
  title: loaderData?.voucher
- ? `Voucher de Embarque: ${loaderData.voucher.destination || "Viagem"} — Wider`
- : "Voucher de Embarque — Wider",
+ ? `Voucher de Embarque: ${loaderData.voucher.destination || "Viagem"} — Waesy`
+ : "Voucher de Embarque — Waesy",
  },
  ],
  }),
  loader: async ({ params }) => {
    try {
- const data = await getPublicVoucherByToken({ data: { token: params.token } });
  return { data };
    } catch (err) {
      console.error("[loader:_store.voucher.$token] Unhandled loader error:", err);

@@ -1,14 +1,14 @@
 ---
 name: design-ops
-description: "Use when creating or modifying ANY UI components (React, Tailwind) for the JAH project. Triggers: layout, typography, UI, Tailwind, components, styling, surface, button, design system, colors, clean, minimal."
+description: "Use when creating or modifying ANY UI components (React, Tailwind) for the Waesy project. Triggers: layout, typography, UI, Tailwind, components, styling, surface, button, design system, colors, clean, minimal."
 ---
 
-# Design Ops Protocol (JAH)
+# Design Ops Protocol (Waesy)
 
-## Core Principles (Estilo iFood / Threads)
+## Core Principles (Design Humano & Editorial)
 
 **1. A 'Cara' do Projeto é ULTRA CLEAN e MINIMALISTA**
-A JAH adotou um visual estritamente moderno, focado em silêncio visual, retenção e usabilidade fluida (semelhante ao Threads, iOS, iFood, Vercel).
+A Waesy adota um visual estritamente moderno, focado em silêncio visual, retenção e usabilidade fluida.
 
 > **PROIBIDO:** Estilos "Neo-Brutalist", bordas grossas (border-2 ou border-4), sombras sólidas, backgrounds coloridos desnecessários, cantos quadrados duros (`rounded-none` ou `rounded-sm`).
 

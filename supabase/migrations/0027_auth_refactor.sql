@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0027: Auth Refactor & Setup Flag
+-- Waesy Commerce — Migration 0027: Auth Refactor & Setup Flag
 -- ============================================================================
 
 -- 1. Create system flags table to lock the setup process
@@ -39,18 +39,18 @@ BEGIN
     v_user_role := 'owner';
 
     -- Ensure default organization exists
-    SELECT id INTO v_default_org_id FROM public.organizations WHERE slug = 'jah-org' LIMIT 1;
+    SELECT id INTO v_default_org_id FROM public.organizations WHERE slug = 'waesy-org' LIMIT 1;
     IF v_default_org_id IS NULL THEN
       INSERT INTO public.organizations (name, slug)
-      VALUES ('Jah Organization', 'jah-org')
+      VALUES ('Waesy Organization', 'waesy-org')
       RETURNING id INTO v_default_org_id;
     END IF;
 
     -- Ensure default store exists
-    SELECT id INTO v_default_store_id FROM public.stores WHERE slug = 'jah' LIMIT 1;
+    SELECT id INTO v_default_store_id FROM public.stores WHERE slug = 'waesy' LIMIT 1;
     IF v_default_store_id IS NULL THEN
       INSERT INTO public.stores (organization_id, name, slug)
-      VALUES (v_default_org_id, 'Jah', 'jah')
+      VALUES (v_default_org_id, 'Waesy', 'waesy')
       RETURNING id INTO v_default_store_id;
     END IF;
 

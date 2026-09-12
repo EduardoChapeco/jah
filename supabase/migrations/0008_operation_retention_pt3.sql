@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0008: Operation & Retention (Part 3)
+-- Waesy Commerce — Migration 0008: Operation & Retention (Part 3)
 -- ============================================================================
 -- Schema: gift_cards, installment_plans, installments
 -- ============================================================================

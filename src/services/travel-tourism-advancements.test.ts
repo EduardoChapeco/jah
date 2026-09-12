@@ -9,7 +9,7 @@ describe('[ONDA 1 AUDIT] Turismo: Hotéis 1-Clique, Lâminas WhatsApp & Frota 2D
  const dd = FLEET_VEHICLE_PRESETS.find((v) => v.isDoubleDecker);
  expect(dd).toBeDefined();
  expect(dd?.totalCapacity).toBe(56);
- expect(dd?.plate).toBe('JAH-2026');
+ expect(dd?.plate).toBe('WSY-2026');
  expect(dd?.amenities).toContain('Piso Inferior Leito Cama');
 
  const leito = FLEET_VEHICLE_PRESETS.find((v) => v.vehicleType === 'bus_leito_total');
@@ -103,7 +103,7 @@ describe('[ONDA 1 AUDIT] Turismo: Hotéis 1-Clique, Lâminas WhatsApp & Frota 2D
 
  const hotelHighlight = proposal.hotels?.[0]?.hotel_name;
  const flightHighlight = `Voo ${proposal.flights[0].airline_name} (${proposal.flights[0].origin_iata} ➔ ${proposal.flights[0].destination_iata})`;
- const publicUrl = `https://app.jah.com.br/proposta/${proposal.public_token}`;
+ const publicUrl = `https://app.usewaesy.com/proposta/${proposal.public_token}`;
 
  const msg = `Olá ${proposal.client_name}! ✈️🌟\nDestino: *${proposal.destination_city}*\nHotel: ${hotelHighlight}\nAéreo: ${flightHighlight}\nLink: ${publicUrl}`;
 
@@ -111,6 +111,6 @@ describe('[ONDA 1 AUDIT] Turismo: Hotéis 1-Clique, Lâminas WhatsApp & Frota 2D
  expect(msg).toContain('Porto de Galinhas, PE');
  expect(msg).toContain('Enotel Porto de Galinhas');
  expect(msg).toContain('Voo Azul (VCP ➔ REC)');
- expect(msg).toContain('https://app.jah.com.br/proposta/pk_test_123');
+ expect(msg).toContain('https://app.usewaesy.com/proposta/pk_test_123');
  });
 });

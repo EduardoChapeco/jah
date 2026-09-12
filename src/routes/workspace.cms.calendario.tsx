@@ -36,7 +36,7 @@ import { formatDate } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/cms/calendario")({
- head: () => ({ meta: [{ title: "Calendário Editorial & Agendamento | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Calendário Editorial & Agendamento | Waesy" }] }),
  loader: async () => {
    try {
  return await listScheduledPosts();

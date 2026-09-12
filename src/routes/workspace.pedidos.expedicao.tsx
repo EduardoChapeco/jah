@@ -34,7 +34,7 @@ import {
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/pedidos/expedicao")({
-  head: () => ({ meta: [{ title: "WMS Expedição & Picking | Wider OS" }] }),
+  head: () => ({ meta: [{ title: "WMS Expedição & Picking | Waesy" }] }),
   component: WmsExpedicaoPage,
 });
 
@@ -121,7 +121,7 @@ function WmsExpedicaoPage() {
             zipCode: "89800-000",
           },
           sender: {
-            storeName: "Wider Hub Logístico",
+            storeName: "Waesy Hub Logístico",
             city: "Chapecó",
             state: "SC",
             zipCode: "89801-000",
@@ -152,7 +152,7 @@ function WmsExpedicaoPage() {
       try {
         const { buildEscPosReceipt, sendBytesToSerialPrinter } = await import("@/lib/thermal-printer");
         const testReceiptBytes = buildEscPosReceipt({
-          storeName: "Wider Platform",
+          storeName: "Waesy Platform",
           orderNumber: "TEST-01",
           orderDate: new Date().toLocaleDateString("pt-BR"),
           items: [{ name: "Teste de Conexao Termica", qty: 1, priceCents: 0 }],

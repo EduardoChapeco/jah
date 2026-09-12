@@ -1,6 +1,6 @@
 -- ============================================================
 -- 20260827270000_studio_projects_and_templates.sql
--- Tabelas e Governança do Wider Studio 3.0 (Graphic & Video)
+-- Tabelas e Governança do Waesy Studio 3.0 (Graphic & Video)
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS public.studio_projects (

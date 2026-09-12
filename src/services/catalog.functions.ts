@@ -192,13 +192,21 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
  .handler(async ({ data: params }) => {
  try {
  const db = getAnonServerClient();
- const storeId = await resolveTenantStoreId();
+      let storeId = await resolveTenantStoreId();
 
- if (!storeId) {
- throw new Error(
- "Nenhuma loja foi configurada. Configure a loja no painel de administração.",
- );
- }
+      if (!storeId) {
+        const { data: rootStore } = await db
+          .from("stores")
+          .select("id")
+          .eq("is_platform_root", true)
+          .limit(1)
+          .maybeSingle();
+        storeId = rootStore?.id || null;
+      }
+
+      if (!storeId) {
+        return { status: "ok", data: [] };
+      }
 
  const selectQuery = params.categorySlug
  ? `id, slug, title, brand, price_cents, compare_at_cents, published_at, attributes,
@@ -344,14 +352,24 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
 export const listPublishedCategories = createServerFn({ method: "GET" }).handler(async () => {
  try {
  const db = getAnonServerClient();
- const storeId = await resolveTenantStoreId();
+    let storeId = await resolveTenantStoreId();
 
- if (!storeId) {
- return {
- status: "unconfigured",
- reason: "Nenhuma loja foi configurada.",
- };
- }
+    if (!storeId) {
+      const { data: rootStore } = await db
+        .from("stores")
+        .select("id")
+        .eq("is_platform_root", true)
+        .limit(1)
+        .maybeSingle();
+      storeId = rootStore?.id || null;
+    }
+
+    if (!storeId) {
+      return {
+        status: "ok",
+        data: [],
+      };
+    }
 
  const { data, error } = await db
  .from("categories")

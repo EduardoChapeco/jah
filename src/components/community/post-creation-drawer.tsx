@@ -84,7 +84,7 @@ export function PostCreationDrawer({
  user?.user_metadata?.full_name ||
  user?.name ||
  user?.email?.split("@")[0] ||
- "Membro Wider";
+ "Membro Waesy";
  const userAvatar = user?.user_metadata?.avatar_url || user?.avatar_url || "";
  const userInitial = userName.charAt(0).toUpperCase();
 
@@ -251,7 +251,7 @@ export function PostCreationDrawer({
  metadata: {
  is_news: true,
  title: newsTitle.trim() || contentText.slice(0, 60),
- source: newsSource.trim() || "Wider News",
+ source: newsSource.trim() || "Waesy News",
  subtitle: contentText.trim(),
  },
  as_store: false,
@@ -350,7 +350,7 @@ export function PostCreationDrawer({
  { id: "news", label: "Notícia Editorial", icon: ChatCircleText, color: "text-primary" },
  { id: "travel", label: "Viagem / Tríptico", icon: MapPin, color: "text-sky-500" },
  { id: "carousel", label: "Carrossel", icon: ImageSquare, color: "text-primary" },
- { id: "threads", label: "Thread", icon: ListBullets, color: "text-primary" },
+ { id: "threads", label: "Sequência", icon: ListBullets, color: "text-primary" },
  { id: "moment", label: "Moment", icon: FilmStrip, color: "text-amber-500" },
  ] as const;
 
@@ -483,7 +483,7 @@ export function PostCreationDrawer({
  </div>
  )}
 
- {/* Formato 3: Threads Verticais */}
+ {/* Formato 3: Sequência de Notas */}
  {activeFormat === "threads" && (
  <div className="space-y-3">
  <div className="space-y-3">

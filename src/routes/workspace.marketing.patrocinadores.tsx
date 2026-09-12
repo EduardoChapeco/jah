@@ -39,7 +39,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/marketing/patrocinadores")({
-  head: () => ({ meta: [{ title: "Gestão de Patrocinadores & Rede Display | Workspace Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Gestão de Patrocinadores & Rede Display | Workspace Waesy" }] }),
   loader: async () => {
     try {
       const sponsors = await listWorkspaceSponsors().catch(() => []);

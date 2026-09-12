@@ -24,7 +24,7 @@ describe("Builder Architecture & Studio Canvas (Microfase 76A)", () => {
 
  it("valida que o canvas do builder não contém elementos cartoonizados (Mac dots e fake shadow)", () => {
  const canvasFile = fs.readFileSync(
- "C:/Users/Excelência Tour SMO/Documents/jah/src/components/admin/builder/builder-canvas.tsx",
+ "C:/Users/Excelência Tour SMO/Documents/waesy/src/components/admin/builder/builder-canvas.tsx",
  "utf8"
  );
 
@@ -81,7 +81,7 @@ describe("Builder Documents Hub & Multi-Vitrines (Microfase 76B)", () => {
 
  it("garante que os tipos de documentos permitidos incluem storefront, biolink, landing_page, campaign e custom", async () => {
  const builderFile = fs.readFileSync(
- "C:/Users/Excelência Tour SMO/Documents/jah/src/services/builder.functions.ts",
+ "C:/Users/Excelência Tour SMO/Documents/waesy/src/services/builder.functions.ts",
  "utf8"
  );
 

@@ -62,7 +62,7 @@ function MasterLojasPage() {
  setLoadingId(storeId);
  try {
  if (typeof window !== "undefined") {
- window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
+ window.document.cookie = `waesy_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
  }
  await setTenantContext({ data: { store_id: storeId } }).catch(() => null);
  toast.success(`Acessando painel de "${storeName}"...`);
@@ -88,7 +88,7 @@ function MasterLojasPage() {
  const url = URL.createObjectURL(blob);
  const link = document.createElement("a");
  link.setAttribute("href", url);
- link.setAttribute("download", `lojas_wider_${new Date().toISOString().slice(0, 10)}.csv`);
+ link.setAttribute("download", `lojas_waesy_${new Date().toISOString().slice(0, 10)}.csv`);
  document.body.appendChild(link);
  link.click();
  document.body.removeChild(link);

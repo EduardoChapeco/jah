@@ -1,4 +1,4 @@
--- Jah Commerce — Migration 20260803140000: RMA Advanced Engine
+-- Waesy Commerce — Migration 20260803140000: RMA Advanced Engine
 
 -- 1. Alter rma_items to track granular state
 ALTER TABLE public.rma_items

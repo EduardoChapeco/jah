@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0076: CMS Published Invariant
+-- Waesy Commerce — Migration 0076: CMS Published Invariant
 -- ============================================================================
 -- Cria um trigger para garantir a regra: "Apenas uma página `published` 
 -- por vez por rota (slug)". Ao publicar uma página, as demais com o 

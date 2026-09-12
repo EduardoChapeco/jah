@@ -1,5 +1,5 @@
 /**
- * canonical-store-profile-view.tsx — Perfil Comercial Público Canônico de Empresas (Wider OS / Apple HIG)
+ * canonical-store-profile-view.tsx — Perfil Comercial Público Canônico de Empresas (Waesy / Apple HIG)
  * Unifica a presença pública de lojas e empresas locais com a mesma excelência visual do perfil de membro.
  * Abas ricas: Vitrine (Banners, Botões/Hotpages, Catálogo), Sobre & Atendimento (Horários, Pagamentos, Mapa),
  * Posts Sociais (Feed/Grid), Vagas de Emprego, Avaliações Verificadas e Patrocinadores.
@@ -619,7 +619,7 @@ export function CanonicalStoreProfileView({
                       entityId: store.id,
                       entityTitle: store.name || store.business_name,
                       niche: segment,
-                      customMessage: `Olá! Vi o perfil oficial de ${store.name || store.business_name} no Wider e gostaria de mais informações.`,
+                      customMessage: `Olá! Vi o perfil oficial de ${store.name || store.business_name} no Waesy e gostaria de mais informações.`,
                     })
                   }
                   className="h-9 px-4 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-2 cursor-pointer shadow-xs transition-transform active:scale-98"
@@ -771,7 +771,7 @@ export function CanonicalStoreProfileView({
             onOpenChange={setIsSocialStudioOpen}
             data={{
               title: store.name || store.business_name || "Empresa Local",
-              subtitle: store.category || "Guia Comercial Wider",
+              subtitle: store.category || "Guia Comercial Waesy",
               badge: store.category || "Empresa Oficial",
               storeName: store.name || store.business_name,
               imageUrl: store.cover_url || store.logo_url || undefined,
@@ -1129,7 +1129,7 @@ export function CanonicalStoreProfileView({
                                   entityId: store.id,
                                   entityTitle: store.name || store.business_name,
                                   niche: segment,
-                                  customMessage: `Olá! Vi o destaque "${card.title}" no Wider e gostaria de saber mais.`,
+                                  customMessage: `Olá! Vi o destaque "${card.title}" no Waesy e gostaria de saber mais.`,
                                 });
                               } else if (isCatalogAction) {
                                 setActiveTab("catalogo");
@@ -1360,7 +1360,7 @@ export function CanonicalStoreProfileView({
 
               {posts.length > 0 ? (
                 postViewMode === "grid" ? (
-                  /* Modo 1: Grade de Fotos 1:1 Estilo Instagram */
+                  /* Modo 1: Grade de Fotos 1:1 Editorial */
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                     {posts.map((post: any) => {
                       const firstMedia = post.media_urls?.[0];
@@ -1395,7 +1395,7 @@ export function CanonicalStoreProfileView({
                     })}
                   </div>
                 ) : (
-                  /* Modo 2: Feed Social com Cards de Threads */
+                  /* Modo 2: Feed Social com Notas Rápidas */
                   <div className="space-y-4 max-w-2xl mx-auto">
                     {posts.map((post: any) => (
                       <ThreadsFeedCard
@@ -1597,7 +1597,7 @@ export function CanonicalStoreProfileView({
           {/* ── CONTEÚDO DA ABA 4: VAGAS & EMPREGOS ── */}
           {activeTab === "vagas" && (
             <div className="space-y-4 animate-in fade-in duration-150">
-              {/* Card de Inteligência de Empregador (Glassdoor / InfoJobs style) */}
+              {/* Card de Inteligência de Empregador e Cultura Corporativa */}
               {employerStats && (
                 <div className="p-5 rounded-2xl bg-card border border-border/70 shadow-2xs space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/40 pb-4">
@@ -1606,7 +1606,7 @@ export function CanonicalStoreProfileView({
                         <Building2 className="size-4 text-primary" />
                         <h3 className="text-sm font-bold text-foreground">Inteligência de Empregador</h3>
                         <Badge variant="outline" className="text-[10px] font-mono bg-primary/5 text-primary border-primary/20">
-                          Verificado JAH
+                          Verificado Waesy
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">

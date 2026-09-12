@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0003: Orders, Cart, Payments
+-- Waesy Commerce — Migration 0003: Orders, Cart, Payments
 -- ============================================================================
 -- Schema: carts, orders, payments and stock reservations.
 --

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Platform — Migration: News Portals, Articles, Sponsors & Telemetry
+-- Waesy Platform — Migration: News Portals, Articles, Sponsors & Telemetry
 -- ============================================================================
 
 -- 1. TABELA DE ARTIGOS / NOTÍCIAS

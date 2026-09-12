@@ -11,27 +11,27 @@ export function CookieBanner() {
  if (typeof window === "undefined") return;
 
  // 1. Checa se o consentimento já foi aceito no localStorage
- const localConsent = localStorage.getItem("wider_cookie_consent");
+ const localConsent = localStorage.getItem("waesy_cookie_consent");
  if (localConsent === "accepted") {
  return;
  }
 
  // 2. Checa se existe cookie persistente de consentimento
  const cookies = document.cookie.split(";").map((c) => c.trim());
- const hasConsentCookie = cookies.some((c) => c.startsWith("wider_cookie_consent=accepted"));
+ const hasConsentCookie = cookies.some((c) => c.startsWith("waesy_cookie_consent=accepted"));
  if (hasConsentCookie) {
- localStorage.setItem("wider_cookie_consent", "accepted");
+ localStorage.setItem("waesy_cookie_consent", "accepted");
  return;
  }
 
  // 3. Se o usuário já está autenticado (tem token do Supabase), o consentimento dos termos já foi dado no cadastro
  const hasAuthToken = Object.keys(localStorage).some((k) => k.includes("-auth-token"));
- const hasAuthCookie = cookies.some((c) => c.includes("sb-") || c.includes("wider_active_tenant"));
+ const hasAuthCookie = cookies.some((c) => c.includes("sb-") || c.includes("waesy_active_tenant"));
  if (hasAuthToken || hasAuthCookie) {
- localStorage.setItem("wider_cookie_consent", "accepted");
+ localStorage.setItem("waesy_cookie_consent", "accepted");
  const isHttps = window.location.protocol === "https:";
  const secureFlag = isHttps ? "; Secure" : "";
- document.cookie = `wider_cookie_consent=accepted; path=/; max-age=315360000; SameSite=Lax${secureFlag}`;
+ document.cookie = `waesy_cookie_consent=accepted; path=/; max-age=315360000; SameSite=Lax${secureFlag}`;
  return;
  }
 
@@ -45,12 +45,12 @@ export function CookieBanner() {
 
  if (typeof window !== "undefined") {
  // 2. Grava no localStorage
- localStorage.setItem("wider_cookie_consent", "accepted");
+ localStorage.setItem("waesy_cookie_consent", "accepted");
 
  // 3. Grava cookie com validade de 10 anos em path=/
  const isHttps = window.location.protocol === "https:";
  const secureFlag = isHttps ? "; Secure" : "";
- document.cookie = `wider_cookie_consent=accepted; path=/; max-age=315360000; SameSite=Lax${secureFlag}`;
+ document.cookie = `waesy_cookie_consent=accepted; path=/; max-age=315360000; SameSite=Lax${secureFlag}`;
  }
 
  // 4. Dispara a gravação do log forense imutável no banco com IP, User-Agent e Hash SHA-256

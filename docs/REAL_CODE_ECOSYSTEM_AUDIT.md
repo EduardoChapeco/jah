@@ -1,4 +1,4 @@
-# 🏛️ AUDITORIA REAL DO CÓDIGO-FONTE: INVENTÁRIO CANÔNICO DE CRUDs, SCHEMAS, FLUXOS E TRANSAÇÕES (WIDER PLATFORM)
+# 🏛️ AUDITORIA REAL DO CÓDIGO-FONTE: INVENTÁRIO CANÔNICO DE CRUDs, SCHEMAS, FLUXOS E TRANSAÇÕES (WAESY PLATFORM)
 
 > **Documento Canônico de Engenharia Reversa e Auditoria de Código Real.**  
 > Este documento reflete **estritamente o código-fonte existente** no repositório (`src/`, `supabase/migrations/`).  
@@ -312,4 +312,4 @@ sequenceDiagram
 ---
 
 > **CERTIFICAÇÃO DO CONSELHO EXECUTIVO BIGTECH:**  
-> Este documento representa 100% da realidade do código compilado e ativo no ecossistema Wider. Todas as 4 camadas de completude foram auditadas e comprovadas.
+> Este documento representa 100% da realidade do código compilado e ativo no ecossistema Waesy. Todas as 4 camadas de completude foram auditadas e comprovadas.

@@ -34,10 +34,10 @@ export const Route = createFileRoute("/_store/publicacao/$id")({
   head: ({ loaderData }) => {
     const post = (loaderData as any)?.post;
     const authorName = post?.author?.name || "Membro";
-    const snippet = post?.content ? post.content.slice(0, 100) + "..." : "Confira esta publicação no Wider.";
+    const snippet = post?.content ? post.content.slice(0, 100) + "..." : "Confira esta publicação no Waesy.";
     return {
       meta: [
-        { title: `${authorName} no Mural | Wider Community` },
+        { title: `${authorName} no Mural | Waesy Community` },
         { name: "description", content: snippet },
         { property: "og:title", content: `${authorName} no Mural` },
         { property: "og:description", content: snippet },
@@ -131,7 +131,7 @@ function PostThreadPage() {
     const url = typeof window !== "undefined" ? window.location.href : "";
     if (navigator.share) {
       navigator.share({
-        title: `${post?.author?.name || "Membro"} no Wider`,
+        title: `${post?.author?.name || "Membro"} no Waesy`,
         text: post?.content?.slice(0, 80) || "Veja esta publicação",
         url,
       }).catch(() => {});

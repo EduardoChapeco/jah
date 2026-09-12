@@ -66,18 +66,18 @@ export const Route = createFileRoute("/_store/membro/$id")({
  const modo = search?.modo;
  const fullName = loaderData?.data?.profile?.full_name || "Membro";
  const username = loaderData?.data?.profile?.username ? "@" + loaderData.data.profile.username : "";
- let title = fullName + (username ? " (" + username + ")" : "") + " | Wider OS";
+ let title = fullName + (username ? " (" + username + ")" : "") + " | Waesy";
  if (modo === "profissional") {
- title = fullName + " — Perfil Profissional | Wider OS";
+ title = fullName + " — Perfil Profissional | Waesy";
  } else if (modo === "comercial") {
- title = fullName + " — Catálogo & Desapegos | Wider OS";
+ title = fullName + " — Catálogo & Desapegos | Waesy";
  }
  return {
  meta: [
  { title },
  {
  name: "description",
- content: loaderData?.data?.profile?.bio || "Perfil no ecossistema comunitário Wider.",
+ content: loaderData?.data?.profile?.bio || "Perfil no ecossistema comunitário Waesy.",
  },
  ],
  };
@@ -194,8 +194,8 @@ export function MemberPublicProfileView({
 
  const handleAffiliateProductClick = (_storeSlug: string, _productSlug: string) => {
   if (typeof window !== "undefined" && profile?.username) {
-    localStorage.setItem("wider_affiliate_ref", profile.username);
-    document.cookie = `wider_affiliate_ref=${encodeURIComponent(profile.username)}; max-age=${30 * 86400}; path=/; SameSite=Lax`;
+    localStorage.setItem("waesy_affiliate_ref", profile.username);
+    document.cookie = `waesy_affiliate_ref=${encodeURIComponent(profile.username)}; max-age=${30 * 86400}; path=/; SameSite=Lax`;
   }
  };
 
@@ -207,7 +207,7 @@ export function MemberPublicProfileView({
  </div>
  <h2 className="text-xl font-bold">Perfil não encontrado</h2>
  <p className="text-sm text-muted-foreground max-w-md">
- O membro solicitado não existe ou foi desativado da rede comunitária Wider.
+ O membro solicitado não existe ou foi desativado da rede comunitária Waesy.
  </p>
  <Button asChild variant="outline" className="rounded-xl">
  <Link to="/">Voltar ao Início</Link>
@@ -236,7 +236,7 @@ export function MemberPublicProfileView({
  if (typeof navigator !== "undefined" && navigator.share) {
  navigator
  .share({
- title: `${profile.full_name} no Wider`,
+ title: `${profile.full_name} no Waesy`,
  url: window.location.href,
  })
  .catch(() => {});
@@ -607,7 +607,7 @@ export function MemberPublicProfileView({
           </div>
         </div>
 
- {/* Linha de Identidade e Ações Minimalistas (Estilo Instagram / Threads) */}
+ {/* Linha de Identidade e Ações Minimalistas */}
  <div className="pt-2 border-t border-border/30 space-y-3">
  {/* Nome, Username, Verificação e Menu */}
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -915,7 +915,7 @@ export function MemberPublicProfileView({
  </div>
  </div>
 
- {/* ── Bloco 2: Perfil Profissional Estilo LinkedIn (Quando modo === "profissional") ── */}
+ {/* ── Bloco 2: Perfil Profissional Corporativo (Quando modo === "profissional") ── */}
  {activeMode === "profissional" && (
  <div className="rounded-2xl bg-card p-6 sm:p-8 space-y-8 divide-y divide-border/40">
  {/* ── 1. Seção Sobre ── */}
@@ -950,7 +950,7 @@ export function MemberPublicProfileView({
  ) : null}
  </div>
 
- {/* ── 2. Seção Experiência com Vinculação a Lojas Wider & Mídias ── */}
+ {/* ── 2. Seção Experiência com Vinculação a Lojas Waesy & Mídias ── */}
  <div className="pt-8 space-y-6">
  <div className="flex items-center justify-between">
  <h2 className="text-lg font-bold text-foreground tracking-tight">Experiência</h2>
@@ -982,7 +982,7 @@ export function MemberPublicProfileView({
  <div key={exp.id || index} className={cn("space-y-3", index > 0 && "pt-6")}>
  <div className="flex items-start justify-between gap-4">
  <div className="flex items-start gap-3.5">
- {/* Logo da Loja Wider ou Ícone Squircle */}
+ {/* Logo da Loja Waesy ou Ícone Squircle */}
  <div className="size-12 rounded-2xl bg-muted/50 flex-shrink-0 overflow-hidden flex items-center justify-center">
  {exp.store_logo ? (
  <img src={exp.store_logo} alt={exp.company} className="size-full object-cover" />
@@ -1000,7 +1000,7 @@ export function MemberPublicProfileView({
  <span>{exp.company}</span>
  {exp.store_id && (
  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-primary/10 text-primary font-bold">
- Empresa Wider
+ Empresa Waesy
  </Badge>
  )}
  {exp.employment_type && (
@@ -1716,7 +1716,7 @@ export function MemberPublicProfileView({
  {isOwner && socialTab === "liked" && (
  <div className="py-16 text-center text-muted-foreground space-y-3 rounded-2xl bg-card border border-border/40">
  <Layers className="size-10 mx-auto text-muted-foreground/30" />
- <p className="text-sm font-medium">Publicações que você curtiu na comunidade Wider.</p>
+ <p className="text-sm font-medium">Publicações que você curtiu na Comunidade Waesy.</p>
  </div>
  )}
 
@@ -1816,7 +1816,7 @@ export function MemberPublicProfileView({
 
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
  {creatorPartnerStores.map((s: any) => {
- const couponCode = `${(creatorProfile?.handle || profile.username || "WIDER").toUpperCase().slice(0, 6)}10`;
+ const couponCode = `${(creatorProfile?.handle || profile.username || "WAESY").toUpperCase().slice(0, 6)}10`;
 
  return (
  <div
@@ -2015,7 +2015,7 @@ export function MemberPublicProfileView({
  <h3 className="text-base font-bold text-foreground truncate group-hover:text-primary transition-colors">
  {s.name}
  </h3>
- <p className="text-xs text-muted-foreground truncate">{s.description || "Loja da rede Wider"}</p>
+ <p className="text-xs text-muted-foreground truncate">{s.description || "Loja da Rede Waesy"}</p>
  </div>
  </Link>
  ))}
@@ -2569,7 +2569,7 @@ function ExperienceEditModal({
  const [mediaUrls, setMediaUrls] = useState<string[]>(item?.media_urls || []);
  const [isUploading, setIsUploading] = useState(false);
 
- // Autocomplete de lojas Wider
+ // Autocomplete de lojas Waesy
  const [companySuggestions, setCompanySuggestions] = useState<any[]>([]);
 
  const handleCompanyChange = async (val: string) => {
@@ -2672,14 +2672,14 @@ function ExperienceEditModal({
  <Input
  value={company}
  onChange={(e) => handleCompanyChange(e.target.value)}
- placeholder="Digite para buscar empresas no Wider..."
+ placeholder="Digite para buscar empresas no Waesy..."
  className="h-10 rounded-xl"
  required
  />
  {companySuggestions.length > 0 && (
  <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-card rounded-2xl border border-border/80 p-2 space-y-1 max-h-48 overflow-y-auto no-scrollbar">
  <p className="text-[10px] font-bold text-muted-foreground px-2 py-0.5">
- Lojas do Ecossistema Wider:
+ Lojas do ecossistema Waesy:
  </p>
  {companySuggestions.map((s) => (
  <div
@@ -2692,7 +2692,7 @@ function ExperienceEditModal({
  </div>
  <span className="text-xs font-bold text-foreground">{s.name}</span>
  <Badge variant="secondary" className="text-[9px] ml-auto">
- Wider
+ Waesy
  </Badge>
  </div>
  ))}

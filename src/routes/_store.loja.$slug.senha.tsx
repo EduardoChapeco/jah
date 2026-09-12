@@ -15,7 +15,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/loja/$slug/senha")({
   head: () => ({
     meta: [
-      { title: "Acesso Privado | Wider OS" },
+      { title: "Acesso Privado | Waesy" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),

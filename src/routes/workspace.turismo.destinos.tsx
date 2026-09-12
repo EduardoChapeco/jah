@@ -83,7 +83,7 @@ import {
 } from "@/lib/destinations-catalog";
 
 export const Route = createFileRoute("/workspace/turismo/destinos")({
- head: () => ({ meta: [{ title: "Banco de Destinos Turísticos & CMS | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Banco de Destinos Turísticos & CMS | Workspace Waesy" }] }),
  loader: async () => {
    try {
  const [destinations, store] = await Promise.all([

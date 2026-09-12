@@ -399,7 +399,7 @@ export const requestPublicQuote = createServerFn({ method: "POST" })
  p_guest_email: data.customer_email || null,
  p_guest_phone: data.customer_phone,
  p_valid_until: null,
- p_conditions: `Solicitação via Super App Wider - Categoria: ${data.service_category || "Geral"}. Endereço: ${data.location_address || "Não informado"}. Urgência: ${data.urgency}. Data preferencial: ${data.preferred_date || "A combinar"}`,
+ p_conditions: `Solicitação via Super App Waesy - Categoria: ${data.service_category || "Geral"}. Endereço: ${data.location_address || "Não informado"}. Urgência: ${data.urgency}. Data preferencial: ${data.preferred_date || "A combinar"}`,
  p_internal_notes: `Orçamento solicitado pelo morador através da vitrine pública.`,
  });
 

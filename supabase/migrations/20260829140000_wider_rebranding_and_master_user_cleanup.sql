@@ -91,16 +91,16 @@ BEGIN
 
   -- 3. [DEPRECATED / REMOVED] Deleção de contas desativada para proteger integridade em novos ambientes
   -- BEGIN
-  --   DELETE FROM auth.users WHERE email <> 'meuwider@gmail.com';
+  --   DELETE FROM auth.users WHERE email <> 'meuwaesy@gmail.com';
   -- EXCEPTION WHEN OTHERS THEN NULL; END;
 
   -- 4. Garantir Perfil Master Ativo se existir no auth.users
   IF EXISTS (SELECT 1 FROM auth.users WHERE id = v_master_id) THEN
     INSERT INTO public.profiles (id, full_name, username, role, is_verified, cpf)
-    VALUES (v_master_id, 'Eduardo Antônio Ramos', 'wider', 'platform_admin', true, '10780979923')
+    VALUES (v_master_id, 'Eduardo Antônio Ramos', 'waesy', 'platform_admin', true, '10780979923')
     ON CONFLICT (id) DO UPDATE SET
       full_name = 'Eduardo Antônio Ramos',
-      username = 'wider',
+      username = 'waesy',
       role = 'platform_admin',
       is_verified = true,
       cpf = '10780979923';
@@ -112,14 +112,14 @@ BEGIN
     ON CONFLICT (store_id, profile_id) DO UPDATE SET role = 'owner';
   END IF;
 
-  -- 6. Atualizar Lojas e Branding Matriz para Wider
+  -- 6. Atualizar Lojas e Branding Matriz para Waesy
   UPDATE public.stores
   SET
-    name = 'Wider',
-    slug = 'wider',
+    name = 'Waesy',
+    slug = 'waesy',
     is_platform_root = true,
-    seo_title = 'Wider — Super App Comunitário',
+    seo_title = 'Waesy — Super App Comunitário',
     seo_description = 'Explore comércio local, gastronomia, turismo, serviços, classificados e comunidade em um só lugar.'
-  WHERE is_platform_root = true OR slug IN ('wider-matriz', 'wider', 'matriz', 'jah');
+  WHERE is_platform_root = true OR slug IN ('waesy-matriz', 'waesy', 'matriz', 'waesy');
 
 END $$;

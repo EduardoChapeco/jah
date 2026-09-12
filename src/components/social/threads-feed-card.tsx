@@ -248,7 +248,7 @@ export function ThreadsFeedCard({
  </p>
  )}
 
- {/* ── Renderizador de Enquete Threads (Poll) ── */}
+ {/* ── Renderizador de Enquete de Interação (Poll) ── */}
  {pollData && (
  <div className="mt-3 space-y-2 rounded-2xl bg-muted/20 border border-border/40 p-3.5">
  {pollData.question && (
@@ -332,7 +332,7 @@ export function ThreadsFeedCard({
  {/* ── Renderizador Polimórfico de Embed (Evento, Produto, Classificado, Notícia) ── */}
  <PostEmbedRenderer embed={post.embed} />
 
- {/* ── Cluster de Ações Threads (Touch Targets 44px) ── */}
+ {/* ── Cluster de Ações de Interação (Touch Targets 44px) ── */}
  <div className="flex items-center gap-1 pt-1 text-muted-foreground -ml-2">
  {/* Curtir */}
  <button

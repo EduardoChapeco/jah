@@ -745,18 +745,18 @@ Cada demanda é submetida ao crivo impiedoso das **5 Personas Especialistas do C
 > 
 > ### 1. Shell & Navegação Global (Fim de Rotas Órfãs)
 > 
-> #### [MODIFY] [top-bar.tsx](file:///c:/Users/Excelência%20Tour%20SMO/Documents/jah/src/components/shell/top-bar.tsx)
+> #### [MODIFY] [top-bar.tsx](file:///c:/Users/Excelência%20Tour%20SMO/Documents/waesy/src/components/shell/top-bar.tsx)
 > - Adicionar chip rápido **`Sorteios`** (`/concursos`) à lista canônica `MOBILE_QUICK_CHIPS` ao lado de Início, Places, Classificados, Feed, Notícias, etc.
 > - Assegurar transição suave sem quebra de layout no mobile e desktop.
 > 
-> #### [MODIFY] [utility-cluster.tsx](file:///c:/Users/Excelência%20Tour%20SMO/Documents/jah/src/components/shell/utility-cluster.tsx)
+> #### [MODIFY] [utility-cluster.tsx](file:///c:/Users/Excelência%20Tour%20SMO/Documents/waesy/src/components/shell/utility-cluster.tsx)
 > - No menu de perfil pessoal (desktop/tablet), adicionar links diretos para:
 >   - **Meus Sorteios & Cupons** (`/conta/concursos`)
 >   - **Convites & Membro Fundador** (`/convite`)
 >   - **Criadores & Vitrines** (`/conta/criadores`)
 > - Garantir alinhamento com a taxonomia de 1 a 2 palavras sem textos prolixos conversacionais.
 > 
-> #### [MODIFY] [_store.conta.index.tsx](file:///c:/Users/Excelência%20Tour%20SMO/Documents/jah/src/routes/_store.conta.index.tsx)
+> #### [MODIFY] [_store.conta.index.tsx](file:///c:/Users/Excelência%20Tour%20SMO/Documents/waesy/src/routes/_store.conta.index.tsx)
 > - Adicionar o card **`Convites & Membro Fundador`** (`/convite`) em `ACCOUNT_SECTIONS` com ícone `Trophy` e rótulo semântico.
 > - Garantir que `/conta/concursos` e `/conta/criadores` tenham ícones e badges harmonizados.
 > 
@@ -764,25 +764,25 @@ Cada demanda é submetida ao crivo impiedoso das **5 Personas Especialistas do C
 > 
 > ### 2. Módulo de Concursos, Sorteios & Membro Fundador (E2E)
 > 
-> #### [MODIFY] [_store.concurso.$id.tsx](file:///c:/Users/Excelência%20Tour%20SMO/Documents/jah/src/routes/_store.concurso.$id.tsx)
+> #### [MODIFY] [_store.concurso.$id.tsx](file:///c:/Users/Excelência%20Tour%20SMO/Documents/waesy/src/routes/_store.concurso.$id.tsx)
 > - **Conexão com a Loja:** Tornar o badge da loja clicável apontando para a vitrine pública da loja (`/loja/${raffle.storeId}`).
 > - **Padronização Visual:**
 >   - Ajustar o modal de confirmação para seguir a geometria squircle e tokens semânticos (`rounded-3xl p-6`).
 >   - Garantir que a barra fixa inferior (`Thumb Zone`) tenha alvo de toque mínimo de 44px (`h-11`) e feedback instantâneo de emissão do cupom.
 >   - Exibir contador de cupons do usuário e limite por participante em tempo real.
 > 
-> #### [MODIFY] [_store.concursos.tsx](file:///c:/Users/Excelência%20Tour%20SMO/Documents/jah/src/routes/_store.concursos.tsx)
+> #### [MODIFY] [_store.concursos.tsx](file:///c:/Users/Excelência%20Tour%20SMO/Documents/waesy/src/routes/_store.concursos.tsx)
 > - **Padronização de Container:** Garantir a largura canônica única `max-w-6xl w-full mx-auto px-4 sm:px-6` para eliminar o "efeito sanfona".
-> - **Filtros Fluidos:** Seletor em formato de chips táteis ("Todos", "Lojas Parceiras", "Oficiais Wider", "Encerrados").
+> - **Filtros Fluidos:** Seletor em formato de chips táteis ("Todos", "Lojas Parceiras", "Oficiais Waesy", "Encerrados").
 > - **Cards de Sorteio:** Imagem 16:9, badge da loja organizadora com avatar, data limite, status em tempo real e botão de emissão com 1 toque.
 > 
-> #### [MODIFY] [_store.convite.tsx](file:///c:/Users/Excelência%20Tour%20SMO/Documents/jah/src/routes/_store.convite.tsx)
+> #### [MODIFY] [_store.convite.tsx](file:///c:/Users/Excelência%20Tour%20SMO/Documents/waesy/src/routes/_store.convite.tsx)
 > - **Membro Fundador vs Embaixador Dinâmico:**
 >   - Exibição limpa da distinção (Membro Fundador perpétuo com badge dourada vs Embaixador com meta mensal de conversões).
 >   - Modal de regulamento padronizado com `DialogContent` limpo.
 >   - Botão de compartilhamento com mensagem do WhatsApp objetiva e sem spam.
 > 
-> #### [MODIFY] [workspace.marketing.concursos.tsx](file:///c:/Users/Excelência%20Tour%20SMO/Documents/jah/src/routes/workspace.marketing.concursos.tsx)
+> #### [MODIFY] [workspace.marketing.concursos.tsx](file:///c:/Users/Excelência%20Tour%20SMO/Documents/waesy/src/routes/workspace.marketing.concursos.tsx)
 > - **Operação do Lojista:**
 >   - Ajustar o drawer de criação/edição com `SheetPage size="lg"` (70% de largura no desktop conforme regra BigTech).
 >   - Autopreenchimento de placeholders inteligentes por nicho da loja (`getNichePrizePlaceholder`).
@@ -792,7 +792,7 @@ Cada demanda é submetida ao crivo impiedoso das **5 Personas Especialistas do C
 > 
 > ### 3. Serviços & Contratos BFF (`src/services/invite.functions.ts`)
 > 
-> #### [MODIFY] [invite.functions.ts](file:///c:/Users/Excelência%20Tour%20SMO/Documents/jah/src/services/invite.functions.ts)
+> #### [MODIFY] [invite.functions.ts](file:///c:/Users/Excelência%20Tour%20SMO/Documents/waesy/src/services/invite.functions.ts)
 > - Auditar e blindar as Server Functions contra falhas de tenant (`store_id`) ou permissões:
 >   - `participateInRaffle`: validar `accepted_terms_at`, limite de cupons por usuário e custo em pontos/tokens.
 >   - `storeCreateConcurso` / `storeUpdateConcurso`: garantir isolamento multi-tenant seguro derivando o `store_id` da sessão autorizada.
@@ -1658,7 +1658,7 @@ A tabela abaixo sintetiza como os 10 prompts se fundem em um sistema único, viv
 
 ## 🎯 Conclusão & Compromisso de Execução
 
-Este dossiê substitui qualquer especificação fragmentada anterior e se torna o **Plano de Batalha Canônico** da plataforma Wider/JAH.
+Este dossiê substitui qualquer especificação fragmentada anterior e se torna o **Plano de Batalha Canônico** da plataforma Waesy/Waesy.
 
 O Conselho Executivo de Engenharia está pronto para executar as correções e expansões descritas neste documento em microfases ordenadas, garantindo que:
 1. **0 linhas de código legado ou mocks permaneçam no repositório.**

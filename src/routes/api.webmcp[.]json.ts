@@ -7,7 +7,7 @@ export const Route = createFileRoute("/api/webmcp.json")({
         const url = new URL(request.url);
 
         const manifest = {
-          name: "Wider OS AI Agent & MCP Protocol",
+          name: "Waesy AI Agent & MCP Protocol",
           version: "2.0.0",
           description: "Especificação WebMCP para busca de produtos, estoques, empresas e compras autônomas por IA.",
           protocol: "model-context-protocol/v1",
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/api/webmcp.json")({
           tools: [
             {
               name: "search_catalog_products",
-              description: "Busca produtos, estoques e preços atualizados no marketplace local Wider.",
+              description: "Busca produtos, estoques e preços atualizados no marketplace local Waesy.",
               parameters: {
                 type: "object",
                 properties: {

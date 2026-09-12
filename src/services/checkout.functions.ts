@@ -90,7 +90,7 @@ export const processCheckout = createServerFn({ method: "POST" })
 
  // Ensure anti-hijacking by extracting the actual current identity
  const identity = await getCurrentIdentity();
- const affiliateId = req ? readCookieFromRequest(req, "wider_affiliate_id") : null;
+ const affiliateId = req ? readCookieFromRequest(req, "waesy_affiliate_id") : null;
 
  // Call the atomic RPC v2 — all logic (coupon, stock, order creation, gift cards, surcharges) happens inside a single PostgreSQL transaction
  // Validação de integridade de frete: revalida apenas quando é transportadora automatizada externa com CEP

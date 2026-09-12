@@ -1,4 +1,4 @@
-# 🏛️ CONSELHO EXECUTIVO DE BIGTECH: AUDITORIA FORENSE SISTÊMICA & INVENTÁRIO REAL DO CÓDIGO (JAH / WIDER)
+# 🏛️ CONSELHO EXECUTIVO DE BIGTECH: AUDITORIA FORENSE SISTÊMICA & INVENTÁRIO REAL DO CÓDIGO (Waesy / WAESY)
 
 > **Documento Canônico de Auditoria E2E, Bilateralidade, Anti-Mocks e Plano de Microfases**  
 > **Fontes Canônicas Auditadas:** `docs/MASTER_PLAN.md`, `docs/DESIGN.md`, `docs/ARCHITECTURE.md`, `docs/DOMAIN_MODEL.md`, `docs/ROUTES.md`, `docs/SECURITY.md`, `docs/BUSINESS_FLOWS.md`, `supabase/migrations/*`, `src/services/*`, `src/routes/*`, `src/components/*`.
@@ -94,7 +94,7 @@ Confrontamos a base de dados real (241 migrations aplicadas), a camada BFF (45 a
     4. Abertura do Sheet Lateral de Criação com preenchimento de título, slug automático e transição instantânea para o **Construtor Visual Canvas** (`/workspace/builder/:documentId/editor`).
 - **Build & Deploy:**
   - **472 módulos compilados com 0 erros de TypeScript**.
-  - Deploy publicado no Cloudflare Pages: [`https://fea86596.wider.pages.dev`](https://fea86596.wider.pages.dev).
+  - Deploy publicado no Cloudflare Pages: [`https://fea86596.waesy.pages.dev`](https://fea86596.waesy.pages.dev).
 
 ---
 
@@ -150,7 +150,7 @@ Isso erradica 100% dos saltos de visualização ("efeito sanfona") quando o oper
 
 ## 5. 🧩 BIBLIOTECA SEMÂNTICA MODULARIZADA POR NICHO (`src/lib/niche-semantics.ts`)
 
-A plataforma JAH opera de forma multi-segmento sem perda de identidade e sem código genérico. Cada um dos 17 nichos comerciais possui vocabulário, KPIs e modos de serviço dedicados:
+A plataforma Waesy opera de forma multi-segmento sem perda de identidade e sem código genérico. Cada um dos 17 nichos comerciais possui vocabulário, KPIs e modos de serviço dedicados:
 
 | Nicho ID | Segmento Comercial | Item Singular / Plural | KPIs Contextuais | Modo PDV Principal |
 | :--- | :--- | :--- | :--- | :--- |
@@ -174,12 +174,12 @@ A plataforma JAH opera de forma multi-segmento sem perda de identidade e sem có
 
 ## 🌐 URLs de Produção Auditadas e Ativas
 
-- **Central de Tarefas & Meu Dia:** [https://fea86596.wider.pages.dev/workspace/tarefas](https://fea86596.wider.pages.dev/workspace/tarefas)
-- **Gestão de Frotas & Assentos 2D:** [https://fea86596.wider.pages.dev/workspace/turismo/frota](https://fea86596.wider.pages.dev/workspace/turismo/frota)
-- **Orquestrador de IAs (BYOK):** [https://fea86596.wider.pages.dev/workspace/configuracoes/inteligencia-artificial](https://fea86596.wider.pages.dev/workspace/configuracoes/inteligencia-artificial)
-- **Central de Ajuda & Suporte:** [https://fea86596.wider.pages.dev/workspace/suporte](https://fea86596.wider.pages.dev/workspace/suporte)
-- **Hub de Sites, Vitrines & Hotpages:** [https://fea86596.wider.pages.dev/workspace/marketing/vitrine](https://fea86596.wider.pages.dev/workspace/marketing/vitrine)
-- **Vitrine Comercial Pública Oficial:** [https://fea86596.wider.pages.dev/perfil-da-loja](https://fea86596.wider.pages.dev/perfil-da-loja)
-- **Painel de Conta & Alternador de Lojas:** [https://fea86596.wider.pages.dev/conta](https://fea86596.wider.pages.dev/conta)
-- **Domínio Principal:** [https://wider.pages.dev](https://wider.pages.dev)
+- **Central de Tarefas & Meu Dia:** [https://fea86596.waesy.pages.dev/workspace/tarefas](https://fea86596.waesy.pages.dev/workspace/tarefas)
+- **Gestão de Frotas & Assentos 2D:** [https://fea86596.waesy.pages.dev/workspace/turismo/frota](https://fea86596.waesy.pages.dev/workspace/turismo/frota)
+- **Orquestrador de IAs (BYOK):** [https://fea86596.waesy.pages.dev/workspace/configuracoes/inteligencia-artificial](https://fea86596.waesy.pages.dev/workspace/configuracoes/inteligencia-artificial)
+- **Central de Ajuda & Suporte:** [https://fea86596.waesy.pages.dev/workspace/suporte](https://fea86596.waesy.pages.dev/workspace/suporte)
+- **Hub de Sites, Vitrines & Hotpages:** [https://fea86596.waesy.pages.dev/workspace/marketing/vitrine](https://fea86596.waesy.pages.dev/workspace/marketing/vitrine)
+- **Vitrine Comercial Pública Oficial:** [https://fea86596.waesy.pages.dev/perfil-da-loja](https://fea86596.waesy.pages.dev/perfil-da-loja)
+- **Painel de Conta & Alternador de Lojas:** [https://fea86596.waesy.pages.dev/conta](https://fea86596.waesy.pages.dev/conta)
+- **Domínio Principal:** [https://waesy.pages.dev](https://waesy.pages.dev)
 

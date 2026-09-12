@@ -385,7 +385,7 @@ function DirectoryBusinessCard({
 
             {/* Descrição Resumida (Altura fixa de 2 linhas h-9 exata) */}
             <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed h-9 overflow-hidden">
-              {item.description || "Empresa oficial cadastrada no ecossistema Wider."}
+              {item.description || "Empresa oficial cadastrada no ecossistema Waesy."}
             </p>
           </div>
         </div>

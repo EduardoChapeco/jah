@@ -21,7 +21,7 @@ export const createBadgeTemplate = createServerFn({ method: "POST" })
     if (!identity?.empresa_id) throw new Error("Empresa nao identificada");
 
     const { error } = await supabase.from("badge_templates").insert({
-      empresa_id: identity.empresa_id,
+      empresa_id: (identity as any).empresa_id,
       name: data.name,
       variant: data.variant,
       primary_color: data.primary_color,
@@ -44,7 +44,7 @@ export const deleteBadgeTemplate = createServerFn({ method: "POST" })
       .from("badge_templates")
       .delete()
       .eq("id", data.id)
-      .eq("empresa_id", identity.empresa_id);
+      .eq("empresa_id", (identity as any).empresa_id);
 
     if (error) throw error;
     return { ok: true };
@@ -167,7 +167,7 @@ export const deleteLeadCaptureForm = createServerFn({ method: "POST" })
     const identity = await getServerIdentity();
     if (!identity?.empresa_id) throw new Error("Empresa nao identificada");
 
-    const { error } = await supabase.from("lead_capture_forms").delete().eq("id", data.id).eq("empresa_id", identity.empresa_id);
+    const { error } = await supabase.from("lead_capture_forms").delete().eq("id", data.id).eq("empresa_id", (identity as any).empresa_id);
     if (error) throw error;
     return { ok: true };
   });
@@ -188,7 +188,7 @@ export const createEventActivation = createServerFn({ method: "POST" })
     const identity = await getServerIdentity();
     if (!identity?.empresa_id) throw new Error("Empresa nao identificada");
 
-    const { error } = await supabase.from("event_activations").insert({ empresa_id: identity.empresa_id, ...data });
+    const { error } = await supabase.from("event_activations").insert({ empresa_id: (identity as any).empresa_id, ...data });
     if (error) throw error;
     return { ok: true };
   });
@@ -200,7 +200,7 @@ export const deleteEventActivation = createServerFn({ method: "POST" })
     const identity = await getServerIdentity();
     if (!identity?.empresa_id) throw new Error("Empresa nao identificada");
 
-    const { error } = await supabase.from("event_activations").delete().eq("id", data.id).eq("empresa_id", identity.empresa_id);
+    const { error } = await supabase.from("event_activations").delete().eq("id", data.id).eq("empresa_id", (identity as any).empresa_id);
     if (error) throw error;
     return { ok: true };
   });

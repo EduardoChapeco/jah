@@ -1238,7 +1238,7 @@ _Valores sujeitos a reajuste tarifário sem aviso prévio. Garanta sua reserva!_
  <Textarea
  value={agencyNotes}
  onChange={(e) => setAgencyNotes(e.target.value)}
- placeholder="Ex: Cotação feita na CVC / Orinter. Passageiro com flexibilidade de voo noturno."
+ placeholder="Ex: Cotação de operadora de viagens. Passageiro com flexibilidade de voo noturno."
  className="rounded-xl text-xs resize-none bg-background"
  rows={2}
  />

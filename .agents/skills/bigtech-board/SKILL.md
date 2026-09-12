@@ -3,7 +3,7 @@ name: bigtech-board
 description: "Use when receiving ANY user prompt, feature request, or idea. Activates the BigTech Executive Board & Red Team to expand the idea, guarantee 4-layer completeness, enforce security and design ops, and eliminate forgotten requirements."
 ---
 
-# BigTech Engineering Board & Autonomous Pipeline (JAH)
+# BigTech Engineering Board & Autonomous Pipeline (Waesy)
 
 > **Missão:** Transformar cada ideia ou prompt do usuário em um produto digital de classe mundial de uma BigTech (Apple, Stripe, Airbnb, Vercel), garantindo completude funcional absoluta, segurança estrita, design impecável e **ZERO esquecimento**.
 

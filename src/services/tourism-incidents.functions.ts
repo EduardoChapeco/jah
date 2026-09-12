@@ -207,7 +207,7 @@ export const getIncidentDetail = createServerFn({ method: 'GET' })
       .single();
 
     if (iErr || !incident) throw new Error('Incidente não encontrado.');
-    if (incident.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+    if (incident.store_id !== identity.store_id && !(identity.role === "platform_admin")) {
       throw new Error('Acesso não autorizado a este incidente.');
     }
 
@@ -230,7 +230,7 @@ export const createTourismIncident = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
-    if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+    if (data.store_id !== identity.store_id && !(identity.role === "platform_admin")) {
       throw new Error('Acesso não autorizado para esta organização.');
     }
 
@@ -302,7 +302,7 @@ export const addIncidentEvent = createServerFn({ method: 'POST' })
       .single();
 
     if (iErr || !incident) throw new Error('Incidente não encontrado.');
-    if (incident.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+    if (incident.store_id !== identity.store_id && !(identity.role === "platform_admin")) {
       throw new Error('Acesso não autorizado a este incidente.');
     }
 
@@ -344,7 +344,7 @@ export const updateIncidentStatus = createServerFn({ method: 'POST' })
       .single();
 
     if (fetchErr || !existing) throw new Error('Incidente não encontrado.');
-    if (existing.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+    if (existing.store_id !== identity.store_id && !(identity.role === "platform_admin")) {
       throw new Error('Acesso não autorizado a este incidente.');
     }
 

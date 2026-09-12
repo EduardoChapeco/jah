@@ -57,7 +57,7 @@ import {
 } from "@/services/api-orchestrator.functions";
 
 export const Route = createFileRoute("/admin-master/integracoes")({
- head: () => ({ meta: [{ title: "APIs, Pools & Orquestrador Global | Wider Master" }] }),
+ head: () => ({ meta: [{ title: "APIs, Pools & Orquestrador Global | Waesy Master" }] }),
  loader: async () => {
  try {
  const [integrations, pools, prompts] = await Promise.all([
@@ -636,7 +636,7 @@ function AdminMasterIntegracoesPage() {
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground max-w-2xl">
-                  A Wider utiliza cartografia real OpenStreetMap com renderização em Retina 2x via CARTO Voyager e Dark Matter.
+                  A Waesy utiliza cartografia real OpenStreetMap com renderização em Retina 2x via CARTO Voyager e Dark Matter.
                   Nenhuma chave paga é obrigatória. Suporte a autopreenchimento de endereços via BrasilAPI v2, ViaCEP, consulta oficial de CNPJ e inteligência geográfica.
                 </p>
               </div>

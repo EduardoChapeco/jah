@@ -76,7 +76,7 @@ export function QuickCreateModal({
  if (!isAuthenticated) {
  e.preventDefault();
  e.stopPropagation();
- toast.info("Acesse sua conta para publicar e anunciar no Wider.");
+ toast.info("Acesse sua conta para publicar e anunciar no Waesy.");
  navigate({
  to: "/entrar",
  search: { returnUrl: location.pathname || "/" },

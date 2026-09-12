@@ -58,7 +58,7 @@ const MODA_DEPARTMENTS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/moda")({
  head: () => ({
  meta: [
- { title: "Moda, Roupas, Calçados & Acessórios | Wider OS" },
+ { title: "Moda, Roupas, Calçados & Acessórios | Waesy" },
  {
  name: "description",
  content:

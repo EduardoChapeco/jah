@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah Commerce — Migration 0090: RBAC Profiles Tenancy
+-- Waesy Commerce — Migration 0090: RBAC Profiles Tenancy
 -- ============================================================================
 -- Fixes the BOLA vulnerability and allows staff to read customer profiles
 -- associated with their store (either directly or via orders) without 

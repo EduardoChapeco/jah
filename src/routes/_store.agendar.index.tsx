@@ -54,7 +54,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_store/agendar/")({
   head: () => ({
     meta: [
-      { title: "Serviços & Agendamentos | Wider OS" },
+      { title: "Serviços & Agendamentos | Waesy" },
       {
         name: "description",
         content:

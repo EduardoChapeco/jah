@@ -29,7 +29,7 @@ import { getStoreSettings } from "@/services/store.functions";
 import { SevenSinHookDTO } from "@/types/squads-and-onboarding";
 
 export const Route = createFileRoute("/workspace/marketing/canvas-pecados")({
-  head: () => ({ meta: [{ title: "Canvas dos 7 Pecados Capitais | Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Canvas dos 7 Pecados Capitais | Waesy" }] }),
   loader: async () => {
     try {
     const store = await getStoreSettings().catch(() => null);

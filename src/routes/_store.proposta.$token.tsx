@@ -26,8 +26,8 @@ export const Route = createFileRoute("/_store/proposta/$token")({
  meta: [
  {
  title: loaderData?.proposal
- ? `Proposta de Viagem: ${loaderData.proposal.destination_city} — Wider`
- : "Proposta de Viagem — Wider",
+ ? `Proposta de Viagem: ${loaderData.proposal.destination_city} — Waesy`
+ : "Proposta de Viagem — Waesy",
  },
  {
  name: "description",

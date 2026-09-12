@@ -1,6 +1,6 @@
 
 -- ============================================================================
--- Jah Commerce — Refatoração de Identidade e Tenancy
+-- Waesy Commerce — Refatoração de Identidade e Tenancy
 -- ============================================================================
 
 BEGIN;
@@ -279,18 +279,18 @@ BEGIN
   IF v_admin_count < 2 THEN
     user_role := 'owner';
     
-    SELECT id INTO default_org_id FROM public.organizations WHERE slug = 'jah-org' LIMIT 1;
+    SELECT id INTO default_org_id FROM public.organizations WHERE slug = 'waesy-org' LIMIT 1;
     IF default_org_id IS NULL THEN
-      INSERT INTO public.organizations (name, slug) VALUES ('Jah Organization', 'jah-org') RETURNING id INTO default_org_id;
+      INSERT INTO public.organizations (name, slug) VALUES ('Waesy Organization', 'waesy-org') RETURNING id INTO default_org_id;
     END IF;
     
-    SELECT id INTO default_store_id FROM public.stores WHERE slug = 'jah' AND organization_id = default_org_id LIMIT 1;
+    SELECT id INTO default_store_id FROM public.stores WHERE slug = 'waesy' AND organization_id = default_org_id LIMIT 1;
     IF default_store_id IS NULL THEN
-      INSERT INTO public.stores (organization_id, name, slug) VALUES (default_org_id, 'Jah', 'jah') RETURNING id INTO default_store_id;
+      INSERT INTO public.stores (organization_id, name, slug) VALUES (default_org_id, 'Waesy', 'waesy') RETURNING id INTO default_store_id;
     END IF;
   ELSE
-    SELECT id INTO default_org_id FROM public.organizations WHERE slug = 'jah-org' LIMIT 1;
-    SELECT id INTO default_store_id FROM public.stores WHERE slug = 'jah' AND organization_id = default_org_id LIMIT 1;
+    SELECT id INTO default_org_id FROM public.organizations WHERE slug = 'waesy-org' LIMIT 1;
+    SELECT id INTO default_store_id FROM public.stores WHERE slug = 'waesy' AND organization_id = default_org_id LIMIT 1;
     user_role := 'customer';
   END IF;
 

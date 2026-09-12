@@ -31,7 +31,7 @@ import {
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/configuracoes/ai")({
- head: () => ({ meta: [{ title: "Vault de Segredos & Inteligência Artificial | Workspace Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Vault de Segredos & Inteligência Artificial | Workspace Waesy" }] }),
  component: AIConfigurationPage,
 });
 

@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_store/patrocinador/$token")({
       {
         title: loaderData?.report?.sponsor
           ? `${loaderData.report.sponsor.name} | Relatório de Desempenho da Campanha`
-          : "Relatório do Patrocinador | Wider",
+          : "Relatório do Patrocinador | Waesy",
       },
       {
         name: "description",
@@ -307,7 +307,7 @@ function PublicSponsorReportPage() {
       {/* ── Rodapé de Auditoria e Transparência ── */}
       <div className="p-4 rounded-xl bg-muted/30 border text-center text-[11px] text-muted-foreground space-y-1">
         <p className="font-medium text-foreground">
-          Relatório protegido por Token Criptográfico Exclusivo • Wider Display Network
+          Relatório protegido por Token Criptográfico Exclusivo • Waesy Display Network
         </p>
         <p>
           Métricas calculadas exclusivamente com base em leitores humanos reais. Cliques repetidos ou

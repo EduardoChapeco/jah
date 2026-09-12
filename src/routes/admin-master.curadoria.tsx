@@ -48,7 +48,7 @@ import {
 } from "@/services/curadoria.functions";
 
 export const Route = createFileRoute("/admin-master/curadoria")({
- head: () => ({ meta: [{ title: "Curadoria & Auditoria | Wider Master" }] }),
+ head: () => ({ meta: [{ title: "Curadoria & Auditoria | Waesy Master" }] }),
  loader: async () => {
  try {
  const [stores, audits] = await Promise.all([
@@ -139,7 +139,7 @@ function CuradoriaAdminPage() {
  setResolutionAction("grant_boost_and_discount");
  setBoostMultiplier(2.5);
  setBoostDays(30);
- setAdminNotes("Apoio comunitário Wider concedido.");
+ setAdminNotes("Apoio comunitário Waesy concedido.");
  setBoostModalOpen(true);
  };
 

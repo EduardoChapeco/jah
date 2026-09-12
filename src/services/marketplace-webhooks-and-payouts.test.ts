@@ -108,7 +108,7 @@ describe("Affiliate Payout Governance & PIX Contracts", () => {
     const raw = {
       requestId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
       action: "approve_paid",
-      receiptUrl: "https://storage.wider.com.br/comprovante_pix.pdf",
+      receiptUrl: "https://storage.usewaesy.com/comprovante_pix.pdf",
       notes: "Transferência concluída via banco",
     };
 

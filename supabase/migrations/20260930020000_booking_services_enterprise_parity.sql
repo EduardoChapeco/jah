@@ -1,5 +1,5 @@
 -- ============================================================================
--- Jah / Wider — Migration 20260930020000: Booking Services Enterprise Parity
+-- Waesy / Waesy — Migration 20260930020000: Booking Services Enterprise Parity
 -- ============================================================================
 -- Eradica mocks e fallbacks estáticos em serviços e agendamentos:
 -- 1. Adiciona itens inclusos (included_items TEXT[]) cadastrados pelo anunciante.

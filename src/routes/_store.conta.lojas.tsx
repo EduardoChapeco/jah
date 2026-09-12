@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/lojas")({
- head: () => ({ meta: [{ title: "Minhas Lojas & Negócios | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Minhas Lojas & Negócios | Waesy" }] }),
  loader: async () => {
    try {
  const stores = await getMyStoresList().catch(() => []);
@@ -41,7 +41,7 @@ export default function ContaLojasPage() {
  setSwitchingId(storeId);
  try {
  if (typeof window !== "undefined") {
- window.document.cookie = `jah_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`; window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
+ window.document.cookie = `waesy_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
  }
  await setTenantContext({ data: { store_id: storeId } });
  toast.success(`Acessando painel de ${storeName}`);

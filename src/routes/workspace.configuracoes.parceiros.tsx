@@ -35,7 +35,7 @@ import { toast } from "sonner";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/configuracoes/parceiros")({
-  head: () => ({ meta: [{ title: "Configurações de Parceiros & Contabilidade | Workspace Wider OS" }] }),
+  head: () => ({ meta: [{ title: "Configurações de Parceiros & Contabilidade | Workspace Waesy" }] }),
   loader: async () => {
     try {
       const [profile, accountants] = await Promise.all([

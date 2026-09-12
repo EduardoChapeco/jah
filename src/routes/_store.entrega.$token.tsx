@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_store/entrega/$token")({
- head: () => ({ meta: [{ title: "Painel do Entregador | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Painel do Entregador | Waesy" }] }),
   loader: async ({ params }) => {
     try {
       const delivery = await getDeliveryByToken({ data: { token: params.token } }).catch(() => null);
@@ -416,7 +416,7 @@ function DeliveryCourierPage() {
  </div>
 
  <div className="py-4 text-center text-[10px] text-muted-foreground">
- Wider Delivery Network • Despacho Seguro em Tempo Real
+ Waesy Delivery Network • Despacho Seguro em Tempo Real
  </div>
  </div>
  );

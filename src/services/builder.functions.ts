@@ -978,7 +978,7 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
  sort_order: 3,
  content: {
  title: "O que dizem de nós",
- subtitle: "A opinião de quem já usa Wider.",
+ subtitle: "A opinião de quem já usa Waesy.",
  },
  data_bindings: { source: "dynamic_reviews" },
  },
@@ -2329,11 +2329,15 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
  throw docError;
  }
 
- // Affiliate Tracking Injection
- if (doc.owner_id) {
- const { setSellerRefCookie } = await import("@/lib/session");
- setSellerRefCookie(doc.owner_id);
- }
+  if (!doc) {
+    return { status: "not_found" as const };
+  }
+
+  // Affiliate Tracking Injection
+  if (doc?.owner_id) {
+    const { setSellerRefCookie } = await import("@/lib/session");
+    setSellerRefCookie(doc.owner_id);
+  }
 
  // 2. Get the latest PUBLISHED version
  const { data: versions, error: versionsError } = await db

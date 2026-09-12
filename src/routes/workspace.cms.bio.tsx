@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 import { getOrCreateBiolinkExperienceDocument } from "@/services/builder.functions";
 
 export const Route = createFileRoute("/workspace/cms/bio")({
- head: () => ({ meta: [{ title: "Abrindo Construtor Visual do Link da Bio | Wider OS" }] }),
+ head: () => ({ meta: [{ title: "Abrindo Construtor Visual do Link da Bio | Waesy" }] }),
  loader: async () => {
  try {
  const res = await getOrCreateBiolinkExperienceDocument();
