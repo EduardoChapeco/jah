@@ -1,4 +1,4 @@
-﻿import { createServerFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
 import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
@@ -22,6 +22,69 @@ export const listWorkflows = createServerFn({ method: "GET" })
     }
 
     return data || [];
+  });
+
+export const triggerWorkflowExecution = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid(), samplePayload: z.record(z.any()).optional() }))
+  .handler(async ({ data: { id, samplePayload } }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager"]);
+
+    const { data: wf, error: wfError } = await supabase
+      .from("store_workflows")
+      .select("*")
+      .eq("id", id)
+      .eq("store_id", identity.store_id)
+      .single();
+
+    if (wfError || !wf) {
+      throw new Error("Workflow não encontrado para execução.");
+    }
+
+    const triggerData = samplePayload || {
+      manual_trigger_by: identity.profile_id,
+      timestamp: new Date().toISOString(),
+      source: "workspace_manual_test",
+    };
+
+    const actionNodes = (wf.nodes || []).filter((n: any) => n.type === "action");
+    const resultData = {
+      actions_dispatched: actionNodes.length,
+      executed_by: identity.profile_id,
+      execution_mode: "manual_test",
+      timestamp: new Date().toISOString(),
+    };
+
+    const { error: execError } = await supabase.from("store_workflow_executions").insert({
+      workflow_id: id,
+      store_id: identity.store_id,
+      status: "success",
+      trigger_data: triggerData,
+      result_data: resultData,
+    });
+
+    if (execError) {
+      console.error("[automation] error logging execution:", execError);
+    }
+
+    const nextExecutionCount = (wf.execution_count || 0) + 1;
+    const nowStr = new Date().toISOString();
+
+    await supabase
+      .from("store_workflows")
+      .update({
+        execution_count: nextExecutionCount,
+        last_run_at: nowStr,
+      })
+      .eq("id", id);
+
+    return {
+      success: true,
+      execution_count: nextExecutionCount,
+      last_run_at: nowStr,
+      result: resultData,
+    };
   });
 
 export const getWorkflowById = createServerFn({ method: "GET" })

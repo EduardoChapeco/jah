@@ -13,7 +13,7 @@ import {
  Send,
  Lock
 } from 'lucide-react';
-import { submitClaimProfile } from '@/services/claim-intelligence.functions';
+import { submitClaimProfile, getEntityForClaim } from '@/services/claim-intelligence.functions';
 import type { ProofType, EntityType } from '@/types/claim-intelligence';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +22,17 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
 export const Route = createFileRoute('/claim/reivindicar/$entityId')({
- head: () => ({ meta: [{ title: 'Reivindicar Empresa ou Perfil Oficial | Wider OS Trust' }] }),
+ head: ({ loaderData }: any) => ({
+   meta: [{ title: `Reivindicar ${loaderData?.entity?.name || "Empresa"} | Wider OS Trust` }],
+ }),
+ loader: async ({ params }) => {
+   try {
+     const entity = await getEntityForClaim({ data: { entityId: params.entityId } });
+     return { entity };
+   } catch {
+     return { entity: null };
+   }
+ },
  component: ClaimReivindicarPage,
 });
 
@@ -36,6 +46,7 @@ const PROOF_OPTIONS: { type: ProofType; label: string; desc: string; icon: any }
 
 function ClaimReivindicarPage() {
  const { entityId } = Route.useParams();
+ const { entity } = (Route.useLoaderData() as any) || {};
  const navigate = useNavigate();
 
  const [proofType, setProofType] = useState<ProofType>('document');
@@ -58,9 +69,9 @@ function ClaimReivindicarPage() {
  try {
  await submitClaimProfile({
  data: {
- storeId: '00000000-0000-0000-0000-000000000000',
+ storeId: entity?.type === 'store' ? entity.id : '00000000-0000-0000-0000-000000000000',
  entityId,
- entityType: 'company',
+ entityType: entity?.type || 'company',
  requesterName,
  requesterEmail,
  requesterDocument,
@@ -111,9 +122,12 @@ function ClaimReivindicarPage() {
  <Badge variant="outline" className="px-3 py-1 mb-3 rounded-full text-xs font-semibold gap-1.5 border-primary/30 text-primary">
  <ShieldCheck className="size-3.5" /> Wider Trust & Compliance
  </Badge>
- <h1 className="text-3xl sm:text-4xl font-black tracking-tight">Reivindicar Perfil Comercial</h1>
+ <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
+ Reivindicar {entity?.name || 'Perfil Comercial'}
+ </h1>
  <p className="text-muted-foreground mt-2 text-sm max-w-lg mx-auto">
- Comprove a administração ou propriedade deste perfil para gerenciar sua reputação, responder clientes e acessar inteligência de mercado.
+ {entity?.city && entity?.state ? `${entity.city} - ${entity.state} • ` : ''}
+ Comprove a administração ou titularidade desta empresa para gerenciar sua reputação pública, responder avaliações de clientes e acessar inteligência de mercado.
  </p>
  </div>
 

@@ -209,10 +209,10 @@ function SecurityTelemetryPage() {
           blocked: random.sev === "critical",
         },
       });
-      toast.success("Incidente simulado registrado com sucesso no banco de dados.");
+      toast.success("Incidente de teste registrado com sucesso no banco de dados.");
       refreshData(true);
     } catch (err: any) {
-      toast.error("Erro ao simular ataque: " + err.message);
+      toast.error("Erro ao registrar teste de ataque: " + err.message);
     }
   };
 

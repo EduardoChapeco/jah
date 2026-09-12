@@ -17,38 +17,58 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { getEntityForClaim } from '@/services/claim-intelligence.functions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 
 export const Route = createFileRoute('/claim/reputacao/$entityId')({
- head: () => ({ meta: [{ title: 'Inteligência de Reputação & Mercado | Wider OS Trust' }] }),
- component: ClaimReputacaoPage,
+  head: ({ loaderData }: any) => ({
+    meta: [{ title: `${loaderData?.entity?.name || "Reputação"} | Wider OS Trust` }],
+  }),
+  loader: async ({ params }) => {
+    try {
+      const entity = await getEntityForClaim({ data: { entityId: params.entityId } });
+      return { entity };
+    } catch {
+      return { entity: null };
+    }
+  },
+  component: ClaimReputacaoPage,
 });
 
 function ClaimReputacaoPage() {
- const { entityId } = Route.useParams();
- const [activeTab, setActiveTab] = useState('overview');
+  const { entityId } = Route.useParams();
+  const { entity } = (Route.useLoaderData() as any) || {};
+  const [activeTab, setActiveTab] = useState('overview');
 
- const intel = useMemo(() => ({
- entity_name: 'Excelência Tour Viagens & Turismo',
- visibility_score: 88,
- reputation_score: 94,
- market_share_percent: 21.5,
- rank_state: 1,
- verified_claims: 18,
- solved_rate: 96,
- avg_reply_hours: 2.4,
- competitors: [
- { name: 'Rota Sul Viagens', visibility: 72, reputation: 81, share: 15.2 },
- { name: 'Globo Passagens', visibility: 68, reputation: 75, share: 12.0 },
- { name: 'Destino Express', visibility: 60, reputation: 70, share: 9.8 },
- ],
- sentiment: {
- positive: 91,
- neutral: 6,
- negative: 3,
- }
- }), [entityId]);
+  const intel = useMemo(() => {
+    const raw = entity?.intelligence || {};
+    return {
+      entity_name: entity?.name || 'Perfil Comercial',
+      visibility_score: raw.visibility_score || 82,
+      reputation_score: raw.reputation_score || 88,
+      market_share_percent: raw.market_share_percent || 14.5,
+      rank_state: raw.rank_state || 1,
+      verified_claims: raw.verified_claims || 12,
+      solved_rate: raw.solved_rate || 95,
+      avg_reply_hours: raw.avg_reply_hours || 2.5,
+      competitors: Array.isArray(raw.competitors) && raw.competitors.length > 0 ? raw.competitors : [
+        { name: 'Empresa Regional A', visibility: 70, reputation: 78, share: 12.0 },
+        { name: 'Empresa Regional B', visibility: 65, reputation: 72, share: 9.5 },
+      ],
+      sentiment: raw.sentiment || {
+        positive: 90,
+        neutral: 7,
+        negative: 3,
+      },
+    };
+  }, [entity]);
+
+  const initials = useMemo(() => {
+    const parts = (intel.entity_name || 'PC').trim().split(/\s+/);
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return (intel.entity_name || 'PC').slice(0, 2).toUpperCase();
+  }, [intel.entity_name]);
 
  return (
  <div className="min-h-screen bg-background text-foreground py-10 px-4 sm:px-6">
@@ -57,7 +77,7 @@ function ClaimReputacaoPage() {
  <div className="p-6 sm:p-8 rounded-2xl border border-border bg-card/60 backdrop-blur-xl shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
  <div className="flex items-center gap-4">
  <div className="size-16 rounded-2xl bg-gradient-to-tr from-primary to-primary/60 text-primary-foreground flex items-center justify-center font-black text-2xl shadow-lg shadow-primary/20">
- ET
+ {initials}
  </div>
  <div>
  <div className="flex items-center gap-2">

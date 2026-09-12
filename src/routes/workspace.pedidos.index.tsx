@@ -291,7 +291,7 @@ function AdminOrdersPage() {
  size="sm"
  className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground"
  >
- <Link to="/workspace/turismo/propostas/novo">
+ <Link to="/workspace/turismo/propostas" search={{ new: true }}>
  <Layers className="size-3.5" />
  <span>+ Nova Proposta</span>
  </Link>

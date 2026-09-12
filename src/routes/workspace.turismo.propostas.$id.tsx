@@ -1,5 +1,5 @@
 import { ProposalShareWhatsappModal } from "@/components/tourism/studio/proposal-share-whatsapp-modal";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useState, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -32,22 +32,27 @@ import { exportElementAsPdf, exportElementAsImage } from "@/lib/pdf-export";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/turismo/propostas/$id")({
- head: () => ({ meta: [{ title: "Studio de Propostas & Lâminas | Workspace Wider OS" }] }),
- loader: async ({ params }) => {
-   try {
- const proposal = await getTravelProposalById({ data: { id: params.id } });
- return { proposal };
-   } catch (err) {
-     console.error("[loader:workspace.turismo.propostas.$id] Unhandled loader error:", err);
-     return { proposal: null };
-   }
- },
- component: WorkspaceProposalStudioPage,
+  head: () => ({ meta: [{ title: "Studio de Propostas & Lâminas | Workspace Wider OS" }] }),
+  loader: async ({ params }) => {
+    if (params.id === "novo" || params.id === "new") {
+      throw redirect({
+        to: "/workspace/turismo/propostas",
+        search: { new: true },
+      });
+    }
+    try {
+      const proposal = await getTravelProposalById({ data: { id: params.id } });
+      return { proposal };
+    } catch (err) {
+      console.error("[loader:workspace.turismo.propostas.$id] Unhandled loader error:", err);
+      return { proposal: null };
+    }
+  },
+  component: WorkspaceProposalStudioPage,
 });
 
 function WorkspaceProposalStudioPage() {
- const { proposal: initialProposal } = ((Route.useLoaderData?.() as any) || {});
- const [proposal, setProposal] = useState<TravelProposalDTO | null>(initialProposal);
+  const { proposal: initialProposal } = ((Route.useLoaderData?.() as any) || {});
  const [isExportingPdf, setIsExportingPdf] = useState(false);
  const [isExportingImage, setIsExportingImage] = useState(false);
  const [isCreatingContract, setIsCreatingContract] = useState(false);

@@ -24,6 +24,7 @@ import {
   createWorkflow,
   toggleWorkflowStatus,
   deleteWorkflow,
+  triggerWorkflowExecution,
 } from "@/services/automation.functions";
 
 export const Route = createFileRoute("/workspace/automacoes")({
@@ -119,6 +120,28 @@ function AutomacoesWorkflowsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [executingId, setExecutingId] = useState<string | null>(null);
+
+  const handleRunTest = async (wf: any) => {
+    setExecutingId(wf.id);
+    try {
+      const res = await triggerWorkflowExecution({ data: { id: wf.id } });
+      toast.success(
+        `Workflow "${wf.title}" executado com sucesso! (${res.result.actions_dispatched} nós acionados)`
+      );
+      setWorkflows((prev) =>
+        prev.map((w) =>
+          w.id === wf.id
+            ? { ...w, execution_count: res.execution_count, last_run_at: res.last_run_at }
+            : w
+        )
+      );
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao executar teste do workflow.");
+    } finally {
+      setExecutingId(null);
+    }
+  };
 
   // Form state
   const [title, setTitle] = useState("");
@@ -230,9 +253,9 @@ function AutomacoesWorkflowsPage() {
               Arraste triggers, condições e ações para criar fluxos inteligentes.
             </p>
           </div>
-          <Badge variant="secondary" className="text-[10px] font-bold uppercase px-2 gap-1">
-            <Zap className="size-3" />
-            Em Breve: Builder Drag & Drop
+          <Badge variant="outline" className="text-[10px] font-bold uppercase px-2.5 py-1 gap-1 border-emerald-500/30 text-emerald-600 bg-emerald-500/10">
+            <Zap className="size-3 text-emerald-500" />
+            Motor de Disparo Ativo
           </Badge>
         </div>
 
@@ -328,9 +351,23 @@ function AutomacoesWorkflowsPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      disabled={isLoading}
+                      disabled={isLoading || executingId === wf.id}
+                      onClick={() => handleRunTest(wf)}
+                      className="size-9 rounded-xl text-primary hover:bg-primary/10 cursor-pointer"
+                      title="Disparar Teste Manual do Workflow"
+                    >
+                      {executingId === wf.id ? (
+                        <Clock className="size-4 animate-spin text-primary" />
+                      ) : (
+                        <Play className="size-4 fill-primary/20 text-primary" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={isLoading || executingId === wf.id}
                       onClick={() => handleToggle(wf)}
-                      className={`size-9 rounded-xl ${isActive ? "text-emerald-600" : "text-muted-foreground"}`}
+                      className={`size-9 rounded-xl cursor-pointer ${isActive ? "text-emerald-600" : "text-muted-foreground"}`}
                       title={isActive ? "Desativar" : "Ativar"}
                     >
                       {isActive ? <ToggleRight className="size-5" /> : <ToggleLeft className="size-5" />}
@@ -338,9 +375,9 @@ function AutomacoesWorkflowsPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      disabled={isLoading}
+                      disabled={isLoading || executingId === wf.id}
                       onClick={() => handleDelete(wf.id)}
-                      className="size-9 rounded-xl text-muted-foreground hover:text-destructive"
+                      className="size-9 rounded-xl text-muted-foreground hover:text-destructive cursor-pointer"
                       title="Deletar"
                     >
                       <Trash2 className="size-4" />
