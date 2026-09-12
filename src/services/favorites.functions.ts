@@ -135,22 +135,31 @@ export const listUserFavorites = createServerFn({ method: "GET" })
  return [];
  }
 
- // Enriquece itens de classificados
- const classifiedIds = favorites
- .filter((f) => f.entity_type === "classified")
- .map((f) => f.entity_id);
+  // Enriquece itens de classificados
+  const classifiedIds = favorites
+    .filter((f) => f.entity_type === "classified")
+    .map((f) => f.entity_id);
 
- let classifiedMap: Record<string, any> = {};
- if (classifiedIds.length > 0) {
- const { data: classifieds } = await supabase
- .from("classifieds")
- .select("id, title, content, price_cents, images, category, status, location_name")
- .in("id", classifiedIds);
+  let classifiedMap: Record<string, any> = {};
+  if (classifiedIds.length > 0) {
+    const { data: classifieds, error: cErr } = await supabase
+      .from("classifieds")
+      .select("id, title, content, price_cents, media, category, status, location_name")
+      .in("id", classifiedIds);
 
- (classifieds || []).forEach((c) => {
- classifiedMap[c.id] = c;
- });
- }
+    if (cErr) {
+      console.warn("[favorites] classifieds fetch warning:", cErr.message);
+    }
+
+    (classifieds || []).forEach((c) => {
+      const mediaList = Array.isArray(c.media) ? c.media : (c.media ? [c.media] : []);
+      classifiedMap[c.id] = {
+        ...c,
+        media: mediaList,
+        images: mediaList,
+      };
+    });
+  }
 
  // Enriquece itens de produtos e serviços
  const productIds = favorites.filter((f) => f.entity_type === "product").map((f) => f.entity_id);

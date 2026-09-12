@@ -5,11 +5,14 @@ import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
 
 export type BannerPlacement =
  | "home"
+ | "home_middle"
+ | "home_footer"
  | "mercado"
  | "marketplace"
  | "noticias"
  | "agenda"
  | "events"
+ | "eventos"
  | "diretorio"
  | "empregos"
  | "turismo"
@@ -62,11 +65,14 @@ export interface BannerDTO {
 
 export const BannerPlacementSchema = z.enum([
  "home",
+ "home_middle",
+ "home_footer",
  "mercado",
  "marketplace",
  "noticias",
  "agenda",
  "events",
+ "eventos",
  "diretorio",
  "empregos",
  "turismo",
@@ -103,9 +109,6 @@ export const listActiveBanners = createServerFn({ method: "GET" })
  .handler(async ({ data: { placement, city, storeId } }): Promise<BannerDTO[]> => {
  const supabase = getAnonServerClient();
 
- const normalizedPlacement =
- placement === "marketplace" ? "mercado" : placement === "events" ? "agenda" : placement;
-
  let query = supabase
  .from("banners")
  .select("*")
@@ -113,9 +116,17 @@ export const listActiveBanners = createServerFn({ method: "GET" })
  .order("sort_order", { ascending: true })
  .order("created_at", { ascending: false });
 
- // Se for filtrado por nicho específico e não for "all"
- if (normalizedPlacement && normalizedPlacement !== "all") {
- query = query.eq("placement", normalizedPlacement);
+ // Tratamento de sinônimos e isolamento canônico
+ if (placement && placement !== "all") {
+ if (placement === "events" || placement === "eventos" || placement === "agenda") {
+ query = query.in("placement", ["eventos", "events", "agenda"]);
+ } else if (placement === "marketplace" || placement === "mercado") {
+ query = query.in("placement", ["mercado", "marketplace"]);
+ } else if (placement === "classificados" || placement === "classifieds") {
+ query = query.in("placement", ["classificados", "classifieds"]);
+ } else {
+ query = query.eq("placement", placement);
+ }
  }
 
  // Se for banner de loja específica

@@ -72,67 +72,79 @@ export const listTourBoardingPoints = createServerFn({ method: "GET" })
  });
 
 export const createTourBoardingPoint = createServerFn({ method: "POST" })
- .validator((d: unknown) => CreateBoardingPointSchema.parse(d))
- .handler(async ({ data }) => {
- const identity = await getServerIdentity();
- assertStoreAccess(identity);
+  .validator(CreateBoardingPointSchema)
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+    if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error("Acesso não autorizado para esta organização.");
+    }
 
- const db = getServerClient();
- const { data: created, error } = await db
- .from("group_tour_boardings")
- .insert({
- store_id: data.store_id,
- tour_id: data.tour_id,
- point_name: data.point_name.trim(),
- scheduled_time: data.scheduled_time,
- address: data.address?.trim() || null,
- sort_order: data.sort_order,
- })
- .select()
- .single();
+    const db = getServerClient();
+    const { data: created, error } = await db
+      .from("group_tour_boardings")
+      .insert({
+        store_id: data.store_id,
+        tour_id: data.tour_id,
+        point_name: data.point_name.trim(),
+        scheduled_time: data.scheduled_time,
+        address: data.address?.trim() || null,
+        sort_order: data.sort_order,
+      })
+      .select()
+      .single();
 
- if (error) throw error;
- return created;
- });
+    if (error) throw error;
+    return created;
+  });
 
 export const deleteTourBoardingPoint = createServerFn({ method: "POST" })
- .validator(z.object({ store_id: z.string().uuid(), point_id: z.string().uuid() }))
- .handler(async ({ data }) => {
- const identity = await getServerIdentity();
- assertStoreAccess(identity);
+  .validator(z.object({ store_id: z.string().uuid(), point_id: z.string().uuid() }))
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+    if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error("Acesso não autorizado para esta organização.");
+    }
 
- const db = getServerClient();
- const { error } = await db
- .from("group_tour_boardings")
- .delete()
- .eq("id", data.point_id)
- .eq("store_id", data.store_id);
+    const db = getServerClient();
+    const { error } = await db
+      .from("group_tour_boardings")
+      .delete()
+      .eq("id", data.point_id)
+      .eq("store_id", data.store_id);
 
- if (error) throw error;
- return { success: true };
- });
+    if (error) throw error;
+    return { success: true };
+  });
 
 export const listPassengerCheckins = createServerFn({ method: "GET" })
- .validator(z.object({ store_id: z.string().uuid(), tour_id: z.string().uuid() }))
- .handler(async ({ data }): Promise<PassengerCheckinItem[]> => {
- const identity = await getServerIdentity();
- assertStoreAccess(identity);
+  .validator(z.object({ store_id: z.string().uuid(), tour_id: z.string().uuid() }))
+  .handler(async ({ data }): Promise<PassengerCheckinItem[]> => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+    if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error("Acesso não autorizado para esta organização.");
+    }
 
- const db = getServerClient();
- const { data: logs, error } = await db
- .from("passenger_checkin_logs")
- .select("*")
- .eq("tour_id", data.tour_id);
+    const db = getServerClient();
+    const { data: logs, error } = await db
+      .from("passenger_checkin_logs")
+      .select("*")
+      .eq("tour_id", data.tour_id);
 
- if (error) throw error;
- return logs || [];
- });
+    if (error) throw error;
+    return logs || [];
+  });
 
 export const togglePassengerCheckin = createServerFn({ method: "POST" })
- .validator((d: unknown) => ToggleCheckinSchema.parse(d))
- .handler(async ({ data }) => {
- const identity = await getServerIdentity();
- assertStoreAccess(identity);
+  .validator(ToggleCheckinSchema)
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+    if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error("Acesso não autorizado para esta organização.");
+    }
 
  const db = getServerClient();
 

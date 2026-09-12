@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_store/contato")({
 });
 
 function ContatoPage() {
- const { brand } = Route.useLoaderData() as any;
+ const { brand } = ((Route.useLoaderData?.() as any) || {});
 
  const [name, setName] = useState("");
  const [email, setEmail] = useState("");

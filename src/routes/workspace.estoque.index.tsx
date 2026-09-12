@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
+import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-canonical-toolbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,8 +53,8 @@ export const Route = createFileRoute("/workspace/estoque/")({
  return res || [];
    } catch (err) {
      console.error("[loader:workspace.estoque.index] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: AdminStockPage,
 });
@@ -180,80 +181,56 @@ function AdminStockPage() {
  };
 
  return (
- <div className="space-y-8">
- <PageHeader
- eyebrow="Estoque"
- title="Controle de Estoque"
- actions={
- <div className="flex items-center gap-2">
- <Button asChild variant="outline" size="sm">
- <Link to="/workspace/estoque/alertas">
- <AlertTriangle className="mr-1.5 size-4 text-warning" />
- Alertas ({metrics.criticalCount})
- </Link>
- </Button>
- <Button asChild variant="outline" size="sm">
- <Link to="/workspace/estoque/movimentos">
- <History className="mr-1.5 size-4" />
- Histórico de Movimentos
- </Link>
- </Button>
- </div>
- }
- />
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Estoque"
+        title="Controle de Estoque"
+      />
 
- {/* Grid de KPIs de Estoque */}
- <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
- <div className="bg-card rounded-2xl p-4 border border-border/60">
- <span className="text-xs font-semibold text-muted-foreground">Total de SKUs</span>
- <div className="text-2xl font-bold text-foreground mt-1">{metrics.totalSKUs}</div>
- </div>
+      {/* Grid de KPIs de Estoque */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="bg-card rounded-2xl p-4 border border-border/60">
+          <span className="text-xs font-semibold text-muted-foreground">Total de SKUs</span>
+          <div className="text-2xl font-bold text-foreground mt-1">{metrics.totalSKUs}</div>
+        </div>
 
- <div className="bg-card rounded-2xl p-4 border border-border/60">
- <span className="text-xs font-semibold text-muted-foreground">Estoque em Mãos</span>
- <div className="text-2xl font-bold text-foreground mt-1">{metrics.totalOnHand} un.</div>
- </div>
+        <div className="bg-card rounded-2xl p-4 border border-border/60">
+          <span className="text-xs font-semibold text-muted-foreground">Estoque em Mãos</span>
+          <div className="text-2xl font-bold text-foreground mt-1">{metrics.totalOnHand} un.</div>
+        </div>
 
- <div className="bg-card rounded-2xl p-4 border border-border/60">
- <span className="text-xs font-semibold text-muted-foreground">Estoque Crítico</span>
- <div className="text-2xl font-bold text-warning-foreground mt-1">{metrics.criticalCount}</div>
- </div>
- </div>
+        <div className="bg-card rounded-2xl p-4 border border-border/60">
+          <span className="text-xs font-semibold text-muted-foreground">Estoque Crítico</span>
+          <div className="text-2xl font-bold text-warning-foreground mt-1">{metrics.criticalCount}</div>
+        </div>
+      </div>
 
- {/* Toolbar & Filtros por Status */}
- <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-card rounded-2xl border border-border/60 px-4 py-3">
- <Tabs
- defaultValue="all"
- value={statusTab}
- onValueChange={setStatusTab}
- >
- <TabsList className="grid grid-cols-4 w-full sm:w-[360px] h-8">
- <TabsTrigger value="all" className="text-xs">
- Todos ({stock.length})
- </TabsTrigger>
- <TabsTrigger value="available" className="text-xs">
- Regular ({stock.filter((v) => (v.stock_on_hand ?? 0) > 5).length})
- </TabsTrigger>
- <TabsTrigger value="critical" className="text-xs">
- Crítico ({metrics.criticalCount})
- </TabsTrigger>
- <TabsTrigger value="out_of_stock" className="text-xs">
- Esgotado ({stock.filter((v) => (v.stock_on_hand ?? 0) <= 0).length})
- </TabsTrigger>
- </TabsList>
- </Tabs>
-
- <div className="relative w-full sm:w-72">
- <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" aria-hidden />
- <Input
- type="search"
- placeholder="Buscar por SKU ou Nome do Produto..."
- className="pl-8 text-xs w-full rounded-xl h-8 bg-background border-border/60"
- value={search}
- onChange={(e) => setSearch(e.target.value)}
- />
- </div>
- </div>
+      {/* ── TOOLBAR CANÔNICA SOBERANA JAH ── */}
+      <WorkspaceCanonicalToolbar
+        tabs={[
+          { id: "all", label: "Todos", count: stock.length },
+          { id: "available", label: "Regular", count: stock.filter((v) => (v.stock_on_hand ?? 0) > 5).length },
+          { id: "critical", label: "Crítico", count: metrics.criticalCount },
+          { id: "out_of_stock", label: "Esgotado", count: stock.filter((v) => (v.stock_on_hand ?? 0) <= 0).length },
+        ]}
+        activeTab={statusTab}
+        onTabChange={setStatusTab}
+        searchPlaceholder="Buscar por SKU ou Nome do Produto..."
+        searchValue={search}
+        onSearchChange={setSearch}
+        secondaryActions={[
+          {
+            label: `Alertas (${metrics.criticalCount})`,
+            icon: AlertTriangle,
+            onClick: () => router.navigate({ to: "/workspace/estoque/alertas" }),
+          },
+          {
+            label: "Histórico",
+            icon: History,
+            onClick: () => router.navigate({ to: "/workspace/estoque/movimentos" }),
+          },
+        ]}
+      />
 
  {/* Tabela de Estoque */}
  {stock.length === 0 ? (

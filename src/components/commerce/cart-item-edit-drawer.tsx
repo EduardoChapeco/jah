@@ -149,8 +149,7 @@ export function CartItemEditDrawer({
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
  <SheetContent
- side="right"
- className="w-full sm:max-w-lg flex flex-col p-0 bg-background max-sm:!inset-0 max-sm:!h-[100dvh] max-sm:!w-full max-sm:rounded-none max-sm:border-none "
+ side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] flex flex-col p-0 bg-background max-sm:!inset-0 max-sm:!h-[100dvh] max-sm:!w-full max-sm:rounded-none max-sm:border-none"
  >
  {/* Cabeçalho Fixo */}
  <SheetHeader className="px-6 py-4 bg-card/60 backdrop-blur-md shrink-0">

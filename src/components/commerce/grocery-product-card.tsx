@@ -301,26 +301,28 @@ export function GroceryProductCard({
  </div>
  )}
 
- <h3 className="text-xs sm:text-sm font-bold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+ <h3 className="text-xs sm:text-sm font-bold text-foreground line-clamp-2 leading-snug h-9 group-hover:text-primary transition-colors">
  {product.title}
  </h3>
 
- {unitLabel && (
- <span className="text-[11px] text-muted-foreground font-medium block">
+ {unitLabel ? (
+ <span className="text-[11px] text-muted-foreground font-medium block h-4 truncate">
  {unitLabel}
  </span>
+ ) : (
+ <div className="h-4" />
  )}
  </Link>
 
  {/* Pricing & Cart Action Area */}
- <div className="pt-3 mt-3 flex items-center justify-between gap-2">
- <div className="flex flex-col min-w-0">
+ <div className="pt-2 mt-2 flex items-center justify-between gap-2 border-t border-border/40">
+ <div className="flex flex-col min-w-0 h-9 justify-center">
  {hasDiscount && typeof compareAtCents === "number" && (
  <span className="text-[10px] text-muted-foreground line-through font-mono">
  {formatMoney(compareAtCents)}
  </span>
  )}
- <span className="font-mono font-black text-sm sm:text-base text-foreground truncate">
+ <span className="font-mono font-black text-xs sm:text-sm text-foreground truncate">
  {formatMoney(priceCents)}
  </span>
  </div>

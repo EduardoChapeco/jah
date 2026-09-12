@@ -39,7 +39,7 @@ export const Route = createFileRoute("/workspace/configuracoes/integracoes")({
  return { integrations, secrets };
    } catch (err) {
      console.error("[loader:workspace.configuracoes.integracoes] Unhandled loader error:", err);
-     return null;
+     return { integrations: null, secrets: null };
    }
  },
  component: IntegrationsPage,
@@ -226,7 +226,7 @@ function SecretVaultCard({ provider, title, description, icon: Icon, existingSec
 }
 
 function IntegrationsPage() {
- const { integrations: settings, secrets } = Route.useLoaderData();
+ const { integrations: settings, secrets } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
 
  const handleSaveSecret = async (provider: string, secretKey: string) => {
@@ -271,7 +271,7 @@ function IntegrationsPage() {
 
  return (
  <div className="space-y-6 max-w-5xl">
- <PageHeader title="Integrações & APIs" />
+ <PageHeader title="Integrações" />
  <p className="text-muted-foreground">
  Conecte sua loja e comunidade com serviços de logística, mensagens, agenda e ferramentas de
  growth.

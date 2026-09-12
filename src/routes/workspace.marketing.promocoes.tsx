@@ -39,14 +39,14 @@ export const Route = createFileRoute("/workspace/marketing/promocoes")({
  return { promotions };
    } catch (err) {
      console.error("[loader:workspace.marketing.promocoes] Unhandled loader error:", err);
-     return null;
+     return { promotions: null };
    }
  },
  component: WorkspacePromotionsPage,
 });
 
 function WorkspacePromotionsPage() {
- const { promotions: initialPromos } = Route.useLoaderData();
+ const { promotions: initialPromos } = ((Route.useLoaderData?.() as any) || {});
  const [promos, setPromos] = useState<PromotionDTO[]>(initialPromos);
  const [isDialogOpen, setIsDialogOpen] = useState(false);
  const [isSubmitting, setIsSubmitting] = useState(false);

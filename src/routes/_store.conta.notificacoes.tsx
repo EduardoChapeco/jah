@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_store/conta/notificacoes")({
  return { session };
    } catch (err) {
      console.error("[loader:_store.conta.notificacoes] Unhandled loader error:", err);
-     return null;
+     return { session: null };
    }
  },
  component: NotificationsPage,
@@ -48,7 +48,7 @@ const CATEGORY_TABS = [
 ];
 
 function NotificationsPage() {
- const { session } = Route.useLoaderData();
+ const { session } = ((Route.useLoaderData?.() as any) || {});
  const [activeCategory, setActiveCategory] = useState("all");
  const queryClient = useQueryClient();
  const navigate = useNavigate();
@@ -120,48 +120,33 @@ function NotificationsPage() {
  };
 
  return (
- <div className="w-full max-w-4xl mx-auto space-y-6 pb-6 px-4 sm:px-0">
- {/* ── 1. Top Bar & Voltar ── */}
- <div className="flex items-center justify-between pt-2">
- <Link
- to="/conta"
- className="inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors group"
- >
- <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-transform" />
- <span>Voltar para Minha Conta</span>
- </Link>
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Notificações
+          </h1>
+          {unreadCount > 0 && (
+            <Badge variant="secondary" className="text-xs font-mono font-bold px-2 py-0.5 rounded-full">
+              {unreadCount} não lidas
+            </Badge>
+          )}
+        </div>
 
- {unreadCount > 0 && (
- <Button
- variant="outline"
- size="sm"
- onClick={() => markAllMutation.mutate()}
- disabled={markAllMutation.isPending}
- className="rounded-xl font-bold text-xs gap-1.5 h-9"
- >
- <CheckCheck className="size-4 text-primary" />
- <span>Marcar todas como lidas</span>
- </Button>
- )}
- </div>
-
- {/* ── 2. Header & Título ── */}
- <div className="flex items-center justify-between">
- <div className="space-y-1">
- <h1 className="text-2xl font-black text-foreground tracking-tight">
- Central de Notificações
- </h1>
- <p className="text-xs text-muted-foreground">
- Acompanhe avisos de pedidos, interações de lojas, novas vagas e promoções.
- </p>
- </div>
-
- {unreadCount > 0 && (
- <Badge className="bg-primary text-primary-foreground font-mono text-xs px-2.5 py-1 rounded-full font-bold">
- {unreadCount} não lidas
- </Badge>
- )}
- </div>
+        {unreadCount > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => markAllMutation.mutate()}
+            disabled={markAllMutation.isPending}
+            className="rounded-xl font-semibold text-xs gap-1.5 h-8 px-3.5 cursor-pointer"
+          >
+            <CheckCheck className="size-3.5 text-primary" />
+            <span>Marcar lidas</span>
+          </Button>
+        )}
+      </div>
 
  {/* ── 3. Tabs / Filtros Horizontais ── */}
  <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
@@ -193,7 +178,7 @@ function NotificationsPage() {
  key={item.id}
  onClick={() => handleNotificationClick(item)}
  className={cn(
- "p-4 rounded-2xl bg-card flex items-start gap-4 transition-all duration-200 cursor-pointer hover:border-foreground/30 hover:",
+ "p-4 rounded-2xl bg-card flex items-start gap-4 transition-all duration-200 cursor-pointer hover:border-foreground/30 hover:shadow-xs",
  !item.isRead && "bg-muted/20 border-primary/30"
  )}
  >

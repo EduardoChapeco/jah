@@ -1,9 +1,8 @@
-import { Tag } from "lucide-react";
+import { Tag, Rss } from "lucide-react";
 import React from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { DEFAULT_BRAND_NAME } from "@/lib/brand";
 import { LocationMasterPill } from "@/components/location/location-master-pill";
-import { MobilityQuickButton } from "@/components/mobility/mobility-quick-button";
 import { UtilityCluster } from "@/components/shell/utility-cluster";
 import { 
   House, 
@@ -19,44 +18,48 @@ import {
   Target, 
   MapPin, 
   ForkKnife,
+  Ticket,
   MagnifyingGlass 
 } from "@phosphor-icons/react";
 
+import { BetaExplanationModal } from "@/components/shell/beta-explanation-modal";
+import { PlacesHighlightBadge } from "@/components/shell/places-highlight-badge";
+
 export interface MobileQuickChip {
- to: string;
- label: string;
- icon: React.ElementType;
+  to: string;
+  label: string;
+  icon: React.ElementType;
+  isPlacesBadge?: boolean;
 }
 
 export const MOBILE_QUICK_CHIPS: MobileQuickChip[] = [
   { to: "/", label: "Início", icon: House },
+  { to: "/diretorio", label: "Places", isPlacesBadge: true, icon: Compass },
   { to: "/classificados", label: "Classificados", icon: Tag },
+  { to: "/feed", label: "Feed", icon: Rss },
   { to: "/noticias", label: "Notícias", icon: Newspaper },
-  { to: "/ofertas", label: "Ofertas", icon: Flame },
-  { to: "/mercado", label: "Mercado", icon: Storefront },
-  { to: "/diretorio", label: "Guia", icon: Compass },
-  { to: "/agendar", label: "Agendar", icon: Scissors },
-  { to: "/turismo", label: "Turismo", icon: AirplaneTilt },
   { to: "/empregos", label: "Empregos", icon: Briefcase },
+  { to: "/eventos", label: "Eventos", icon: Ticket },
   { to: "/agenda", label: "Agenda", icon: CalendarDots },
-  { to: "/convite", label: "Convide & Ganhe", icon: Gift },
   { to: "/afiliados", label: "Afiliados", icon: Target },
+  { to: "/concursos", label: "Sorteios", icon: Gift },
 ];
 
 export interface TopBarProps {
- session?: any;
- brandSettings?: {
- logo_url?: string | null;
- favicon_url?: string | null;
- show_logo?: boolean;
- show_name?: boolean;
- platform_name?: string;
- } | null;
+  session?: any;
+  brandSettings?: {
+    logo_url?: string | null;
+    favicon_url?: string | null;
+    show_logo?: boolean;
+    show_name?: boolean;
+    platform_name?: string;
+  } | null;
 }
 
 export function TopBar({ session, brandSettings }: TopBarProps) {
- const location = useLocation();
- const isDetailPage =
+  const location = useLocation();
+  const [betaModalOpen, setBetaModalOpen] = React.useState(false);
+  const isDetailPage =
     (location.pathname.startsWith("/agendar/") && location.pathname !== "/agendar") ||
     (location.pathname.startsWith("/classificados/") && !location.pathname.includes("/novo")) ||
     location.pathname.startsWith("/produto/") ||
@@ -64,69 +67,68 @@ export function TopBar({ session, brandSettings }: TopBarProps) {
     (location.pathname.startsWith("/hospedagem/") && location.pathname !== "/hospedagem") ||
     (location.pathname.startsWith("/turismo/") && location.pathname !== "/turismo");
 
- return (
- <header className="sticky top-0 z-30 w-full bg-background/95 backdrop-blur-md select-none border-b border-border/40">
- {/* ── Camada 1: Topo Principal Compacto ── */}
- <div className="px-3 sm:px-5 py-1.5 sm:py-2 flex items-center justify-between gap-2 sm:gap-4 min-h-[48px] w-full">
- {/* Lado Esquerdo: Logo + Localização */}
- <div className="flex items-center gap-2 sm:gap-3 shrink-0">
- <Link
- to="/"
- className="flex items-center gap-1.5 hover:opacity-90 transition-opacity shrink-0"
- >
- {brandSettings?.show_logo !== false && brandSettings?.logo_url ? (
- <img
- src={brandSettings.logo_url}
- alt={brandSettings.platform_name && brandSettings.platform_name !== "Wider" ? brandSettings.platform_name : DEFAULT_BRAND_NAME}
- className="h-7 max-w-[100px] object-contain"
- />
- ) : null}
- {(brandSettings?.show_name !== false || !brandSettings?.logo_url) && (
- <span className="font-display font-black text-xl sm:text-2xl tracking-tight text-foreground leading-none">
- {brandSettings?.platform_name && brandSettings.platform_name !== "Wider" ? brandSettings.platform_name : DEFAULT_BRAND_NAME}
- </span>
- )}
- </Link>
+  return (
+    <header className="sticky top-0 z-30 w-full bg-background/95 backdrop-blur-md select-none border-b border-border/40">
+      {/* ── Camada 1: Topo Principal Compacto ── */}
+      <div className="px-3 sm:px-5 py-1.5 sm:py-2 flex items-center justify-between gap-2 sm:gap-4 min-h-[48px] w-full">
+        {/* Lado Esquerdo: Logo + Localização */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <Link
+            to="/"
+            className="flex items-center gap-1.5 hover:opacity-90 transition-opacity shrink-0"
+          >
+            {brandSettings?.show_logo !== false && brandSettings?.logo_url ? (
+              <img
+                src={brandSettings.logo_url}
+                alt={brandSettings.platform_name && brandSettings.platform_name !== "Wider" ? brandSettings.platform_name : DEFAULT_BRAND_NAME}
+                className="h-7 max-w-[100px] object-contain"
+              />
+            ) : null}
+            {(brandSettings?.show_name !== false || !brandSettings?.logo_url) && (
+              <span className="font-display font-black text-xl sm:text-2xl tracking-tight text-foreground leading-none">
+                {brandSettings?.platform_name && brandSettings.platform_name !== "Wider" ? brandSettings.platform_name : DEFAULT_BRAND_NAME}
+              </span>
+            )}
+          </Link>
 
- {/* Location Pill — compacto no mobile */}
- <LocationMasterPill className="max-w-[80px] sm:max-w-[170px]" />
- </div>
+          {/* Badge BETA com Modal */}
+          <button
+            type="button"
+            onClick={() => setBetaModalOpen(true)}
+            title="Plataforma em Versão Beta — Clique para saber mais"
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] font-bold tracking-wider uppercase bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/25 transition-all cursor-pointer select-none active:scale-95 shrink-0"
+          >
+            BETA
+          </button>
 
- {/* Centro (Desktop): Busca Global Inteligente */}
- <div className="hidden lg:flex flex-1 max-w-xl mx-4">
- <Link
- to="/buscar"
- className="w-full flex items-center justify-between px-4 py-2 rounded-xl bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground text-xs font-medium transition-all group border border-border/40 hover:border-border"
- >
- <div className="flex items-center gap-2.5">
- <MagnifyingGlass
- size={16}
- className="text-muted-foreground group-hover:text-foreground transition-colors"
- />
- <span>Buscar produtos, lojas, serviços e desapegos...</span>
- </div>
- <kbd className="hidden xl:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono font-bold text-muted-foreground bg-background rounded-md border border-border/40">
- ⌘K
- </kbd>
- </Link>
- </div>
+          {/* Location Pill — compacto no mobile */}
+          <LocationMasterPill className="max-w-[80px] sm:max-w-[170px]" />
+        </div>
 
- {/* Lado Direito: Mobilidade Contextual + UtilityCluster */}
- <div className="flex items-center gap-2 shrink-0 ml-auto">
- {/* Exibe o botão de mobilidade apenas em contextos comerciais ou de mobilidade */}
- {(location.pathname === "/" ||
- location.pathname.startsWith("/gastronomia") ||
- location.pathname.startsWith("/mercado") ||
- location.pathname.startsWith("/farmacia") ||
- location.pathname.startsWith("/mobilidade") ||
- location.pathname.startsWith("/mapa")) && (
- <div className="hidden md:block">
- <MobilityQuickButton />
- </div>
- )}
- <UtilityCluster session={session} embedded={true} />
- </div>
- </div>
+        {/* Centro (Desktop): Busca Global Inteligente */}
+        <div className="hidden lg:flex flex-1 max-w-xl mx-4">
+          <Link
+            to="/buscar"
+            className="w-full flex items-center justify-between px-4 py-2 rounded-xl bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground text-xs font-medium transition-all group border border-border/40 hover:border-border"
+          >
+            <div className="flex items-center gap-2.5">
+              <MagnifyingGlass
+                size={16}
+                className="text-muted-foreground group-hover:text-foreground transition-colors"
+              />
+              <span>Buscar classificados, vagas, eventos, empresas e publicações...</span>
+            </div>
+            <kbd className="hidden xl:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono font-bold text-muted-foreground bg-background rounded-md border border-border/40">
+              ⌘K
+            </kbd>
+          </Link>
+        </div>
+
+        {/* Lado Direito: UtilityCluster */}
+        <div className="flex items-center gap-2 shrink-0 ml-auto">
+          <UtilityCluster session={session} embedded={true} />
+        </div>
+      </div>
 
       {/* ── Camada 2: Chips de Navegação Rápida (Mobile/Tablet) — Oculto em Telas de Detalhes ── */}
       {!isDetailPage && (
@@ -152,12 +154,17 @@ export function TopBar({ session, brandSettings }: TopBarProps) {
                 }`}
               >
                 <Icon size={14} weight={isSelected ? "fill" : "bold"} />
-                <span className="whitespace-nowrap">{chip.label}</span>
+                {chip.isPlacesBadge ? (
+                  <PlacesHighlightBadge subtle={!isSelected} className="text-xs" />
+                ) : (
+                  <span className="whitespace-nowrap">{chip.label}</span>
+                )}
               </Link>
             );
           })}
         </div>
       )}
- </header>
- );
+      <BetaExplanationModal open={betaModalOpen} onOpenChange={setBetaModalOpen} />
+    </header>
+  );
 }

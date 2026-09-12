@@ -820,7 +820,7 @@ export function StudioSidebarEditor({ proposal, onChange }: StudioSidebarEditorP
  variant="outline"
  onClick={handleGenerateItineraryFromDestination}
  className="h-8 text-[11px] rounded-xl gap-1 text-primary hover:text-primary"
- title="Sugerir dias a partir dos passeios canônicos do destino"
+ title="Sugerir dias a partir dos passeios oficiais do destino"
  >
  <Calendar className="size-3.5" /> Sugerir Dias
  </Button>

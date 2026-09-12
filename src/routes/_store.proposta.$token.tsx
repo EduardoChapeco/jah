@@ -41,14 +41,14 @@ export const Route = createFileRoute("/_store/proposta/$token")({
  return { proposal };
    } catch (err) {
      console.error("[loader:_store.proposta.$token] Unhandled loader error:", err);
-     return null;
+     return { proposal: null };
    }
  },
  component: PublicTravelProposalPage,
 });
 
 function PublicTravelProposalPage() {
- const { proposal } = Route.useLoaderData();
+ const { proposal } = ((Route.useLoaderData?.() as any) || {});
  const [isExportingPdf, setIsExportingPdf] = useState(false);
  const [isApproved, setIsApproved] = useState(proposal?.status === "approved");
 

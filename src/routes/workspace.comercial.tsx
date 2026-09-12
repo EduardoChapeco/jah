@@ -98,7 +98,11 @@ export const Route = createFileRoute("/workspace/comercial")({
     };
     } catch (err) {
       console.error("[loader:workspace.comercial] Unhandled loader error:", err);
-      return null;
+      return {
+        leads: [],
+        team: [],
+        store: null,
+      };
     }
   },
   component: WorkspaceComercialPage,
@@ -246,7 +250,7 @@ function getStalenessInfo(lead: any) {
 }
 
 function WorkspaceComercialPage() {
-  const { leads, team, store } = Route.useLoaderData();
+  const { leads = [], team = [], store = null } = ((Route.useLoaderData?.() as any) || {});
   const router = useRouter();
   const storeId = store?.id || "";
 

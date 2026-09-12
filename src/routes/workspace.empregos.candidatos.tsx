@@ -48,8 +48,8 @@ export const Route = createFileRoute("/workspace/empregos/candidatos")({
  return apps || [];
    } catch (err) {
      console.error("[loader:workspace.empregos.candidatos] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: WorkspaceCandidatesPage,
 });

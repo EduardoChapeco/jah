@@ -29,8 +29,10 @@ export function HotpagesRail({
  }
 
  switch (hp.module) {
- case "agenda":
+ case "eventos":
  case "events":
+ return { to: "/eventos", search: { categoria: hp.slug } };
+ case "agenda":
  return { to: "/agenda", search: { categoria: hp.slug } };
  case "turismo":
  return { to: "/turismo", search: { categoria: hp.slug } };

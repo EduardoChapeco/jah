@@ -60,6 +60,7 @@ describe("document-validator", () => {
     it("calculates age and enforces 18+ requirement", () => {
       const twentyYearsAgo = new Date();
       twentyYearsAgo.setFullYear(twentyYearsAgo.getFullYear() - 20);
+      twentyYearsAgo.setMonth(twentyYearsAgo.getMonth() - 1); // Garante que o aniversário já ocorreu
       const isoDate = twentyYearsAgo.toISOString().split("T")[0];
 
       const res = validateBirthDate(isoDate, { minAge: 18 });
@@ -70,6 +71,7 @@ describe("document-validator", () => {
     it("rejects under 18 when minAge is 18", () => {
       const tenYearsAgo = new Date();
       tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10);
+      tenYearsAgo.setMonth(tenYearsAgo.getMonth() - 1); // Garante que o aniversário já ocorreu
       const isoDate = tenYearsAgo.toISOString().split("T")[0];
 
       const res = validateBirthDate(isoDate, { minAge: 18 });

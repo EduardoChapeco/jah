@@ -18,8 +18,8 @@ export const Route = createFileRoute("/_store/conta/avaliacoes")({
  return (await listCustomerReviews().catch(() => [])) || [];
    } catch (err) {
      console.error("[loader:_store.conta.avaliacoes] Unhandled error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: Page,
 });

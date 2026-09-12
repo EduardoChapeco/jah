@@ -72,7 +72,7 @@ export const Route = createFileRoute("/_store/entrar")({
 type AuthView = "login-step1" | "login-step2" | "register-step1" | "register-step2" | "register-step3" | "forgot-password" | "portal-step1" | "portal-step2" | "portal-step3";
 
 function StepByStepAuthPage() {
- const { brand } = Route.useLoaderData() as any;
+ const { brand } = ((Route.useLoaderData?.() as any) || {});
  const navigate = useNavigate();
  const router = useRouter();
  const search = Route.useSearch();
@@ -1060,19 +1060,19 @@ function StepByStepAuthPage() {
  </div>
  <button
  onClick={() => setShowPwaBanner(false)}
- className="text-muted-foreground hover:text-foreground size-5 flex items-center justify-center rounded-lg hover:bg-muted/50 transition-colors"
+ className="text-muted-foreground hover:text-foreground size-8 flex items-center justify-center rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
  title="Fechar"
+ aria-label="Fechar"
  >
- <X className="size-3" />
+ <X className="size-4" />
  </button>
  </div>
  <Button
- size="sm"
  onClick={() => {
  toast.info("PWA pronto para instalação pelo navegador.");
  setShowPwaBanner(false);
  }}
- className="w-full h-8 rounded-xl text-xs font-bold mt-2.5 bg-foreground text-background hover:bg-foreground/90"
+ className="w-full h-10 rounded-xl text-xs font-bold mt-2.5 bg-foreground text-background hover:bg-foreground/90 cursor-pointer"
  >
  Instalar Agora
  </Button>

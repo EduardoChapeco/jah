@@ -32,7 +32,7 @@ export function SlideOutCart() {
 
  return (
  <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
- <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] flex flex-col p-0">
  <SheetHeader className="px-6 py-4 border-b">
  <SheetTitle className="flex items-center gap-2">
  <ShoppingBag className="size-5" />

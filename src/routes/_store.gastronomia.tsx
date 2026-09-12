@@ -96,7 +96,7 @@ export const Route = createFileRoute("/_store/gastronomia")({
  };
    } catch (err) {
      console.error("[loader:_store.gastronomia] Unhandled error:", err);
-     return null;
+     return { banners: null, hotpages: null, marketplaceFeed: null, catalogProducts: null };
    }
  },
  component: GastronomiaVerticalPage,
@@ -104,7 +104,7 @@ export const Route = createFileRoute("/_store/gastronomia")({
 });
 
 function GastronomiaVerticalPage() {
- const { banners, hotpages, marketplaceFeed, catalogProducts } = Route.useLoaderData();
+ const { banners, hotpages, marketplaceFeed, catalogProducts } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch();
  const navigate = useNavigate({ from: Route.fullPath });
  const { cart, setIsCartOpen } = useCart();
@@ -195,7 +195,6 @@ function GastronomiaVerticalPage() {
  onSelectCategory={handleDepartmentChange}
  viewMode={viewMode}
  onViewModeChange={handleViewModeChange}
- resultsCount={filteredProducts.length}
  />
 
  {/* ── 4. Renderização do Feed Modular ou Grade Filtrada ── */}
@@ -205,7 +204,7 @@ function GastronomiaVerticalPage() {
  <ModularSurfaceFeed sections={marketplaceFeed.sections} />
  ) : allProducts.length > 0 ? (
  <section aria-label="Pratos & Lanches da Gastronomia" className="w-full">
- <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+ <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-5">
  {allProducts.map((product: any) => (
  <GroceryProductCard key={product.id} product={product} viewMode="grid" />
  ))}
@@ -231,7 +230,7 @@ function GastronomiaVerticalPage() {
  ))}
  </div>
  ) : (
- <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+ <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-5">
  {allProducts.map((product: any) => (
  <GroceryProductCard key={product.id} product={product} viewMode="grid" />
  ))}

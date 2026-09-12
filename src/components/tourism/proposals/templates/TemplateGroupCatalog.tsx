@@ -20,14 +20,15 @@ export default function TemplateGroupCatalog({ proposal: p, agency }: TemplatePr
     <div className="flex flex-col w-full font-sans bg-slate-50 text-slate-900 pb-16">
       {/* CAPA - ESTILO BANNER DE E-COMMERCE */}
       <div className="relative w-full h-[400px] break-inside-avoid overflow-hidden">
-        <img
-          src={
-            p.cover_image_url ||
-            "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=80"
-          }
-          crossOrigin="anonymous"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        {p.cover_image_url ? (
+          <img
+            src={p.cover_image_url}
+            crossOrigin="anonymous"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 w-full h-full bg-slate-900" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent" />
 
         <div className="absolute top-8 left-8">

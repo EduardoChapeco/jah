@@ -18,20 +18,20 @@ export const Route = createFileRoute("/_store/politicas/$slug")({
  loader: async ({ params }) => {
  try {
  // 1. Tenta carregar do repositório canônico de documentos legais
- const legalDoc = await getLegalDocumentBySlug({ data: { slug: params.slug } });
+ const legalDoc = await getLegalDocumentBySlug({ data: { slug: params.slug } }).catch(() => null);
  if (legalDoc) {
  return { type: "legal_document" as const, data: legalDoc };
  }
 
  // 2. Fallback para CMS de páginas da loja
- const res = await getPageBySlug({ data: { slug: params.slug } });
+ const res = await getPageBySlug({ data: { slug: params.slug } }).catch(() => null);
  if (res && !("status" in res)) {
  return { type: "cms_page" as const, data: res };
  }
 
- return null;
+ return { type: null, data: null };
  } catch {
- return null;
+ return { type: null, data: null };
  }
  },
  component: PoliticasSlugPage,
@@ -41,9 +41,10 @@ function PoliticasSlugPage() {
  const result = Route.useLoaderData() as
  | { type: "legal_document"; data: any }
  | { type: "cms_page"; data: any }
+ | { type: null; data: null }
  | null;
 
- if (!result) {
+ if (!result || !result.data) {
  return (
  <div className="container py-20">
  <EmptyState title="Documento legal não encontrado" />
@@ -62,7 +63,7 @@ function PoliticasSlugPage() {
  <PageHeader eyebrow="Documento" title={page?.title || "Política"} />
  <div className="mt-8">
  <div className="prose prose-neutral dark:prose-invert max-w-none">
- {page.sections?.map((section: any) => (
+ {page?.sections?.map((section: any) => (
  <div key={section.id}>
  {section.section_type === "text" && (
  <div dangerouslySetInnerHTML={{ __html: section.content?.html || "" }} />

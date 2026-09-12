@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { listMySignedContracts, type SignedContractDTO } from "@/services/personal-finance.functions";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/conta/contratos")({
@@ -50,26 +51,27 @@ function statusLabel(status: string) {
 }
 
 function MyContractsPage() {
-  const { contracts } = Route.useLoaderData();
+  const { contracts } = ((Route.useLoaderData?.() as any) || {});
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-28 font-sans">
-      <div className="max-w-3xl mx-auto px-4 py-4 sm:py-6 space-y-6">
-        {/* Header */}
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
         <div className="flex items-center gap-3">
-          <Link
-            to="/conta"
-            className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Meus Contratos</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Contratos assinados e certificados digitais
-            </p>
-          </div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Contratos
+          </h1>
+          {contracts.length > 0 && (
+            <Badge variant="secondary" className="text-xs font-mono font-bold px-2 py-0.5 rounded-full">
+              {contracts.length}
+            </Badge>
+          )}
         </div>
+
+        <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-8 px-3.5 cursor-pointer">
+          <Link to="/mercado">Explorar Serviços</Link>
+        </Button>
+      </div>
 
         {/* Informativo de Auditoria */}
         <div className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-card shadow-xs">
@@ -183,6 +185,5 @@ function MyContractsPage() {
           </div>
         )}
       </div>
-    </div>
   );
 }

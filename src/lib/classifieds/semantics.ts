@@ -7,7 +7,7 @@
  * 3. Cada nicho possui vocabulário, badges, fichas técnicas e CTAs contextuais dedicados.
  */
 
-import { Home, Building, Key, Car, Tag, Wrench, Tractor, Calendar, Clock, MapPin, CheckCircle2, ShieldCheck, Package, Truck, Layers, RefreshCw, CreditCard, QrCode, FileCheck, MessageCircle, Phone, Flame, UserCheck, Lock } from 'lucide-react';
+import { Home, Building, Key, Car, Tag, Wrench, Tractor, Calendar, Clock, MapPin, CheckCircle2, ShieldCheck, Package, Truck, Layers, RefreshCw, CreditCard, QrCode, FileCheck, MessageCircle, Phone, Flame, UserCheck, Lock, Plane, HeartHandshake } from 'lucide-react';
 
 export type ClassifiedNicheId =
  | "hospitality_stay" // Hospedagem & Temporada (Chalés, Cabanas, Pousadas, Studios)
@@ -16,7 +16,10 @@ export type ClassifiedNicheId =
  | "vehicle" // Veículos & Automotivo (Carros, Motos, Náutica, Utilitários)
  | "goods" // Desapegos & Produtos Físicos (Eletrônicos, Móveis, Moda)
  | "service" // Serviços & Profissionais Autônomos
- | "agri"; // Agronegócio & Maquinário Pesado
+ | "agri" // Agronegócio & Maquinário Pesado
+ | "travel" // Viagens & Pacotes Turísticos (Resorts, Roteiros, Excursões)
+ | "equipment" // Aluguel de Equipamentos (Eventos, Obras, Som, Luz)
+ | "donation"; // Doações & Desapego Solidário (R$ 0,00)
 
 export interface ClassifiedNicheDefinition {
  id: ClassifiedNicheId;
@@ -148,55 +151,131 @@ export const NICHE_DEFINITIONS: Record<ClassifiedNicheId, ClassifiedNicheDefinit
  showTechnicalSpecs: true,
  allowEscrowGuarantee: true,
  },
+ travel: {
+ id: "travel",
+ canonicalCategory: "sale",
+ dealType: "venda",
+ title: "Pacote de Viagem & Turismo",
+ shortLabel: "Viagem & Tour",
+ subtitle: "Resorts, Roteiros Guiados, Excursões & Cruzeiros",
+ icon: Plane,
+ badge: "Roteiro & Viagem Verificada",
+ priceSuffix: " por pessoa",
+ primaryActionLabel: "Reservar Vagas / Cotação",
+ secondaryActionLabel: "Chamar Agência no WhatsApp",
+ showDeliveryBadges: false,
+ showTechnicalSpecs: true,
+ allowEscrowGuarantee: true,
+ },
+ equipment: {
+ id: "equipment",
+ canonicalCategory: "sale",
+ dealType: "aluguel",
+ title: "Aluguel de Equipamento",
+ shortLabel: "Locação Equipamento",
+ subtitle: "Eventos, Iluminação, Obras, Som & Festas",
+ icon: Layers,
+ badge: "Equipamento para Locação",
+ priceSuffix: "/diária",
+ primaryActionLabel: "Reservar Equipamento",
+ secondaryActionLabel: "Consultar Datas com Lojista",
+ showDeliveryBadges: true,
+ showTechnicalSpecs: true,
+ allowEscrowGuarantee: true,
+ },
+ donation: {
+ id: "donation",
+ canonicalCategory: "sale",
+ dealType: "venda",
+ title: "Doação & Solidariedade",
+ shortLabel: "Doação Gratuita",
+ subtitle: "Desapego Solidário sem Custo Financeiro",
+ icon: HeartHandshake,
+ badge: "Item para Doação (R$ 0,00)",
+ priceSuffix: " (Gratuito)",
+ primaryActionLabel: "Solicitar Doação / Retirada",
+ secondaryActionLabel: "Combinar Retirada com Doador",
+ showDeliveryBadges: true,
+ showTechnicalSpecs: false,
+ allowEscrowGuarantee: false,
+ },
 };
 
 /**
  * Identifica o nicho semântico exato de um anúncio classificado a partir de suas propriedades.
  */
 export function resolveClassifiedNiche(classified: any): ClassifiedNicheDefinition {
- if (!classified) return NICHE_DEFINITIONS.goods;
+  if (!classified) return NICHE_DEFINITIONS.goods;
 
- const category = (classified.category || "").toLowerCase();
- const dealType = (classified.deal_type || classified.attributes?.deal_type || "").toLowerCase();
- const rawNiche = (classified.attributes?.niche || "").toLowerCase();
+  const category = (classified.category || "").toLowerCase();
+  const dealType = (classified.deal_type || classified.attributes?.deal_type || "").toLowerCase();
+  const rawNiche = (classified.attributes?.niche || "").toLowerCase();
+  const priceCents = Number(classified.price_cents || 0);
 
- // 1. Hospedagem / Temporada
- if (
- dealType === "temporada" ||
- rawNiche === "hospedagem" ||
- rawNiche === "temporada" ||
- (category === "real_estate" && (dealType === "temporada" || classified.rental_period === "diaria" || classified.max_guests > 1))
- ) {
- return NICHE_DEFINITIONS.hospitality_stay;
- }
+  // 1. Doação Solidária (preço 0 ou categoria donation/doacao)
+  if (category === "donation" || category === "doacao" || rawNiche === "doacao" || rawNiche === "donation" || priceCents === 0) {
+    return NICHE_DEFINITIONS.donation;
+  }
 
- // 2. Imóvel Venda
- if (category === "real_estate" && (dealType === "venda" || !dealType)) {
- return NICHE_DEFINITIONS.real_estate_sale;
- }
+  // 2. Turismo / Viagens / Pacotes
+  if (
+    category === "travel" ||
+    category === "tourism" ||
+    category === "viagem" ||
+    rawNiche === "viagem" ||
+    rawNiche === "turismo" ||
+    classified.attributes?.template_style === "instagram"
+  ) {
+    return NICHE_DEFINITIONS.travel;
+  }
 
- // 3. Imóvel Aluguel
- if (category === "real_estate" && (dealType === "aluguel" || rawNiche === "locacao")) {
- return NICHE_DEFINITIONS.real_estate_rent;
- }
+  // 3. Aluguel de Equipamentos & Ferramentas
+  if (
+    category === "equipment" ||
+    category === "equipamento" ||
+    rawNiche === "equipamento" ||
+    (dealType === "aluguel" && category !== "real_estate")
+  ) {
+    return NICHE_DEFINITIONS.equipment;
+  }
 
- // 4. Veículo
- if (category === "vehicle" || rawNiche === "veiculo" || rawNiche === "auto") {
- return NICHE_DEFINITIONS.vehicle;
- }
+  // 4. Hospedagem / Temporada
+  if (
+    dealType === "temporada" ||
+    rawNiche === "hospedagem" ||
+    rawNiche === "temporada" ||
+    (category === "real_estate" && (dealType === "temporada" || classified.rental_period === "diaria" || classified.max_guests > 1))
+  ) {
+    return NICHE_DEFINITIONS.hospitality_stay;
+  }
 
- // 5. Serviço
- if (category === "service" || rawNiche === "servico") {
- return NICHE_DEFINITIONS.service;
- }
+  // 5. Imóvel Venda
+  if (category === "real_estate" && (dealType === "venda" || !dealType)) {
+    return NICHE_DEFINITIONS.real_estate_sale;
+  }
 
- // 6. Agro
- if (category === "agri" || rawNiche === "agro" || rawNiche === "maquinario") {
- return NICHE_DEFINITIONS.agri;
- }
+  // 6. Imóvel Aluguel
+  if (category === "real_estate" && (dealType === "aluguel" || rawNiche === "locacao")) {
+    return NICHE_DEFINITIONS.real_estate_rent;
+  }
 
- // 7. Padrão: Desapego / Produtos Físicos
- return NICHE_DEFINITIONS.goods;
+  // 7. Veículo
+  if (category === "vehicle" || rawNiche === "veiculo" || rawNiche === "auto") {
+    return NICHE_DEFINITIONS.vehicle;
+  }
+
+  // 8. Serviço
+  if (category === "service" || rawNiche === "servico") {
+    return NICHE_DEFINITIONS.service;
+  }
+
+  // 9. Agro
+  if (category === "agri" || rawNiche === "agro" || rawNiche === "maquinario") {
+    return NICHE_DEFINITIONS.agri;
+  }
+
+  // 10. Padrão: Desapego / Produtos Físicos
+  return NICHE_DEFINITIONS.goods;
 }
 
 /**

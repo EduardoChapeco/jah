@@ -122,7 +122,7 @@
 
 ## P-005 · Publicação / Thread
 
-**Rota:** `/_store/...` (detalhe de post — GAP de rota dedicada) | **Status:** `🔴 GAP`
+**Rota:** `/_store/publicacao/$id` (`_store.publicacao.$id.tsx`) | **Status:** `✅ IMPLEMENTADO`
 **Shell:** Social Shell | **Padrão:** post | **Ator:** Todos
 
 ### Anatomia
@@ -165,14 +165,14 @@
 
 ## P-007 · Salvos / Coleção
 
-**Rota:** GAP | **Status:** `🔴 GAP`
+**Rota:** `/_store/conta/salvos` (`_store.conta.salvos.tsx`) | **Status:** `✅ IMPLEMENTADO`
 **Shell:** Social Shell | **Padrão:** collection | **Ator:** Autenticado
 
 ### Anatomia
 
 ```
-[Tabs: Posts | Produtos | Eventos]
-[Grid de itens salvos]
+[Tabs: Todos | Produtos & Serviços | Classificados | Eventos]
+[Grid de itens salvos com SSR instantâneo, touch targets 44px e remoção otimista]
 ```
 
 ---
@@ -503,19 +503,27 @@ Sem KPI cards decorativos. Apenas links diretos e resumo real de atividade.
 
 ## P-021 · Solicitar Troca/Devolução (Cliente)
 
-**Rota:** `/_store/conta/trocas` (`_store.conta.trocas.tsx`) | **Status:** `🔵 PARCIAL`
-**Shell:** Minimal | **Padrão:** stepper | **Ator:** Cliente
+**Rota:** `/_store/conta/trocas` (`_store.conta.trocas.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Minimal | **Padrão:** grouped-cards + modal | **Ator:** Cliente
 
 ### Anatomia
 
-Formulário em etapas: selecionar itens → motivo → fotos → confirmação.
+- Header minimalista com badge de contagem de solicitações ativas.
+- Cards agrupados Apple HIG com status, código de postagem reversa, valor envolvido e download de declaração de conteúdo.
+- Modal integrado para abertura direta de solicitação de RMA a partir dos pedidos recentes com seleção de tipo (devolução/estorno, troca ou garantia) e motivo legal (Art. 49 CDC).
 
 ---
 
 ## P-022 · Endereços
 
 **Rota:** `/_store/conta/enderecos` (`_store.conta.enderecos.tsx`) | **Status:** `✅ IMPLEMENTADO`
-**Shell:** Minimal | **Padrão:** list + form | **Ator:** Cliente
+**Shell:** Minimal | **Padrão:** apple-hig-inset-grouped | **Ator:** Cliente
+
+### Anatomia
+
+- Formulário e cartões no padrão Apple HIG Inset-Grouped List com touch targets mínimos de 44px (`h-11`).
+- Preenchimento inteligente de CEP via ViaCEP integrado.
+- Seleção direta de endereço padrão com indicador e remoção com confirmação defensiva.
 
 ---
 
@@ -561,7 +569,7 @@ Formulário em etapas: selecionar itens → motivo → fotos → confirmação.
 
 ## P-028 · Comissões do Parceiro/Afiliado (Cliente)
 
-**Rota:** GAP — `/_store/conta/comissoes` | **Status:** `🔴 GAP`
+**Rota:** `/_store/conta/comissoes` (`_store.conta.comissoes.tsx`) | **Status:** `✅ IMPLEMENTADO`
 **Shell:** Minimal | **Padrão:** ledger | **Ator:** Parceiro/Afiliado autenticado
 
 ### Anatomia

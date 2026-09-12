@@ -621,7 +621,7 @@ export const getCompanyDetails = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const supabase = getServerClient();
     const { data: company } = await supabase
-      .from("companies")
+      .from("stores")
       .select("*")
       .eq("id", data.companyId)
       .maybeSingle();

@@ -4,11 +4,12 @@ import { formatMoney } from "@/lib/money";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
- getCart,
- removeFromCart,
- updateCartItemQty,
- applyCouponToCart,
- updateCartShipping,
+  getCart,
+  getGlobalCarts,
+  removeFromCart,
+  updateCartItemQty,
+  applyCouponToCart,
+  updateCartShipping,
 } from "@/services/cart.functions";
 import { calculateShipping } from "@/services/shipping.functions";
 import { Trash2, Plus, Minus, ArrowRight, Ticket, Truck, CheckCircle2, ShoppingBag } from "lucide-react";
@@ -21,15 +22,15 @@ import { cn } from "@/lib/utils";
 import { Surface } from "@/components/ui/surface";
 
 export const Route = createFileRoute("/_store/carrinho")({
- head: () => ({ meta: [{ title: "Meu Carrinho" }] }),
- loader: async () => {
- try {
- const cart = await getCart();
- return cart ? [cart] : [];
- } catch {
- return [];
- }
- },
+  head: () => ({ meta: [{ title: "Meu Carrinho" }] }),
+  loader: async () => {
+    try {
+      const carts = await getGlobalCarts();
+      return carts && carts.length > 0 ? carts : [];
+    } catch {
+      return [];
+    }
+  },
  pendingComponent: PageSkeleton,
  component: StoreCartPage,
 });

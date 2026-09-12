@@ -12,7 +12,7 @@ import {
   Users,
   CheckCircle2,
   Trash2,
-  Sparkles,
+  Flame,
   Building,
   TrendingUp,
 } from "lucide-react";
@@ -57,7 +57,7 @@ export const Route = createFileRoute("/workspace/eventos/")({
 });
 
 export default function WorkspaceEventosPage() {
-  const { events: initialEvents, store } = Route.useLoaderData() as any;
+  const { events: initialEvents, store } = ((Route.useLoaderData?.() as any) || {});
   const router = useRouter();
   const [eventsList] = useState<any[]>(initialEvents || []);
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -71,10 +71,19 @@ export default function WorkspaceEventosPage() {
     title: "",
     description: "",
     event_date: "",
+    end_date: "",
     location: "",
+    city: "",
+    state: "",
+    organizer_name: "",
+    organizer_phone: "",
     cover_image: "",
     category: "shows",
     capacity: 200,
+    age_rating: "livre",
+    is_free: false,
+    is_external_ticket: false,
+    external_ticket_url: "",
   });
 
   // Métricas Executivas da Produtora de Eventos
@@ -154,10 +163,19 @@ export default function WorkspaceEventosPage() {
           title: form.title.trim(),
           description: form.description.trim() || null,
           event_date: normalizedDate,
+          end_date: form.end_date || null,
           location: form.location.trim() || null,
+          city: form.city.trim() || null,
+          state: form.state.trim() || null,
+          organizer_name: form.organizer_name.trim() || null,
+          organizer_phone: form.organizer_phone.trim() || null,
           cover_image: form.cover_image || null,
           category: form.category || "shows",
           capacity: form.capacity ? Number(form.capacity) : 200,
+          age_rating: form.age_rating || "livre",
+          is_free: form.is_free,
+          is_external_ticket: form.is_external_ticket,
+          external_ticket_url: form.is_external_ticket && form.external_ticket_url ? form.external_ticket_url : null,
           status: "published",
         },
       });
@@ -168,10 +186,19 @@ export default function WorkspaceEventosPage() {
         title: "",
         description: "",
         event_date: "",
+        end_date: "",
         location: "",
+        city: "",
+        state: "",
+        organizer_name: "",
+        organizer_phone: "",
         cover_image: "",
         category: "shows",
         capacity: 200,
+        age_rating: "livre",
+        is_free: false,
+        is_external_ticket: false,
+        external_ticket_url: "",
       });
       router.invalidate();
     } catch (err: any) {
@@ -350,7 +377,7 @@ export default function WorkspaceEventosPage() {
 
         {/* ── 3. SHEET DE CADASTRO DE EVENTO & LOTES ── */}
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetContent side="right" className="sm:max-w-xl p-0 overflow-y-auto no-scrollbar flex flex-col h-full bg-background border-l border-border">
+          <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-0 overflow-y-auto no-scrollbar flex flex-col h-full bg-background border-l border-border">
             <SheetHeader className="px-6 py-4 bg-muted/20 border-b border-border/60 text-left shrink-0">
               <SheetTitle className="text-lg font-bold">Novo Evento & Lotes de Ingressos</SheetTitle>
               <SheetDescription className="text-xs text-muted-foreground">
@@ -444,6 +471,106 @@ export default function WorkspaceEventosPage() {
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   placeholder="Line-up, horários de abertura de portões, classificação indicativa e avisos gerais..."
                 />
+              </div>
+
+              {/* ── Campos Avançados ── */}
+              <div className="border-t border-border/60 pt-4 space-y-4">
+                <p className="text-xs font-bold text-foreground">Informações Adicionais</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="evt-city" className="text-xs font-bold">Cidade</Label>
+                    <Input
+                      id="evt-city"
+                      value={form.city}
+                      onChange={(e) => setForm({ ...form, city: e.target.value })}
+                      placeholder="Ex: Chapecó"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="evt-state" className="text-xs font-bold">Estado (UF)</Label>
+                    <Input
+                      id="evt-state"
+                      value={form.state}
+                      onChange={(e) => setForm({ ...form, state: e.target.value.toUpperCase().slice(0, 2) })}
+                      placeholder="SC"
+                      maxLength={2}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="evt-age" className="text-xs font-bold">Classificação Etária</Label>
+                    <select
+                      id="evt-age"
+                      value={form.age_rating}
+                      onChange={(e) => setForm({ ...form, age_rating: e.target.value })}
+                      className="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      <option value="livre">Livre</option>
+                      <option value="12">12+</option>
+                      <option value="14">14+</option>
+                      <option value="16">16+</option>
+                      <option value="18">18+</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="evt-organizer" className="text-xs font-bold">Produtor / Organizador</Label>
+                    <Input
+                      id="evt-organizer"
+                      value={form.organizer_name}
+                      onChange={(e) => setForm({ ...form, organizer_name: e.target.value })}
+                      placeholder="Ex: Wider Eventos e Cultura"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="evt-org-phone" className="text-xs font-bold">Contato do Produtor</Label>
+                    <Input
+                      id="evt-org-phone"
+                      type="tel"
+                      value={form.organizer_phone}
+                      onChange={(e) => setForm({ ...form, organizer_phone: e.target.value })}
+                      placeholder="(49) 99999-9999"
+                    />
+                  </div>
+                </div>
+
+                {/* Toggle: Ingresso Externo */}
+                <div className="p-4 rounded-xl border border-border/60 bg-muted/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-foreground">Ingresso por Link Externo</p>
+                      <p className="text-[11px] text-muted-foreground">Ative se os ingressos são vendidos em outra plataforma.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, is_external_ticket: !form.is_external_ticket })}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+                        form.is_external_ticket ? "bg-primary" : "bg-muted"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block size-4 transform rounded-full bg-background shadow-sm transition-transform ${
+                          form.is_external_ticket ? "translate-x-6" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {form.is_external_ticket && (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="evt-ext-url" className="text-xs font-bold">URL de Compra de Ingressos</Label>
+                      <Input
+                        id="evt-ext-url"
+                        type="url"
+                        value={form.external_ticket_url}
+                        onChange={(e) => setForm({ ...form, external_ticket_url: e.target.value })}
+                        placeholder="https://ingresso.com/evento/..."
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <SheetFooter className="pt-4 border-t border-border/60 flex items-center justify-end gap-2">

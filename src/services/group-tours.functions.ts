@@ -100,135 +100,152 @@ export function generateDefaultBusSeats(totalSeats: number = 46): BusSeatDTO[] {
 // ─── 1. Criação de Viagem em Grupo / Excursão ─────────────────────────────────
 
 export const createGroupTour = createServerFn({ method: "POST" })
- .validator(
- z.object({
- title: z.string().min(3, "Título obrigatório"),
- destination: z.string().min(2, "Destino obrigatório"),
- departureCity: z.string().min(2, "Cidade de saída obrigatória"),
- departureDate: z.string().min(1, "Data de saída obrigatória"),
- departureTime: z.string().default("06:00"),
- returnDate: z.string().min(1, "Data de retorno obrigatória"),
- returnTime: z.string().default("20:00"),
- totalSeats: z.number().int().min(10).max(100).default(46),
- priceCents: z.number().int().min(0).default(0),
- includedItems: z.array(z.string()).default([]),
- notes: z.string().optional(),
- coverImageUrl: z.string().optional(),
- vehicleLayoutId: z.string().optional(),
- vehicleLayoutName: z.string().optional(),
- boardingPoints: z
- .array(
- z.object({
- city: z.string(),
- time: z.string(),
- location: z.string(),
- })
- )
- .default([]),
- paymentConditions: z.string().optional(),
- busCompanyName: z.string().optional(),
- busPlate: z.string().optional(),
- driverName: z.string().optional(),
- driverPhone: z.string().optional(),
- })
- )
- .handler(async ({ data: input }): Promise<{ success: boolean; id: string }> => {
- const supabase = getServerClient();
- const identity = await getServerIdentity();
+  .validator(
+    z.object({
+      title: z.string().min(3, "Título obrigatório"),
+      slug: z.string().optional(),
+      destination: z.string().min(2, "Destino obrigatório"),
+      departureCity: z.string().min(2, "Cidade de saída obrigatória").default("São Miguel do Oeste"),
+      departureDate: z.string().min(1, "Data de saída obrigatória"),
+      departureTime: z.string().default("06:00"),
+      returnDate: z.string().min(1, "Data de retorno obrigatória"),
+      returnTime: z.string().default("20:00"),
+      totalSeats: z.number().int().min(1).max(200).default(46),
+      priceCents: z.number().int().min(0).default(0),
+      includedItems: z.array(z.string()).default([]),
+      excludedItems: z.array(z.string()).default([]),
+      notes: z.string().optional(),
+      coverImageUrl: z.string().optional(),
+      vehicleLayoutId: z.string().optional(),
+      vehicleLayoutName: z.string().optional(),
+      boardingPoints: z
+        .array(
+          z.object({
+            city: z.string(),
+            time: z.string(),
+            location: z.string(),
+          })
+        )
+        .default([]),
+      paymentConditions: z.string().optional(),
+      busCompanyName: z.string().optional(),
+      busPlate: z.string().optional(),
+      driverName: z.string().optional(),
+      driverPhone: z.string().optional(),
+      hotelDetails: z.record(z.any()).optional(),
+      promoMedia: z.record(z.any()).optional(),
+      pricingTiers: z.array(z.any()).default([]),
+      extraOptions: z.array(z.any()).default([]),
+      itinerary: z.array(z.any()).default([]),
+      isPublic: z.boolean().default(true),
+      status: z.enum(["open", "confirmed", "closed", "completed", "cancelled"]).default("open"),
+    })
+  )
+  .handler(async ({ data: input }): Promise<{ success: boolean; id: string }> => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
 
- if (!identity?.id) {
- throw new Error("Não autorizado.");
- }
+    if (!identity?.id) {
+      throw new Error("Não autorizado.");
+    }
 
- let finalSeats = generateDefaultBusSeats(input.totalSeats);
- let finalTotalSeats = input.totalSeats;
+    let finalSeats = generateDefaultBusSeats(input.totalSeats);
+    let finalTotalSeats = input.totalSeats;
 
- // Se um veículo da frota foi selecionado, importar o mapa de poltronas real dele!
- if (input.vehicleLayoutId) {
- const { data: vLayout } = await supabase
- .from("vehicle_layouts")
- .select("id, name, seat_map, total_capacity, is_double_decker")
- .eq("id", input.vehicleLayoutId)
- .maybeSingle();
+    // Se um veículo da frota foi selecionado, importar o mapa de poltronas real dele!
+    if (input.vehicleLayoutId) {
+      const { data: vLayout } = await supabase
+        .from("vehicle_layouts")
+        .select("id, name, seat_map, total_capacity, is_double_decker")
+        .eq("id", input.vehicleLayoutId)
+        .maybeSingle();
 
- if (vLayout && Array.isArray(vLayout.seat_map) && vLayout.seat_map.length > 0) {
- const mappedSeats: BusSeatDTO[] = [];
- let count = 0;
- vLayout.seat_map.forEach((cell: any) => {
- if (cell.type === "seat") {
- count++;
- const seatNum = parseInt(String(cell.label).replace(/\D/g, ""), 10) || count;
- const colLetter: "A" | "B" | "C" | "D" =
- cell.c === 0 ? "A" : cell.c === 1 ? "B" : cell.c === 3 ? "C" : "D";
+      if (vLayout && Array.isArray(vLayout.seat_map) && vLayout.seat_map.length > 0) {
+        const mappedSeats: BusSeatDTO[] = [];
+        let count = 0;
+        vLayout.seat_map.forEach((cell: any) => {
+          if (cell.type === "seat") {
+            count++;
+            const seatNum = parseInt(String(cell.label).replace(/\D/g, ""), 10) || count;
+            const colLetter: "A" | "B" | "C" | "D" =
+              cell.c === 0 ? "A" : cell.c === 1 ? "B" : cell.c === 3 ? "C" : "D";
 
- mappedSeats.push({
- seat_number: seatNum,
- row: (cell.r ?? 0) + 1,
- column: colLetter,
- floor: (cell.deck === 2 ? 2 : 1) as 1 | 2,
- status: cell.status === "blocked" ? "blocked" : "free",
- passenger_name: null,
- passenger_document: null,
- passenger_phone: null,
- boarding_point: null,
- });
- }
- });
+            mappedSeats.push({
+              seat_number: seatNum,
+              row: (cell.r ?? 0) + 1,
+              column: colLetter,
+              floor: (cell.deck === 2 ? 2 : 1) as 1 | 2,
+              status: cell.status === "blocked" ? "blocked" : "free",
+              passenger_name: null,
+              passenger_document: null,
+              passenger_phone: null,
+              boarding_point: null,
+            });
+          }
+        });
 
- if (mappedSeats.length > 0) {
- finalSeats = mappedSeats;
- finalTotalSeats = mappedSeats.length;
- }
- }
- }
+        if (mappedSeats.length > 0) {
+          finalSeats = mappedSeats;
+          finalTotalSeats = mappedSeats.length;
+        }
+      }
+    }
 
- const metaPayload = {
- cover_image_url: input.coverImageUrl || null,
- vehicle_layout_id: input.vehicleLayoutId || null,
- vehicle_layout_name: input.vehicleLayoutName || null,
- boarding_points: input.boardingPoints || [],
- payment_conditions: input.paymentConditions || null,
- bus_company_name: input.busCompanyName || null,
- bus_plate: input.busPlate || null,
- driver_name: input.driverName || null,
- driver_phone: input.driverPhone || null,
- notes: input.notes || null,
- };
+    const metaPayload = {
+      slug: input.slug || null,
+      cover_image_url: input.coverImageUrl || null,
+      vehicle_layout_id: input.vehicleLayoutId || null,
+      vehicle_layout_name: input.vehicleLayoutName || null,
+      boarding_points: input.boardingPoints || [],
+      payment_conditions: input.paymentConditions || null,
+      bus_company_name: input.busCompanyName || null,
+      bus_plate: input.busPlate || null,
+      driver_name: input.driverName || null,
+      driver_phone: input.driverPhone || null,
+      notes: input.notes || null,
+      hotel_details: input.hotelDetails || null,
+      promo_media: input.promoMedia || null,
+      pricing_tiers: input.pricingTiers || [],
+      extra_options: input.extraOptions || [],
+      itinerary: input.itinerary || [],
+      is_public: input.isPublic,
+      status: input.status,
+    };
 
- const { data: inserted, error } = await supabase
- .from("tourism_experiences")
- .insert({
- store_id: identity.store_id || null,
- author_profile_id: identity.id,
- title: input.title.trim(),
- subtitle: `${input.departureCity} ➔ ${input.destination} (${input.departureDate})`,
- category: "group_tour",
- destination: input.destination.trim(),
- departure_city: input.departureCity.trim(),
- departure_date: new Date(input.departureDate).toISOString(),
- departure_time: input.departureTime,
- return_date: new Date(input.returnDate).toISOString(),
- return_time: input.returnTime,
- location: input.destination.trim(),
- price_cents: input.priceCents,
- total_seats: finalTotalSeats,
- seats: finalSeats,
- rooms: [],
- included_items: input.includedItems,
- notes: input.notes?.trim() || null,
- status: "open",
- description: JSON.stringify(metaPayload),
- })
- .select("id")
- .single();
+    const { data: inserted, error } = await supabase
+      .from("tourism_experiences")
+      .insert({
+        store_id: identity.store_id || null,
+        author_profile_id: identity.id,
+        title: input.title.trim(),
+        subtitle: `${input.departureCity} ➔ ${input.destination} (${input.departureDate})`,
+        category: "group_tour",
+        destination: input.destination.trim(),
+        departure_city: input.departureCity.trim(),
+        departure_date: new Date(input.departureDate).toISOString(),
+        departure_time: input.departureTime,
+        return_date: new Date(input.returnDate).toISOString(),
+        return_time: input.returnTime,
+        location: input.destination.trim(),
+        price_cents: input.priceCents,
+        total_seats: finalTotalSeats,
+        seats: finalSeats,
+        rooms: [],
+        included_items: input.includedItems,
+        notes: input.notes?.trim() || null,
+        status: input.status,
+        description: JSON.stringify(metaPayload),
+      })
+      .select("id")
+      .single();
 
- if (error) {
- console.error("[group-tours.functions] Erro ao criar grupo terrestre:", error);
- throw new Error("Falha ao salvar grupo terrestre: " + error.message);
- }
+    if (error) {
+      console.error("[group-tours.functions] Erro ao criar grupo terrestre:", error);
+      throw new Error("Falha ao salvar grupo terrestre: " + error.message);
+    }
 
- return { success: true, id: inserted.id };
- });
+    return { success: true, id: inserted.id };
+  });
 
 // ─── 2. Buscar Grupo Terrestre por ID (Workspace) ─────────────────────────────
 

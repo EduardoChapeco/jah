@@ -87,7 +87,7 @@ export const Route = createFileRoute("/_store/construcao")({
  };
    } catch (err) {
      console.error("[loader:_store.construcao] Unhandled error:", err);
-     return null;
+     return { banners: null, hotpages: null, marketplaceFeed: null, catalogProducts: null };
    }
  },
  component: ConstrucaoVerticalPage,
@@ -95,7 +95,7 @@ export const Route = createFileRoute("/_store/construcao")({
 });
 
 function ConstrucaoVerticalPage() {
- const { banners, hotpages, marketplaceFeed } = Route.useLoaderData();
+ const { banners, hotpages, marketplaceFeed } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch();
  const navigate = useNavigate({ from: Route.fullPath });
 
@@ -210,7 +210,6 @@ function ConstrucaoVerticalPage() {
  onSelectCategory={handleDepartmentChange}
  viewMode={viewMode}
  onViewModeChange={handleViewModeChange}
- resultsCount={filteredProducts.length}
  />
 
  {/* ── 4. Renderização do Feed Modular ou Grade Filtrada ── */}

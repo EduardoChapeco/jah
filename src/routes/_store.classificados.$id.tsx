@@ -38,6 +38,8 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { InstagramTravelView } from "@/components/classifieds/instagram-travel-view";
+import { ProductTelemetry } from "@/components/commerce/product-telemetry";
 import { Input } from "@/components/ui/input";
 import { CurrencyField } from "@/components/ui/currency-field";
 import { Textarea } from "@/components/ui/textarea";
@@ -53,7 +55,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatMoney } from "@/lib/money";
 import { formatRelativeTime, formatDate } from "@/lib/datetime";
 import { trackAndOpenWhatsApp } from "@/lib/whatsapp";
+import { ProtectedContactButton } from "@/components/common/protected-contact-button";
 import { MapLibreCanvas } from "@/components/mobility/maplibre-canvas";
+import { getStoredLocation } from "@/components/location/location-master-pill";
 import {
   getPublicClassifiedById,
   updateClassifiedStatus,
@@ -188,7 +192,7 @@ function isVideoUrl(url?: string | null): boolean {
 function ClassifiedDetailPage() {
  const navigate = useNavigate();
  const queryClient = useQueryClient();
- const { classified, isOwner, canManage, viewerContext, currentProfile } = Route.useLoaderData();
+ const { classified, isOwner, canManage, viewerContext, currentProfile } = ((Route.useLoaderData?.() as any) || {});
 
  const [activeImage, setActiveImage] = useState(0);
  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
@@ -202,6 +206,8 @@ function ClassifiedDetailPage() {
  const [proposalDepositCents, setProposalDepositCents] = useState<number | undefined>(undefined);
  const [proposalTerms, setProposalTerms] = useState("");
  const [isSendingProposal, setIsSendingProposal] = useState(false);
+ // Perguntas customizadas configuradas pelo lojista
+ const [customAnswers, setCustomAnswers] = useState<Record<string, any>>({});
 
  // Direct Booking State (Hospedagem / Temporada / Diárias)
  const [bookingOpen, setBookingOpen] = useState(false);
@@ -335,6 +341,35 @@ function ClassifiedDetailPage() {
  const depositCents = proposalDepositCents ?? 0;
  const installments = parseInt(proposalInstallments) || 1;
 
+    // Validação de campos obrigatórios configurados pela Empresa
+    const customFields: any[] = classified?.store?.custom_inquiry_fields || [];
+    for (const field of customFields) {
+      if (field.required) {
+        const val = customAnswers[field.id];
+        if (val === undefined || val === null || val === "" || (field.type === "checkbox" && !val)) {
+          toast.error(`Por favor, responda o campo obrigatório: "${field.label}"`);
+          return;
+        }
+      }
+    }
+
+    let formattedCustomFields = "";
+    if (customFields.length > 0) {
+      const answered = customFields
+        .map((f: any) => {
+          const ans = customAnswers[f.id];
+          if (ans === undefined || ans === "" || ans === null) return null;
+          if (f.type === "checkbox") return `• ${f.label}: ${ans ? "Sim" : "Não"}`;
+          return `• ${f.label}: ${ans}`;
+        })
+        .filter(Boolean);
+      if (answered.length > 0) {
+        formattedCustomFields = `\n\n[Respostas Personalizadas Solicitadas]\n${answered.join("\n")}`;
+      }
+    }
+
+    const finalTerms = (proposalTerms.trim() + formattedCustomFields).trim();
+
  setIsSendingProposal(true);
  try {
  await createDealProposal({
@@ -345,7 +380,7 @@ function ClassifiedDetailPage() {
  depositCents,
  installmentsCount: installments,
  dealType: classified.category === "real_estate" ? "rental" : "sale",
- terms: proposalTerms.trim() || undefined,
+ terms: finalTerms || undefined,
  },
  });
 
@@ -393,31 +428,39 @@ function ClassifiedDetailPage() {
  }
  };
 
- const handleDirectBuy = async () => {
- if (!classified) return;
- setIsBuyingDirect(true);
- try {
- await createDealProposal({
- data: {
- classifiedId: classified.id,
- sellerId: classified.author_profile_id,
- proposedPriceCents: classified.price_cents || 0,
- totalPriceCents: classified.price_cents || 0,
- dealType: classified.category === "real_estate" ? "rental" : "sale",
- isDirectBooking: true,
- terms: "Compra direta pelo valor integral anunciado.",
- },
- });
+  const handleDirectBuy = async () => {
+    if (!classified) return;
+    if (viewerContext === "anonymous") {
+      toast.info("Identifique-se para comprar com garantia e custódia segura.");
+      navigate({
+        to: "/entrar",
+        search: { returnUrl: `/classificados/${classified.id}` },
+      });
+      return;
+    }
+    setIsBuyingDirect(true);
+    try {
+      const deal = await createDealProposal({
+        data: {
+          classifiedId: classified.id,
+          sellerId: classified.author_profile_id,
+          proposedPriceCents: classified.price_cents || 0,
+          totalPriceCents: classified.price_cents || 0,
+          dealType: classified.category === "real_estate" ? "rental" : "sale",
+          isDirectBooking: true,
+          terms: "Compra direta com garantia pelo valor integral anunciado.",
+        },
+      });
 
- toast.success("Compra confirmada com o vendedor! Acompanhe em Minhas Negociações.");
- navigate({ to: "/conta/negociacoes" });
- } catch (err: any) {
- console.error("Erro ao comprar direto:", err);
- toast.error(err?.message || "Erro ao processar compra.");
- } finally {
- setIsBuyingDirect(false);
- }
- };
+      toast.success("Compra com garantia iniciada! Acompanhe a custódia e entrega em Minhas Negociações.");
+      navigate({ to: "/conta/negociacoes" });
+    } catch (err: any) {
+      console.error("Erro ao comprar direto:", err);
+      toast.error(err?.message || "Erro ao processar compra.");
+    } finally {
+      setIsBuyingDirect(false);
+    }
+  };
 
 const [isDownloadingDigital, setIsDownloadingDigital] = useState(false);
 
@@ -464,8 +507,11 @@ const handleDownloadDigitalFile = async () => {
  );
  }
 
- const images: string[] =
- Array.isArray(classified.images) && classified.images.length > 0 ? classified.images : [];
+  const images: string[] =
+    (Array.isArray(classified.images) && classified.images.length > 0 ? classified.images : null) ||
+    (Array.isArray(classified.media) && classified.media.length > 0 ? classified.media : null) ||
+    (Array.isArray(classified.media_urls) && classified.media_urls.length > 0 ? classified.media_urls : null) ||
+    [];
 
  const rawPhone = classified.contact_whatsapp || classified.whatsapp;
  const cleanPhone = rawPhone ? rawPhone.replace(/\D/g, "") : null;
@@ -481,8 +527,54 @@ const handleDownloadDigitalFile = async () => {
  const semanticBadges = useMemo(() => getSemanticBadges(classified), [classified]);
  const semanticCondition = useMemo(() => getSemanticCondition(classified), [classified]);
 
+  if (
+    niche.id === "travel" ||
+    classified?.category === "travel" ||
+    classified?.category === "viagem" ||
+    classified?.category === "tourism" ||
+    classified?.attributes?.template_style === "instagram" ||
+    classified?.attributes?.template_style === "instagram_resort"
+  ) {
+    return (
+      <>
+        <ProductTelemetry
+          storeId={classified?.store_id || classified?.storeId}
+          productId={classified?.id}
+          title={classified?.title || "Anúncio"}
+          description={classified?.content}
+          priceCents={classified?.price_cents || 0}
+          currency="BRL"
+          imageUrl={classified?.images?.[0]}
+          brandName={classified?.store_name || "Comunidade Wider"}
+          categoryName={classified?.category || "Turismo & Viagens"}
+          sku={classified?.id}
+          inStock={classified?.status === "active"}
+        />
+        <InstagramTravelView
+          classified={classified}
+          isOwner={isOwner}
+          onOpenBookingModal={() => setBookingOpen(true)}
+          onOpenProposalModal={() => setProposalOpen(true)}
+        />
+      </>
+    );
+  }
+
  return (
  <div className="w-full space-y-6">
+ <ProductTelemetry
+ storeId={classified?.store_id || classified?.storeId}
+ productId={classified?.id}
+ title={classified?.title || "Anúncio"}
+ description={classified?.content}
+ priceCents={classified?.price_cents || 0}
+ currency="BRL"
+ imageUrl={classified?.images?.[0]}
+ brandName={classified?.store_name || "Comunidade Wider"}
+ categoryName={classified?.category || "Classificados"}
+ sku={classified?.id}
+ inStock={classified?.status === "active"}
+ />
  {/* ── Barra Superior de Navegação & Ações Perfeitas ── */}
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4">
  <div className="flex items-center gap-2 flex-wrap">
@@ -1373,7 +1465,6 @@ const handleDownloadDigitalFile = async () => {
  )}
  </div>
  )}
- </div>
 
  {/* Localização no Mapa Real (MapLibre OpenStreetMap) */}
               <div className="bg-card rounded-2xl border border-border/60 p-6 space-y-4 shadow-2xs">
@@ -1387,24 +1478,31 @@ const handleDownloadDigitalFile = async () => {
                   </Badge>
                 </div>
 
-                <div className="h-[220px] w-full rounded-2xl overflow-hidden border border-border/70 relative shadow-2xs">
-                  <MapLibreCanvas
-                    center={{
-                      lat: Number(classified.location_lat || classified.latitude || classified.attributes?.latitude || -27.1004),
-                      lng: Number(classified.location_lng || classified.longitude || classified.attributes?.longitude || -52.6152),
-                    }}
-                    zoom={14}
-                    markers={[
-                      {
-                        id: classified.id,
-                        lat: Number(classified.location_lat || classified.latitude || classified.attributes?.latitude || -27.1004),
-                        lng: Number(classified.location_lng || classified.longitude || classified.attributes?.longitude || -52.6152),
-                        title: classified.title,
-                        image_url: classified.media?.[0] || null,
-                      },
-                    ]}
-                  />
-                </div>
+                {(() => {
+                  const storedLoc = typeof window !== "undefined" ? getStoredLocation() : null;
+                  const mapLat = Number(classified.location_lat || classified.latitude || classified.attributes?.latitude || storedLoc?.lat || -27.1004);
+                  const mapLng = Number(classified.location_lng || classified.longitude || classified.attributes?.longitude || storedLoc?.lng || -52.6152);
+                  return (
+                    <div className="h-[220px] w-full rounded-2xl overflow-hidden border border-border/70 relative shadow-2xs">
+                      <MapLibreCanvas
+                        center={{
+                          lat: mapLat,
+                          lng: mapLng,
+                        }}
+                        zoom={14}
+                        markers={[
+                          {
+                            id: classified.id,
+                            lat: mapLat,
+                            lng: mapLng,
+                            title: classified.title,
+                            image_url: classified.media?.[0] || null,
+                          },
+                        ]}
+                      />
+                    </div>
+                  );
+                })()}
 
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
                   Por segurança e privacidade, a localização no mapa indica a região aproximada do anúncio. O endereço exato é combinado diretamente entre as partes.
@@ -1434,20 +1532,26 @@ const handleDownloadDigitalFile = async () => {
  {/* Bloco de Preço */}
  <div className=" pt-4">
  <span className="text-xs uppercase font-bold text-muted-foreground tracking-wider block mb-1">
- {classified.deal_type === "aluguel"
+ {niche.id === "donation"
+ ? "Desapego Solidário"
+ : niche.id === "equipment"
+ ? "Valor da Diária de Locação"
+ : classified.deal_type === "aluguel"
  ? "Valor do Aluguel Mensal"
  : classified.deal_type === "temporada"
  ? "Valor por Diária"
  : "Valor"}
  </span>
  <div className="text-3xl font-black text-primary font-mono flex items-baseline gap-1">
- {classified.price_cents !== null && classified.price_cents !== undefined ? (
+ {niche.id === "donation" || (classified.price_cents === 0 && classified.category === "donation") ? (
+ <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">Gratuito (Doação)</span>
+ ) : classified.price_cents !== null && classified.price_cents !== undefined ? (
  <>
  <span>{formatMoney(classified.price_cents)}</span>
  {classified.deal_type === "aluguel" && (
  <span className="text-sm font-normal text-muted-foreground">/mês</span>
  )}
- {classified.deal_type === "temporada" && (
+ {(classified.deal_type === "temporada" || niche.id === "equipment") && (
  <span className="text-sm font-normal text-muted-foreground">/diária</span>
  )}
  </>
@@ -1491,6 +1595,72 @@ const handleDownloadDigitalFile = async () => {
  ✓ Vendedor aceita propostas e negociação
  </span>
  )}
+
+              {/* ── Formas de Pagamento & Condições Comerciais Reais ── */}
+              <div className="pt-3 pb-1 border-t border-border/60 space-y-2">
+                <span className="text-[11px] font-bold font-mono uppercase tracking-wider text-muted-foreground block">
+                  Formas de Pagamento & Garantia
+                </span>
+                <div className="flex flex-wrap gap-1.5 text-xs">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-muted/40 font-medium text-foreground">
+                    <QrCode className="size-3.5 text-emerald-600" />
+                    Pix
+                  </span>
+                  {(classified.attributes?.accepts_card ?? classified.accepts_card) && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-muted/40 font-medium text-foreground">
+                      <CreditCard className="size-3.5 text-primary" />
+                      Cartão {(classified.attributes?.max_installments || 12) > 1 ? `até ${classified.attributes?.max_installments || 12}x` : "à vista"}
+                    </span>
+                  )}
+                  {(classified.attributes?.accepts_trade ?? classified.accepts_trade) && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-muted/40 font-medium text-foreground">
+                      <RefreshCw className="size-3.5 text-amber-600" />
+                      Aceita Troca
+                    </span>
+                  )}
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-muted/40 font-medium text-foreground">
+                    <Banknote className="size-3.5 text-muted-foreground" />
+                    Dinheiro / À Vista
+                  </span>
+                </div>
+                {classified.attributes?.cancellation_policy && (
+                  <p className="text-[11px] text-muted-foreground pt-1 flex items-center gap-1">
+                    <ShieldCheck className="size-3 text-emerald-600" />
+                    <span>Cancelamento: {classified.attributes.cancellation_policy}</span>
+                  </p>
+                )}
+              </div>
+
+              {/* ── Autor / Loja / Prestador do Anúncio (Posicionado Abaixo do Preço) ── */}
+              <div className="pt-3 pb-3 border-y border-border/60 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Avatar className="size-10 rounded-xl">
+                    <AvatarImage src={author?.avatar_url || ""} alt={author?.full_name || ""} />
+                    <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm rounded-xl">
+                      {authorInitial}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-muted-foreground font-medium">Anunciado por</p>
+                    <p className="text-sm font-bold text-foreground truncate">
+                      {author?.full_name || "Membro Verificado Wider"}
+                    </p>
+                  </div>
+                </div>
+
+                {author?.id && (
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl text-xs font-semibold h-8"
+                  >
+                    <Link to="/membro/$id" params={{ id: author.id }} search={{ modo: "comercial" }}>
+                      Ver Perfil
+                    </Link>
+                  </Button>
+                )}
+              </div>
  </div>
 
  {/* Entrega e Download de Produto Digital */}
@@ -1680,24 +1850,20 @@ const handleDownloadDigitalFile = async () => {
  </Button>
 
  {(classified.contact_whatsapp || classified.whatsapp || classified.profiles?.phone) && (
- <Button
- variant="outline"
- size="lg"
- onClick={() => {
- const targetPhone = classified.contact_whatsapp || classified.whatsapp || classified.profiles?.phone;
- const text = `Olá! Vi a oportunidade de "${classified.title}" no portal Wider e gostaria de me candidatar.`;
- trackAndOpenWhatsApp(targetPhone, text, {
- classifiedId: classified.id,
- classifiedTitle: classified.title,
- action: "job_quick_whatsapp",
- });
- }}
- className="w-full h-11 rounded-xl font-semibold text-xs gap-2 border-emerald-600/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 cursor-pointer"
- >
- <MessageCircle className="size-4 text-emerald-600" />
- <span>Falar com o Recrutador via WhatsApp</span>
- </Button>
- )}
+                    <ProtectedContactButton
+                      phone={classified.contact_whatsapp || classified.whatsapp || classified.profiles?.phone}
+                      entityType="job"
+                      entityId={classified.id}
+                      entityTitle={classified.title}
+                      storeId={(classified as any).store_id || null}
+                      niche={classified.category || "empregos"}
+                      customMessage={`Olá! Vi a oportunidade de "${classified.title}" no portal Wider e gostaria de me candidatar.`}
+                      variant="outline"
+                      size="lg"
+                      label="Falar com o Recrutador via WhatsApp"
+                      className="w-full h-11 rounded-xl font-semibold text-xs border-emerald-600/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10"
+                    />
+                  )}
  </div>
  ) : classified.deal_type === "temporada" ? (
  /* Bloco de Reserva Direta de Hospedagem / Diárias */
@@ -1912,6 +2078,55 @@ const handleDownloadDigitalFile = async () => {
  />
  </div>
 
+ {/* Perguntas Personalizadas configuradas pela Empresa/Vendedor */}
+ {classified?.store?.custom_inquiry_fields && classified.store.custom_inquiry_fields.length > 0 && (
+ <div className="space-y-3 pt-2.5 pb-1 border-t border-border/40">
+ <div className="flex items-center justify-between">
+ <span className="text-xs font-bold text-foreground">
+ Perguntas Adicionais do Vendedor
+ </span>
+ <span className="text-[10px] text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded font-medium">
+ Personalizado pela loja
+ </span>
+ </div>
+ {classified.store.custom_inquiry_fields.map((field: any) => (
+ <div key={field.id} className="space-y-1">
+ <label className="text-xs font-medium text-foreground flex items-center gap-1">
+ <span>{field.label}</span>
+ {field.required && <span className="text-rose-500 font-bold">*</span>}
+ </label>
+ {field.type === "textarea" ? (
+ <Textarea
+ value={customAnswers[field.id] || ""}
+ onChange={(e) => setCustomAnswers((prev) => ({ ...prev, [field.id]: e.target.value }))}
+ placeholder="Sua resposta..."
+ rows={2}
+ className="rounded-xl text-xs bg-background resize-none leading-relaxed"
+ />
+ ) : field.type === "checkbox" ? (
+ <label className="flex items-center gap-2 cursor-pointer pt-0.5">
+ <input
+ type="checkbox"
+ checked={!!customAnswers[field.id]}
+ onChange={(e) => setCustomAnswers((prev) => ({ ...prev, [field.id]: e.target.checked }))}
+ className="size-4 rounded accent-primary"
+ />
+ <span className="text-xs text-muted-foreground">{field.label}</span>
+ </label>
+ ) : (
+ <Input
+ type="text"
+ value={customAnswers[field.id] || ""}
+ onChange={(e) => setCustomAnswers((prev) => ({ ...prev, [field.id]: e.target.value }))}
+ placeholder="Sua resposta..."
+ className="h-9 rounded-xl text-xs bg-background"
+ />
+ )}
+ </div>
+ ))}
+ </div>
+ )}
+
  <Button
  onClick={handleSendProposal}
  disabled={isSendingProposal}
@@ -2056,6 +2271,55 @@ const handleDownloadDigitalFile = async () => {
                   />
                 </div>
 
+        {/* Perguntas Personalizadas configuradas pela Empresa/Vendedor */}
+        {classified?.store?.custom_inquiry_fields && classified.store.custom_inquiry_fields.length > 0 && (
+          <div className="space-y-3 pt-2.5 pb-1 border-t border-border/40">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-foreground">
+                Perguntas Adicionais do Vendedor
+              </span>
+              <span className="text-[10px] text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded font-medium">
+                Personalizado pela loja
+              </span>
+            </div>
+            {classified.store.custom_inquiry_fields.map((field: any) => (
+              <div key={field.id} className="space-y-1">
+                <label className="text-xs font-medium text-foreground flex items-center gap-1">
+                  <span>{field.label}</span>
+                  {field.required && <span className="text-rose-500 font-bold">*</span>}
+                </label>
+                {field.type === "textarea" ? (
+                  <Textarea
+                    value={customAnswers[field.id] || ""}
+                    onChange={(e) => setCustomAnswers((prev) => ({ ...prev, [field.id]: e.target.value }))}
+                    placeholder="Sua resposta..."
+                    rows={2}
+                    className="rounded-xl text-xs bg-background resize-none leading-relaxed"
+                  />
+                ) : field.type === "checkbox" ? (
+                  <label className="flex items-center gap-2 cursor-pointer pt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={!!customAnswers[field.id]}
+                      onChange={(e) => setCustomAnswers((prev) => ({ ...prev, [field.id]: e.target.checked }))}
+                      className="size-4 rounded accent-primary"
+                    />
+                    <span className="text-xs text-muted-foreground">{field.label}</span>
+                  </label>
+                ) : (
+                  <Input
+                    type="text"
+                    value={customAnswers[field.id] || ""}
+                    onChange={(e) => setCustomAnswers((prev) => ({ ...prev, [field.id]: e.target.value }))}
+                    placeholder="Sua resposta..."
+                    className="h-9 rounded-xl text-xs bg-background"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
                 {classified.price_cents && classified.price_cents > 0 ? (
                   <div className="p-3.5 rounded-xl bg-muted/40 flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">Valor Estimado do Atendimento:</span>
@@ -2087,23 +2351,19 @@ const handleDownloadDigitalFile = async () => {
       </Dialog>
 
       {(classified.contact_whatsapp || classified.whatsapp || classified.profiles?.phone) && (
-        <Button
+        <ProtectedContactButton
+          phone={classified.contact_whatsapp || classified.whatsapp || classified.profiles?.phone}
+          entityType="classified"
+          entityId={classified.id}
+          entityTitle={classified.title}
+          storeId={(classified as any).store_id || null}
+          niche={classified.category || "service"}
+          customMessage={`Olá! Vi o seu serviço "${classified.title}" no portal Wider e gostaria de tirar dúvidas sobre atendimento.`}
           variant="outline"
           size="lg"
-          onClick={() => {
-            const targetPhone = classified.contact_whatsapp || classified.whatsapp || classified.profiles?.phone;
-            const text = `Olá! Vi o seu serviço "${classified.title}" no portal Wider e gostaria de tirar dúvidas sobre atendimento.`;
-            trackAndOpenWhatsApp(targetPhone, text, {
-              classifiedId: classified.id,
-              classifiedTitle: classified.title,
-              action: "service_whatsapp_inquiry",
-            });
-          }}
-          className="w-full h-11 rounded-xl font-semibold text-xs gap-2 border-emerald-600/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 cursor-pointer"
-        >
-          <MessageCircle className="size-4 text-emerald-600" />
-          <span>Falar com o Prestador via WhatsApp</span>
-        </Button>
+          label="Falar com o Prestador via WhatsApp"
+          className="w-full h-11 rounded-xl font-semibold text-xs border-emerald-600/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10"
+        />
       )}
     </div>
   ) : (
@@ -2271,57 +2531,19 @@ const handleDownloadDigitalFile = async () => {
 
  {/* Botão de WhatsApp Rastreado */}
  {cleanPhone && (
- <Button
- type="button"
- size="lg"
- variant="outline"
- onClick={() =>
- trackAndOpenWhatsApp({
- phone: cleanPhone,
- storeId: (classified as any).store_id || null,
- entityType: "classified",
- entityId: classified.id,
- entityTitle: classified.title,
- niche: classified.category || "classificados",
- })
- }
- className="w-full h-11 rounded-xl font-bold border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 gap-2 text-xs cursor-pointer"
- >
- <MessageCircle className="size-4" />
- Conversar no WhatsApp
- </Button>
- )}
- </div>
-
- {/* Autor Real do Anúncio */}
- <div className=" pt-4 flex items-center justify-between gap-3">
- <div className="flex items-center gap-3 min-w-0">
- <Avatar className="size-10 rounded-xl ">
- <AvatarImage src={author?.avatar_url || ""} alt={author?.full_name || ""} />
- <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm rounded-xl">
- {authorInitial}
- </AvatarFallback>
- </Avatar>
- <div className="min-w-0">
- <p className="text-xs text-muted-foreground font-medium">Anunciado por</p>
- <p className="text-sm font-bold text-foreground truncate">
- {author?.full_name || "Membro da Comunidade"}
- </p>
- </div>
- </div>
-
- {author?.id && (
- <Button
- asChild
- variant="ghost"
- size="sm"
- className="rounded-xl text-xs font-semibold h-8"
- >
- <Link to="/membro/$id" params={{ id: author.id }} search={{ modo: "comercial" }}>
- Ver Perfil
- </Link>
- </Button>
- )}
+                <ProtectedContactButton
+                  phone={cleanPhone}
+                  entityType="classified"
+                  entityId={classified.id}
+                  entityTitle={classified.title}
+                  storeId={(classified as any).store_id || null}
+                  niche={classified.category || "classificados"}
+                  variant="outline"
+                  size="lg"
+                  label="Conversar no WhatsApp"
+                  className="w-full h-11 font-bold border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 text-xs"
+                />
+              )}
  </div>
 
  {/* Dica de Segurança */}
@@ -2351,6 +2573,7 @@ const handleDownloadDigitalFile = async () => {
  </DialogContent>
  </Dialog>
  )}
+ </div>
  </div>
  );
 }

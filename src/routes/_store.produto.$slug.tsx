@@ -18,6 +18,7 @@ import { formatMoney } from "@/lib/money";
 import { getPublicExperienceDocumentBySlug } from "@/services/builder.functions";
 import { addToCart } from "@/services/cart.functions";
 import { useCartContext } from "@/lib/cart-context";
+import { ProductTelemetry, trackAddToCartEvent } from "@/components/commerce/product-telemetry";
 import { toast } from "sonner";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -243,21 +244,26 @@ export const Route = createFileRoute("/_store/produto/$slug")({
  data: { slug: "default-product-template", document_type: "product_template" },
  }),
  ]);
- return {
- productResult: productRes,
- templateTree: (templateRes as any)?.tree || [],
- };
-   } catch (err) {
-     console.error("[loader:_store.produto.$slug] Unhandled loader error:", err);
-     return null;
-   }
- },
- pendingComponent: PageSkeleton,
- component: ProductPage,
+      return {
+        productResult: productRes,
+        templateTree: (templateRes as any)?.tree || [],
+      };
+    } catch (err) {
+      console.error("[loader:_store.produto.$slug] Unhandled loader error:", err);
+      return {
+        productResult: null,
+        templateTree: [],
+      };
+    }
+  },
+  pendingComponent: PageSkeleton,
+  component: ProductPage,
 });
 
 function ProductPage() {
- const { productResult: product, templateTree } = Route.useLoaderData() as any;
+  const loaderData = (Route.useLoaderData() as any) || {};
+  const product = loaderData.productResult as ProductDetailDTO | null;
+  const templateTree = (loaderData.templateTree || []) as any;
 
  if (!product || !product.id) {
  return (
@@ -509,6 +515,15 @@ function ProductContent({
  // Feedback imediato com animação e abertura da gaveta
  toast.success("Adicionado ao carrinho com sucesso!");
  setIsCartOpen(true);
+
+ // Omni-telemetria para Meta Pixel + CAPI + Google Ads
+ trackAddToCartEvent({
+ storeId: product.store_id || (product as any)?.storeId || (product as any)?.store?.id,
+ productId: product.id,
+ productTitle: product.title,
+ priceCents: currentPriceCents || product.priceCents || 0,
+ quantity: quantity || 1,
+ });
  } catch (error: unknown) {
  console.error("[PDP] Erro ao adicionar ao carrinho:", error);
  toast.error(
@@ -639,6 +654,20 @@ function ProductContent({
 
  return (
  <div className="w-full">
+      {/* Omni-telemetria para Meta Pixel + CAPI + Google Ads + Schema.org */}
+      <ProductTelemetry
+        storeId={product.store_id || (product as any)?.storeId || (product as any)?.store?.id}
+        productId={product.id}
+        title={product.title}
+        description={product.description || (product as any)?.summary}
+        priceCents={product.priceCents || 0}
+        currency="BRL"
+        imageUrl={currentThumbnailUrl || product.media?.[0]?.url}
+        brandName={(product as any)?.store?.name || "JAH"}
+        categoryName="Turismo & Viagens"
+        sku={product.sku || product.id}
+        inStock={true}
+      />
  {/* Breadcrumb */}
  <nav
  aria-label="Navegação estrutural"
@@ -669,9 +698,23 @@ function ProductContent({
  );
  }
 
- return (
- <div className="w-full space-y-8">
- {/* Breadcrumb */}
+  return (
+    <div className="w-full space-y-8">
+      {/* Omni-telemetria para Meta Pixel + CAPI + Google Ads + Schema.org */}
+      <ProductTelemetry
+        storeId={product.store_id || (product as any)?.storeId || (product as any)?.store?.id}
+        productId={product.id}
+        title={product.title}
+        description={product.description || (product as any)?.summary}
+        priceCents={currentPriceCents || product.priceCents || 0}
+        currency="BRL"
+        imageUrl={currentThumbnailUrl || product.media?.[0]?.url}
+        brandName={(product as any)?.store?.name || "JAH"}
+        categoryName={product.categories?.[0]?.name || "Geral"}
+        sku={selectedVariant?.sku || product.sku || product.id}
+        inStock={!allOutOfStock}
+      />
+      {/* Breadcrumb */}
  <nav
  aria-label="Navegação estrutural"
  className="mb-6 flex items-center gap-2 text-xs text-muted-foreground font-medium"
@@ -1179,12 +1222,11 @@ function ProductContent({
  placeholder="Digite seu CEP (Ex: 89801-000)"
  value={zipcode}
  onChange={(e) => setZipcode(e.target.value)}
- className="h-9 text-xs bg-muted/40 rounded-xl"
+ className="h-11 text-sm bg-muted/40 rounded-xl"
  />
  <Button
  type="submit"
- size="sm"
- className="h-9 font-bold px-4 rounded-xl cursor-pointer"
+ className="h-11 font-bold px-5 rounded-xl cursor-pointer shrink-0"
  disabled={loadingShipping}
  >
  {loadingShipping ? <Loader2 className="size-4 animate-spin" /> : "Calcular"}
@@ -1229,8 +1271,7 @@ function ProductContent({
  <Button
  asChild
  variant="outline"
- size="sm"
- className="w-full h-8 rounded-xl text-xs font-bold gap-1.5 cursor-pointer bg-background"
+ className="w-full h-10 sm:h-11 rounded-xl text-xs font-bold gap-2 cursor-pointer bg-background hover:bg-muted/50 border-border/80"
  >
  <a
  href={`https://wa.me/${storePhone.replace(/\D/g, "")}?text=${encodeURIComponent(
@@ -1239,7 +1280,7 @@ function ProductContent({
  target="_blank"
  rel="noopener noreferrer"
  >
- <MessageCircle className="size-3.5 text-emerald-500" />
+ <MessageCircle className="size-4 text-emerald-500" />
  <span>Solicitar Cotação no WhatsApp</span>
  </a>
  </Button>

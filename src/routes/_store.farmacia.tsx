@@ -89,7 +89,7 @@ export const Route = createFileRoute("/_store/farmacia")({
  };
    } catch (err) {
      console.error("[loader:_store.farmacia] Unhandled error:", err);
-     return null;
+     return { banners: null, hotpages: null, marketplaceFeed: null, catalogProducts: null };
    }
  },
  component: FarmaciaVerticalPage,
@@ -97,7 +97,7 @@ export const Route = createFileRoute("/_store/farmacia")({
 });
 
 function FarmaciaVerticalPage() {
- const { banners, hotpages, marketplaceFeed, catalogProducts } = Route.useLoaderData();
+ const { banners, hotpages, marketplaceFeed, catalogProducts } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch();
  const navigate = useNavigate({ from: Route.fullPath });
 
@@ -215,7 +215,6 @@ function FarmaciaVerticalPage() {
  onSelectCategory={handleDepartmentChange}
  viewMode={viewMode}
  onViewModeChange={handleViewModeChange}
- resultsCount={filteredProducts.length}
  />
 
  {/* ── 4. Renderização do Feed Modular ou Grade Filtrada ── */}
@@ -245,7 +244,7 @@ function FarmaciaVerticalPage() {
  ))}
  </div>
  ) : (
- <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+ <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-5">
  {filteredProducts.map((product: any) => (
  <GroceryProductCard key={product.id} product={product} viewMode="grid" />
  ))}

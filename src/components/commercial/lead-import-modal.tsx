@@ -121,7 +121,7 @@ export function LeadImportModal({ isOpen, onClose, onSuccess }: LeadImportModalP
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-xl bg-card border-l border-border p-4 sm:p-6 overflow-y-auto flex flex-col justify-between">
+      <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] bg-card border-l border-border p-4 sm:p-6 overflow-y-auto flex flex-col justify-between">
         <div className="space-y-4">
           <SheetHeader className="space-y-1">
             <SheetTitle className="text-base font-bold text-foreground flex items-center gap-2">

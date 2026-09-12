@@ -57,7 +57,7 @@ export const Route = createFileRoute("/admin-master/kyc")({
 });
 
 function AdminKycPage() {
- const { kycList: initialList } = Route.useLoaderData();
+ const { kycList: initialList } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
 
  const [selectedKyc, setSelectedKyc] = useState<any | null>(null);

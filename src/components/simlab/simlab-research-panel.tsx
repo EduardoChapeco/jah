@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  Sparkles,
+  Zap,
   Activity,
   FileLineChart,
   BrainCircuit,
@@ -635,7 +635,7 @@ export function SimLabResearchPanel({ storeId }: { storeId: string }) {
                 </>
               ) : (
                 <>
-                  <Sparkles size={14} /> Rodar Pesquisa
+                  <Zap size={14} /> Rodar Pesquisa
                 </>
               )}
             </Button>

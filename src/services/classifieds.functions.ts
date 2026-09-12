@@ -17,6 +17,7 @@ export const getPublicClassifieds = createServerFn({ method: "GET" })
  category: z.string().optional(),
  dealType: z.string().optional(),
  search: z.string().optional(),
+ storeId: z.string().uuid().optional(),
  })
  .optional(),
  )
@@ -98,6 +99,53 @@ export const getPublicClassifiedById = createServerFn({ method: "GET" })
  phone: classifiedData.contact_whatsapp || classifiedData.whatsapp,
  };
  }
+
+    // Busca informações da loja associada e perguntas personalizadas de atendimento
+    if (classifiedData.store_id) {
+      try {
+        const { data: storeData } = await supabase
+          .from("stores")
+          .select("id, name, slug, logo_url, phone, settings")
+          .eq("id", classifiedData.store_id)
+          .maybeSingle();
+
+        if (storeData) {
+          classifiedData.store = {
+            id: storeData.id,
+            name: storeData.name,
+            slug: storeData.slug,
+            logo_url: storeData.logo_url,
+            phone: storeData.phone,
+            custom_inquiry_fields: storeData.settings?.custom_inquiry_fields || [],
+          };
+        }
+      } catch (storeErr) {
+        console.warn("[classifieds] error fetching store data:", storeErr);
+      }
+    } else if (classifiedData.author_profile_id) {
+      try {
+        const { data: member } = await supabase
+          .from("workspace_members")
+          .select("store_id, stores(id, name, slug, logo_url, phone, settings)")
+          .eq("profile_id", classifiedData.author_profile_id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (member && (member as any).stores) {
+          const s = (member as any).stores;
+          classifiedData.store = {
+            id: s.id,
+            name: s.name,
+            slug: s.slug,
+            logo_url: s.logo_url,
+            phone: s.phone,
+            custom_inquiry_fields: s.settings?.custom_inquiry_fields || [],
+          };
+        }
+      } catch {
+        // fallback
+      }
+    }
 
  const isOwner = !!(identity?.id && classifiedData.author_profile_id === identity.id);
  const isAdmin = !!(identity?.role === "admin" || identity?.role === "master" || identity?.role === "platform_admin" || identity?.role === "owner");
@@ -222,43 +270,46 @@ export const getClassified = createServerFn({ method: "GET" })
  }
 
  return data;
- });
+});
 
 const upsertClassifiedInput = z.object({
- id: z.string().uuid().optional(),
- title: z.string().min(3, "Título deve ter no mínimo 3 caracteres"),
- category: z.enum([
- "sale",
- "vehicle",
- "real_estate",
- "service",
- "job",
- "job_offer",
- "trade",
- "donation",
- "event",
- ]),
- deal_type: z.enum(["venda", "aluguel", "temporada", "servico"]).optional(),
- property_type: z.string().nullable().optional(),
- bedrooms: z.number().int().optional(),
- bathrooms: z.number().int().optional(),
- suites: z.number().int().optional(),
- parking_spots: z.number().int().optional(),
- area_sqm: z.number().int().optional(),
- amenities: z.array(z.string()).optional(),
- max_guests: z.number().int().optional(),
- cleaning_fee_cents: z.number().int().optional(),
- rental_period: z.string().optional(),
- digital_file_url: z.string().nullable().optional(),
+  id: z.string().uuid().optional(),
+  store_id: z.string().uuid().nullable().optional(),
+  title: z.string().min(3, "Título deve ter no mínimo 3 caracteres"),
+  category: z.enum([
+    "sale",
+    "vehicle",
+    "real_estate",
+    "service",
+    "job",
+    "job_offer",
+    "trade",
+    "donation",
+    "event",
+    "travel",
+    "equipment",
+  ]),
+  deal_type: z.enum(["venda", "aluguel", "temporada", "servico"]).optional(),
+  property_type: z.string().nullable().optional(),
+  bedrooms: z.coerce.number().int().optional(),
+  bathrooms: z.coerce.number().int().optional(),
+  suites: z.coerce.number().int().optional(),
+  parking_spots: z.coerce.number().int().optional(),
+  area_sqm: z.coerce.number().int().optional(),
+  amenities: z.array(z.string()).optional(),
+  max_guests: z.coerce.number().int().optional(),
+  cleaning_fee_cents: z.coerce.number().int().optional(),
+  rental_period: z.string().optional(),
+  digital_file_url: z.string().nullable().optional(),
  is_digital: z.boolean().optional(),
  digital_file_name: z.string().nullable().optional(),
- digital_file_size_bytes: z.number().int().nullable().optional(),
+ digital_file_size_bytes: z.coerce.number().int().nullable().optional(),
  digital_preview_url: z.string().nullable().optional(),
- download_limit: z.number().int().optional(),
- access_duration_days: z.number().int().optional(),
+ download_limit: z.coerce.number().int().optional(),
+ access_duration_days: z.coerce.number().int().optional(),
  booking_enabled: z.boolean().optional(),
- available_slots: z.number().int().optional(),
- service_duration_minutes: z.number().int().optional(),
+ available_slots: z.coerce.number().int().optional(),
+ service_duration_minutes: z.coerce.number().int().optional(),
  available_weekdays: z.array(z.string()).optional(),
  working_hours_start: z.string().optional(),
  working_hours_end: z.string().optional(),
@@ -267,9 +318,12 @@ const upsertClassifiedInput = z.object({
  delivery_mode: z.enum(["pickup", "local_delivery", "national_shipping", "both"]).optional(),
  accepts_trade: z.boolean().optional(),
  accepts_card: z.boolean().optional(),
- max_installments: z.number().int().optional(),
+ max_installments: z.coerce.number().int().optional(),
+ accepted_payment_methods: z.array(z.string()).optional(),
+ installments_available: z.boolean().optional(),
+ cancellation_policy: z.string().optional(),
  content: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
- price_cents: z.number().int().min(0).nullable().optional(),
+ price_cents: z.coerce.number().int().min(0).nullable().optional(),
  images: z.array(z.string()).optional().default([]),
  whatsapp: z.string().nullable().optional(),
  contact_whatsapp: z.string().nullable().optional(),
@@ -355,12 +409,16 @@ export const upsertClassified = createServerFn({ method: "POST" })
    billing_cycle: rest.billing_cycle || rest.attributes?.billing_cycle || "monthly",
    setup_fee_cents: rest.setup_fee_cents ?? rest.attributes?.setup_fee_cents ?? 0,
    sub_category: rest.sub_category || rest.attributes?.sub_category || null,
+   accepted_payment_methods: rest.accepted_payment_methods ?? rest.attributes?.accepted_payment_methods ?? ["pix", "cartao_credito", "dinheiro"],
+   installments_available: rest.installments_available ?? rest.attributes?.installments_available ?? true,
+   cancellation_policy: rest.cancellation_policy || rest.attributes?.cancellation_policy || "Negociação direta com o anunciante",
    ...(rest.available_weekdays ? { available_weekdays: rest.available_weekdays } : {}),
    ...(rest.working_hours_start ? { working_hours_start: rest.working_hours_start } : {}),
    ...(rest.working_hours_end ? { working_hours_end: rest.working_hours_end } : {}),
  },
  status: rest.status || "active",
  author_profile_id: identity.id,
+ store_id: rest.store_id || identity.store_id || null,
  };
 
  if (isUpdating) {

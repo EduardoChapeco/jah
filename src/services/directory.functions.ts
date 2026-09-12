@@ -33,17 +33,6 @@ export interface DirectoryListingDTO {
  created_at: string;
 }
 
-const CATEGORY_DEFAULT_BANNERS: Record<string, string> = {
-  turismo: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80",
-  gastronomia: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80",
-  comercio: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80",
-  saude: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=800&q=80",
-  reformas: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
-  auto: "https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=800&q=80",
-  pet: "https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=800&q=80",
-  servicos: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
-};
-
 export const getPublicDirectory = createServerFn({ method: "GET" })
   .validator(
     z
@@ -95,7 +84,6 @@ export const getPublicDirectory = createServerFn({ method: "GET" })
         const storeSettings = (row.stores?.settings as any) || {};
         const storeLogo = storeSettings.logoUrl || storeSettings.logo_url || null;
         const cat = row.category || "servicos";
-        const fallbackBanner = CATEGORY_DEFAULT_BANNERS[cat] || CATEGORY_DEFAULT_BANNERS.servicos;
 
         return {
           id: row.id,
@@ -121,7 +109,7 @@ export const getPublicDirectory = createServerFn({ method: "GET" })
           rating: Number(row.rating || 5.0),
           reviews_count: Number(row.reviews_count || 0),
           avatar_url: row.avatar_url || storeLogo,
-          banner_url: row.banner_url || storeSettings.bannerUrl || fallbackBanner,
+          banner_url: row.banner_url || storeSettings.bannerUrl || null,
           status: row.status,
           created_at: row.created_at,
         };

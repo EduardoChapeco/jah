@@ -387,14 +387,18 @@ export const approveOnboardingProducts = createServerFn({ method: "POST" })
       const identity = await getServerIdentity();
       const db = getServerClient();
 
-      const { data: session, error: sessErr } = await db
-        .from("multimodal_onboarding_sessions")
-        .select("store_id")
-        .eq("id", session_id)
-        .single();
+      let storeId = identity.store_id;
+      if (session_id) {
+        const { data: session } = await db
+          .from("multimodal_onboarding_sessions")
+          .select("store_id")
+          .eq("id", session_id)
+          .maybeSingle();
 
-      if (sessErr || !session) throw new Error("Sessão não localizada.");
-      const storeId = session.store_id;
+        if (session?.store_id) {
+          storeId = session.store_id;
+        }
+      }
 
       let insertedCount = 0;
       for (const item of approved_products) {
@@ -424,14 +428,17 @@ export const approveOnboardingProducts = createServerFn({ method: "POST" })
       }
 
       // Atualiza status da sessão para aplicado
-      await db
-        .from("multimodal_onboarding_sessions")
-        .update({
-          status: "applied",
-          applied_products_count: insertedCount,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", session_id);
+      if (session_id) {
+        await db
+          .from("multimodal_onboarding_sessions")
+          .update({
+            status: "applied",
+            applied_products_count: insertedCount,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", session_id)
+          .catch(() => null);
+      }
 
       return {
         success: true,

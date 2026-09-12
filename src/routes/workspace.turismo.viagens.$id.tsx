@@ -130,7 +130,7 @@ function checkDocumentValidity(
 }
 
 function WorkspaceTripDetailPage() {
-  const { aggregate: initialAggregate } = Route.useLoaderData();
+  const { aggregate: initialAggregate } = ((Route.useLoaderData?.() as any) || {});
   const [aggregate, setAggregate] = useState<TripAggregateDTO | null>(initialAggregate);
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
   const [isCopied, setIsCopied] = useState(false);
@@ -427,6 +427,13 @@ function WorkspaceTripDetailPage() {
                 </a>
               </Button>
             )}
+
+            <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-bold gap-1.5 h-9">
+              <Link to="/workspace/turismo/vouchers">
+                <Ticket className="size-3.5 text-primary" />
+                <span>Central de Vouchers</span>
+              </Link>
+            </Button>
           </div>
         </div>
 
@@ -1182,7 +1189,11 @@ function WorkspaceTripDetailPage() {
 
       {/* ── MODAL / SHEET: CADASTRAR / EDITAR PASSAGEIRO ── */}
       <Sheet open={isPassengerSheetOpen} onOpenChange={setIsPassengerSheetOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md p-6 overflow-y-auto">
+        <SheetContent
+          side="right"
+          size="wide"
+          className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-3xl lg:max-w-[70vw] xl:max-w-[70vw] p-6 overflow-y-auto"
+        >
           <SheetHeader className="pb-4 border-b border-border/60">
             <SheetTitle className="text-sm font-bold text-foreground">
               {passengerForm.id ? "Editar Passageiro" : "Novo Passageiro"}
@@ -1341,7 +1352,11 @@ function WorkspaceTripDetailPage() {
 
       {/* ── MODAL / SHEET: ADICIONAR LOCALIZADOR ── */}
       <Sheet open={isAddLocatorOpen} onOpenChange={setIsAddLocatorOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md p-6">
+        <SheetContent
+          side="right"
+          size="wide"
+          className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-2xl lg:max-w-[70vw] xl:max-w-[70vw] p-6"
+        >
           <SheetHeader className="pb-4 border-b border-border/60">
             <SheetTitle className="text-sm font-bold text-foreground">
               Cadastrar Localizador de Serviço

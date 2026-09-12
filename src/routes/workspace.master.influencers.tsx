@@ -30,8 +30,8 @@ export const Route = createFileRoute("/workspace/master/influencers")({
  return res || [];
    } catch (err) {
      console.error("[loader:workspace.master.influencers] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: MasterInfluencersPage,
 });

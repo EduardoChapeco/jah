@@ -95,15 +95,16 @@ export default function TemplateVerticalPremium({ proposal: p, agency }: Templat
 
           {/* Coluna Direita (~46% com gap) */}
           <div className="col-span-6 relative flex justify-end pl-[20px]">
-            <img
-              src={
-                p.cover_image_url ||
-                "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80"
-              }
-              alt="Destino Principal"
-              crossOrigin="anonymous"
-              className="w-full h-auto min-h-[600px] object-cover rounded-[30px]"
-            />
+            {p.cover_image_url ? (
+              <img
+                src={p.cover_image_url}
+                alt="Destino Principal"
+                crossOrigin="anonymous"
+                className="w-full h-auto min-h-[600px] object-cover rounded-[30px]"
+              />
+            ) : (
+              <div className="w-full h-auto min-h-[600px] bg-slate-100 rounded-[30px]" />
+            )}
 
             {/* Medalhão da Logo */}
             {vm.agency.logo_url && (

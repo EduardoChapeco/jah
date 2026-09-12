@@ -78,7 +78,7 @@ export const Route = createFileRoute("/workspace/financeiro/caixa/")({
  };
    } catch (err) {
      console.error("[loader:workspace.financeiro.caixa.index] Unhandled loader error:", err);
-     return null;
+     return { register: null, history: null };
    }
  },
  errorComponent: ({ error }) => <CashRegisterError error={error} />,
@@ -108,14 +108,14 @@ function CashRegisterError({ error }: { error: Error }) {
 
  return (
  <div className="space-y-6">
- <PageHeader eyebrow="Financeiro & Tesouraria" title="Fluxo de Caixa & Turnos" />
+ <PageHeader eyebrow="Financeiro" title="Fluxo de Caixa" />
  <ErrorState title="Falha ao carregar fluxo de caixa" />
  </div>
  );
 }
 
 function CashRegisterManagerPage() {
- const { register, history } = Route.useLoaderData();
+ const { register, history } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
 
  // Dialog / Sheet states
@@ -620,7 +620,7 @@ function CashRegisterManagerPage() {
 
  {/* ── Side Sheet: Abertura de Turno ── */}
  <Sheet open={isOpenModalOpen} onOpenChange={setIsOpenModalOpen}>
- <SheetContent side="right" className="sm:max-w-md w-full flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+ <SheetContent side="right" className="sm:max-w-xl w-full flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
  <SheetHeader className="p-6 pb-4 border-b border-border/80 bg-muted/20">
  <div className="flex items-center gap-2.5">
  <div className="size-9 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
@@ -707,7 +707,7 @@ function CashRegisterManagerPage() {
 
  {/* ── Side Sheet: Fechamento de Turno ── */}
  <Sheet open={isCloseModalOpen} onOpenChange={setIsCloseModalOpen}>
- <SheetContent side="right" className="sm:max-w-md w-full flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+ <SheetContent side="right" className="sm:max-w-xl w-full flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
  <SheetHeader className="p-6 pb-4 border-b border-border/80 bg-muted/20">
  <div className="flex items-center gap-2.5">
  <div className="size-9 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500 shrink-0">
@@ -804,7 +804,7 @@ function CashRegisterManagerPage() {
 
  {/* ── Side Sheet: Sangria ou Suprimento ── */}
  <Sheet open={isMovementModalOpen} onOpenChange={setIsMovementModalOpen}>
- <SheetContent side="right" className="sm:max-w-md w-full flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+ <SheetContent side="right" className="sm:max-w-xl w-full flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
  <SheetHeader className="p-6 pb-4 border-b border-border/80 bg-muted/20">
  <div className="flex items-center gap-2.5">
  <div

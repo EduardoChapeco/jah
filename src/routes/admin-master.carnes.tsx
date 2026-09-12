@@ -64,7 +64,7 @@ export const Route = createFileRoute("/admin-master/carnes")({
 });
 
 function AdminMasterCarnesPage() {
-  const { carnes: initialCarnes, overview: initialOverview } = Route.useLoaderData();
+  const { carnes: initialCarnes, overview: initialOverview } = ((Route.useLoaderData?.() as any) || {});
   const queryClient = useQueryClient();
 
   const [activeFilter, setActiveFilter] = useState<

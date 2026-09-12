@@ -24,7 +24,7 @@ export const SYNTHETIC_PERSONAS_CATALOG: SyntheticPersonaV2[] = [
  {
  id: 'persona-lucas-genz',
  name: 'Lucas Rocha',
- avatarUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6',
+ avatarUrl: null,
  age: 22,
  socioeconomicClass: 'C',
  occupation: 'Estudante de Publicidade e Estagiário',
@@ -40,7 +40,7 @@ export const SYNTHETIC_PERSONAS_CATALOG: SyntheticPersonaV2[] = [
  {
  id: 'persona-mariana-familia',
  name: 'Mariana Silveira',
- avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2',
+ avatarUrl: null,
  age: 38,
  socioeconomicClass: 'B',
  occupation: 'Gerente de Recursos Humanos',
@@ -56,7 +56,7 @@ export const SYNTHETIC_PERSONAS_CATALOG: SyntheticPersonaV2[] = [
  {
  id: 'persona-ricardo-premium',
  name: 'Dr. Ricardo Antunes',
- avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d',
+ avatarUrl: null,
  age: 49,
  socioeconomicClass: 'A',
  occupation: 'Cirurgião Dentista e Investidor',
@@ -72,7 +72,7 @@ export const SYNTHETIC_PERSONAS_CATALOG: SyntheticPersonaV2[] = [
  {
  id: 'persona-claudia-maturidade',
  name: 'Dona Cláudia Mendes',
- avatarUrl: 'https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4',
+ avatarUrl: null,
  age: 64,
  socioeconomicClass: 'C',
  occupation: 'Professora Aposentada',
@@ -88,7 +88,7 @@ export const SYNTHETIC_PERSONAS_CATALOG: SyntheticPersonaV2[] = [
  {
  id: 'persona-felipe-b2b',
  name: 'Felipe Barreto',
- avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e',
+ avatarUrl: null,
  age: 34,
  socioeconomicClass: 'B',
  occupation: 'Proprietário de Hamburgueria Artesanal',

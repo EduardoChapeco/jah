@@ -119,7 +119,7 @@ const ROLE_DEFINITIONS: Record<
 };
 
 export default function WorkspaceTeamPage() {
- const { members, jobs } = Route.useLoaderData();
+ const { members, jobs } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
 
  const [activeTab, setActiveTab] = useState<"members" | "jobs">("members");

@@ -82,7 +82,7 @@ const STATUS_CONFIG: Record<
 };
 
 function BoostPaymentsAdmin() {
-  const { payments } = Route.useLoaderData();
+  const { payments } = ((Route.useLoaderData?.() as any) || {});
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");

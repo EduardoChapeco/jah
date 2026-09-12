@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { type Proposal, suggestIncludesExcludesViaAI } from "@/services/proposals";
 import { Accordion, TagsEditor } from "@/components/proposals/ProposalFormFields";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
@@ -73,7 +73,7 @@ export function SectionIncludes({ draft, save }: Props) {
         {loading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          <Sparkles className="h-4 w-4 text-brand animate-pulse" />
+          <Check className="h-4 w-4 text-brand animate-pulse" />
         )}
         {loading ? "Gerando sugestões..." : "Sugerir com IA"}
       </Button>

@@ -135,7 +135,7 @@ const TABLE_STATUS_STYLE: Record<TableStatus, {
 };
 
 export default function TableReservationsPage() {
- const { store } = Route.useLoaderData() as any;
+ const { store } = ((Route.useLoaderData?.() as any) || {});
  const navigate = useNavigate();
  const queryClient = useQueryClient();
  const [activeView, setActiveView] = useState<"map" | "list">("map");
@@ -336,7 +336,7 @@ export default function TableReservationsPage() {
  Nova Reserva
  </Button>
  </SheetTrigger>
- <SheetContent side="right" className="sm:max-w-md w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-6 overflow-y-auto no-scrollbar bg-card">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-3xl lg:max-w-[70vw] border-l p-6 overflow-y-auto no-scrollbar bg-card">
  <SheetHeader className="pb-4 border-b border-border/70 mb-4">
  <SheetTitle className="font-bold flex items-center gap-2">
  <Utensils className="size-5 text-primary" />
@@ -622,7 +622,7 @@ export default function TableReservationsPage() {
 
  {/* Sheet Lateral: Detalhe da Mesa Clicada */}
  <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
- <SheetContent className="sm:max-w-md flex flex-col gap-0">
+ <SheetContent size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-3xl lg:max-w-[70vw] flex flex-col gap-0">
  {selectedTable && (() => {
  const { status, reservation } = tableStatuses[selectedTable.id] ?? { status: "free" as TableStatus };
  const style = TABLE_STATUS_STYLE[status];

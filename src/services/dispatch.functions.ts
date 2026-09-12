@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
 import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
+import { generatePIN4, generateDeliveryToken } from "@/lib/tokens";
 
 export type DispatchRecord = {
  id: string;
@@ -142,8 +143,8 @@ export const createDispatch = createServerFn({ method: "POST" })
  const identity = await getServerIdentity();
  assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
 
- const pin = Math.floor(1000 + Math.random() * 9000).toString();
- const deliveryToken = "dlv_" + Math.random().toString(36).substring(2, 8) + pin;
+ const pin = generatePIN4();
+ const deliveryToken = generateDeliveryToken();
  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
  const { data: magicLink, error } = await supabase

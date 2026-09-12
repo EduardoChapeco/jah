@@ -31,14 +31,14 @@ export const Route = createFileRoute("/_store/conta/candidaturas")({
  return { applications };
    } catch (err) {
      console.error("[loader:_store.conta.candidaturas] Unhandled loader error:", err);
-     return null;
+     return { applications: null };
    }
  },
  component: MinhasCandidaturasPage,
 });
 
 function MinhasCandidaturasPage() {
- const { applications: initialApps } = Route.useLoaderData() as any;
+ const { applications: initialApps } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
  const [applications, setApplications] = useState<any[]>(initialApps);
 
@@ -77,22 +77,24 @@ function MinhasCandidaturasPage() {
  };
 
  return (
- <div className="max-w-4xl mx-auto space-y-6 pb-12">
- <div className="flex items-center justify-between">
- <div>
- <h1 className="text-xl sm:text-2xl font-bold text-foreground">Minhas Candidaturas</h1>
- <p className="text-xs text-muted-foreground mt-0.5">
- Acompanhe o status dos seus processos seletivos e entrevistas em tempo real.
- </p>
- </div>
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Candidaturas
+          </h1>
+          {applications.length > 0 && (
+            <Badge variant="secondary" className="text-xs font-mono font-bold px-2 py-0.5 rounded-full">
+              {applications.length}
+            </Badge>
+          )}
+        </div>
 
- <Button asChild size="sm" variant="outline" className="gap-1.5 text-xs font-bold">
- <Link to="/empregos">
- <Briefcase className="size-3.5" />
- Explorar Vagas
- </Link>
- </Button>
- </div>
+        <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-8 px-3.5 cursor-pointer">
+          <Link to="/empregos">Explorar Vagas</Link>
+        </Button>
+      </div>
 
  {applications.length === 0 ? (
  <EmptyState

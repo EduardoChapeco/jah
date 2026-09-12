@@ -144,23 +144,24 @@ function ClientCarnesPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-32 font-sans">
-      <div className="max-w-4xl mx-auto px-4 py-4 sm:py-6 space-y-6">
-        {/* Header */}
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
         <div className="flex items-center gap-3">
-          <Link
-            to="/conta"
-            className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Carnês & Parcelamentos</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Acompanhe suas compras parceladas direto com as lojas e envie comprovantes
-            </p>
-          </div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Carnês
+          </h1>
+          {carnes.length > 0 && (
+            <Badge variant="secondary" className="text-xs font-mono font-bold px-2 py-0.5 rounded-full">
+              {carnes.length}
+            </Badge>
+          )}
         </div>
+
+        <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-8 px-3.5 cursor-pointer">
+          <Link to="/mercado">Explorar Lojas</Link>
+        </Button>
+      </div>
 
         {/* Dashboard de Métricas Rápidas (Apple HIG Cards) */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -506,7 +507,6 @@ function ClientCarnesPage() {
             })}
           </div>
         )}
-      </div>
 
       {/* Modal / Drawer de Pagamento e Envio de Comprovante */}
       <Dialog open={isPayModalOpen} onOpenChange={setIsPayModalOpen}>

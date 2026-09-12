@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_store/paginas/$slug")({
  };
    } catch (err) {
      console.error("[loader:_store.paginas.$slug] Unhandled error:", err);
-     return null;
+     return { document: null, tree: null };
    }
  },
  head: ({ loaderData }) => {
@@ -96,7 +96,7 @@ export const Route = createFileRoute("/_store/paginas/$slug")({
 });
 
 function PublicPage() {
- const { document, tree } = Route.useLoaderData();
+ const { document, tree } = ((Route.useLoaderData?.() as any) || {});
 
  if (!document) return null;
 

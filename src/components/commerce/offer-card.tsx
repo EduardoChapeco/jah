@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { addToCart } from "@/services/cart.functions";
 import { useCartContext } from "@/lib/cart-context";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export interface OfferCardProps {
  id: string;
@@ -21,6 +22,7 @@ export interface OfferCardProps {
  selling_unit?: string;
  in_stock?: boolean;
  has_flash_offer?: boolean;
+ className?: string;
 }
 
 /**
@@ -43,6 +45,7 @@ export function OfferCard({
  selling_unit = "un",
  in_stock = true,
  has_flash_offer = true,
+ className,
 }: OfferCardProps) {
  const { setCartData, setIsCartOpen } = useCartContext();
  const [isAdding, setIsAdding] = useState(false);
@@ -113,7 +116,10 @@ export function OfferCard({
  <Link
  to="/produto/$slug"
  params={{ slug }}
- className="group relative flex items-stretch w-[330px] sm:w-[370px] h-[145px] sm:h-[155px] shrink-0 snap-start rounded-2xl bg-card hover:border-primary/50 transition-all duration-200 overflow-hidden select-none block p-0"
+ className={cn(
+        "group relative flex items-stretch w-full h-[145px] sm:h-[155px] rounded-2xl bg-card border border-border/60 hover:border-primary/50 transition-all duration-200 overflow-hidden select-none block p-0 shadow-2xs",
+        className,
+      )}
  >
  {/* ── LADO ESQUERDO: Imagem FULL BLEED (Encosta 100% nas bordas, sem padding) ── */}
  <div className="relative w-36 sm:w-44 h-full bg-muted overflow-hidden shrink-0">

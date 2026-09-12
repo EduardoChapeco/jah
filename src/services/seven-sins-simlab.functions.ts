@@ -56,7 +56,7 @@ export interface SimLabPersonaResult {
   persona_id: string;
   name: string;
   archetype_label: string;
-  avatar_url: string;
+  avatar_url: string | null;
   conversion_probability: number; // 0-100
   reaction_verbatim: string;
   primary_objection?: string;
@@ -162,7 +162,7 @@ export async function runSimLabPersonaTest(params: {
       persona_id: "persona_lucas_universitario",
       name: "Lucas Menezes, 23 anos",
       archetype_label: "Universitário Pragmático & Ágil",
-      avatar_url: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=150&auto=format&fit=crop",
+      avatar_url: null,
       preferredSins: ["preguica", "ganancia", "gula"],
       bias: 0.85,
     },
@@ -170,7 +170,7 @@ export async function runSimLabPersonaTest(params: {
       persona_id: "persona_claudia_mae",
       name: "Cláudia Silveira, 41 anos",
       archetype_label: "Mãe Gestora & Família",
-      avatar_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop",
+      avatar_url: null,
       preferredSins: ["ganancia", "ira", "orgulho"],
       bias: 0.78,
     },
@@ -178,7 +178,7 @@ export async function runSimLabPersonaTest(params: {
       persona_id: "persona_rodrigo_executivo",
       name: "Rodrigo Carvalho, 36 anos",
       archetype_label: "Executivo Sem Tempo & Status",
-      avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop",
+      avatar_url: null,
       preferredSins: ["orgulho", "preguica", "inveja"],
       bias: 0.92,
     },
@@ -186,7 +186,7 @@ export async function runSimLabPersonaTest(params: {
       persona_id: "persona_amanda_foodie",
       name: "Amanda Fontana, 28 anos",
       archetype_label: "Entusiasta Gastronômica & Design",
-      avatar_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop",
+      avatar_url: null,
       preferredSins: ["luxuria", "orgulho", "inveja"],
       bias: 0.88,
     },
@@ -194,7 +194,7 @@ export async function runSimLabPersonaTest(params: {
       persona_id: "persona_marcos_economico",
       name: "Marcos Vinícius, 52 anos",
       archetype_label: "Consumidor Tradicional Cético",
-      avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150&auto=format&fit=crop",
+      avatar_url: null,
       preferredSins: ["ganancia", "ira"],
       bias: 0.70,
     },

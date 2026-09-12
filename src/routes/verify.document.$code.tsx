@@ -48,7 +48,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 function DocumentVerificationPage() {
- const { result, error } = Route.useLoaderData();
+ const { result, error } = ((Route.useLoaderData?.() as any) || {});
 
  if (error || !result) {
  return (

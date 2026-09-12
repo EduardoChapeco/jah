@@ -129,10 +129,13 @@ export const getSupportTicketDetails = createServerFn({ method: "GET" })
  });
 
 export const createSupportTicket = createServerFn({ method: "POST" })
- .validator((d: unknown) => CreateSupportTicketSchema.parse(d))
+ .validator(CreateSupportTicketSchema)
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
+ if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+ throw new Error("Acesso não autorizado para esta organização.");
+ }
 
  const db = getServerClient();
 
@@ -181,12 +184,23 @@ export const createSupportTicket = createServerFn({ method: "POST" })
  });
 
 export const addSupportTicketMessage = createServerFn({ method: "POST" })
- .validator((d: unknown) => AddTicketMessageSchema.parse(d))
+ .validator(AddTicketMessageSchema)
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
 
  const db = getServerClient();
+
+ const { data: ticket, error: tErr } = await db
+ .from("operator_support_tickets")
+ .select("store_id")
+ .eq("id", data.ticket_id)
+ .single();
+
+ if (tErr || !ticket) throw new Error("Chamado não encontrado.");
+ if (ticket.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+ throw new Error("Acesso não autorizado a este chamado.");
+ }
 
  const { data: msg, error: mErr } = await db
  .from("operator_support_messages")
@@ -223,6 +237,18 @@ export const updateSupportTicketStatus = createServerFn({ method: "POST" })
  assertStoreAccess(identity);
 
  const db = getServerClient();
+
+ const { data: ticket, error: tErr } = await db
+ .from("operator_support_tickets")
+ .select("store_id")
+ .eq("id", data.ticket_id)
+ .single();
+
+ if (tErr || !ticket) throw new Error("Chamado não encontrado.");
+ if (ticket.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+ throw new Error("Acesso não autorizado a este chamado.");
+ }
+
  const { data: updated, error } = await db
  .from("operator_support_tickets")
  .update({
@@ -255,6 +281,17 @@ export const handoverSupportTicket = createServerFn({ method: "POST" })
  assertStoreAccess(identity, ["owner", "admin", "manager", "support"]);
  const db = getServerClient();
 
+ const { data: ticket, error: tErr } = await db
+ .from("operator_support_tickets")
+ .select("store_id")
+ .eq("id", data.ticket_id)
+ .single();
+
+ if (tErr || !ticket) throw new Error("Chamado não encontrado.");
+ if (ticket.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+ throw new Error("Acesso não autorizado a este chamado.");
+ }
+
  // 1. Atualizar operador responsável
  const { data: updated, error } = await db
  .from("operator_support_tickets")
@@ -269,7 +306,7 @@ export const handoverSupportTicket = createServerFn({ method: "POST" })
  if (error) throw new Error("Erro ao transferir chamado: " + error.message);
 
  // 2. Registrar mensagem de sistema / nota interna
- await db.from("operator_ticket_messages").insert({
+ await db.from("operator_support_messages").insert({
  ticket_id: data.ticket_id,
  sender_profile_id: identity.id,
  is_staff_reply: true,
@@ -291,6 +328,17 @@ export const escalateTicketSla = createServerFn({ method: "POST" })
  assertStoreAccess(identity, ["owner", "admin", "manager", "support"]);
  const db = getServerClient();
 
+ const { data: ticket, error: tErr } = await db
+ .from("operator_support_tickets")
+ .select("store_id")
+ .eq("id", data.ticket_id)
+ .single();
+
+ if (tErr || !ticket) throw new Error("Chamado não encontrado.");
+ if (ticket.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+ throw new Error("Acesso não autorizado a este chamado.");
+ }
+
  const { data: updated, error } = await db
  .from("operator_support_tickets")
  .update({
@@ -303,7 +351,7 @@ export const escalateTicketSla = createServerFn({ method: "POST" })
 
  if (error) throw new Error("Erro ao escalar SLA do chamado: " + error.message);
 
- await db.from("operator_ticket_messages").insert({
+ await db.from("operator_support_messages").insert({
  ticket_id: data.ticket_id,
  sender_profile_id: identity.id,
  is_staff_reply: true,
@@ -318,6 +366,9 @@ export const listSupervisionDashboardMetrics = createServerFn({ method: "GET" })
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity, ["owner", "admin", "manager"]);
+ if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+ throw new Error("Acesso não autorizado para esta organização.");
+ }
  const db = getServerClient();
 
  const { data: tickets, error } = await db

@@ -5,7 +5,7 @@ import { InlinePostComposer } from "@/components/community/inline-post-composer"
 import { PostCard } from "@/components/community/post-card";
 import { getMuralFeed, type MuralFeedResponse } from "@/services/social.functions";
 import { getProfile, getUserSession } from "@/services/auth.functions";
-import { Sparkles, MessageSquare, Newspaper, Compass, Loader2 } from "lucide-react";
+import { MessageSquare, Newspaper, Compass, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_store/mural")({
@@ -20,23 +20,23 @@ export const Route = createFileRoute("/_store/mural")({
   }),
   loader: async () => {
     try {
-    const [feed, profile, session] = await Promise.all([
-      getMuralFeed({ data: { limit: 20 } }).catch(() => ({ items: [], hasMore: false, nextCursor: null })),
-      getProfile().catch(() => null),
-      getUserSession().catch(() => null),
-    ]);
+      const [feed, profile, session] = await Promise.all([
+        getMuralFeed({ data: { limit: 20 } }).catch(() => ({ items: [], hasMore: false, nextCursor: null })),
+        getProfile().catch(() => null),
+        getUserSession().catch(() => null),
+      ]);
 
     return { initialFeed: feed as MuralFeedResponse, profile, session };
     } catch (err) {
       console.error("[loader:_store.mural] Unhandled error:", err);
-      return null;
+      return { initialFeed: null, profile: null, session: null };
     }
   },
   component: MuralPage,
 });
 
 function MuralPage() {
-  const { initialFeed, profile, session } = Route.useLoaderData();
+  const { initialFeed, profile, session } = ((Route.useLoaderData?.() as any) || {});
   const [activeFilter, setActiveFilter] = useState<string>("all");
 
   const { data: feed, isLoading } = useQuery({

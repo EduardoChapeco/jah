@@ -50,17 +50,23 @@ function Page() {
   const orders = Route.useLoaderData() as any[];
 
   return (
-    <div className="flex flex-col h-full pb-20">
-      {/* ── Header limpo — iFood pattern ── */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/40 px-4 py-3 shrink-0">
-        <div className="flex items-center justify-between">
-          <h1 className="text-base font-bold text-foreground">Pedidos</h1>
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Pedidos
+          </h1>
           {orders.length > 0 && (
-            <span className="text-xs text-muted-foreground font-medium">
-              {orders.length} {orders.length === 1 ? "pedido" : "pedidos"}
-            </span>
+            <Badge variant="secondary" className="text-xs font-mono font-bold px-2 py-0.5 rounded-full">
+              {orders.length}
+            </Badge>
           )}
         </div>
+
+        <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-8 px-3.5 cursor-pointer">
+          <Link to="/mercado">Explorar Lojas</Link>
+        </Button>
       </div>
 
       {/* ── Lista ── */}

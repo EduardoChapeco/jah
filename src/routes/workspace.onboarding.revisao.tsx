@@ -314,15 +314,13 @@ export function OnboardingReviewPage() {
                     Gemini 2.5 Flash
                   </Badge>
                 </div>
-                <div className="relative aspect-[3/4] bg-muted/20 flex items-center justify-center overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1544025162-d76694265947?w=1000&auto=format&fit=crop&q=80"
-                    alt="Cardápio Original"
-                    className="size-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent flex flex-col justify-end p-4">
+                <div className="relative aspect-[3/4] bg-muted/30 flex flex-col items-center justify-center p-6 text-center border border-border/40 rounded-xl overflow-hidden">
+                  <Camera className="size-12 text-muted-foreground/40 mb-3" />
+                  <p className="text-xs font-bold text-foreground">Documento Processado via OCR</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">Extração multimodal concluída</p>
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent p-4">
                     <p className="text-xs text-foreground font-medium">Cardápio Principal da Casa</p>
-                    <p className="text-[10px] text-muted-foreground">5 itens identificados com 96% de acurácia semântica</p>
+                    <p className="text-[10px] text-muted-foreground">Itens identificados com alta acurácia semântica</p>
                   </div>
                 </div>
               </div>

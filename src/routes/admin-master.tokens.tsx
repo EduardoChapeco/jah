@@ -318,44 +318,114 @@ function AdminTokensPage() {
  </div>
  </TabsContent>
 
- {/* Tab 2: Conciliação */}
- <TabsContent value="conciliacao" className="space-y-3">
- <div className="p-4 rounded-xl border border-border/60 bg-card space-y-3">
- <div className="flex items-center justify-between">
- <span className="text-sm font-semibold">Prova Matemática de Solvência</span>
- <Button
- size="sm"
- onClick={handleRunReconciliation}
- disabled={isReconciling}
- className="text-xs h-8"
- >
- {isReconciling && <Loader2 className="size-3.5 animate-spin mr-1.5" />}
- Reconciliar Agora
- </Button>
- </div>
+        {/* Tab 2: Conciliação & Prova de Solvência */}
+        <TabsContent value="conciliacao" className="space-y-4">
+          <div className="p-5 rounded-2xl border border-border/60 bg-card space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/40">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-foreground">Prova Matemática de Solvência & Cadeia SHA-256</span>
+                  {reconciliationReport && (
+                    <Badge
+                      variant="outline"
+                      className={
+                        reconciliationReport.solvency_status === "100%_SECURE_SOLVENT"
+                          ? "text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
+                          : "text-[10px] font-bold bg-destructive/10 text-destructive border-destructive/30"
+                      }
+                    >
+                      {reconciliationReport.solvency_status === "100%_SECURE_SOLVENT"
+                        ? "100% SEGURO & SOLVENTE"
+                        : "REQUER INVESTIGAÇÃO"}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Auditoria atômica que recalcula o somatório de cada ledger e valida a integridade de selos criptográficos encadeados.
+                </p>
+              </div>
 
- {reconciliationReport && (
- <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 rounded-lg bg-muted/20 border border-border/40 text-xs">
- <div>
- <span className="text-muted-foreground block text-[11px]">Carteiras:</span>
- <strong className="font-mono">{reconciliationReport.total_wallets_audited}</strong>
- </div>
- <div>
- <span className="text-muted-foreground block text-[11px]">Saldo em Carteiras:</span>
- <strong className="font-mono">{reconciliationReport.total_circulating.toLocaleString()}</strong>
- </div>
- <div>
- <span className="text-muted-foreground block text-[11px]">Somatório no Ledger:</span>
- <strong className="font-mono">{reconciliationReport.total_ledger_sum.toLocaleString()}</strong>
- </div>
- <div>
- <span className="text-muted-foreground block text-[11px]">Divergência Líquida:</span>
- <strong className="font-mono text-emerald-600 dark:text-emerald-400">0 Tokens</strong>
- </div>
- </div>
- )}
- </div>
- </TabsContent>
+              <Button
+                size="sm"
+                onClick={handleRunReconciliation}
+                disabled={isReconciling}
+                className="text-xs h-9 rounded-xl font-semibold gap-1.5"
+              >
+                {isReconciling && <Loader2 className="size-3.5 animate-spin" />}
+                <span>{isReconciling ? "Auditando..." : "Reconciliar Agora"}</span>
+              </Button>
+            </div>
+
+            {reconciliationReport && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-muted/20 border border-border/40 text-xs">
+                  <div>
+                    <span className="text-muted-foreground block text-[11px] uppercase tracking-wider font-medium">Carteiras Auditadas</span>
+                    <strong className="font-mono text-base text-foreground">{reconciliationReport.total_wallets_audited}</strong>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block text-[11px] uppercase tracking-wider font-medium">Saldo em Carteiras</span>
+                    <strong className="font-mono text-base text-foreground">{reconciliationReport.total_circulating.toLocaleString("pt-BR")}</strong>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block text-[11px] uppercase tracking-wider font-medium">Somatório no Ledger</span>
+                    <strong className="font-mono text-base text-foreground">{reconciliationReport.total_ledger_sum.toLocaleString("pt-BR")}</strong>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block text-[11px] uppercase tracking-wider font-medium">Divergência Líquida</span>
+                    <strong className="font-mono text-base text-emerald-600 dark:text-emerald-400">
+                      {reconciliationReport.net_divergence || 0} Tokens
+                    </strong>
+                  </div>
+                </div>
+
+                {reconciliationReport.store_reports && reconciliationReport.store_reports.length > 0 && (
+                  <div className="rounded-xl border border-border/40 overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs">Estabelecimento</TableHead>
+                          <TableHead className="text-xs">Saldo Carteira</TableHead>
+                          <TableHead className="text-xs">Auditado no Ledger</TableHead>
+                          <TableHead className="text-xs">Divergência</TableHead>
+                          <TableHead className="text-xs text-right">Integridade</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {reconciliationReport.store_reports.map((sr: any) => (
+                          <TableRow key={sr.store_id}>
+                            <TableCell className="text-xs font-semibold py-2.5">
+                              {sr.store_name}
+                            </TableCell>
+                            <TableCell className="text-xs font-mono py-2.5">
+                              {sr.wallet_balance?.toLocaleString("pt-BR")}
+                            </TableCell>
+                            <TableCell className="text-xs font-mono py-2.5">
+                              {sr.audited_balance?.toLocaleString("pt-BR")}
+                            </TableCell>
+                            <TableCell className="text-xs font-mono py-2.5">
+                              <span className={sr.divergence === 0 ? "text-emerald-600 font-bold" : "text-destructive font-bold"}>
+                                {sr.divergence === 0 ? "0 (Perfeito)" : `${sr.divergence} Tokens`}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right py-2.5">
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                              >
+                                {sr.status || "CONCILIATED_CLEAN"}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </TabsContent>
 
  {/* Tab 3: Logs */}
  <TabsContent value="seguranca" className="space-y-3">

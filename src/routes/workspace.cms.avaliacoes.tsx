@@ -26,8 +26,8 @@ export const Route = createFileRoute("/workspace/cms/avaliacoes")({
  return res || [];
    } catch (err) {
      console.error("[loader:workspace.cms.avaliacoes] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: CmsAvaliacoesPage,
 });

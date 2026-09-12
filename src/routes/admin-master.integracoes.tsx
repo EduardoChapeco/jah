@@ -14,7 +14,7 @@ import {
 } from "@/services/public-apis.functions";
 import { formatCep, formatCnpj, formatPhone } from "@/lib/document-validator";
 import { MapLibreCanvas } from "@/components/mobility/maplibre-canvas";
-import { Check, Compass, Navigation, Search, Sparkles, Building2, Globe2 } from "lucide-react";
+import { Check, Compass, Navigation, Search, Cpu, Building2, Globe2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Plug, MapPin, CreditCard, Mail, Truck, Sliders, Eye, EyeOff, CheckCircle2, AlertCircle, Clock, ShieldCheck, RefreshCw, Save, Radio, Layers, Plus, Trash2, Terminal, Activity, Zap } from 'lucide-react';
@@ -115,7 +115,7 @@ export const Route = createFileRoute("/admin-master/integracoes")({
 type TabType = "pools" | "prompts" | "maps" | "payments" | "comms" | "logistics" | "webhooks";
 
 function AdminMasterIntegracoesPage() {
- const { integrations: initialData, pools: initialPools, prompts: initialPrompts, gov: initialGov } = Route.useLoaderData() as any;
+ const { integrations: initialData, pools: initialPools, prompts: initialPrompts, gov: initialGov } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
 
  const [activeTab, setActiveTab] = useState<TabType>("pools");
@@ -928,7 +928,7 @@ function AdminMasterIntegracoesPage() {
           <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-6 shadow-2xs">
             <div>
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <Sparkles className="size-4 text-primary" />
+                <Cpu className="size-4 text-primary" />
                 Laboratório de Teste Interativo (Live Sandbox)
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -1061,7 +1061,7 @@ function AdminMasterIntegracoesPage() {
             {/* Testador 3: Parser de Endereço Livre com IA / NLP */}
             <div className="p-4 rounded-2xl bg-muted/20 border border-border/70 space-y-3">
               <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <Sparkles className="size-3.5 text-primary" />
+                <Cpu className="size-3.5 text-primary" />
                 Teste de Parser de Endereço Inteligente (Colar Texto Livre)
               </span>
 
@@ -1079,7 +1079,7 @@ function AdminMasterIntegracoesPage() {
                   disabled={isParsingNlp}
                   className="h-9 rounded-xl font-bold text-xs shrink-0"
                 >
-                  {isParsingNlp ? <RefreshCw className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
+                  {isParsingNlp ? <RefreshCw className="size-3.5 animate-spin" /> : <Cpu className="size-3.5" />}
                   <span>Decompor com Precisão</span>
                 </Button>
               </div>

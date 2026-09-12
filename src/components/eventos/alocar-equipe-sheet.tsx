@@ -99,7 +99,7 @@ export function AlocarEquipeSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-lg overflow-y-auto">
+      <SheetContent size="wide" className="sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] overflow-y-auto">
         <SheetHeader className="pb-4 border-b border-border/40">
           <div className="flex items-center gap-2">
             <Users className="size-5 text-primary" />

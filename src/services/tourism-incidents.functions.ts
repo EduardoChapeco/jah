@@ -207,6 +207,9 @@ export const getIncidentDetail = createServerFn({ method: 'GET' })
       .single();
 
     if (iErr || !incident) throw new Error('Incidente não encontrado.');
+    if (incident.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error('Acesso não autorizado a este incidente.');
+    }
 
     const { data: events, error: eErr } = await db
       .from('tourism_incident_events')
@@ -223,10 +226,13 @@ export const getIncidentDetail = createServerFn({ method: 'GET' })
   });
 
 export const createTourismIncident = createServerFn({ method: 'POST' })
-  .validator((d: unknown) => CreateIncidentSchema.parse(d))
+  .validator(CreateIncidentSchema)
   .handler(async ({ data }) => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
+    if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error('Acesso não autorizado para esta organização.');
+    }
 
     const db = getServerClient();
 
@@ -282,12 +288,23 @@ export const createTourismIncident = createServerFn({ method: 'POST' })
   });
 
 export const addIncidentEvent = createServerFn({ method: 'POST' })
-  .validator((d: unknown) => AddEventSchema.parse(d))
+  .validator(AddEventSchema)
   .handler(async ({ data }) => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
 
     const db = getServerClient();
+
+    const { data: incident, error: iErr } = await db
+      .from('tourism_incident_tickets')
+      .select('store_id')
+      .eq('id', data.incident_id)
+      .single();
+
+    if (iErr || !incident) throw new Error('Incidente não encontrado.');
+    if (incident.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error('Acesso não autorizado a este incidente.');
+    }
 
     const { data: event, error } = await db
       .from('tourism_incident_events')
@@ -313,12 +330,23 @@ export const addIncidentEvent = createServerFn({ method: 'POST' })
   });
 
 export const updateIncidentStatus = createServerFn({ method: 'POST' })
-  .validator((d: unknown) => UpdateStatusSchema.parse(d))
+  .validator(UpdateStatusSchema)
   .handler(async ({ data }) => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
 
     const db = getServerClient();
+
+    const { data: existing, error: fetchErr } = await db
+      .from('tourism_incident_tickets')
+      .select('store_id')
+      .eq('id', data.incident_id)
+      .single();
+
+    if (fetchErr || !existing) throw new Error('Incidente não encontrado.');
+    if (existing.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error('Acesso não autorizado a este incidente.');
+    }
 
     const updatePayload: Record<string, any> = {
       status: data.status,

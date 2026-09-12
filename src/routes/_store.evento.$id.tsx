@@ -9,6 +9,8 @@ import {
  ArrowLeft,
  MapPin,
  ShareNetwork,
+ ArrowSquareOut,
+ Users,
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { addToCart } from "@/services/cart.functions";
@@ -35,8 +37,8 @@ export const Route = createFileRoute("/_store/evento/$id")({
  return await getEventWithLots({ data: { eventId: params.id } }).catch(() => null);
    } catch (err) {
      console.error("[loader:_store.evento.$id] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: EventDetailPage,
 });
@@ -58,9 +60,9 @@ function EventDetailPage() {
  O evento que você procura não existe ou foi cancelado pelo organizador.
  </p>
  <Button asChild className="rounded-xl font-bold" variant="outline">
- <Link to="/agenda">
+ <Link to="/eventos">
  <ArrowLeft size={16} weight="bold" className="mr-2" />
- Voltar para a Agenda
+ Voltar para Eventos
  </Link>
  </Button>
  </div>
@@ -91,11 +93,11 @@ function EventDetailPage() {
       {/* ── Breadcrumb / Voltar ── */}
       <div className="flex items-center justify-between">
         <Link
-          to="/agenda"
+          to="/eventos"
           className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors group"
         >
           <ArrowLeft size={16} weight="bold" className="group-hover:-translate-x-0.5 transition-transform" />
-          <span>Voltar para Agenda</span>
+          <span>Voltar para Eventos</span>
         </Link>
         <ContentActionsMenu
           entityType="event"
@@ -162,11 +164,36 @@ function EventDetailPage() {
             <div className="flex items-center gap-2.5 pb-3 border-b border-border/40">
               <Ticket size={20} weight="bold" className="text-primary" />
               <h2 className="text-base sm:text-lg font-bold text-foreground tracking-tight">
-                Ingressos Disponíveis
+                {event.is_external_ticket ? "Ingressos" : "Ingressos Disponíveis"}
               </h2>
+              {event.is_external_ticket && (
+                <Badge variant="outline" className="text-[10px] font-mono border-amber-500/30 text-amber-600 bg-amber-50">
+                  Link Externo
+                </Badge>
+              )}
             </div>
 
-            {activeLots.length === 0 ? (
+            {/* Caso evento com link externo */}
+            {event.is_external_ticket && event.external_ticket_url ? (
+              <div className="space-y-4">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Os ingressos para este evento são vendidos por um parceiro externo. Clique no botão abaixo para ser redirecionado à plataforma oficial de venda.
+                </p>
+                <a
+                  href={event.external_ticket_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl bg-foreground text-background font-bold text-sm hover:bg-foreground/90 transition-colors"
+                >
+                  <Ticket size={18} weight="bold" />
+                  Comprar Ingresso
+                  <ArrowSquareOut size={16} weight="bold" />
+                </a>
+                <p className="text-[11px] text-muted-foreground text-center">
+                  Você será redirecionado para o site do organizador
+                </p>
+              </div>
+            ) : activeLots.length === 0 ? (
               <div className="p-6 text-center rounded-xl bg-muted/30 border border-border/40">
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                   Nenhum lote de ingressos disponível no momento.
@@ -212,6 +239,16 @@ function EventDetailPage() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Organizer Info */}
+            {event.organizer_name && (
+              <div className="pt-3 border-t border-border/40 flex items-center gap-2">
+                <Users size={14} className="text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  Organizado por <span className="font-semibold text-foreground">{event.organizer_name}</span>
+                </span>
               </div>
             )}
           </div>

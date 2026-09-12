@@ -46,20 +46,27 @@ export const Route = createFileRoute("/workspace/builder/$documentId/editor")({
  };
    } catch (err) {
      console.error("[loader:workspace.builder.$documentId.editor] Unhandled loader error:", err);
-     return null;
+     return {
+       document: null,
+       version: null,
+       nodes: [],
+       categories: [],
+       collections: [],
+       products: [],
+     };
    }
  },
  component: BuilderEditorPage,
 });
 
 function BuilderEditorPage() {
- const initialData = Route.useLoaderData();
+ const initialData = (Route.useLoaderData() as any) || {};
  const navigate = useNavigate();
 
- const [document] = useState(initialData.document);
- const [version, setVersion] = useState(initialData.version);
+ const [document] = useState(initialData?.document || null);
+ const [version, setVersion] = useState(initialData?.version || null);
  const [nodes, setNodes] = useState<any[]>(() => {
- const raw = initialData.nodes || [];
+ const raw = initialData?.nodes || [];
  return raw.map((n: any, idx: number) => ({
  ...n,
  content: n.content && typeof n.content === "object" ? n.content : {},
@@ -74,7 +81,7 @@ function BuilderEditorPage() {
  });
 
  // Configurações Globais Persistidas (settings JSONB no Supabase)
- const initialSettings = (initialData.document as any)?.settings || {};
+ const initialSettings = (initialData?.document as any)?.settings || {};
 
  // Páginas do Site (Multi-Page Architecture)
  const [pages, setPages] = useState<BuilderPageItem[]>(() => {
@@ -85,7 +92,7 @@ function BuilderEditorPage() {
  {
  id: "home",
  title: "Página Inicial",
- slug: initialData.document?.slug || "inicio",
+ slug: initialData?.document?.slug || "inicio",
  is_home: true,
  },
  ];
@@ -103,70 +110,9 @@ function BuilderEditorPage() {
  surfaceStyle: initialSettings.theme?.surfaceStyle || "clean",
  }));
 
- // Dados Dinâmicos em Tempo Real (Live Data Binding + Fallbacks de Alta Qualidade)
+ // Dados Dinâmicos em Tempo Real (Live Data Binding Estrito)
  const transientData = React.useMemo(() => {
- const realProducts = (initialData as any).products || [];
- const products =
- realProducts.length > 0
- ? realProducts
- : [
- {
- id: "demo-p1",
- title: "Jaqueta Bomber Heritage Edição Especial",
- slug: "jaqueta-bomber-heritage",
- price_cents: 38900,
- compare_at_cents: 45900,
- media: [
- {
- url: "",
- alt: "Jaqueta Bomber",
- },
- ],
- variants: [{ stock_on_hand: 15 }],
- },
- {
- id: "demo-p2",
- title: "Camisa Linho Pura Alfaiataria",
- slug: "camisa-linho-alfaiataria",
- price_cents: 24900,
- compare_at_cents: 29900,
- media: [
- {
- url: "",
- alt: "Camisa Linho",
- },
- ],
- variants: [{ stock_on_hand: 22 }],
- },
- {
- id: "demo-p3",
- title: "Tênis Minimalist Leather Casual",
- slug: "tenis-minimalist-leather",
- price_cents: 42900,
- compare_at_cents: null,
- media: [
- {
- url: "",
- alt: "Tênis Minimalist",
- },
- ],
- variants: [{ stock_on_hand: 18 }],
- },
- {
- id: "demo-p4",
- title: "Mochila Executiva Couro Legítimo",
- slug: "mochila-executiva-couro",
- price_cents: 49900,
- compare_at_cents: 59900,
- media: [
- {
- url: "",
- alt: "Mochila Executiva",
- },
- ],
- variants: [{ stock_on_hand: 8 }],
- },
- ];
+   const products = (initialData as any).products || [];
 
  return {
  products,

@@ -1,0 +1,67 @@
+[
+  {
+    "file": "src\\routes\\workspace.comercial.tsx",
+    "line": 204,
+    "declaration": "export const DEFAULT_CHECKLIST_TEMPLATE = ["
+  },
+  {
+    "file": "src\\routes\\workspace.logistica.tabelas.tsx",
+    "line": 52,
+    "declaration": "const DEFAULT_TABLES: PriceTableItem[] = ["
+  },
+  {
+    "file": "src\\routes\\workspace.reservas.tsx",
+    "line": 85,
+    "declaration": "const DEFAULT_SALON_TABLES: SalonTable[] = ["
+  },
+  {
+    "file": "src\\routes\\_store.destaques.$slug.tsx",
+    "line": 213,
+    "declaration": "const DEFAULT_QUICK_CHIPS = ["
+  },
+  {
+    "file": "src\\services\\reservations.functions.ts",
+    "line": 203,
+    "declaration": "export const DEFAULT_CANONICAL_TABLES = ["
+  },
+  {
+    "file": "src\\components\\commerce\\delivery-time-and-radius-matrix.tsx",
+    "line": 27,
+    "declaration": "const DEFAULT_TIERS: DeliveryRadiusTier[] = ["
+  },
+  {
+    "file": "src\\components\\commerce\\dynamic-sections\\size-guide-table.tsx",
+    "line": 22,
+    "declaration": "const DEFAULT_ROWS: SizeMeasurementRow[] = ["
+  },
+  {
+    "file": "src\\components\\commerce\\master-hero-cards.tsx",
+    "line": 21,
+    "declaration": "const DEFAULT_HERO_MODULES = ["
+  },
+  {
+    "file": "src\\components\\commerce\\master-hero-cards.tsx",
+    "line": 79,
+    "declaration": "const DEFAULT_CONTINUATION_CHIPS = ["
+  },
+  {
+    "file": "src\\components\\commerce\\public-header.tsx",
+    "line": 12,
+    "declaration": "const DEFAULT_NAV_LINKS = ["
+  },
+  {
+    "file": "src\\components\\commerce\\store-vitrine-sections-editor.tsx",
+    "line": 49,
+    "declaration": "export const DEFAULT_STORE_VITRINE_SECTIONS: VitrineSectionConfig[] = ["
+  },
+  {
+    "file": "src\\components\\office\\contract-clause-library.tsx",
+    "line": 15,
+    "declaration": "export const DEFAULT_CLAUSES: ContractClause[] = ["
+  },
+  {
+    "file": "src\\components\\tasks\\task-kanban.tsx",
+    "line": 19,
+    "declaration": "const DEFAULT_COLUMNS: Array<{ id: TaskStatus; label: string; dotColor: string; color?: string }> = ["
+  }
+]

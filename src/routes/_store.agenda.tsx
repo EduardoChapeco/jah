@@ -1,678 +1,752 @@
-import { Tag } from "lucide-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDots, CalendarBlank, MapPin, MagnifyingGlass, X, CaretRight, Clock, Ticket, ForkKnife, GraduationCap, CircleNotch, WarningCircle,  } from "@phosphor-icons/react";
+import {
+  CalendarDots,
+  CalendarBlank,
+  Clock,
+  MapPin,
+  Ticket,
+  CreditCard,
+  Scissors,
+  CheckCircle,
+  CaretRight,
+  Sparkle,
+  CircleNotch,
+  WarningCircle,
+  CurrencyDollar,
+  QrCode,
+  ArrowRight,
+  Plus,
+  Tag,
+  Storefront,
+} from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { formatDate } from "@/lib/datetime";
+import { formatMoney } from "@/lib/money";
+import { getUserSession } from "@/services/auth.functions";
+import { listCustomerAppointments } from "@/services/booking.functions";
+import { listCustomerOrders } from "@/services/order.functions";
+import { listClientCarnes } from "@/services/receivables.functions";
 import { getPublicEvents } from "@/services/events.functions";
 import { listActiveBanners } from "@/services/banner.functions";
-import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
-import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import {
- DiscoveryControlBar,
- type ViewModeType,
- type FilterChipOption,
+  DiscoveryControlBar,
+  type ViewModeType,
+  type FilterChipOption,
 } from "@/components/commerce/discovery-control-bar";
-import { formatDate } from "@/lib/datetime";
-import { resolveNicheDepartments } from "@/lib/niche-helpers";
-
-const EVENT_CATEGORIES: FilterChipOption[] = [
- { id: "todos", label: "Todas Categorias", emoji: "🎟️", icon: Tag },
- { id: "shows", label: "Shows & Festivais", emoji: "🎸", icon: Ticket },
- { id: "gastronomico", label: "Gastronomia & Feiras", emoji: "🍔", icon: ForkKnife },
- { id: "feiras", label: "Bazaares & Pets", emoji: "🛍️", icon: Tag },
- { id: "workshops", label: "Cursos & Workshops", emoji: "🎓", icon: GraduationCap },
-];
-
-const PRESET_DATE_FILTERS = [
- { id: "all", label: "Todos os Dias" },
- { id: "today", label: "Hoje" },
- { id: "tomorrow", label: "Amanhã" },
- { id: "weekend", label: "Este Fim de Semana" },
- { id: "next7", label: "Próximos 7 Dias" },
- { id: "month", label: "Este Mês" },
-];
 
 const WEEKDAY_NAMES = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
 const MONTH_NAMES = [
- "JAN",
- "FEV",
- "MAR",
- "ABR",
- "MAI",
- "JUN",
- "JUL",
- "AGO",
- "SET",
- "OUT",
- "NOV",
- "DEZ",
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+];
+
+const AGENDA_FILTER_CHIPS: FilterChipOption[] = [
+  { id: "todos", label: "Toda a Agenda", emoji: "📅" },
+  { id: "eventos", label: "Eventos & Shows", emoji: "🎟️" },
+  { id: "servicos", label: "Meus Serviços", emoji: "✂️" },
+  { id: "ingressos", label: "Meus Ingressos", emoji: "🎫" },
+  { id: "carnes", label: "Contas & Carnês", emoji: "💳" },
 ];
 
 export const Route = createFileRoute("/_store/agenda")({
- head: () => ({
- meta: [
- { title: "Agenda Cultural & Shows" },
- {
- name: "description",
- content: "Descubra os principais shows, festivais gastronômicos, feiras e workshops da cidade filtrados por dia.",
- },
- ],
- }),
- loader: async () => {
-   try {
- const [banners, hotpages] = await Promise.all([
- listActiveBanners({ data: { placement: "agenda" } }).catch(() => []),
- listHotpages({ data: { module: "agenda" } }).catch(() => []),
- ]);
- return { banners, hotpages };
-   } catch (err) {
-     console.error("[loader:_store.agenda] Unhandled loader error:", err);
-     return null;
-   }
- },
- component: AgendaPage,
+  head: () => ({
+    meta: [
+      { title: "Agenda Cultural & Calendário | Wider" },
+      {
+        name: "description",
+        content:
+          "Descubra eventos, shows, programação cultural e acompanhe seus agendamentos em um calendário unificado.",
+      },
+    ],
+  }),
+  loader: async () => {
+    try {
+      const [session, banners] = await Promise.all([
+        getUserSession().catch(() => null),
+        listActiveBanners({ data: { placement: "agenda" } }).catch(() => []),
+      ]);
+      return { session, banners: banners || [] };
+    } catch {
+      return { session: null, banners: [] };
+    }
+  },
+  component: AgendaPadronizadaPage,
 });
 
-function AgendaPage() {
- const { banners, hotpages } = Route.useLoaderData();
- const [selectedCategory, setSelectedCategory] = useState("todos");
- const [selectedDateFilter, setSelectedDateFilter] = useState("all"); // 'all' | 'today' | 'tomorrow' | 'weekend' | 'next7' | 'month' | 'YYYY-MM-DD'
- const [searchQuery, setSearchQuery] = useState("");
- const [viewMode, setViewMode] = useState<ViewModeType>("feed");
+function AgendaPadronizadaPage() {
+  const { session, banners = [] } = ((Route.useLoaderData?.() as any) || {});
+  const isAuthenticated = Boolean(session?.user || session?.id);
 
- const {
- data: events,
- isLoading,
- isError,
- } = useQuery({
- queryKey: ["public-events", selectedCategory],
- queryFn: async () => {
- try {
- const res = await getPublicEvents({
- data: {
- limit: 50,
- category: selectedCategory === "todos" ? undefined : selectedCategory,
- },
- });
- return res || [];
- } catch {
- return [];
- }
- },
- staleTime: 60_000,
- });
+  const [selectedFilter, setSelectedFilter] = useState("todos");
+  const [selectedDate, setSelectedDate] = useState<string>("all");
+  const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState<ViewModeType>("feed");
 
- // Gera a lista dos próximos 14 dias para o seletor de dias grande
- const nextDays = useMemo(() => {
- const days = [];
- const now = new Date();
+  // 1. Busca Eventos Públicos da Comunidade (Disponível para todos os visitantes)
+  const { data: publicEvents = [], isLoading: isLoadingEvents } = useQuery({
+    queryKey: ["agenda-public-events"],
+    queryFn: async () => {
+      try {
+        const res = await getPublicEvents({ data: { limit: 60 } });
+        return res || [];
+      } catch {
+        return [];
+      }
+    },
+    staleTime: 60_000,
+  });
 
- for (let i = 0; i < 14; i++) {
- const d = new Date(now);
- d.setDate(now.getDate() + i);
+  // 2. Busca Serviços Agendados do Usuário (se autenticado)
+  const { data: appointments = [], isLoading: isLoadingAppts } = useQuery({
+    queryKey: ["personal-agenda-appointments"],
+    queryFn: async () => {
+      if (!isAuthenticated) return [];
+      const res = await listCustomerAppointments({ data: { status: "all" } }).catch(() => []);
+      return res || [];
+    },
+    enabled: isAuthenticated,
+    staleTime: 30_000,
+  });
 
- const year = d.getFullYear();
- const month = String(d.getMonth() + 1).padStart(2, "0");
- const day = String(d.getDate()).padStart(2, "0");
- const dateKey = `${year}-${month}-${day}`;
+  // 3. Busca Ingressos Comprados (se autenticado)
+  const { data: ticketOrders = [], isLoading: isLoadingTickets } = useQuery({
+    queryKey: ["personal-agenda-tickets"],
+    queryFn: async () => {
+      if (!isAuthenticated) return [];
+      const orders = (await listCustomerOrders().catch(() => [])) || [];
+      return orders.filter((order: any) =>
+        order.order_items?.some(
+          (i: any) =>
+            i.item_type === "ticket" ||
+            i.item_type === "event" ||
+            i.product_title?.toLowerCase().includes("ingresso")
+        )
+      );
+    },
+    enabled: isAuthenticated,
+    staleTime: 30_000,
+  });
 
- days.push({
- dateKey,
- dayNumber: d.getDate(),
- weekday: WEEKDAY_NAMES[d.getDay()],
- monthName: MONTH_NAMES[d.getMonth()],
- isToday: i === 0,
- isTomorrow: i === 1,
- isWeekend: d.getDay() === 0 || d.getDay() === 6,
- });
- }
- return days;
- }, []);
+  // 4. Busca Carnês (se autenticado)
+  const { data: carnesData, isLoading: isLoadingCarnes } = useQuery({
+    queryKey: ["personal-agenda-carnes"],
+    queryFn: async () => {
+      if (!isAuthenticated) return null;
+      const res = await listClientCarnes().catch(() => null);
+      return res;
+    },
+    enabled: isAuthenticated,
+    staleTime: 30_000,
+  });
 
- // Filtra os eventos por Categoria, Dia/Período e Busca
- const filteredEvents = useMemo(() => {
- if (!events || events.length === 0) return [];
+  // Próximos 14 dias para o slider horizontal de calendário
+  const nextDays = useMemo(() => {
+    const days = [];
+    const now = new Date();
 
- const now = new Date();
- const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(now);
+      d.setDate(now.getDate() + i);
 
- const tomorrow = new Date(now);
- tomorrow.setDate(now.getDate() + 1);
- const tomorrowIso = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}`;
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      const dateKey = `${year}-${month}-${day}`;
 
- const next7Days = new Date(now);
- next7Days.setDate(now.getDate() + 7);
+      days.push({
+        dateKey,
+        dayNumber: d.getDate(),
+        weekday: WEEKDAY_NAMES[d.getDay()],
+        monthName: MONTH_NAMES[d.getMonth()].slice(0, 3).toUpperCase(),
+        isToday: i === 0,
+        isTomorrow: i === 1,
+      });
+    }
+    return days;
+  }, []);
 
- return events.filter((e) => {
- const eventDate = new Date(e.event_date);
- const eventIso = e.event_date ? e.event_date.split("T")[0] : "";
+  // Consolidação Canônica de Todos os Cards com Imagem Obrigatória
+  const unifiedItems = useMemo(() => {
+    const items: Array<{
+      id: string;
+      category: "eventos" | "servicos" | "ingressos" | "carnes";
+      badge: string;
+      title: string;
+      subtitle?: string;
+      date: string;
+      dateDisplay: string;
+      image: string | null;
+      priceOrStatus: string;
+      location?: string;
+      to: string;
+      actionLabel: string;
+    }> = [];
 
- // 1. Filtro de Data
- if (selectedDateFilter === "today") {
- if (eventIso !== todayIso) return false;
- } else if (selectedDateFilter === "tomorrow") {
- if (eventIso !== tomorrowIso) return false;
- } else if (selectedDateFilter === "weekend") {
- const dayOfWeek = eventDate.getDay();
- const diffDays = Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
- if (!((dayOfWeek === 0 || dayOfWeek === 6) && diffDays >= 0 && diffDays <= 7)) {
- return false;
- }
- } else if (selectedDateFilter === "next7") {
- if (eventDate < now || eventDate > next7Days) return false;
- } else if (selectedDateFilter === "month") {
- if (eventDate.getMonth() !== now.getMonth() || eventDate.getFullYear() !== now.getFullYear()) {
- return false;
- }
- } else if (selectedDateFilter !== "all") {
- // Data específica 'YYYY-MM-DD'
- if (eventIso !== selectedDateFilter) return false;
- }
+    // A. Eventos Públicos da Cidade
+    publicEvents.forEach((ev: any) => {
+      const cover = ev.cover_image || ev.image_url || ev.banner_url || null;
+      const rawDate = ev.event_date || ev.date || "";
+      const datePart = rawDate.split("T")[0] || "";
 
- // 2. Filtro de Busca
- if (searchQuery.trim()) {
- const q = searchQuery.toLowerCase();
- const matchesTitle = e.title?.toLowerCase().includes(q);
- const matchesDesc = e.description?.toLowerCase().includes(q);
- const matchesLoc = e.location?.toLowerCase().includes(q);
- if (!matchesTitle && !matchesDesc && !matchesLoc) return false;
- }
+      items.push({
+        id: `ev-${ev.id}`,
+        category: "eventos",
+        badge: ev.category || "Evento",
+        title: ev.title,
+        subtitle: ev.description || "Evento na cidade",
+        date: datePart,
+        dateDisplay: ev.date_display || (datePart ? formatDate(datePart) : "Data confirmada"),
+        image: cover,
+        priceOrStatus: ev.price_cents ? formatMoney(ev.price_cents) : ev.is_free ? "Gratuito" : "Ingressos",
+        location: ev.location || "Na região",
+        to: `/evento/${ev.id}`,
+        actionLabel: "Ver Ingressos",
+      });
+    });
 
- return true;
- });
- }, [events, selectedDateFilter, searchQuery]);
+    // B. Serviços Agendados do Usuário
+    appointments.forEach((apt: any) => {
+      const rawDate = apt.appointment_date || apt.start_time || apt.created_at || "";
+      const datePart = rawDate.split("T")[0] || "";
 
- // Agrupamento por Categoria para o Modo Feed
- const eventsByCategory = useMemo(() => {
- const map = new Map<string, typeof filteredEvents>();
- filteredEvents.forEach((ev) => {
- const cat = (ev as any).category || (ev as any).attributes?.categoria || "shows";
- if (!map.has(cat)) map.set(cat, []);
- map.get(cat)!.push(ev);
- });
- return Array.from(map.entries()).map(([catKey, items]) => {
- const chip = EVENT_CATEGORIES.find((c) => c.id === catKey);
- return {
- categoryKey: catKey,
- categoryName: chip?.label || "Shows & Destaques",
- items,
- };
- });
- }, [filteredEvents]);
+      items.push({
+        id: `apt-${apt.id}`,
+        category: "servicos",
+        badge: "Serviço Agendado",
+        title: apt.service_name || "Serviço Agendado",
+        subtitle: apt.store_name || "Estabelecimento Parceiro",
+        date: datePart,
+        dateDisplay: datePart ? formatDate(datePart) : "Horário agendado",
+        image: apt.store_avatar_url || apt.service_image_url || null,
+        priceOrStatus: apt.price_cents ? formatMoney(apt.price_cents) : "Confirmado",
+        location: apt.address || apt.city || "No local",
+        to: "/conta/agendamentos",
+        actionLabel: "Ver Agendamento",
+      });
+    });
 
- // Contagem de eventos por dia para os badges
- const eventsCountByDateKey = useMemo(() => {
- const counts: Record<string, number> = {};
- if (!events) return counts;
- events.forEach((e) => {
- if (e.event_date) {
- const key = e.event_date.split("T")[0];
- counts[key] = (counts[key] || 0) + 1;
- }
- });
- return counts;
- }, [events]);
+    // C. Ingressos de Eventos Comprados
+    ticketOrders.forEach((order: any) => {
+      const firstTicket = order.order_items?.find(
+        (i: any) =>
+          i.item_type === "ticket" ||
+          i.item_type === "event" ||
+          i.product_title?.toLowerCase().includes("ingresso")
+      );
+      const rawDate = order.created_at || "";
+      const datePart = rawDate.split("T")[0] || "";
 
- const activeDateLabel = useMemo(() => {
- if (selectedDateFilter === "all") return "Todos os Dias";
- if (selectedDateFilter === "today") return "Hoje";
- if (selectedDateFilter === "tomorrow") return "Amanhã";
- if (selectedDateFilter === "weekend") return "Este Fim de Semana";
- if (selectedDateFilter === "next7") return "Próximos 7 Dias";
- if (selectedDateFilter === "month") return "Este Mês";
- const foundDay = nextDays.find((d) => d.dateKey === selectedDateFilter);
- if (foundDay) {
- return `${foundDay.weekday}, ${foundDay.dayNumber} de ${foundDay.monthName}`;
- }
- return selectedDateFilter;
- }, [selectedDateFilter, nextDays]);
+      items.push({
+        id: `ticket-${order.id}`,
+        category: "ingressos",
+        badge: "Ingresso Confirmado",
+        title: firstTicket?.product_title || "Ingresso de Evento",
+        subtitle: `Pedido #${order.order_number || order.id?.slice(0, 8)}`,
+        date: datePart,
+        dateDisplay: datePart ? formatDate(datePart) : "Disponível",
+        image: firstTicket?.image_url || null,
+        priceOrStatus: order.payment_status === "paid" ? "Pago & Emitido" : "Pendente",
+        location: order.store?.name || "Local do Evento",
+        to: "/conta/ingressos",
+        actionLabel: "Acessar QR Code",
+      });
+    });
 
- const isFilterActive = selectedDateFilter !== "all" || selectedCategory !== "todos" || searchQuery.trim() !== "";
+    // D. Parcelas de Carnê
+    if (carnesData?.carnes) {
+      carnesData.carnes.forEach((carne: any) => {
+        carne.installments?.forEach((inst: any) => {
+          if (inst.status !== "paid") {
+            const rawDate = inst.due_date || "";
+            const datePart = rawDate.split("T")[0] || "";
 
- return (
- <div className="w-full space-y-6 pb-20">
- {/* ── 1. Top Universal Banner Hero ── */}
- {banners && banners.length > 0 && (
- <BannerHeroCarousel banners={banners} className="w-full" />
- )}
+            items.push({
+              id: `inst-${inst.id}`,
+              category: "carnes",
+              badge: "Carnê da Loja",
+              title: `Parcela ${inst.installment_number}/${carne.total_installments}`,
+              subtitle: carne.store_name || "Loja Parceira",
+              date: datePart,
+              dateDisplay: datePart ? `Vencimento: ${formatDate(datePart)}` : "A vencer",
+              image: carne.store_logo_url || null,
+              priceOrStatus: formatMoney(inst.final_amount_cents || inst.amount_cents || 0),
+              location: carne.store_name,
+              to: "/conta/carnes",
+              actionLabel: "Pagar Parcela",
+            });
+          }
+        });
+      });
+    }
 
- {/* ── 2. Hotpages & Categorias ── */}
- {hotpages && hotpages.length > 0 && (
- <section aria-label="Categorias">
- <HotpagesRail
- hotpages={hotpages}
- activeSlug={selectedCategory}
- onSelect={(slug) => setSelectedCategory(slug)}
- />
- </section>
- )}
+    return items;
+  }, [publicEvents, appointments, ticketOrders, carnesData]);
 
- {/* ── 3. FILTRO DE DIAS PROEMINENTE & GRANDE (CANÔNICO) ── */}
- <section aria-label="Filtrar por Dias" className="space-y-3 pt-2">
- <div className="flex items-center justify-between">
- <div className="flex items-center gap-2">
- <CalendarDots size={16} weight="bold" className="text-foreground" />
- <h2 className="text-sm font-bold text-foreground tracking-tight">
- Filtrar por Data & Programação
- </h2>
- </div>
+  // Filtragem por Busca, Categoria e Data
+  const filteredItems = useMemo(() => {
+    const term = search.trim().toLowerCase();
 
- {/* Presets Rápidos */}
- <div className="hidden sm:flex items-center gap-2 overflow-x-auto no-scrollbar ">
- {PRESET_DATE_FILTERS.map((preset) => {
- const isSelected = selectedDateFilter === preset.id;
- return (
- <button
- key={preset.id}
- type="button"
- onClick={() => setSelectedDateFilter(preset.id)}
- className={`h-9 px-4 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
- isSelected
- ? "bg-foreground text-background font-bold"
- : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
- }`}
- >
- {preset.label}
- </button>
- );
- })}
- </div>
- </div>
+    return unifiedItems.filter((item) => {
+      // Filtro de Categoria
+      if (selectedFilter !== "todos" && item.category !== selectedFilter) {
+        return false;
+      }
 
- {/* ── Trilho Panorâmico de Cards de Dias Grandes (Squircle Inflado) ── */}
- <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2 pt-1 ">
- {/* Card 'Todos os Dias' */}
- <button
- type="button"
- onClick={() => setSelectedDateFilter("all")}
- className={`min-w-[96px] sm:min-w-[104px] h-[100px] sm:h-[108px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all ${
- selectedDateFilter === "all"
- ? "bg-foreground text-background border-foreground scale-102 font-bold"
- : "bg-card border-border text-foreground hover:bg-muted/60 hover:border-foreground/30"
- }`}
- >
- <span className="text-[11px] font-mono uppercase tracking-wider opacity-80">
- Geral
- </span>
- <CalendarDots size={20} weight="bold" className="my-0.5" />
- <span className="text-xs font-semibold">Todos</span>
- </button>
+      // Filtro de Data do Calendário
+      if (selectedDate !== "all" && item.date !== selectedDate) {
+        return false;
+      }
 
- {/* Cards dos Próximos 14 Dias */}
- {nextDays.map((day) => {
- const isSelected = selectedDateFilter === day.dateKey;
- const count = eventsCountByDateKey[day.dateKey] || 0;
+      // Busca por Texto
+      if (term) {
+        const matchesTitle = item.title.toLowerCase().includes(term);
+        const matchesSub = (item.subtitle || "").toLowerCase().includes(term);
+        const matchesLoc = (item.location || "").toLowerCase().includes(term);
+        if (!matchesTitle && !matchesSub && !matchesLoc) return false;
+      }
 
- return (
- <button
- key={day.dateKey}
- type="button"
- onClick={() => setSelectedDateFilter(day.dateKey)}
- className={`min-w-[92px] sm:min-w-[100px] h-[100px] sm:h-[108px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all ${
- isSelected
- ? "bg-foreground text-background border-foreground scale-102 font-bold"
- : "bg-card border-border text-foreground hover:bg-muted/60 hover:border-foreground/30"
- }`}
- >
- <span className="text-[11px] font-mono font-bold tracking-wider uppercase opacity-80">
- {day.isToday ? "HOJE" : day.isTomorrow ? "AMANHÃ" : day.weekday}
- </span>
+      return true;
+    });
+  }, [unifiedItems, selectedFilter, selectedDate, search]);
 
- <span className="text-2xl sm:text-3xl font-black leading-none my-0.5">
- {day.dayNumber}
- </span>
+  const isLoading = isLoadingEvents || (isAuthenticated && (isLoadingAppts || isLoadingTickets || isLoadingCarnes));
 
- <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium">
- <span>{day.monthName}</span>
- {count > 0 && (
- <span
- className={`size-2 rounded-full ${
- isSelected ? "bg-background" : "bg-foreground"
- }`}
- />
- )}
- </div>
- </button>
- );
- })}
- </div>
- </section>
+  // Agrupamento por Categoria para o Modo Feed
+  const groupedFeed = useMemo(() => {
+    const groups: Array<{ key: string; label: string; badge: string; items: typeof filteredItems }> = [];
 
- <DiscoveryControlBar
- search={searchQuery}
- onSearchChange={setSearchQuery}
- searchPlaceholder="Buscar show, festival, teatro, local, artista..."
- categories={EVENT_CATEGORIES}
- activeCategory={selectedCategory}
- onSelectCategory={setSelectedCategory}
- viewMode={viewMode}
- onViewModeChange={setViewMode}
- allowedViewModes={["feed", "grid", "list"]}
- resultsCount={filteredEvents.length}
- />
+    const eventos = filteredItems.filter((i) => i.category === "eventos");
+    if (eventos.length > 0) {
+      groups.push({
+        key: "eventos",
+        label: "Shows & Eventos na Cidade",
+        badge: `${eventos.length} atrações`,
+        items: eventos,
+      });
+    }
 
- {/* ── 5. ESTADOS DE CARREGAMENTO, ERRO E VAZIO ── */}
- {isLoading && (
- <div className="flex justify-center py-24">
- <CircleNotch size={32} className="animate-spin text-muted-foreground" />
- </div>
- )}
+    const servicos = filteredItems.filter((i) => i.category === "servicos");
+    if (servicos.length > 0) {
+      groups.push({
+        key: "servicos",
+        label: "Seus Serviços Agendados",
+        badge: `${servicos.length} horários`,
+        items: servicos,
+      });
+    }
 
- {isError && (
- <div className="py-12 px-6 rounded-2xl border border-destructive/20 bg-destructive/5 text-center space-y-2">
- <WarningCircle size={32} className="text-destructive mx-auto" />
- <p className="font-semibold text-foreground text-sm">Erro ao carregar a Agenda Cultural</p>
- </div>
- )}
+    const ingressos = filteredItems.filter((i) => i.category === "ingressos");
+    if (ingressos.length > 0) {
+      groups.push({
+        key: "ingressos",
+        label: "Seus Ingressos Comprados",
+        badge: `${ingressos.length} ingressos`,
+        items: ingressos,
+      });
+    }
 
- {!isLoading && !isError && filteredEvents.length === 0 && (
- <div className="py-20 text-center space-y-2.5 bg-muted/20 rounded-2xl p-8">
- <CalendarBlank size={36} className="text-muted-foreground/50 mx-auto" />
- <h2 className="text-sm font-semibold text-foreground">
- Nenhum evento agendado para {activeDateLabel}
- </h2>
- <p className="text-xs text-muted-foreground max-w-sm mx-auto">
- Tente selecionar outro dia no calendário acima ou limpar os filtros de busca.
- </p>
- <div className="pt-2">
- <Button
- variant="outline"
- size="sm"
- onClick={() => {
- setSelectedDateFilter("all");
- setSelectedCategory("todos");
- setSearchQuery("");
- }}
- className="rounded-xl text-xs font-bold"
- >
- Ver Todos os Eventos
- </Button>
- </div>
- </div>
- )}
+    const carnes = filteredItems.filter((i) => i.category === "carnes");
+    if (carnes.length > 0) {
+      groups.push({
+        key: "carnes",
+        label: "Parcelas de Carnês a Vencer",
+        badge: `${carnes.length} parcelas`,
+        items: carnes,
+      });
+    }
 
- {/* ── 6. RENDERIZAÇÃO DOS MODOS DE VISUALIZAÇÃO ── */}
+    return groups;
+  }, [filteredItems]);
 
- {/* MODO 1: FEED DE CARROSSÉIS PADRONIZADOS */}
- {!isLoading && !isError && filteredEvents.length > 0 && viewMode === "feed" && (
- <div className="space-y-10">
- {eventsByCategory.map(({ categoryKey, categoryName, items }) => (
- <HorizontalRail
- key={categoryKey}
- title={categoryName}
- hideHeader={true}
- badge={`${items.length} ${items.length === 1 ? "evento" : "eventos"}`}
- actionLabel="Ver todos"
- onAction={() => {
- setSelectedCategory(categoryKey);
- setViewMode("grid");
- }}
- >
- {items.map((event) => (
- <Link
- key={event.id}
- to="/evento/$id"
- params={{ id: event.id }}
- className="min-w-[290px] sm:min-w-[320px] max-w-[340px] rounded-2xl bg-card overflow-hidden hover:border-foreground/30 transition-all flex flex-col justify-between shrink-0 group select-none block"
- >
- <div className="space-y-3 block">
- <div className="aspect-16/10 relative overflow-hidden bg-muted">
- {event.cover_image && (
- <img
- src={event.cover_image}
- alt={event.title}
- className="absolute inset-0 size-full object-cover group-hover:scale-105 transition-transform duration-500"
- />
- )}
- <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+  return (
+    <div className="max-w-6xl mx-auto space-y-6 pb-24 px-4 sm:px-6 py-4">
+      {/* ── 1. Banners de Destaque da Agenda (se cadastrados) ── */}
+      {banners && banners.length > 0 && (
+        <section aria-label="Destaques da Agenda">
+          <BannerHeroCarousel banners={banners} />
+        </section>
+      )}
 
- <div className="absolute top-3 left-3 flex items-center gap-1.5">
- <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg border border-white/20">
- {formatDate(event.event_date)}
- </span>
- </div>
+      {/* ── 2. Header Apple HIG ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/40 pb-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">
+              Agenda & Calendário
+            </h1>
+            
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Shows, programação cultural da cidade, agendamentos e ingressos organizados por data.
+          </p>
+        </div>
 
- <div className="absolute bottom-3 left-3 right-3">
- <h3 className="text-sm font-bold text-white leading-tight drop- line-clamp-2">
- {event.title}
- </h3>
- </div>
- </div>
+        <div className="flex items-center gap-2">
+          {!isAuthenticated ? (
+            <Button asChild size="sm" className="h-9 px-4 rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90">
+              <Link to="/entrar" search={{ returnUrl: "/agenda" }}>
+                <span>Entrar na Conta</span>
+                <ArrowRight size={13} className="ml-1.5" />
+              </Link>
+            </Button>
+          ) : (
+            <Button asChild size="sm" className="h-9 px-4 rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90">
+              <Link to="/servicos">
+                <Plus size={14} weight="bold" className="mr-1.5" />
+                <span>Agendar Serviço</span>
+              </Link>
+            </Button>
+          )}
+        </div>
+      </div>
 
- <div className="px-4 space-y-1.5 text-xs">
- {event.location && (
- <p className="flex items-center gap-1.5 text-muted-foreground font-medium">
- <MapPin size={14} className="shrink-0 text-foreground" />
- <span className="truncate">{event.location}</span>
- </p>
- )}
+      {/* ── 3. Seletor de Datas (Slider Apple Calendar) ── */}
+      <section aria-label="Seletor de Datas" className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold text-foreground font-mono uppercase tracking-wider">
+            Próximos Dias
+          </span>
+          {selectedDate !== "all" && (
+            <button
+              type="button"
+              onClick={() => setSelectedDate("all")}
+              className="text-xs text-primary font-semibold hover:underline cursor-pointer"
+            >
+              Ver todos os dias
+            </button>
+          )}
+        </div>
 
- {event.description && (
- <p className="text-muted-foreground line-clamp-2 leading-relaxed text-xs">
- {event.description}
- </p>
- )}
- </div>
- </div>
+        <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-2">
+          {/* Botão Todos */}
+          <button
+            type="button"
+            onClick={() => setSelectedDate("all")}
+            className={`min-w-[76px] h-20 p-2.5 rounded-2xl flex flex-col items-center justify-between border cursor-pointer shrink-0 transition-all select-none ${
+              selectedDate === "all"
+                ? "bg-foreground text-background font-bold border-foreground"
+                : "bg-card border-border text-foreground hover:bg-muted/50"
+            }`}
+          >
+            <span className="text-[10px] font-mono uppercase tracking-wider opacity-80">Geral</span>
+            <CalendarDots size={18} weight="bold" />
+            <span className="text-xs">Todos</span>
+          </button>
 
- <div className="p-4 pt-2.5 mt-2 flex items-center justify-between">
- <Badge variant={(event as any).is_free ? "secondary" : "outline"} className="text-[10px] font-mono font-bold">
- {(event as any).is_free ? "Gratuito" : "Ingresso"}
- </Badge>
+          {/* Dias Próximos */}
+          {nextDays.map((day) => {
+            const isSelected = selectedDate === day.dateKey;
+            const itemsCount = unifiedItems.filter((i) => i.date === day.dateKey).length;
 
- <span className="h-8 px-3 rounded-xl font-bold text-xs bg-foreground text-background inline-flex items-center justify-center group-hover:opacity-90 transition-opacity">
- <span>Ver Detalhes</span>
- <CaretRight size={14} className="ml-1" />
- </span>
- </div>
- </Link>
- ))}
- </HorizontalRail>
- ))}
+            return (
+              <button
+                key={day.dateKey}
+                type="button"
+                onClick={() => setSelectedDate(day.dateKey)}
+                className={`min-w-[76px] h-20 p-2.5 rounded-2xl flex flex-col items-center justify-between border cursor-pointer shrink-0 transition-all select-none ${
+                  isSelected
+                    ? "bg-foreground text-background font-bold border-foreground scale-102"
+                    : "bg-card border-border text-foreground hover:bg-muted/50"
+                }`}
+              >
+                <span className="text-[10px] font-mono uppercase tracking-wider opacity-80">
+                  {day.isToday ? "HOJE" : day.isTomorrow ? "AMANHÃ" : day.weekday}
+                </span>
 
- {/* Gôndola Geral de Eventos */}
- <div className="space-y-4 pt-6 ">
- <div className="flex items-center justify-between">
- <h2 className="text-base font-bold text-foreground flex items-center gap-2">
- <CalendarDots size={18} weight="bold" className="text-primary" />
- <span>Todos os Próximos Eventos & Shows</span>
- </h2>
- <span className="text-xs text-muted-foreground font-mono font-bold">
- {filteredEvents.length} eventos confirmados
- </span>
- </div>
+                <span className="text-xl font-black leading-none">{day.dayNumber}</span>
 
- <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
- {filteredEvents.map((event) => (
- <div
- key={event.id}
- className="flex flex-col justify-between overflow-hidden rounded-2xl bg-card hover:border-foreground/30 transition-all group"
- >
- <Link to="/evento/$id" params={{ id: event.id }} className="block">
- <div className="aspect-16/10 relative overflow-hidden bg-muted">
- {event.cover_image && (
- <img
- src={event.cover_image}
- alt={event.title}
- className="absolute inset-0 size-full object-cover group-hover:scale-105 transition-transform duration-500"
- />
- )}
- <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] font-mono">{day.monthName}</span>
+                  {itemsCount > 0 && (
+                    <span
+                      className={`size-1.5 rounded-full ${
+                        isSelected ? "bg-background" : "bg-primary"
+                      }`}
+                    />
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
- <div className="absolute top-3 left-3 flex items-center gap-1.5">
- <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg border border-white/20">
- {formatDate(event.event_date)}
- </span>
- </div>
+      {/* ── 4. DiscoveryControlBar com os 3 Modos Canônicos (Feed, Grid, List) ── */}
+      <DiscoveryControlBar
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Buscar na agenda, shows, serviços, horários..."
+        categories={AGENDA_FILTER_CHIPS}
+        activeCategory={selectedFilter}
+        onSelectCategory={setSelectedFilter}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        allowedViewModes={["feed", "grid", "list"]}
+      />
 
- <div className="absolute bottom-3 left-3 right-3">
- <h3 className="text-sm font-bold text-white leading-tight drop- line-clamp-2">
- {event.title}
- </h3>
- </div>
- </div>
+      {/* ── 5. Estados de Carregamento e Vazio ── */}
+      {isLoading ? (
+        <div className="flex justify-center py-20">
+          <CircleNotch size={32} className="animate-spin text-muted-foreground" />
+        </div>
+      ) : filteredItems.length === 0 ? (
+        <div className="p-10 rounded-2xl border border-border/60 bg-card text-center space-y-3">
+          <CalendarBlank size={36} className="text-muted-foreground/50 mx-auto" />
+          <h3 className="text-sm font-bold text-foreground">Nenhuma programação encontrada</h3>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            Tente selecionar outro dia no calendário ou limpar os filtros de busca.
+          </p>
+          <div className="pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedDate("all");
+                setSelectedFilter("todos");
+                setSearch("");
+              }}
+              className="rounded-xl text-xs font-bold"
+            >
+              Ver Toda a Programação
+            </Button>
+          </div>
+        </div>
+      ) : (
+        /* ── 6. Renderização dos 3 Modos Canônicos de Visualização ── */
+        <div>
+          {/* ── MODO 1: FEED (Carrosséis Horizontais Padronizados) ── */}
+          {viewMode === "feed" && (
+            <div className="space-y-10">
+              {groupedFeed.map((group) => (
+                <section key={group.key} aria-label={group.label} className="space-y-3">
+                  <HorizontalRail
+                    title={group.label}
+                    badge={group.badge}
+                    actionLabel="Ver em grade"
+                    onAction={() => {
+                      setSelectedFilter(group.key);
+                      setViewMode("grid");
+                    }}
+                  >
+                    {group.items.map((item) => (
+                      <div
+                        key={item.id}
+                        className="min-w-[280px] sm:min-w-[310px] max-w-[320px] shrink-0 group flex flex-col justify-between rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 shadow-2xs hover:shadow-xs transition-all select-none"
+                      >
+                        <Link to={item.to as any} className="block">
+                          <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted/40">
+                            {item.image ? (
+                              <img
+                                src={item.image}
+                                alt={item.title}
+                                className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="size-full bg-muted/50 flex items-center justify-center">
+                                {item.category === "servicos" ? (
+                                  <Scissors size={28} className="text-muted-foreground/30" />
+                                ) : item.category === "carnes" ? (
+                                  <CreditCard size={28} className="text-muted-foreground/30" />
+                                ) : (
+                                  <CalendarDots size={28} className="text-muted-foreground/30" />
+                                )}
+                              </div>
+                            )}
+                            <div className="absolute top-2.5 left-2.5">
+                              <Badge variant="secondary" className="bg-background/90 backdrop-blur-md text-[10px] font-bold">
+                                {item.badge}
+                              </Badge>
+                            </div>
+                            <div className="absolute bottom-2.5 right-2.5">
+                              <span className="bg-black/75 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2 py-0.5 rounded-md">
+                                {item.dateDisplay}
+                              </span>
+                            </div>
+                          </div>
 
- <div className="p-4 space-y-1.5 text-xs">
- {event.location && (
- <p className="flex items-center gap-1.5 text-muted-foreground font-medium">
- <MapPin size={14} className="shrink-0 text-foreground" />
- <span className="truncate">{event.location}</span>
- </p>
- )}
+                          <div className="p-3.5 space-y-1">
+                            <h3 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                              {item.title}
+                            </h3>
+                            {item.location && (
+                              <p className="text-xs text-muted-foreground line-clamp-1 flex items-center gap-1">
+                                <MapPin size={12} className="shrink-0 text-primary" />
+                                <span>{item.location}</span>
+                              </p>
+                            )}
+                          </div>
+                        </Link>
 
- {event.description && (
- <p className="text-muted-foreground line-clamp-2 leading-relaxed text-xs">
- {event.description}
- </p>
- )}
- </div>
- </Link>
+                        <div className="p-3.5 pt-0 flex items-center justify-between border-t border-border/30 mt-2">
+                          <span className="text-xs font-bold text-primary font-mono">
+                            {item.priceOrStatus}
+                          </span>
+                          <Button asChild size="sm" variant="ghost" className="h-7 px-2 text-xs font-semibold gap-1">
+                            <Link to={item.to as any}>
+                              <span>{item.actionLabel}</span>
+                              <CaretRight size={12} weight="bold" />
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </HorizontalRail>
+                </section>
+              ))}
+            </div>
+          )}
 
- <div className="p-4 pt-2.5 flex items-center justify-between">
- <Badge variant={(event as any).is_free ? "secondary" : "outline"} className="text-[10px] font-mono font-bold">
- {(event as any).is_free ? "Gratuito" : "Ingresso"}
- </Badge>
+          {/* ── MODO 2: GRADE (Cards Homogêneos em 3-4 Colunas) ── */}
+          {viewMode === "grid" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+              {filteredItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="group rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 hover:shadow-xs transition-all flex flex-col justify-between"
+                >
+                  <Link to={item.to as any} className="flex-1 flex flex-col cursor-pointer">
+                    <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted/40 shrink-0">
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="size-full bg-muted/50 flex items-center justify-center">
+                          <CalendarDots size={28} className="text-muted-foreground/30" />
+                        </div>
+                      )}
+                      <div className="absolute top-2.5 left-2.5">
+                        <Badge className="bg-background/95 backdrop-blur-md text-foreground font-mono text-[9px] uppercase font-bold px-2 py-0.5 rounded-md border border-border/40">
+                          {item.badge}
+                        </Badge>
+                      </div>
+                      <div className="absolute bottom-2.5 right-2.5">
+                        <span className="bg-black/75 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2 py-0.5 rounded-md">
+                          {item.dateDisplay}
+                        </span>
+                      </div>
+                    </div>
 
- <Button asChild size="sm" className="h-8 rounded-xl font-bold text-xs bg-foreground text-background">
- <Link to="/evento/$id" params={{ id: event.id }}>
- <span>Ver Detalhes</span>
- <CaretRight size={14} className="ml-1" />
- </Link>
- </Button>
- </div>
- </div>
- ))}
- </div>
- </div>
- </div>
- )}
+                    <div className="p-3.5 space-y-1 flex-1 flex flex-col justify-between">
+                      <div>
+                        <h3 className="font-bold text-sm text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                          {item.title}
+                        </h3>
+                        {item.subtitle && (
+                          <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                            {item.subtitle}
+                          </p>
+                        )}
+                      </div>
 
- {/* MODO 2: GRADE EXPANDIDA */}
- {!isLoading && !isError && filteredEvents.length > 0 && viewMode === "grid" && (
- <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
- {filteredEvents.map((event) => (
- <div
- key={event.id}
- className="flex flex-col justify-between overflow-hidden rounded-2xl bg-card hover:border-foreground/30 transition-all group"
- >
- <Link to="/evento/$id" params={{ id: event.id }} className="block">
- <div className="aspect-16/10 relative overflow-hidden bg-muted">
- {event.cover_image && (
- <img
- src={event.cover_image}
- alt={event.title}
- className="absolute inset-0 size-full object-cover group-hover:scale-105 transition-transform duration-500"
- />
- )}
- <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+                      {item.location && (
+                        <div className="pt-2 border-t border-border/30 flex items-center justify-between text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1 truncate">
+                            <MapPin size={12} className="shrink-0 text-primary" />
+                            <span className="truncate">{item.location}</span>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
 
- <div className="absolute top-3 left-3 flex items-center gap-1.5">
- <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg border border-white/20">
- {formatDate(event.event_date)}
- </span>
- </div>
+                  <div className="p-3.5 pt-0 flex items-center justify-between border-t border-border/30">
+                    <span className="text-xs font-bold text-primary font-mono">
+                      {item.priceOrStatus}
+                    </span>
+                    <Button asChild size="sm" className="h-8 px-3 rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90">
+                      <Link to={item.to as any}>
+                        <span>{item.actionLabel}</span>
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
- <div className="absolute bottom-3 left-3 right-3">
- <h3 className="text-sm font-bold text-white leading-tight drop- line-clamp-2">
- {event.title}
- </h3>
- </div>
- </div>
+          {/* ── MODO 3: LISTA COMPACTA (Split com Imagem à Esquerda) ── */}
+          {viewMode === "list" && (
+            <div className="space-y-3">
+              {filteredItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="group flex flex-col sm:flex-row items-stretch justify-between rounded-2xl border border-border/60 bg-card hover:border-foreground/30 hover:shadow-xs transition-all overflow-hidden p-0 w-full"
+                >
+                  <Link
+                    to={item.to as any}
+                    className="relative w-full sm:w-56 md:w-64 h-40 sm:h-auto min-h-[130px] overflow-hidden bg-muted/40 shrink-0 cursor-pointer"
+                  >
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="size-full bg-muted/50 flex items-center justify-center">
+                        <CalendarDots size={28} className="text-muted-foreground/30" />
+                      </div>
+                    )}
+                    <div className="absolute top-2.5 left-2.5">
+                      <Badge className="bg-background/95 backdrop-blur-md text-foreground font-mono text-[9px] uppercase font-bold px-2 py-0.5 rounded-md border border-border/40">
+                        {item.badge}
+                      </Badge>
+                    </div>
+                  </Link>
 
- <div className="p-4 space-y-1.5 text-xs">
- {event.location && (
- <p className="flex items-center gap-1.5 text-muted-foreground font-medium">
- <MapPin size={14} className="shrink-0 text-foreground" />
- <span className="truncate">{event.location}</span>
- </p>
- )}
+                  <div className="flex-1 min-w-0 p-4 sm:p-5 flex flex-col justify-between space-y-2">
+                    <Link to={item.to as any} className="space-y-1 block cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono font-bold text-primary uppercase">
+                          {item.dateDisplay}
+                        </span>
+                      </div>
+                      <h3 className="font-bold text-sm sm:text-base text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                        {item.title}
+                      </h3>
+                      {item.subtitle && (
+                        <p className="text-xs text-muted-foreground line-clamp-1">
+                          {item.subtitle}
+                        </p>
+                      )}
+                    </Link>
 
- {event.description && (
- <p className="text-muted-foreground line-clamp-2 leading-relaxed text-xs">
- {event.description}
- </p>
- )}
- </div>
- </Link>
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/30">
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+                        <MapPin size={12} className="shrink-0 text-primary" />
+                        <span className="truncate">{item.location || "Na região"}</span>
+                      </span>
 
- <div className="p-4 pt-2.5 flex items-center justify-between">
- <Badge variant={(event as any).is_free ? "secondary" : "outline"} className="text-[10px] font-mono font-bold">
- {(event as any).is_free ? "Gratuito" : "Ingresso"}
- </Badge>
-
- <Button asChild size="sm" className="h-8 rounded-xl font-bold text-xs bg-foreground text-background">
- <Link to="/evento/$id" params={{ id: event.id }}>
- <span>Ver Detalhes</span>
- <CaretRight size={14} className="ml-1" />
- </Link>
- </Button>
- </div>
- </div>
- ))}
- </div>
- )}
-
- {/* MODO 3: LISTA COMPACTA (LARGURA MÁXIMA) */}
- {!isLoading && !isError && filteredEvents.length > 0 && viewMode === "list" && (
- <div className="flex flex-col space-y-3 w-full">
- {filteredEvents.map((event) => (
- <div
- key={event.id}
- className="flex items-center justify-between p-4 rounded-2xl bg-card hover:border-foreground/30 transition-all gap-4 w-full group"
- >
- <div className="flex items-center gap-4 min-w-0 flex-1">
- <div className="size-24 sm:size-28 rounded-2xl overflow-hidden bg-muted shrink-0 relative">
- {event.cover_image ? (
- <img
- src={event.cover_image}
- alt={event.title}
- className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
- loading="lazy"
- />
- ) : (
- <div className="size-full flex items-center justify-center text-muted-foreground/40">
- <Ticket size={28} />
- </div>
- )}
- </div>
-
- <div className="min-w-0 space-y-1.5">
- <div className="flex items-center gap-1.5 flex-wrap">
- <Badge variant="outline" className="text-[9px] font-mono font-bold uppercase px-1.5 py-0 rounded-md">
- {formatDate(event.event_date)}
- </Badge>
- <Badge variant={(event as any).is_free ? "secondary" : "outline"} className="text-[9px] font-mono rounded-md">
- {(event as any).is_free ? "Grátis" : "Ingresso"}
- </Badge>
- </div>
-
- <h3 className="font-bold text-sm sm:text-base text-foreground leading-snug line-clamp-1 group-hover:text-primary transition-colors">
- {event.title}
- </h3>
-
- {event.location && (
- <p className="text-xs text-muted-foreground flex items-center gap-1.5 truncate">
- <MapPin size={13} className="shrink-0 text-primary" />
- <span className="truncate">{event.location}</span>
- </p>
- )}
- </div>
- </div>
-
- <Button asChild size="sm" className="h-9 px-4 rounded-xl font-bold text-xs bg-foreground text-background shrink-0 hover:opacity-90 cursor-pointer">
- <Link to="/evento/$id" params={{ id: event.id }}>
- Ver Detalhes
- </Link>
- </Button>
- </div>
- ))}
- </div>
- )}
- </div>
- );
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-bold text-primary font-mono">
+                          {item.priceOrStatus}
+                        </span>
+                        <Button asChild size="sm" className="h-8 px-3 rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90">
+                          <Link to={item.to as any}>
+                            <span>{item.actionLabel}</span>
+                            <ArrowRight size={13} className="ml-1" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }

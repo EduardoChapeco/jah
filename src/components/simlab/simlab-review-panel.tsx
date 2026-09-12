@@ -3,7 +3,7 @@ import {
   ShieldCheck,
   ShieldAlert,
   AlertTriangle,
-  Sparkles,
+  Zap,
   TrendingUp,
   DollarSign,
   Users,

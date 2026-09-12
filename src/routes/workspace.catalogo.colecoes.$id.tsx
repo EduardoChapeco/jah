@@ -22,21 +22,21 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { getCollectionById, updateCollection } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/workspace/catalogo/colecoes/$id")({
- head: ({ loaderData }) => ({ meta: [{ title: `${(loaderData as any)?.name || "Coleção"} | Workspace Wider OS` }] }),
- loader: async ({ params }): Promise<any> => {
- try {
- const res = await getCollectionById({ data: { id: params.id } });
- if (res && res.id) return res;
- return null;
- } catch {
- return null;
- }
- },
- component: EditCollectionPage,
+  head: ({ loaderData }) => ({ meta: [{ title: `${(loaderData as any)?.collection?.name || (loaderData as any)?.name || "Coleção"} | Workspace Wider OS` }] }),
+  loader: async ({ params }): Promise<any> => {
+    try {
+      const res = await getCollectionById({ data: { id: params.id } });
+      return { collection: res || null };
+    } catch {
+      return { collection: null };
+    }
+  },
+  component: EditCollectionPage,
 });
 
 function EditCollectionPage() {
- const collection = Route.useLoaderData() as any;
+  const loaderData = (Route.useLoaderData() as any) || {};
+  const collection = loaderData.collection || (loaderData.id ? loaderData : null);
  const navigate = useNavigate();
  const [isSubmitting, setIsSubmitting] = useState(false);
 

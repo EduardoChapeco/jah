@@ -43,7 +43,7 @@ export const Route = createFileRoute("/workspace/pedidos/")({
  return { orders: orders || [], store };
    } catch (err) {
      console.error("[loader:workspace.pedidos.index] Unhandled loader error:", err);
-     return null;
+     return { orders: [], store: null };
    }
  },
  component: AdminOrdersPage,
@@ -89,7 +89,7 @@ function getStatusLabel(status: string, semantics?: any) {
 }
 
 function AdminOrdersPage() {
- const { orders: initialOrders, store } = Route.useLoaderData() as any;
+  const { orders: initialOrders = [], store = null } = ((Route.useLoaderData() as any) || {});
  const semantics = useMemo(() => getNicheSemantics(store), [store]);
  const router = useRouter();
  const [orders, setOrders] = useState<any[]>(initialOrders);

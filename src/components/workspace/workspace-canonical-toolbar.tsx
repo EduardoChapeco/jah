@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, BarChart3, Settings2, ChevronDown } from "lucide-react";
+import { Search, BarChart3, Settings2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -65,6 +65,7 @@ export interface WorkspaceCanonicalToolbarProps {
   onOpenDashboard?: () => void;
   onMetricsClick?: () => void;
   dashboardLabel?: string;
+  dashboardButtonLabel?: string;
   metricsBadge?: string;
   hasActiveMetrics?: boolean;
 
@@ -112,7 +113,8 @@ export function WorkspaceCanonicalToolbar({
   filterSlot,
   onOpenDashboard,
   onMetricsClick,
-  dashboardLabel = "Métricas",
+  dashboardLabel,
+  dashboardButtonLabel,
   metricsBadge,
   hasActiveMetrics = true,
   onConfigureColumns,
@@ -126,21 +128,29 @@ export function WorkspaceCanonicalToolbar({
   const currentActive = activeTab || activeViewMode;
   const handleTabSelect = onTabChange || onViewModeChange;
   const effectiveSearch = searchValue !== undefined ? searchValue : searchQuery;
+  const effectiveDashboardLabel = dashboardLabel || dashboardButtonLabel || "Métricas";
 
   const handleDashboard = onOpenDashboard || onMetricsClick;
   const handleColumns = onConfigureColumns || onColumnsClick;
 
+  const hasTabs = effectiveTabs.length > 0;
+  const hasControls = Boolean(
+    onSearchChange ||
+      (filters && filters.length > 0) ||
+      filterSlot ||
+      handleColumns ||
+      handleDashboard ||
+      secondaryAction ||
+      secondaryActions?.length ||
+      primaryAction
+  );
+
   return (
-    <div
-      className={cn(
-        "flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 py-1 min-h-[44px] select-none",
-        className
-      )}
-    >
-      {/* ── LADO ESQUERDO: Abas Semiarredondadas, Busca & Filtros ── */}
-      <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap flex-1 min-w-0">
-        {/* 1. Menu de Abas / View Switcher Semiarredondado (Padrão Apple HIG & Tarefas) */}
-        {effectiveTabs.length > 0 && (
+    <div className={cn("flex flex-col gap-3 py-1 select-none w-full", className)}>
+      {/* ── TIER 1: Abas de Visualização (Segmented Control Apple HIG) + Utilitários de Visão ── */}
+      {hasTabs && (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
+          {/* LADO ESQUERDO: Abas Segmentadas */}
           <div className="flex items-center p-1 rounded-2xl bg-muted/40 border border-border/60 shrink-0 gap-0.5 overflow-x-auto no-scrollbar max-w-full">
             {effectiveTabs.map((item) => {
               const Icon = item.icon;
@@ -153,7 +163,7 @@ export function WorkspaceCanonicalToolbar({
                   type="button"
                   onClick={() => handleTabSelect?.(item.id)}
                   className={cn(
-                    "flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer",
+                    "flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 min-h-[34px]",
                     isActive
                       ? "bg-background text-foreground shadow-2xs font-bold"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
@@ -183,128 +193,185 @@ export function WorkspaceCanonicalToolbar({
               );
             })}
           </div>
-        )}
 
-        {/* 2. Campo de Busca com Lupa Integrada */}
-        {onSearchChange && (
-          <div className="relative flex-1 max-w-xs min-w-[160px]">
-            <Search className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <Input
-              value={effectiveSearch || ""}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder={searchPlaceholder}
-              className="h-9 pl-8 pr-3 text-xs rounded-xl bg-card border-border/60 placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-primary w-full"
-            />
+          {/* LADO DIREITO DO TIER 1: Métricas & Customização de Colunas */}
+          {(handleDashboard || handleColumns) && (
+            <div className="flex items-center gap-2 shrink-0 justify-end">
+              {handleColumns && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleColumns}
+                  className="h-9 px-3 rounded-xl text-xs font-semibold border-border/70 text-muted-foreground hover:text-foreground hover:bg-muted/60 gap-1.5 cursor-pointer shadow-none"
+                  title="Personalizar Colunas do Kanban"
+                >
+                  <Settings2 className="size-3.5 text-muted-foreground" />
+                  <span className="hidden md:inline">Colunas</span>
+                </Button>
+              )}
+
+              {handleDashboard && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDashboard}
+                  className="h-9 px-3.5 rounded-xl text-xs font-semibold border-border/70 text-foreground hover:bg-muted/60 gap-2 cursor-pointer shadow-none relative"
+                >
+                  <BarChart3 className="size-3.5 text-primary" />
+                  <span>{effectiveDashboardLabel}</span>
+                  {metricsBadge ? (
+                    <span className="text-[10px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded-md border border-border/50 text-foreground">
+                      {metricsBadge}
+                    </span>
+                  ) : hasActiveMetrics ? (
+                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                  ) : null}
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TIER 2: Busca Rápida, Filtros e Ação Primária da Tela ── */}
+      {hasControls && (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
+          {/* LADO ESQUERDO: Campo de Busca com Lupa e Filtros */}
+          <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap sm:flex-nowrap">
+            {/* Campo de Busca */}
+            {onSearchChange && (
+              <div className="relative flex-1 sm:max-w-xs md:max-w-md min-w-[200px] w-full">
+                <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                <Input
+                  value={effectiveSearch || ""}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  placeholder={searchPlaceholder}
+                  className="h-10 pl-9 pr-8 text-xs rounded-xl bg-card border-border/60 placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-primary/40 w-full shadow-none"
+                />
+                {effectiveSearch && (
+                  <button
+                    type="button"
+                    onClick={() => onSearchChange("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                    title="Limpar busca"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Filtros Dropdown */}
+            {filters && filters.length > 0 && (
+              <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+                {filters.map((f) => (
+                  <Select key={f.id} value={f.value} onValueChange={f.onChange}>
+                    <SelectTrigger className="h-10 px-3 text-xs rounded-xl bg-card border-border/60 font-medium min-w-[130px] shadow-none">
+                      <SelectValue placeholder={f.label} />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {f.options.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value} className="text-xs rounded-lg">
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ))}
+              </div>
+            )}
+
+            {/* Slot Contextual */}
+            {filterSlot && <div className="flex items-center gap-1.5 shrink-0">{filterSlot}</div>}
           </div>
-        )}
 
-        {/* 3. Filtros Dropdown Estruturados */}
-        {filters && filters.length > 0 && (
-          <div className="flex items-center gap-2 shrink-0">
-            {filters.map((f) => (
-              <Select key={f.id} value={f.value} onValueChange={f.onChange}>
-                <SelectTrigger className="h-9 px-3 text-xs rounded-xl bg-card border-border/60 font-medium min-w-[130px]">
-                  <SelectValue placeholder={f.label} />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {f.options.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs rounded-lg">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ))}
-          </div>
-        )}
+          {/* LADO DIREITO: Ações Secundárias, Métricas (se não houver abas) e CTA Primário */}
+          <div className="flex items-center gap-2 shrink-0 justify-start sm:justify-end flex-wrap sm:flex-nowrap">
+            {/* Se NÃO houver abas, exibimos Métricas e Colunas aqui na linha única */}
+            {!hasTabs && handleColumns && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleColumns}
+                className="h-10 px-3 rounded-xl text-xs font-semibold border-border/70 text-muted-foreground hover:text-foreground hover:bg-muted/60 gap-1.5 cursor-pointer shadow-none"
+                title="Personalizar Colunas do Kanban"
+              >
+                <Settings2 className="size-3.5 text-muted-foreground" />
+                <span className="hidden md:inline">Colunas</span>
+              </Button>
+            )}
 
-        {/* 4. Slot Contextual Adicional */}
-        {filterSlot && <div className="flex items-center gap-1.5 shrink-0">{filterSlot}</div>}
-      </div>
+            {!hasTabs && handleDashboard && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleDashboard}
+                className="h-10 px-3.5 rounded-xl text-xs font-semibold border-border/70 text-foreground hover:bg-muted/60 gap-2 cursor-pointer shadow-none relative"
+              >
+                <BarChart3 className="size-3.5 text-primary" />
+                <span>{effectiveDashboardLabel}</span>
+                {metricsBadge ? (
+                  <span className="text-[10px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded-md border border-border/50 text-foreground">
+                    {metricsBadge}
+                  </span>
+                ) : hasActiveMetrics ? (
+                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                ) : null}
+              </Button>
+            )}
 
-      {/* ── LADO DIREITO: Métricas, Colunas, Secundárias & Primária ── */}
-      <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0 justify-start sm:justify-end w-full sm:w-auto">
-        {/* Botão de Colunas do Kanban */}
-        {handleColumns && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleColumns}
-            className="h-9 px-2.5 rounded-xl text-xs font-semibold border-border/70 text-muted-foreground hover:text-foreground hover:bg-muted/60 gap-1.5 cursor-pointer shadow-none"
-            title="Personalizar Colunas do Kanban"
-          >
-            <Settings2 className="size-3.5 text-muted-foreground" />
-            <span className="hidden md:inline">Colunas</span>
-          </Button>
-        )}
+            {/* Ação Secundária */}
+            {secondaryAction && (
+              <Button
+                type="button"
+                variant={secondaryAction.variant || "outline"}
+                size="sm"
+                onClick={secondaryAction.onClick}
+                className="h-10 px-3.5 rounded-xl text-xs font-semibold border-border/70 text-foreground hover:bg-muted/60 gap-1.5 cursor-pointer shadow-none"
+              >
+                {secondaryAction.icon && <secondaryAction.icon className="size-3.5" />}
+                <span>{secondaryAction.label}</span>
+              </Button>
+            )}
 
-        {/* Botão de Métricas & Dashboard Sob Demanda */}
-        {handleDashboard && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleDashboard}
-            className="h-9 px-3 rounded-xl text-xs font-semibold border-border/70 text-foreground hover:bg-muted/60 gap-1.5 cursor-pointer shadow-none relative"
-          >
-            <BarChart3 className="size-3.5 text-primary" />
-            <span>{dashboardLabel}</span>
-            {metricsBadge ? (
-              <span className="text-[10px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded-md border border-border/50 text-foreground">
-                {metricsBadge}
-              </span>
-            ) : hasActiveMetrics ? (
-              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            {/* Lista de Ações Secundárias */}
+            {secondaryActions &&
+              secondaryActions.map((act, i) => (
+                <Button
+                  key={i}
+                  type="button"
+                  variant={act.variant || "outline"}
+                  size="sm"
+                  onClick={act.onClick}
+                  className="h-10 px-3.5 rounded-xl text-xs font-semibold border-border/70 text-foreground hover:bg-muted/60 gap-1.5 cursor-pointer shadow-none"
+                >
+                  {act.icon && <act.icon className="size-3.5" />}
+                  <span>{act.label}</span>
+                </Button>
+              ))}
+
+            {/* Ação Primária da Tela (Botão Principal) */}
+            {React.isValidElement(primaryAction) ? (
+              primaryAction
+            ) : primaryAction && typeof primaryAction === "object" && "label" in primaryAction ? (
+              <Button
+                type="button"
+                size="sm"
+                onClick={(primaryAction as WorkspaceCanonicalAction).onClick}
+                className="h-10 px-4 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 cursor-pointer shadow-none min-h-[40px]"
+              >
+                {(primaryAction as WorkspaceCanonicalAction).icon &&
+                  React.createElement((primaryAction as WorkspaceCanonicalAction).icon!, { className: "size-3.5" })}
+                <span>{(primaryAction as WorkspaceCanonicalAction).label}</span>
+              </Button>
             ) : null}
-          </Button>
-        )}
-
-        {/* Ações Secundárias */}
-        {secondaryAction && (
-          <Button
-            type="button"
-            variant={secondaryAction.variant || "outline"}
-            size="sm"
-            onClick={secondaryAction.onClick}
-            className="h-9 px-3 rounded-xl text-xs font-semibold border-border/70 text-foreground hover:bg-muted/60 gap-1.5 cursor-pointer shadow-none"
-          >
-            {secondaryAction.icon && <secondaryAction.icon className="size-3.5" />}
-            <span>{secondaryAction.label}</span>
-          </Button>
-        )}
-
-        {secondaryActions &&
-          secondaryActions.map((act, i) => (
-            <Button
-              key={i}
-              type="button"
-              variant={act.variant || "outline"}
-              size="sm"
-              onClick={act.onClick}
-              className="h-9 px-3 rounded-xl text-xs font-semibold border-border/70 text-foreground hover:bg-muted/60 gap-1.5 cursor-pointer shadow-none"
-            >
-              {act.icon && <act.icon className="size-3.5" />}
-              <span>{act.label}</span>
-            </Button>
-          ))}
-
-        {/* Ação Primária da Tela */}
-        {React.isValidElement(primaryAction) ? (
-          primaryAction
-        ) : primaryAction && typeof primaryAction === "object" && "label" in primaryAction ? (
-          <Button
-            type="button"
-            size="sm"
-            onClick={(primaryAction as WorkspaceCanonicalAction).onClick}
-            className="h-9 px-3.5 rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 gap-1.5 cursor-pointer shadow-none"
-          >
-            {(primaryAction as WorkspaceCanonicalAction).icon &&
-              React.createElement((primaryAction as WorkspaceCanonicalAction).icon!, { className: "size-3.5" })}
-            <span>{(primaryAction as WorkspaceCanonicalAction).label}</span>
-          </Button>
-        ) : null}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

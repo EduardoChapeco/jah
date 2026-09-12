@@ -16,24 +16,7 @@ interface MediaUploaderProps {
  className?: string;
 }
 
-const PRESET_DEMO_IMAGES = [
- {
- label: "Moda / Editorial",
- url: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&auto=format&fit=crop&q=80",
- },
- {
- label: "Turismo & Viagens",
- url: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&auto=format&fit=crop&q=80",
- },
- {
- label: "Gastronomia",
- url: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1600&auto=format&fit=crop&q=80",
- },
- {
- label: "Produtos Minimalistas",
- url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1600&auto=format&fit=crop&q=80",
- },
-];
+const PRESET_DEMO_IMAGES: Array<{ label: string; url: string }> = [];
 
 export function MediaUploader({
  value,

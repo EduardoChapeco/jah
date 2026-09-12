@@ -87,7 +87,7 @@ export const Route = createFileRoute("/_store/beleza")({
  };
    } catch (err) {
      console.error("[loader:_store.beleza] Unhandled error:", err);
-     return null;
+     return { banners: null, hotpages: null, marketplaceFeed: null, packages: null, catalogProducts: null };
    }
  },
  component: BelezaVerticalPage,
@@ -95,7 +95,7 @@ export const Route = createFileRoute("/_store/beleza")({
 });
 
 function BelezaVerticalPage() {
- const { banners, hotpages, marketplaceFeed, packages } = Route.useLoaderData();
+ const { banners, hotpages, marketplaceFeed, packages } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch();
  const navigate = useNavigate({ from: Route.fullPath });
 
@@ -231,7 +231,6 @@ function BelezaVerticalPage() {
  onSelectCategory={handleDepartmentChange}
  viewMode={viewMode}
  onViewModeChange={handleViewModeChange}
- resultsCount={filteredProducts.length}
  />
 
  {/* ── 5. Renderização do Feed Modular ou Grade Filtrada ── */}

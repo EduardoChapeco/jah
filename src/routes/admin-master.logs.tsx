@@ -20,7 +20,7 @@ export const Route = createFileRoute("/admin-master/logs")({
 });
 
 function SystemLogsPage() {
- const { logs } = Route.useLoaderData();
+ const { logs } = ((Route.useLoaderData?.() as any) || {});
 
  return (
  <div className="space-y-6 max-w-7xl mx-auto px-4 md:px-8 py-6">

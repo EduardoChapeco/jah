@@ -61,14 +61,14 @@ export const Route = createFileRoute("/workspace/catalogo/tabelas")({
  return { tables };
    } catch (err) {
      console.error("[loader:workspace.catalogo.tabelas] Unhandled loader error:", err);
-     return null;
+     return { tables: null };
    }
  },
  component: WorkspacePriceTablesPage,
 });
 
 function WorkspacePriceTablesPage() {
- const { tables: initialTables } = Route.useLoaderData() as any;
+ const { tables: initialTables } = ((Route.useLoaderData?.() as any) || {});
  const [tables, setTables] = useState<PriceTableDTO[]>(initialTables || []);
  const [selectedTable, setSelectedTable] = useState<PriceTableDTO | null>(
  initialTables && initialTables.length > 0 ? initialTables[0] : null,
@@ -429,7 +429,7 @@ function WorkspacePriceTablesPage() {
 
  {/* Drawer Lateral no Desktop / Fullscreen no Mobile: Criar Tabela */}
  <Sheet open={isModalOpen} onOpenChange={setIsModalOpen}>
- <SheetContent side="right" className="w-full sm:max-w-md flex flex-col justify-between overflow-y-auto no-scrollbar">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-3xl lg:max-w-[70vw] xl:max-w-[70vw] flex flex-col justify-between overflow-y-auto no-scrollbar">
  <div>
  <SheetHeader className="pb-4">
  <SheetTitle>Nova Tabela de Preços</SheetTitle>

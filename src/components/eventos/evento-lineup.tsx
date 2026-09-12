@@ -112,7 +112,7 @@ export function EventoLineup({ eventId }: EventoLineupProps) {
               <span>Nova Atração</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-full sm:max-w-md p-6">
+          <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-6">
             <SheetHeader>
               <SheetTitle className="text-lg font-bold">Cadastrar Atração / Show</SheetTitle>
               <SheetDescription className="text-xs text-muted-foreground">

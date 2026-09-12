@@ -67,7 +67,7 @@ export const Route = createFileRoute("/_store/ofertas")({
  return { dealsPage, banners, hotpages };
    } catch (err) {
      console.error("[loader:_store.ofertas] Unhandled error:", err);
-     return null;
+     return { dealsPage: null, banners: null, hotpages: null };
    }
  },
  component: OfertasPage,
@@ -75,7 +75,7 @@ export const Route = createFileRoute("/_store/ofertas")({
 });
 
 function OfertasPage() {
- const { dealsPage, banners, hotpages } = Route.useLoaderData();
+ const { dealsPage, banners, hotpages } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch();
  const navigate = useNavigate({ from: Route.fullPath });
 

@@ -39,9 +39,16 @@ import {
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/imoveis/manutencoes")({
- head: () => ({ meta: [{ title: "Manutenções & Reparos de Imóveis | Workspace Wider OS" }] }),
- loader: () => listPropertyMaintenanceRequests(),
- component: PropertyMaintenanceDashboard,
+  head: () => ({ meta: [{ title: "Manutenções & Reparos de Imóveis | Workspace Wider OS" }] }),
+  loader: async () => {
+    try {
+      return (await listPropertyMaintenanceRequests().catch(() => [])) || [];
+    } catch (err) {
+      console.error("[loader:workspace.imoveis.manutencoes] Unhandled loader error:", err);
+      return [];
+    }
+  },
+  component: PropertyMaintenanceDashboard,
 });
 
 function PropertyMaintenanceDashboard() {

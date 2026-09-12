@@ -39,7 +39,7 @@ export const Route = createFileRoute(
  return { store, initialProviders: providers };
    } catch (err) {
      console.error("[loader:workspace.configuracoes.inteligencia-artificial] Unhandled loader error:", err);
-     return null;
+     return { store: null, initialProviders: null };
    }
  },
  component: WorkspaceAiSettingsPage,

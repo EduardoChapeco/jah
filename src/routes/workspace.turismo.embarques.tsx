@@ -58,13 +58,37 @@ import {
 } from '@/services/travel-departures.functions';
 import { DEPARTURE_STAGES, type DepartureStage } from '@/types/travel-departures';
 import { useWorkspaceStore } from '@/lib/store-context';
+import { listCustomers } from '@/services/crm.functions';
 
 export const Route = createFileRoute('/workspace/turismo/embarques')({
   head: () => ({ meta: [{ title: 'Embarques & Calendário | Workspace' }] }),
   loader: async () => {
-    const store = await getStoreSettings().catch(() => null);
-    return { store };
+    try {
+      const store = await getStoreSettings().catch(() => null);
+      return { store };
+    } catch {
+      return { store: null };
+    }
   },
+  errorComponent: ({ error }: { error: any }) => (
+    <div className="p-6 m-4 rounded-2xl border border-destructive/30 bg-destructive/5 text-destructive space-y-2">
+      <div className="flex items-center gap-2 font-bold text-sm">
+        <AlertTriangle className="size-4" />
+        <span>Falha ao carregar a página de Embarques</span>
+      </div>
+      <p className="text-xs text-muted-foreground font-mono">
+        {error?.message || "Erro ao conectar com o serviço de embarques."}
+      </p>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => window.location.reload()}
+        className="mt-2 text-xs"
+      >
+        Tentar Novamente
+      </Button>
+    </div>
+  ),
   component: WorkspaceBoardingPage,
 });
 
@@ -120,7 +144,7 @@ function isSameDay(d1: Date, d2: Date) {
 }
 
 // ── Main Page Component ──
-export default function WorkspaceBoardingPage() {
+function WorkspaceBoardingPage() {
   const loaderData = Route.useLoaderData?.() as any;
   const { currentStore } = useWorkspaceStore();
   const qc = useQueryClient();
@@ -176,6 +200,13 @@ export default function WorkspaceBoardingPage() {
     queryFn: () => getDepartureWithChecklist({ data: { departure_id: selectedDepartureId! } }),
     enabled: Boolean(selectedDepartureId),
   });
+
+  const { data: crmData } = useQuery({
+    queryKey: ['crm-customers-for-departures', storeId],
+    queryFn: () => listCustomers({ data: {} }),
+    enabled: Boolean(storeId),
+  });
+  const crmCustomers = crmData?.customers || [];
 
   // ── Mutations ──
   const createMutation = useMutation({
@@ -651,7 +682,8 @@ export default function WorkspaceBoardingPage() {
       <Sheet open={Boolean(selectedDepartureId)} onOpenChange={(o) => !o && setSelectedDepartureId(null)}>
         <SheetContent
           side="right"
-          className="sm:max-w-lg md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 flex flex-col h-full bg-card overflow-hidden"
+          size="wide"
+          className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 flex flex-col h-full bg-card overflow-hidden"
         >
           {detailLoading ? (
             <div className="flex-1 flex items-center justify-center">
@@ -1079,7 +1111,8 @@ export default function WorkspaceBoardingPage() {
       <Sheet open={newOpen} onOpenChange={setNewOpen}>
         <SheetContent
           side="right"
-          className="sm:max-w-lg md:max-w-xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 flex flex-col h-full bg-card overflow-hidden"
+          size="wide"
+          className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 flex flex-col h-full bg-card overflow-hidden"
         >
           <SheetHeader className="px-5 py-4 border-b border-border/60 bg-muted/20 shrink-0">
             <SheetTitle className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -1093,6 +1126,30 @@ export default function WorkspaceBoardingPage() {
             className="flex-1 flex flex-col overflow-hidden"
           >
             <div className="flex-1 overflow-y-auto no-scrollbar p-5 space-y-4">
+              {crmCustomers.length > 0 && (
+                <div className="space-y-1.5 p-3 rounded-xl border border-border/70 bg-muted/20">
+                  <Label className="text-[11px] font-semibold text-muted-foreground">Vincular Cliente da Carteira (CRM)</Label>
+                  <select
+                    className="w-full h-9 px-2.5 rounded-lg border border-input bg-background text-xs font-medium focus:outline-none"
+                    onChange={e => {
+                      const sel = crmCustomers.find((c: any) => c.id === e.target.value);
+                      if (sel) {
+                        setClientName(sel.full_name || sel.legal_name || "");
+                        if (sel.phone || sel.mobile) setClientPhone(sel.phone || sel.mobile || "");
+                      }
+                    }}
+                    defaultValue=""
+                  >
+                    <option value="">Selecionar cliente existente...</option>
+                    {crmCustomers.map((c: any) => (
+                      <option key={c.id} value={c.id}>
+                        {c.full_name || c.legal_name} {c.phone ? `(${c.phone})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1 sm:col-span-2">
                   <Label className="text-xs font-semibold">Passageiro Titular *</Label>

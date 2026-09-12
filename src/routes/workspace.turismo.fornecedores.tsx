@@ -16,7 +16,6 @@ import {
  Layers,
  Globe,
 } from 'lucide-react';
-import { PageHeader } from '@/components/commerce/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -36,14 +35,14 @@ export const Route = createFileRoute('/workspace/turismo/fornecedores')({
  return { store };
    } catch (err) {
      console.error("[loader:workspace.turismo.fornecedores] Unhandled loader error:", err);
-     return null;
+     return { store: null };
    }
  },
  component: WorkspaceSuppliersPage,
 });
 
 function WorkspaceSuppliersPage() {
- const { store } = Route.useLoaderData();
+ const { store } = ((Route.useLoaderData?.() as any) || {});
  const storeId = store?.id || '';
 
  const [search, setSearch] = useState('');

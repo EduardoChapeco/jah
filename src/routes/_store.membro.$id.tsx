@@ -1,5 +1,6 @@
 import { CreatorAnalyticsCard } from "@/components/social/creator-analytics-card";
 import { ThreadsFeedCard } from "@/components/social/threads-feed-card";
+import { CreatorProfileSheetEditor, CreatorProfileSheetData } from "@/components/profile/creator-profile-sheet-editor";
 import {
  Sheet,
  SheetContent,
@@ -10,8 +11,11 @@ import {
  SheetTrigger,
 } from "@/components/ui/sheet";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
-import { Package, Settings, User, MessageSquare, Tag, MapPin, Briefcase, Globe, Instagram, Store, Check, Plus, Edit3, Share2, Layers, ExternalLink, MessageCircle, GraduationCap, Grid, List, ArrowLeft, Building2, Clock, ShieldCheck, Award, Calendar, Send, ShoppingBag, Trash2, FileText, Upload, HeartHandshake, Languages, X, UserPlus, Eye, ChevronRight, Heart, Activity } from 'lucide-react';
+import { useState, useMemo, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getAffiliateShowcaseProducts, getAvailablePartnerStores, upsertCreatorProfile } from "@/services/affiliates.functions";
+import { Package, Settings, User, MessageSquare, Tag, MapPin, Briefcase, Globe, Instagram, Store, Check, Plus, Edit3, Share2, Layers, ExternalLink, MessageCircle, GraduationCap, Grid, List, ArrowLeft, Building2, Clock, ShieldCheck, Award, Calendar, Send, ShoppingBag, Trash2, FileText, Upload, HeartHandshake, Languages, X, UserPlus, Eye, ChevronRight, Heart, Activity, Camera } from 'lucide-react';
+import { ImageUpload } from "@/components/ui/image-upload";
 import { MediaLightboxModal } from "@/components/community/media-lightbox-modal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -86,9 +90,10 @@ export const Route = createFileRoute("/_store/membro/$id")({
 });
 
 export default function MemberPublicProfilePage() {
- const { data } = Route.useLoaderData();
+ const { data } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch();
- return <MemberPublicProfileView data={data} activeMode={search.modo || "social"} />;
+ const defaultMode = data?.isCreator ? "comercial" : "social";
+ return <MemberPublicProfileView data={data} activeMode={search.modo || defaultMode} />;
 }
 
 // 14 Causas sociais pré-cadastradas
@@ -124,6 +129,13 @@ export function MemberPublicProfileView({
  const classifieds = (data?.classifieds || []) as any[];
  const posts = (data?.posts || []) as any[];
  const stats = data?.stats || { followersCount: 0, followingCount: 0, postsCount: 0 };
+ const creatorProfile = data?.creatorProfile || null;
+ const isCreator = Boolean(data?.isCreator);
+ const creatorPartnerStores = (data?.partnerStores && data.partnerStores.length > 0) ? data.partnerStores : [];
+ const creatorShowcaseProducts = (data?.pinnedProducts && data.pinnedProducts.length > 0)
+   ? data.pinnedProducts.map((p: any) => p.product || p)
+   : [];
+ const creatorEvents = (data?.creatorEvents || []) as any[];
 
  const [isFollowing, setIsFollowing] = useState(Boolean(data?.isFollowing));
  const [followersCount, setFollowersCount] = useState(stats.followersCount || 0);
@@ -133,7 +145,7 @@ export function MemberPublicProfileView({
  const [resumeData, setResumeData] = useState<any>(profile?.resume_data || {});
  const [isSavingResume, setIsSavingResume] = useState(false);
  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
- const [socialTab, setSocialTab] = useState<"posts" | "media" | "saved" | "liked">("posts");
+ const [socialTab, setSocialTab] = useState<"posts" | "media" | "saved" | "liked" | "events">("posts");
  const [postViewMode, setPostViewMode] = useState<"feed" | "grid">("grid");
 
  // Lightbox Modal para fotos individuais
@@ -152,6 +164,7 @@ export function MemberPublicProfileView({
  | "volunteering"
  | "causes"
  | "languages"
+ | "creator_profile"
  | null
  >(null);
 
@@ -165,6 +178,26 @@ export function MemberPublicProfileView({
  const [showAllProjects, setShowAllProjects] = useState(false);
  const [showAllVolunteering, setShowAllVolunteering] = useState(false);
  const [isBioExpanded, setIsBioExpanded] = useState(false);
+
+ // Queries para a Vitrine Comercial de Afiliados/Criador
+ const { data: showcaseProducts = [], isLoading: isLoadingProducts } = useQuery({
+  queryKey: ["affiliate-showcase-products", profile?.id],
+  queryFn: () => getAffiliateShowcaseProducts({ data: { affiliateId: profile?.id } }),
+  enabled: activeMode === "comercial" && !!profile?.id,
+ });
+
+ const { data: partnerStores = [] } = useQuery({
+  queryKey: ["affiliate-partner-stores"],
+  queryFn: () => getAvailablePartnerStores(),
+  enabled: activeMode === "comercial",
+ });
+
+ const handleAffiliateProductClick = (_storeSlug: string, _productSlug: string) => {
+  if (typeof window !== "undefined" && profile?.username) {
+    localStorage.setItem("wider_affiliate_ref", profile.username);
+    document.cookie = `wider_affiliate_ref=${encodeURIComponent(profile.username)}; max-age=${30 * 86400}; path=/; SameSite=Lax`;
+  }
+ };
 
  if (!profile) {
  return (
@@ -381,62 +414,124 @@ export function MemberPublicProfileView({
 
       {/* ── 2. Seletor de Tipo de Perfil & Ação Editar (Abaixo do Top Bar) ── */}
       <div className="flex items-center justify-between gap-2 px-1">
-        {/* Switcher de Modos: Social, Profissional, Comercial */}
+        {/* Switcher de Modos: Social, Profissional, Comercial / Vitrine */}
         <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/40 text-xs font-semibold">
-          <Link
-            to="/membro/$id"
-            params={{ id: profile.username || profile.id }}
-            search={{ modo: "social" }}
-            className={cn(
-              "px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer",
-              activeMode === "social"
-                ? "bg-background text-foreground font-bold shadow-2xs"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            Social
-          </Link>
-          <Link
-            to="/membro/$id"
-            params={{ id: profile.username || profile.id }}
-            search={{ modo: "profissional" }}
-            className={cn(
-              "px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer",
-              activeMode === "profissional"
-                ? "bg-background text-foreground font-bold shadow-2xs"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            Profissional
-          </Link>
-          <Link
-            to="/membro/$id"
-            params={{ id: profile.username || profile.id }}
-            search={{ modo: "comercial" }}
-            className={cn(
-              "px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer",
-              activeMode === "comercial"
-                ? "bg-background text-foreground font-bold shadow-2xs"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            Comercial
-          </Link>
+          {isCreator ? (
+            <>
+              <Link
+                to="/membro/$id"
+                params={{ id: profile.username || profile.id }}
+                search={{ modo: "comercial" }}
+                className={cn(
+                  "px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer",
+                  activeMode === "comercial"
+                    ? "bg-background text-foreground font-bold shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Vitrine & Parcerias
+              </Link>
+              <Link
+                to="/membro/$id"
+                params={{ id: profile.username || profile.id }}
+                search={{ modo: "social" }}
+                className={cn(
+                  "px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer",
+                  activeMode === "social"
+                    ? "bg-background text-foreground font-bold shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Publicações
+              </Link>
+              <Link
+                to="/membro/$id"
+                params={{ id: profile.username || profile.id }}
+                search={{ modo: "profissional" }}
+                className={cn(
+                  "px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer",
+                  activeMode === "profissional"
+                    ? "bg-background text-foreground font-bold shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Sobre
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/membro/$id"
+                params={{ id: profile.username || profile.id }}
+                search={{ modo: "social" }}
+                className={cn(
+                  "px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer",
+                  activeMode === "social"
+                    ? "bg-background text-foreground font-bold shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Social
+              </Link>
+              <Link
+                to="/membro/$id"
+                params={{ id: profile.username || profile.id }}
+                search={{ modo: "profissional" }}
+                className={cn(
+                  "px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer",
+                  activeMode === "profissional"
+                    ? "bg-background text-foreground font-bold shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Profissional
+              </Link>
+              <Link
+                to="/membro/$id"
+                params={{ id: profile.username || profile.id }}
+                search={{ modo: "comercial" }}
+                className={cn(
+                  "px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer",
+                  activeMode === "comercial"
+                    ? "bg-background text-foreground font-bold shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Comercial
+              </Link>
+            </>
+          )}
         </div>
 
-        {/* Botão Editar — só no mobile (desktop usa botão no card do perfil) */}
+        {/* Botão de Edição Rápida */}
         {isOwner && (
-          <Button
-            asChild
-            size="sm"
-            variant="outline"
-            className="h-8 rounded-xl text-xs font-semibold gap-1.5 border-border/70 sm:hidden"
-          >
-            <Link to="/conta/perfil">
-              <Edit3 className="size-3.5" />
-              <span>Editar</span>
-            </Link>
-          </Button>
+          <div className="flex items-center gap-1.5">
+            {isCreator ? (
+              <Button
+                asChild
+                size="sm"
+                variant="outline"
+                className="h-8 rounded-xl text-xs font-semibold gap-1.5 border-border/70 sm:hidden cursor-pointer"
+              >
+                <Link to="/conta/perfil" search={{ tab: "criador" }}>
+                  <Layers className="size-3.5 text-primary" />
+                  <span>Editar Vitrine da Marca</span>
+                </Link>
+              </Button>
+            ) : (
+              <Button
+                asChild
+                size="sm"
+                variant="outline"
+                className="h-8 rounded-xl text-xs font-semibold gap-1.5 border-border/70 sm:hidden cursor-pointer"
+              >
+                <Link to="/conta/perfil" search={{ tab: "dados" }}>
+                  <Edit3 className="size-3.5" />
+                  <span>Editar Perfil</span>
+                </Link>
+              </Button>
+            )}
+          </div>
         )}
       </div>
 
@@ -444,29 +539,50 @@ export function MemberPublicProfileView({
  <div className="rounded-2xl bg-card border border-border/40 p-4 sm:p-6 space-y-6 shadow-xs">
  {/* Faixa Superior Panorâmica: Foto + Capa Panorâmica 1090px com Card de Stats no Término */}
  <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
- {/* Foto de Perfil em Squircle 1:1 (Altura Fixa h-28 sm:h-36) */}
- <div className="flex-shrink-0">
- <Avatar className="size-28 sm:size-36 rounded-2xl ring-2 ring-border/60 bg-muted flex-shrink-0 shadow-xs">
- <AvatarImage src={profile.avatar_url || ""} alt={profile.full_name} className="object-cover" />
- <AvatarFallback className="text-2xl sm:text-3xl font-extrabold bg-muted text-foreground rounded-2xl">
- {profile.full_name?.slice(0, 2)?.toUpperCase() || "WD"}
- </AvatarFallback>
- </Avatar>
- </div>
+          {/* Foto de Perfil em Squircle 1:1 (Altura Fixa h-28 sm:h-36) */}
+          <div className="flex-shrink-0 relative group">
+            <Avatar className="size-28 sm:size-36 rounded-2xl ring-2 ring-border/60 bg-muted flex-shrink-0 shadow-xs">
+              <AvatarImage src={profile.avatar_url || ""} alt={profile.full_name} className="object-cover" />
+              <AvatarFallback className="text-2xl sm:text-3xl font-extrabold bg-muted text-foreground rounded-2xl">
+                {profile.full_name?.slice(0, 2)?.toUpperCase() || "WD"}
+              </AvatarFallback>
+            </Avatar>
+            {isOwner && isCreator && (
+              <Link
+                to="/conta/perfil"
+                search={{ tab: "criador" }}
+                className="absolute inset-0 bg-black/40 text-white rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-xs font-semibold gap-1 cursor-pointer"
+                title="Alterar Logo/Foto da Marca"
+              >
+                <Camera className="size-5" />
+                <span className="text-[10px]">Alterar</span>
+              </Link>
+            )}
+          </div>
 
- {/* Container da Capa Panorâmica (min-w-[1090px]) com Scroll Horizontal Fluido */}
- <div className="flex-1 h-28 sm:h-36 rounded-2xl bg-muted/30 overflow-x-auto no-scrollbar overflow-y-hidden flex items-center gap-3 pr-3 border border-border/40">
- {(profile.cover_url || profile.coverUrl || profile.banner_url) ? (
- <img
- src={profile.cover_url || profile.coverUrl || profile.banner_url}
- alt="Capa do perfil"
- className="h-full min-w-[1090px] object-cover flex-shrink-0 select-none rounded-2xl"
- />
- ) : (
- <div className="h-full min-w-[1090px] bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex items-center justify-center rounded-2xl">
- <Layers className="size-8 text-primary/30" />
- </div>
- )}
+          {/* Container da Capa Panorâmica (min-w-[1090px]) com Scroll Horizontal Fluido */}
+          <div className="flex-1 h-28 sm:h-36 rounded-2xl bg-muted/30 overflow-x-auto no-scrollbar overflow-y-hidden flex items-center gap-3 pr-3 border border-border/40 relative">
+            {(profile.cover_url || profile.coverUrl || profile.banner_url) ? (
+              <img
+                src={profile.cover_url || profile.coverUrl || profile.banner_url}
+                alt="Capa do perfil"
+                className="h-full min-w-[1090px] object-cover flex-shrink-0 select-none rounded-2xl"
+              />
+            ) : (
+              <div className="h-full min-w-[1090px] bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex items-center justify-center rounded-2xl">
+                <Layers className="size-8 text-primary/30" />
+              </div>
+            )}
+            {isOwner && isCreator && (
+              <Link
+                to="/conta/perfil"
+                search={{ tab: "criador" }}
+                className="absolute top-3 right-3 bg-background/80 hover:bg-background text-foreground backdrop-blur-md px-3 py-1.5 rounded-xl border border-border/60 text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition-colors"
+              >
+                <Camera className="size-3.5" />
+                <span>Alterar Capa da Marca</span>
+              </Link>
+            )}
 
  {/* Card de Stats ao Final da Capa Panorâmica (Direto, sem título redundante) */}
  <div className="h-full min-w-[220px] flex-shrink-0 bg-background/90 backdrop-blur-md rounded-2xl border border-border/60 p-4 flex flex-col justify-center shadow-xs">
@@ -538,16 +654,31 @@ export function MemberPublicProfileView({
  >
  <span>Disponibilidade</span>
  </Button>
- <Button
- asChild
- size="sm"
- variant="outline"
- className="hidden sm:inline-flex h-9 px-4 rounded-xl font-semibold text-xs gap-1.5 cursor-pointer"
- >
- <Link to="/conta/perfil">
- <span>Editar Perfil</span>
- </Link>
- </Button>
+ {isCreator ? (
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className="hidden sm:inline-flex h-9 px-4 rounded-xl font-semibold text-xs gap-1.5 cursor-pointer"
+                    >
+                      <Link to="/conta/perfil" search={{ tab: "criador" }}>
+                        <Layers className="size-3.5 text-primary" />
+                        <span>Editar Vitrine da Marca</span>
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className="hidden sm:inline-flex h-9 px-4 rounded-xl font-semibold text-xs gap-1.5 cursor-pointer"
+                    >
+                      <Link to="/conta/perfil" search={{ tab: "dados" }}>
+                        <Edit3 className="size-3.5" />
+                        <span>Editar Perfil</span>
+                      </Link>
+                    </Button>
+                  )}
  </>
  ) : (
  <>
@@ -1585,12 +1716,280 @@ export function MemberPublicProfileView({
  <p className="text-sm font-medium">Publicações que você curtiu na comunidade Wider.</p>
  </div>
  )}
+
+ {/* Conteúdo da Aba: Eventos da Marca/Artista */}
+ {socialTab === "events" && (
+ <div className="space-y-4">
+ {creatorEvents.length === 0 ? (
+ <div className="py-16 text-center text-muted-foreground space-y-3 rounded-2xl bg-card border border-border/40">
+ <Calendar className="size-10 mx-auto text-muted-foreground/30" />
+ <p className="text-sm font-medium">Nenhum evento público agendado no momento.</p>
+ </div>
+ ) : (
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+ {creatorEvents.map((evt: any) => (
+ <div
+ key={evt.id}
+ className="p-4 rounded-2xl border border-border/60 bg-card flex items-start gap-4 shadow-xs"
+ >
+ <div className="size-16 rounded-xl bg-muted/60 overflow-hidden shrink-0 border border-border/40">
+ {evt.cover_image ? (
+ <img src={evt.cover_image} alt={evt.title} className="size-full object-cover" />
+ ) : (
+ <div className="size-full flex items-center justify-center text-muted-foreground">
+ <Calendar className="size-6" />
+ </div>
+ )}
+ </div>
+ <div className="space-y-1 min-w-0 flex-1">
+ <h4 className="text-sm font-bold text-foreground truncate">{evt.title}</h4>
+ <p className="text-xs text-muted-foreground">
+ {evt.event_date ? formatDate(evt.event_date) : "Data a definir"} • {evt.location || evt.city || "Chapecó"}
+ </p>
+ <Badge variant="secondary" className="text-[10px]">
+ {evt.is_free ? "Gratuito" : formatMoney(evt.price_cents || 0)}
+ </Badge>
+ </div>
+ </div>
+ ))}
+ </div>
+ )}
+ </div>
+ )}
  </div>
  )}
 
- {/* ── Bloco 4: Perfil Comercial / Vitrines & Desapegos (Quando modo === "comercial") ── */}
+ {/* ── Bloco 4: Perfil Comercial / Vitrine da Marca ou Classificados Pessoais ── */}
  {activeMode === "comercial" && (
  <div className="space-y-6">
+ {isCreator ? (
+ /* Vitrine Pública de Criador / Marca */
+ <div className="space-y-8">
+ {(creatorProfile?.showcase_order || ["banner", "stores", "products", "events"]).map((sectionKey: string) => {
+ if (sectionKey === "banner" && creatorProfile?.banner_url) {
+ return (
+ <div key="banner" className="space-y-3">
+ <div className="aspect-video sm:aspect-[21/9] w-full rounded-2xl overflow-hidden relative border border-border/40 shadow-xs">
+ <img
+ src={creatorProfile.banner_url}
+ alt={creatorProfile.banner_title || "Banner da marca"}
+ className="w-full h-full object-cover"
+ />
+ <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex flex-col justify-end p-5 sm:p-6 text-white space-y-1">
+ <span className="text-[10px] uppercase tracking-wider font-semibold text-primary-foreground/80">
+ Destaque da Marca
+ </span>
+ <h3 className="text-lg sm:text-2xl font-black">
+ {creatorProfile.banner_title || "Novidades & Recomendações"}
+ </h3>
+ {creatorProfile.banner_link && (
+ <div className="pt-2">
+ <Button asChild size="sm" className="h-9 px-4 rounded-xl text-xs font-semibold gap-1.5 bg-white text-black hover:bg-white/90">
+ <a href={creatorProfile.banner_link} target="_blank" rel="noopener noreferrer">
+ <span>Acessar Destaque</span>
+ <ExternalLink className="size-3.5" />
+ </a>
+ </Button>
+ </div>
+ )}
+ </div>
+ </div>
+ </div>
+ );
+ }
+
+ if (sectionKey === "stores" && creatorPartnerStores.length > 0) {
+ return (
+ <div key="stores" className="space-y-4">
+ <div>
+ <h3 className="text-base font-bold text-foreground tracking-tight flex items-center gap-2">
+ <Store className="size-4 text-primary" />
+ <span>Lojas Parceiras com Cupons Exclusivos</span>
+ </h3>
+ <p className="text-xs text-muted-foreground">
+ Utilize meus cupons nas compras para garantir 10% de desconto.
+ </p>
+ </div>
+
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+ {creatorPartnerStores.map((s: any) => {
+ const couponCode = `${(creatorProfile?.handle || profile.username || "WIDER").toUpperCase().slice(0, 6)}10`;
+
+ return (
+ <div
+ key={s.id}
+ className="p-5 rounded-2xl border border-border/60 bg-card flex flex-col justify-between gap-4 shadow-xs"
+ >
+ <div className="flex items-start gap-3">
+ <div className="size-12 rounded-xl bg-muted/60 overflow-hidden shrink-0 border border-border/40 flex items-center justify-center">
+ {s.logoUrl || s.logo_url ? (
+ <img src={s.logoUrl || s.logo_url} alt={s.name} className="size-full object-cover" />
+ ) : (
+ <Store className="size-5 text-muted-foreground" />
+ )}
+ </div>
+ <div className="space-y-0.5 min-w-0">
+ <h4 className="text-sm font-bold text-foreground truncate">{s.name}</h4>
+ <p className="text-xs text-muted-foreground truncate">{s.city} • {s.segment || "Varejo"}</p>
+ </div>
+ </div>
+
+ <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-center justify-between">
+ <div>
+ <span className="text-[10px] text-muted-foreground uppercase font-medium">Cupom 10% OFF</span>
+ <p className="text-xs font-mono font-bold text-primary">{couponCode}</p>
+ </div>
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ onClick={() => {
+ navigator.clipboard.writeText(couponCode);
+ toast.success(`Cupom ${couponCode} copiado!`);
+ }}
+ className="h-8 px-3 rounded-lg text-xs font-semibold gap-1"
+ >
+ <Copy className="size-3" />
+ <span>Copiar</span>
+ </Button>
+ </div>
+
+ <Button asChild size="sm" className="w-full h-10 rounded-xl text-xs font-semibold gap-1.5">
+ <Link to="/c/$storeSlug" params={{ storeSlug: s.slug }} search={{ ref: creatorProfile?.handle || profile.username, coupon: couponCode }}>
+ <span>Visitar Loja com Cupom</span>
+ <ArrowRight className="size-3.5" />
+ </Link>
+ </Button>
+ </div>
+ );
+ })}
+ </div>
+ </div>
+ );
+ }
+
+ if (sectionKey === "products" && creatorShowcaseProducts.length > 0) {
+ return (
+ <div key="products" className="space-y-4">
+ <div>
+ <h3 className="text-base font-bold text-foreground tracking-tight flex items-center gap-2">
+ <ShoppingBag className="size-4 text-primary" />
+ <span>Produtos Selecionados & Recomendados</span>
+ </h3>
+ <p className="text-xs text-muted-foreground">
+ Itens recomendados das melhores lojas locais parceiras.
+ </p>
+ </div>
+
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+ {creatorShowcaseProducts.map((p: any) => {
+ const image = p.imageUrl || (Array.isArray(p.images) ? p.images[0] : null);
+ const price = p.priceCents ?? p.price_cents ?? 0;
+
+ return (
+ <Link
+ key={p.id}
+ to="/produto/$slug"
+ params={{ slug: p.slug }}
+ search={{ ref: creatorProfile?.handle || profile.username }}
+ className="group rounded-2xl bg-card border border-border/60 hover:border-primary/40 transition-all overflow-hidden flex flex-col justify-between shadow-xs"
+ >
+ <div className="space-y-3">
+ <div className="aspect-video bg-muted/40 relative overflow-hidden">
+ {image ? (
+ <img
+ src={image}
+ alt={p.name}
+ className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+ />
+ ) : (
+ <div className="size-full flex items-center justify-center text-muted-foreground">
+ <ShoppingBag className="size-8" />
+ </div>
+ )}
+ <div className="absolute top-2 right-2 px-2.5 py-1 rounded-xl bg-background/90 backdrop-blur-md text-xs font-extrabold text-primary">
+ {formatMoney(price)}
+ </div>
+ </div>
+
+ <div className="p-4 space-y-1">
+ <span className="text-[10px] text-muted-foreground uppercase font-medium">
+ {p.storeName || p.store?.name || "Loja Parceira"}
+ </span>
+ <h4 className="text-sm font-bold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+ {p.name}
+ </h4>
+ {p.description && (
+ <p className="text-xs text-muted-foreground line-clamp-2">{p.description}</p>
+ )}
+ </div>
+ </div>
+
+ <div className="p-4 pt-0">
+ <div className="w-full h-9 rounded-xl bg-muted/40 hover:bg-muted text-xs font-semibold flex items-center justify-center gap-1.5 text-foreground">
+ <span>Ver Detalhes do Produto</span>
+ <ArrowRight className="size-3.5" />
+ </div>
+ </div>
+ </Link>
+ );
+ })}
+ </div>
+ </div>
+ );
+ }
+
+ if (sectionKey === "events" && creatorEvents.length > 0) {
+ return (
+ <div key="events" className="space-y-4">
+ <div>
+ <h3 className="text-base font-bold text-foreground tracking-tight flex items-center gap-2">
+ <Calendar className="size-4 text-primary" />
+ <span>Agenda & Próximos Eventos da Marca</span>
+ </h3>
+ <p className="text-xs text-muted-foreground">
+ Shows, workshops e apresentações em que participo ou coordeno.
+ </p>
+ </div>
+
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+ {creatorEvents.map((evt: any) => (
+ <div
+ key={evt.id}
+ className="p-4 rounded-2xl border border-border/60 bg-card flex items-start gap-3.5 shadow-xs"
+ >
+ <div className="size-16 rounded-xl bg-muted/60 overflow-hidden shrink-0 border border-border/40">
+ {evt.cover_image ? (
+ <img src={evt.cover_image} alt={evt.title} className="size-full object-cover" />
+ ) : (
+ <div className="size-full flex items-center justify-center text-muted-foreground">
+ <Calendar className="size-6" />
+ </div>
+ )}
+ </div>
+
+ <div className="space-y-1 min-w-0 flex-1">
+ <h4 className="text-sm font-bold text-foreground truncate">{evt.title}</h4>
+ <p className="text-xs text-muted-foreground">
+ {evt.event_date ? formatDate(evt.event_date) : "Em breve"} • {evt.location || evt.city || "Chapecó"}
+ </p>
+ <Badge variant="secondary" className="text-[10px]">
+ {evt.is_free ? "Gratuito" : formatMoney(evt.price_cents || 0)}
+ </Badge>
+ </div>
+ </div>
+ ))}
+ </div>
+ </div>
+ );
+ }
+
+ return null;
+ })}
+ </div>
+ ) : (
+ /* Perfil Comum (Pessoa Física): Lojas Oficiais e Classificados Pessoais */
+ <>
  {stores.length > 0 && (
  <div className="pt-8 space-y-6">
  <h2 className="text-lg font-bold text-foreground tracking-tight">Lojas & Espaços Oficiais</h2>
@@ -1664,6 +2063,8 @@ export function MemberPublicProfileView({
  </div>
  )}
  </div>
+ </>
+ )}
  </div>
  )}
 
@@ -1834,6 +2235,19 @@ export function MemberPublicProfileView({
  }}
  isSaving={isSavingResume}
  />
+
+ {/* Modal Editar Perfil & Vitrine da Marca */}
+ {isCreator && (
+ <CreatorProfileEditModal
+ open={editingSection === "creator_profile"}
+ onOpenChange={(op) => !op && setEditingSection(null)}
+ creatorProfile={creatorProfile}
+ profile={profile}
+ onSaveSuccess={() => {
+ router.invalidate();
+ }}
+ />
+ )}
  </>
  )}
  </div>
@@ -1843,6 +2257,45 @@ export function MemberPublicProfileView({
 // ─────────────────────────────────────────────────────────────────────────────
 // COMPONENTES MODAIS DE EDIÇÃO RÁPIDA (In-Place Edit SheetPages)
 // ─────────────────────────────────────────────────────────────────────────────
+
+function CreatorProfileEditModal({
+  open,
+  onOpenChange,
+  creatorProfile,
+  profile,
+  onSaveSuccess,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  creatorProfile: any;
+  profile: any;
+  onSaveSuccess: () => void;
+}) {
+  const initialData: Partial<CreatorProfileSheetData> = {
+    handle: (creatorProfile?.handle || profile?.username || "").toLowerCase().trim(),
+    stageName: creatorProfile?.stage_name || creatorProfile?.name || profile?.full_name || "",
+    bio: creatorProfile?.bio || "",
+    category: creatorProfile?.category || creatorProfile?.niche || "moda_estilo",
+    avatarUrl: creatorProfile?.avatar_url || "",
+    coverUrl: creatorProfile?.cover_url || "",
+    socialLinks: creatorProfile?.social_links || {},
+    pinnedProducts: creatorProfile?.pinned_products || [],
+    privacyMode: creatorProfile?.privacy_mode || "public",
+    isAnonymous: creatorProfile?.is_anonymous ?? false,
+  };
+
+  return (
+    <CreatorProfileSheetEditor
+      open={open}
+      onOpenChange={onOpenChange}
+      initialData={initialData}
+      isNew={false}
+      onSuccess={() => {
+        onSaveSuccess();
+      }}
+    />
+  );
+}
 
 function AvailabilityEditModal({
  open,
@@ -1888,7 +2341,7 @@ function AvailabilityEditModal({
 
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0 flex items-center justify-between">
  <SheetTitle className="text-xl font-extrabold text-foreground">Disponibilidade de Perfil</SheetTitle>
  </div>
@@ -2042,7 +2495,7 @@ function AboutEditModal({
 
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0 flex items-center justify-between">
  <SheetTitle className="text-xl font-extrabold text-foreground">Sobre & Título</SheetTitle>
  </div>
@@ -2191,7 +2644,7 @@ function ExperienceEditModal({
 
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0 flex items-center justify-between">
  <SheetTitle className="text-xl font-extrabold text-foreground">
  {item ? "Editar Experiência" : "Adicionar Experiência"}
@@ -2435,7 +2888,7 @@ function EducationEditModal({
 
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0 flex items-center justify-between">
  <SheetTitle className="text-xl font-extrabold text-foreground">
  {item ? "Editar Formação" : "Adicionar Formação Acadêmica"}
@@ -2570,7 +3023,7 @@ function CertificationEditModal({
 
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0 flex items-center justify-between">
  <SheetTitle className="text-xl font-extrabold text-foreground">
  {item ? "Editar Certificação" : "Adicionar Certificação"}
@@ -2690,7 +3143,7 @@ function ProjectEditModal({
 
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0 flex items-center justify-between">
  <SheetTitle className="text-xl font-extrabold text-foreground">
  {item ? "Editar Projeto" : "Adicionar Projeto"}
@@ -2833,7 +3286,7 @@ function VolunteeringEditModal({
 
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0 flex items-center justify-between">
  <SheetTitle className="text-xl font-extrabold text-foreground">
  {item ? "Editar Voluntariado" : "Adicionar Voluntariado"}
@@ -2972,7 +3425,7 @@ function CausesEditModal({
 
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0 flex items-center justify-between">
  <SheetTitle className="text-xl font-extrabold text-foreground">Causas Sociais</SheetTitle>
  </div>
@@ -3056,7 +3509,7 @@ function LanguagesEditModal({
 
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0 flex items-center justify-between">
  <SheetTitle className="text-xl font-extrabold text-foreground">Idiomas</SheetTitle>
  </div>

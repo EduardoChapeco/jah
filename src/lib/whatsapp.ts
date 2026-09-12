@@ -2,7 +2,8 @@
  * whatsapp.ts — Utilitário Canônico de Telemetria e Redirecionamento de WhatsApp Rastreável
  */
 
-import { recordWhatsAppLead } from "@/services/whatsapp-leads.functions";
+import { recordWhatsAppLead, getProtectedWhatsAppContact } from "@/services/whatsapp-leads.functions";
+import { toast } from "sonner";
 
 export interface TrackWhatsAppLeadParams {
  phone: string;
@@ -71,81 +72,103 @@ export function buildTrackedWhatsAppMessage({
  }
 }
 
-/**
- * Dispara telemetria de conversão no banco de dados e abre o WhatsApp de forma instantânea
- */
-export async function trackAndOpenWhatsApp(params: TrackWhatsAppLeadParams) {
- const cleanPhone = sanitizeWhatsAppPhone(params.phone);
- if (!cleanPhone) {
- console.warn("[whatsapp] Telefone não informado para abertura de WhatsApp");
- return;
- }
+export async function trackAndOpenWhatsApp(
+  paramsOrPhone: TrackWhatsAppLeadParams | string,
+  legacyMessage?: string,
+  legacyMetadata?: Record<string, any>
+) {
+  let params: TrackWhatsAppLeadParams;
+  if (typeof paramsOrPhone === "string") {
+    params = {
+      phone: paramsOrPhone,
+      entityType: (legacyMetadata?.action === "job_quick_whatsapp" ? "job" : "classified") as any,
+      entityId: legacyMetadata?.classifiedId || legacyMetadata?.entityId || null,
+      entityTitle: legacyMetadata?.classifiedTitle || legacyMetadata?.entityTitle || null,
+      customMessage: legacyMessage,
+      metadata: legacyMetadata,
+    };
+  } else {
+    params = paramsOrPhone;
+  }
 
- // Gera código preliminar determinístico para não esperar a rede
- const tempLeadCode = `WDR-W${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+  const cleanPhone = sanitizeWhatsAppPhone(params.phone);
+  if (!cleanPhone) {
+    console.warn("[whatsapp] Telefone não informado para abertura de WhatsApp");
+    return;
+  }
 
- const isMobile =
- typeof navigator !== "undefined" &&
- /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  let originUrl: string | null = null;
+  if (typeof window !== "undefined") {
+    originUrl = window.location.href;
+  }
 
- const deviceType = isMobile ? "mobile" : "desktop";
+  try {
+    // Validação estrita server-side: visitante DEVE estar logado
+    const check = await getProtectedWhatsAppContact({
+      data: {
+        phone: cleanPhone,
+        store_id: params.storeId || null,
+        entity_type: params.entityType,
+        entity_id: params.entityId || null,
+        entity_title: params.entityTitle || null,
+        custom_message: params.customMessage || null,
+        origin_url: originUrl,
+        niche: params.niche || null,
+      },
+    });
 
- // Extrair UTMs da URL atual se existirem
- let utmSource: string | null = null;
- let utmMedium: string | null = null;
- let utmCampaign: string | null = null;
- let originUrl: string | null = null;
+    if (!check.authorized) {
+      toast.error("🔒 Contato Protegido", {
+        description: check.message || "Faça login para contatar este anunciante pelo WhatsApp.",
+        action: typeof window !== "undefined" ? {
+          label: "Entrar",
+          onClick: () => {
+            const current = window.location.pathname + window.location.search;
+            window.location.href = `/entrar?redirect=${encodeURIComponent(current)}`;
+          },
+        } : undefined,
+      });
 
- if (typeof window !== "undefined") {
- originUrl = window.location.href;
- const urlParams = new URLSearchParams(window.location.search);
- utmSource = urlParams.get("utm_source");
- utmMedium = urlParams.get("utm_medium");
- utmCampaign = urlParams.get("utm_campaign");
- }
+      // Se em navegador, pode redirecionar se o usuário confirmar
+      return { authorized: false, reason: "login_required" };
+    }
 
- // Dispara a telemetria em background para persistência real no Supabase
- let activeLeadCode = tempLeadCode;
- try {
- const res = await recordWhatsAppLead({
- data: {
- store_id: params.storeId || null,
- entity_type: params.entityType,
- entity_id: params.entityId || null,
- entity_title: params.entityTitle || null,
- phone_target: cleanPhone,
- origin_url: originUrl,
- utm_source: utmSource,
- utm_medium: utmMedium,
- utm_campaign: utmCampaign,
- device_type: deviceType as any,
- metadata: {
- niche: params.niche,
- ...(params.metadata || {}),
- },
- },
- });
+    if (check.targetUrl && typeof window !== "undefined") {
+      // Dispara telemetria de conversão (Meta Pixel client-side)
+      if (typeof (window as any).fbq === "function") {
+        (window as any).fbq("track", "Contact", {
+          content_name: params.entityTitle,
+          content_category: params.entityType,
+        });
+      }
 
- if (res?.lead_code) {
- activeLeadCode = res.lead_code;
- }
- } catch (err) {
- console.warn("[whatsapp-telemetry] Falha assíncrona ao registrar lead (seguindo com fallback):", err);
- }
+      // Dispara telemetria server-side (Meta CAPI) se vinculado a uma loja
+      if (params.storeId) {
+        import("@/services/pixels.functions")
+          .then(({ dispatchMetaCapiEvent }) => {
+            dispatchMetaCapiEvent({
+              data: {
+                storeId: params.storeId!,
+                eventName: "Contact",
+                eventSourceUrl: originUrl || undefined,
+                customData: {
+                  entity_type: params.entityType,
+                  entity_title: params.entityTitle || undefined,
+                  lead_code: check.leadCode,
+                },
+              },
+            }).catch(() => {});
+          })
+          .catch(() => {});
+      }
 
- const finalMessage = buildTrackedWhatsAppMessage({
- entityType: params.entityType,
- entityTitle: params.entityTitle,
- customMessage: params.customMessage,
- leadCode: activeLeadCode,
- });
-
- const encodedText = encodeURIComponent(finalMessage);
- const waUrl = `https://wa.me/${cleanPhone}?text=${encodedText}`;
-
- if (typeof window !== "undefined") {
- window.open(waUrl, "_blank", "noopener,noreferrer");
- }
+      window.open(check.targetUrl, "_blank", "noopener,noreferrer");
+      return { authorized: true, leadCode: check.leadCode };
+    }
+  } catch (err: any) {
+    console.warn("[whatsapp] Falha na verificação de contato:", err);
+    toast.error("Erro ao acessar contato: Faça login para prosseguir.");
+  }
 }
 
 // ---------------------------------------------------------------------------

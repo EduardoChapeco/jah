@@ -40,13 +40,19 @@ const DEFAULT_HERO_MODULES = [
  {
  slug: "empregos",
  to: "/empregos",
- title: "Vagas & Carreiras",
+ title: "Empregos",
+ defaultCover: "",
+ },
+ {
+ slug: "eventos",
+ to: "/eventos",
+ title: "Eventos",
  defaultCover: "",
  },
  {
  slug: "agenda",
  to: "/agenda",
- title: "Agenda & Eventos Culturais",
+ title: "Agenda",
  defaultCover: "",
  },
  {
@@ -58,7 +64,7 @@ const DEFAULT_HERO_MODULES = [
  {
  slug: "noticias",
  to: "/noticias",
- title: "Notícias & Jornalismo",
+ title: "Notícias",
  defaultCover: "",
  },
  {
@@ -217,18 +223,23 @@ export function MasterHeroCards({
  });
  }, [categoryChips, hotpages, customCategories]);
 
- return (
- <div className="w-full space-y-6">
- {/* ── 1. Carrossel Horizontal de Cards Grandes de Supercategorias (3x Tamanho - Impacto Cinematográfico) ── */}
- <div
- className="flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar pb-3 snap-x snap-mandatory focus:outline-none"
- tabIndex={0}
- aria-label="Supercategorias Principais"
- >
- {activeHeroCards.map((card) => {
- const hasBadges =
- card.showBadge &&
- (card.badgeLabel || card.heroStatBadge || card.heroSecondaryBadge);
+  const hasValidHeroCards = activeHeroCards.some((c) => Boolean(c.coverUrl || (c.isVideo && c.videoUrl)));
+
+  return (
+    <div className="w-full space-y-4">
+      {/* ── 1. Carrossel Horizontal de Cards de Destaque (Apenas se houver capas cadastradas) ── */}
+      {hasValidHeroCards && (
+        <div
+          className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar pb-2 snap-x snap-mandatory focus:outline-none"
+          tabIndex={0}
+          aria-label="Destaques Principais"
+        >
+          {activeHeroCards
+            .filter((c) => Boolean(c.coverUrl || (c.isVideo && c.videoUrl)))
+            .map((card) => {
+              const hasBadges =
+                card.showBadge &&
+                (card.badgeLabel || card.heroStatBadge || card.heroSecondaryBadge);
 
  return (
  <Link
@@ -276,25 +287,26 @@ export function MasterHeroCards({
  </div>
  )}
 
- {/* Título e Ícone (Apenas se explicitamente habilitado) */}
- {card.showTitle && card.title && (
- <div className="relative z-10 p-2 text-left w-full bg-linear-to-t from-black/80 via-black/20 to-transparent">
- <h3 className="text-[11px] sm:text-xs font-bold text-white leading-tight drop-shadow-sm truncate">
- {card.title}
- </h3>
- </div>
- )}
- </Link>
- );
- })}
- </div>
+                    {/* Título e Ícone (Apenas se explicitamente habilitado) */}
+                    {card.showTitle && card.title && (
+                      <div className="relative z-10 p-2 text-left w-full bg-linear-to-t from-black/80 via-black/20 to-transparent">
+                        <h3 className="text-[11px] sm:text-xs font-bold text-white leading-tight drop-shadow-sm truncate">
+                          {card.title}
+                        </h3>
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
+          </div>
+        )}
 
- {/* ── 2. Botões / Chips de Supercategorias (Continuação - Ícones PNG Transparentes / Emojis / Rotas) ── */}
- <div
- className="flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2 pt-1 w-full px-0.5 focus:outline-none"
- tabIndex={0}
- aria-label="Supercategorias Rápidas"
- >
+        {/* ── 2. Botões / Chips de Supercategorias (Continuação - Ícones PNG Transparentes / Emojis / Rotas) ── */}
+        <div
+          className="flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2 pt-1 w-full px-0.5 focus:outline-none"
+          tabIndex={0}
+          aria-label="Supercategorias Rápidas"
+        >
  {activeChipButtons.map((item) => (
  <DynamicMediaChip
  key={item.id || item.slug}

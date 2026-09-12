@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_store/conta/metricas")({
 });
 
 function MemberMetricsPage() {
- const { analytics } = Route.useLoaderData();
+ const { analytics } = ((Route.useLoaderData?.() as any) || {});
  const [selectedPeriod, setSelectedPeriod] = useState<"7d" | "30d">("30d");
 
  if (!analytics) {
@@ -52,38 +52,33 @@ function MemberMetricsPage() {
  return (
  <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 animate-in fade-in duration-300">
  {/* ── Top Header com Identidade e Voltar ── */}
- <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/40">
+ <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
  <div className="flex items-center gap-3">
  <Button
  asChild
  size="sm"
  variant="ghost"
- className="size-9 p-0 rounded-xl text-muted-foreground hover:text-foreground cursor-pointer"
+ className="size-8 p-0 rounded-xl text-muted-foreground hover:text-foreground cursor-pointer"
  >
  <Link to="/membro/$id" params={{ id: profile.username || profile.id }}>
  <ArrowLeft className="size-4" />
  </Link>
  </Button>
 
- <Avatar className="size-11 rounded-2xl border border-border/60">
+ <Avatar className="size-9 rounded-xl border border-border/60">
  <AvatarImage src={profile.avatar_url || ""} />
- <AvatarFallback className="rounded-2xl font-bold bg-primary/10 text-primary">
+ <AvatarFallback className="rounded-xl font-bold bg-primary/10 text-primary text-xs">
  {profile.full_name?.slice(0, 2).toUpperCase() || "ME"}
  </AvatarFallback>
  </Avatar>
 
- <div>
  <div className="flex items-center gap-2">
- <h1 className="text-lg sm:text-xl font-black text-foreground tracking-tight">
+ <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
  Métricas
  </h1>
  <Badge className="bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-mono">
  OFICIAL
  </Badge>
- </div>
- <p className="text-xs text-muted-foreground">
- @{profile.username || "perfil"} • Métricas em tempo real auditadas no banco de dados
- </p>
  </div>
  </div>
 

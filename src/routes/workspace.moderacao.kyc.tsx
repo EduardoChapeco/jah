@@ -41,7 +41,7 @@ export const Route = createFileRoute("/workspace/moderacao/kyc")({
 });
 
 function KycAuditPage() {
- const { initialData } = Route.useLoaderData();
+ const { initialData } = ((Route.useLoaderData?.() as any) || {});
  const queryClient = useQueryClient();
  const [statusFilter, setStatusFilter] = useState("under_review");
 

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ShieldCheck, Layers, Smartphone, Mail, ArrowRight, FileText, QrCode, Calendar, Package, LogOut, User, Lock, Building2, ExternalLink } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,14 +53,26 @@ export const Route = createFileRoute("/c/$storeSlug")({
  };
    } catch (err) {
      console.error("[loader:c.$storeSlug] Unhandled error:", err);
-     return null;
+     return { store: null, portalConfig: null, document: null };
    }
  },
  component: CustomerPortalWhitelabelPage,
 });
 
 function CustomerPortalWhitelabelPage() {
- const { store, portalConfig } = Route.useLoaderData();
+  const { store, portalConfig } = ((Route.useLoaderData?.() as any) || {});
+
+  if (!store) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-16 text-center space-y-4">
+        <h1 className="text-xl font-bold text-foreground">Portal Não Encontrado</h1>
+        <p className="text-xs text-muted-foreground">Esta empresa não foi encontrada ou está inativa.</p>
+        <Button asChild variant="outline">
+          <Link to="/">Voltar ao Início</Link>
+        </Button>
+      </div>
+    );
+  }
 
  // Estado de autenticação do cliente final (simulação com CPF ou Magic Link real)
  const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -213,9 +225,9 @@ function CustomerPortalWhitelabelPage() {
  <div className="space-y-6">
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-muted/30 p-4 rounded-2xl border border-border/40">
  <div>
- <h2 className="text-lg font-bold text-foreground">Olá, Bem-vindo ao seu Espaço</h2>
+ <h2 className="text-lg font-bold text-foreground">Espaço do Cliente</h2>
  <p className="text-xs text-muted-foreground">
- Seus dados e transações com a empresa {store.name} estão sincronizados em tempo real.
+ Transações e dados integrados com {store.name}.
  </p>
  </div>
  </div>

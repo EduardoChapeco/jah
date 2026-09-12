@@ -36,7 +36,7 @@ export const Route = createFileRoute("/workspace/configuracoes/sessoes")({
 });
 
 function WorkspaceSessionsPage() {
- const { logs: initialLogs, devices: initialDevices } = Route.useLoaderData() as any;
+ const { logs: initialLogs, devices: initialDevices } = ((Route.useLoaderData?.() as any) || {});
  const [logs, setLogs] = useState(initialLogs || []);
  const [devices, setDevices] = useState(initialDevices || []);
  const [isRefreshing, setIsRefreshing] = useState(false);

@@ -51,7 +51,7 @@ const TOUR_PRESETS = [
  returnTime: "22:00",
  priceBrl: "790,00",
  priceCents: 79000,
- coverImage: "https://images.unsplash.com/photo-1513889961551-628c1e5e2ee9?w=900&auto=format&fit=crop&q=80",
+ coverImage: "",
  included: [
  "Transporte Rodoviário Semi-Leito",
  "02 Diárias de Hotel com Café da Manhã",
@@ -75,7 +75,7 @@ const TOUR_PRESETS = [
  returnTime: "23:00",
  priceBrl: "1.150,00",
  priceCents: 115000,
- coverImage: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?w=900&auto=format&fit=crop&q=80",
+ coverImage: "",
  included: [
  "Transporte Rodoviário Leito Turismo",
  "03 Noites em Hotel Central com Café",
@@ -99,7 +99,7 @@ const TOUR_PRESETS = [
  returnTime: "18:00",
  priceBrl: "980,00",
  priceCents: 98000,
- coverImage: "https://images.unsplash.com/photo-1548625361-197e8bc6d43e?w=900&auto=format&fit=crop&q=80",
+ coverImage: "",
  included: [
  "Transporte Double Decker Leito Cama",
  "03 Diárias em Hotel Próximo à Basílica",
@@ -123,7 +123,7 @@ const TOUR_PRESETS = [
  returnTime: "23:30",
  priceBrl: "890,00",
  priceCents: 89000,
- coverImage: "https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=900&auto=format&fit=crop&q=80",
+ coverImage: "",
  included: [
  "Transporte Rodoviário Executivo",
  "02 Diárias de Hotel com Piscina e Café",
@@ -147,7 +147,7 @@ const TOUR_PRESETS = [
  returnTime: "20:00",
  priceBrl: "680,00",
  priceCents: 68000,
- coverImage: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=900&auto=format&fit=crop&q=80",
+ coverImage: "",
  included: [
  "Transporte Rodoviário Semi-Leito",
  "02 Diárias de Hotel com Piscinas Termais",
@@ -349,8 +349,7 @@ export function NewGroupTourSheet({
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
  <SheetContent
- side="right"
- className="w-full sm:max-w-2xl md:max-w-3xl flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border"
+ side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-3xl flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border"
  >
  {/* ── 1. HEADER DO STUDIO ── */}
  <SheetHeader className="p-5 pb-4 border-b border-border/80 bg-muted/20">

@@ -43,14 +43,14 @@ export const Route = createFileRoute("/workspace/inteligencia/radar")({
     return { store };
     } catch (err) {
       console.error("[loader:workspace.inteligencia.radar] Unhandled loader error:", err);
-      return null;
+      return { store: null };
     }
   },
   component: MarketRadarPage,
 });
 
 export function MarketRadarPage() {
-  const { store } = Route.useLoaderData() as any;
+  const { store } = ((Route.useLoaderData?.() as any) || {});
   const storeId = store?.id || "";
 
   const [loading, setLoading] = useState(true);

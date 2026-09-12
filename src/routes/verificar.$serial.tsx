@@ -39,21 +39,11 @@ export default function VerifySerialPage() {
  // Timeout or network fallback
  }
 
- if (rows && rows.length > 0) {
- setData(rows[0]);
- } else {
- // Mock/Fallback para visualização de certificados gerados na demonstração
- setData({
- serial: serial.toUpperCase(),
- title: 'Contrato de Intermediação de Serviços Turísticos',
- parties_masked: 'C***** D******* / Wider Turismo Ltda',
- signed_at: new Date().toISOString(),
- content_hash: 'sha256:8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4',
- signed_hash: 'sha256:d41d8cd98f00b204e9800998ecf8427e',
- issuer: 'Wider Turismo Autenticações Digitais',
- status: 'signed',
- });
- }
+    if (rows && rows.length > 0) {
+      setData(rows[0]);
+    } else {
+      setError('Certidão de autenticidade não localizada no registro oficial.');
+    }
  } catch (err: any) {
  setError(err.message || 'Erro ao consultar a certidão de autenticidade.');
  } finally {

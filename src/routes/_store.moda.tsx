@@ -85,7 +85,7 @@ export const Route = createFileRoute("/_store/moda")({
  };
    } catch (err) {
      console.error("[loader:_store.moda] Unhandled error:", err);
-     return null;
+     return { banners: null, hotpages: null, marketplaceFeed: null, catalogProducts: null };
    }
  },
  component: ModaVerticalPage,
@@ -93,7 +93,7 @@ export const Route = createFileRoute("/_store/moda")({
 });
 
 function ModaVerticalPage() {
- const { banners, hotpages, marketplaceFeed, catalogProducts } = Route.useLoaderData();
+ const { banners, hotpages, marketplaceFeed, catalogProducts } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch();
  const navigate = useNavigate({ from: Route.fullPath });
 
@@ -171,7 +171,6 @@ function ModaVerticalPage() {
  onSelectCategory={handleDepartmentChange}
  viewMode={viewMode}
  onViewModeChange={handleViewModeChange}
- resultsCount={allProducts.length}
  />
 
  {/* ── 4. Renderização ── */}

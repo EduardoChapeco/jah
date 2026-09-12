@@ -1,11 +1,23 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { getServerClient } from '@/lib/supabase';
-import type { TravelFlightItinerary, TravelFlightSegment } from '@/types/travel-flights';
+import { getServerIdentity, assertStoreAccess } from '@/lib/server-access';
+import type { TravelFlightItinerary } from '@/types/travel-flights';
 
 export const listFlightItineraries = createServerFn({ method: 'GET' })
-  .validator((data: { storeId: string; tripId?: string }) => data)
+  .validator(
+    z.object({
+      storeId: z.string().uuid().optional(),
+      tripId: z.string().uuid().optional(),
+    }).optional()
+  )
   .handler(async ({ data }): Promise<TravelFlightItinerary[]> => {
+    const identity = await getServerIdentity();
+    const effectiveStoreId = data?.storeId || identity.store_id;
+    if (!effectiveStoreId) {
+      throw new Error("Identificador da loja não fornecido.");
+    }
+
     const db = getServerClient();
     let query = db
       .from('travel_flight_itineraries')
@@ -13,10 +25,10 @@ export const listFlightItineraries = createServerFn({ method: 'GET' })
         *,
         segments:travel_flight_segments(*)
       `)
-      .eq('store_id', data.storeId)
+      .eq('store_id', effectiveStoreId)
       .order('version', { ascending: false });
 
-    if (data.tripId) {
+    if (data?.tripId) {
       query = query.eq('trip_id', data.tripId);
     }
 
@@ -28,7 +40,7 @@ export const listFlightItineraries = createServerFn({ method: 'GET' })
 export const createFlightItinerary = createServerFn({ method: 'POST' })
   .validator(
     z.object({
-      store_id: z.string().uuid(),
+      store_id: z.string().uuid().optional(),
       trip_id: z.string().uuid().optional().nullable(),
       title: z.string().min(2),
       itinerary_type: z.enum(['original', 'operator_suggestion', 'customer_selected', 'confirmed']),
@@ -48,18 +60,26 @@ export const createFlightItinerary = createServerFn({ method: 'POST' })
           cabin: z.enum(['economy', 'premium_economy', 'business', 'first']).default('economy'),
           baggage: z.string().default('1x 23kg'),
           record_locator: z.string().optional().nullable(),
+          ticket_number: z.string().optional().nullable(),
           airport_terminal: z.string().optional().nullable(),
         })
       ),
     })
   )
   .handler(async ({ data }): Promise<TravelFlightItinerary> => {
+    const identity = await getServerIdentity();
+    const effectiveStoreId = data.store_id || identity.store_id;
+    if (!effectiveStoreId) {
+      throw new Error("Identificador da loja não fornecido.");
+    }
+    assertStoreAccess(identity, ['owner', 'admin', 'manager', 'seller']);
+
     const db = getServerClient();
     // Buscar maior versão
     const { data: existing } = await db
       .from('travel_flight_itineraries')
       .select('version')
-      .eq('store_id', data.store_id)
+      .eq('store_id', effectiveStoreId)
       .order('version', { ascending: false })
       .limit(1);
 
@@ -68,7 +88,7 @@ export const createFlightItinerary = createServerFn({ method: 'POST' })
     const { data: newItinerary, error: itError } = await db
       .from('travel_flight_itineraries')
       .insert({
-        store_id: data.store_id,
+        store_id: effectiveStoreId,
         trip_id: data.trip_id,
         title: data.title,
         version: nextVersion,
@@ -83,7 +103,7 @@ export const createFlightItinerary = createServerFn({ method: 'POST' })
 
     if (data.segments && data.segments.length > 0) {
       const segmentsToInsert = data.segments.map((seg, idx) => ({
-        store_id: data.store_id,
+        store_id: effectiveStoreId,
         itinerary_id: newItinerary.id,
         segment_order: idx + 1,
         airline_code: seg.airline_code.toUpperCase(),
@@ -98,6 +118,7 @@ export const createFlightItinerary = createServerFn({ method: 'POST' })
         cabin: seg.cabin,
         baggage: seg.baggage,
         record_locator: seg.record_locator?.toUpperCase(),
+        ticket_number: seg.ticket_number?.trim(),
         airport_terminal: seg.airport_terminal,
       }));
 
@@ -124,7 +145,26 @@ export const createFlightItinerary = createServerFn({ method: 'POST' })
 export const deleteFlightItinerary = createServerFn({ method: 'POST' })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data }): Promise<{ success: boolean }> => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ['owner', 'admin', 'manager', 'seller']);
+
     const db = getServerClient();
+
+    // Valida se o itinerário pertence à loja do usuário autenticado
+    const { data: itinerary, error: fetchErr } = await db
+      .from('travel_flight_itineraries')
+      .select('id, store_id')
+      .eq('id', data.id)
+      .single();
+
+    if (fetchErr || !itinerary) {
+      throw new Error("Itinerário não encontrado.");
+    }
+
+    if (itinerary.store_id !== identity.store_id && !identity.is_super_admin) {
+      throw new Error("Acesso não autorizado para esta loja.");
+    }
+
     const { error } = await db
       .from('travel_flight_itineraries')
       .delete()

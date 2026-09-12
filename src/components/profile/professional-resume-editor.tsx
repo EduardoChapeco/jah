@@ -61,6 +61,12 @@ export interface ResumeDataDTO {
  store_id?: string;
  store_logo?: string;
  media_urls?: string[];
+ salary_cents?: number;
+ exit_reason?: string;
+ company_rating?: number;
+ would_recommend?: boolean;
+ review_text?: string;
+ is_anonymous?: boolean;
  }>;
  educations?: Array<{
  id: string;
@@ -1216,7 +1222,7 @@ function AvailabilityEditSheet({
 
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0">
  <SheetTitle className="text-base font-bold">Metas Profissionais & Vagas</SheetTitle>
  <SheetDescription className="text-xs text-muted-foreground">
@@ -1358,241 +1364,381 @@ function AvailabilityEditSheet({
  * Modal de Experiência Profissional
  */
 function ExperienceEditSheet({
- open,
- onOpenChange,
- item,
- onSave,
+  open,
+  onOpenChange,
+  item,
+  onSave,
 }: {
- open: boolean;
- onOpenChange: (op: boolean) => void;
- item: any;
- onSave: (item: any, isDelete?: boolean) => void;
+  open: boolean;
+  onOpenChange: (op: boolean) => void;
+  item: any;
+  onSave: (item: any, isDelete?: boolean) => void;
 }) {
- const [title, setTitle] = useState(item?.title || "");
- const [company, setCompany] = useState(item?.company || "");
- const [storeId, setStoreId] = useState(item?.store_id || "");
- const [storeLogo, setStoreLogo] = useState(item?.store_logo || "");
- const [employmentType, setEmploymentType] = useState(item?.employment_type || "CLT");
- const [location, setLocation] = useState(item?.location || "");
- const [locationType, setLocationType] = useState(item?.location_type || "No local");
- const [isCurrent, setIsCurrent] = useState(item?.is_current !== false);
- const [startDate, setStartDate] = useState(item?.start_date || "");
- const [endDate, setEndDate] = useState(item?.end_date || "");
- const [description, setDescription] = useState(item?.description || "");
- const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [title, setTitle] = useState(item?.title || "");
+  const [company, setCompany] = useState(item?.company || "");
+  const [storeId, setStoreId] = useState(item?.store_id || "");
+  const [storeLogo, setStoreLogo] = useState(item?.store_logo || "");
+  const [employmentType, setEmploymentType] = useState(item?.employment_type || "CLT");
+  const [location, setLocation] = useState(item?.location || "");
+  const [locationType, setLocationType] = useState(item?.location_type || "No local");
+  const [isCurrent, setIsCurrent] = useState(item?.is_current !== false);
+  const [startDate, setStartDate] = useState(item?.start_date || "");
+  const [endDate, setEndDate] = useState(item?.end_date || "");
+  const [description, setDescription] = useState(item?.description || "");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
 
- // Sincroniza ao abrir
- React.useEffect(() => {
- if (open) {
- setTitle(item?.title || "");
- setCompany(item?.company || "");
- setStoreId(item?.store_id || "");
- setStoreLogo(item?.store_logo || "");
- setEmploymentType(item?.employment_type || "CLT");
- setLocation(item?.location || "");
- setLocationType(item?.location_type || "No local");
- setIsCurrent(item?.is_current !== false);
- setStartDate(item?.start_date || "");
- setEndDate(item?.end_date || "");
- setDescription(item?.description || "");
- }
- }, [open, item]);
+  // Campos de Inteligência de Empregadores (InfoJobs / Glassdoor style)
+  const [salaryCents, setSalaryCents] = useState<number | undefined>(item?.salary_cents);
+  const [exitReason, setExitReason] = useState<string>(item?.exit_reason || "");
+  const [companyRating, setCompanyRating] = useState<number>(item?.company_rating || 0);
+  const [wouldRecommend, setWouldRecommend] = useState<boolean>(item?.would_recommend ?? true);
+  const [reviewText, setReviewText] = useState<string>(item?.review_text || "");
+  const [isAnonymous, setIsAnonymous] = useState<boolean>(item?.is_anonymous ?? false);
 
- const handleCompanyChange = async (val: string) => {
- setCompany(val);
- if (val.trim().length >= 2) {
- try {
- const list = await searchStoresForCompanyAutocomplete({ data: { query: val } });
- setSuggestions(list || []);
- } catch {
- setSuggestions([]);
- }
- } else {
- setSuggestions([]);
- }
- };
+  // Sincroniza ao abrir
+  React.useEffect(() => {
+    if (open) {
+      setTitle(item?.title || "");
+      setCompany(item?.company || "");
+      setStoreId(item?.store_id || "");
+      setStoreLogo(item?.store_logo || "");
+      setEmploymentType(item?.employment_type || "CLT");
+      setLocation(item?.location || "");
+      setLocationType(item?.location_type || "No local");
+      setIsCurrent(item?.is_current !== false);
+      setStartDate(item?.start_date || "");
+      setEndDate(item?.end_date || "");
+      setDescription(item?.description || "");
+      setSalaryCents(item?.salary_cents);
+      setExitReason(item?.exit_reason || "");
+      setCompanyRating(item?.company_rating || 0);
+      setWouldRecommend(item?.would_recommend ?? true);
+      setReviewText(item?.review_text || "");
+      setIsAnonymous(item?.is_anonymous ?? false);
+    }
+  }, [open, item]);
 
- const handleSelectStore = (s: any) => {
- setCompany(s.name);
- setStoreId(s.id);
- setStoreLogo(s.logo_url || "");
- if (s.city || s.state) {
- setLocation([s.city, s.state].filter(Boolean).join(", "));
- }
- setSuggestions([]);
- };
+  const handleCompanyChange = async (val: string) => {
+    setCompany(val);
+    if (val.trim().length >= 2) {
+      try {
+        const list = await searchStoresForCompanyAutocomplete({ data: { query: val } });
+        setSuggestions(list || []);
+      } catch {
+        setSuggestions([]);
+      }
+    } else {
+      setSuggestions([]);
+    }
+  };
 
- const handleSubmit = (e: React.FormEvent) => {
- e.preventDefault();
- if (!title.trim() || !company.trim()) {
- toast.error("Preencha cargo e empresa.");
- return;
- }
+  const handleSelectStore = (s: any) => {
+    setCompany(s.name);
+    setStoreId(s.id);
+    setStoreLogo(s.logo_url || "");
+    if (s.city || s.state) {
+      setLocation([s.city, s.state].filter(Boolean).join(", "));
+    }
+    setSuggestions([]);
+  };
 
- onSave({
- id: item?.id || `exp_${Date.now()}`,
- title: title.trim(),
- company: company.trim(),
- store_id: storeId || undefined,
- store_logo: storeLogo || undefined,
- employment_type: employmentType,
- location: location.trim() || undefined,
- location_type: locationType,
- is_current: isCurrent,
- start_date: startDate.trim() || undefined,
- end_date: isCurrent ? "Atual" : endDate.trim() || undefined,
- description: description.trim() || undefined,
- media_urls: item?.media_urls || [],
- });
- };
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !company.trim()) {
+      toast.error("Preencha cargo e empresa.");
+      return;
+    }
 
- return (
- <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
- <div className="p-6 pb-4 border-b border-border/40 shrink-0">
- <SheetTitle className="text-base font-bold">
- {item ? "Editar Experiência" : "Nova Experiência Profissional"}
- </SheetTitle>
- </div>
+    onSave({
+      id: item?.id || `exp_${Date.now()}`,
+      title: title.trim(),
+      company: company.trim(),
+      store_id: storeId || undefined,
+      store_logo: storeLogo || undefined,
+      employment_type: employmentType,
+      location: location.trim() || undefined,
+      location_type: locationType,
+      is_current: isCurrent,
+      start_date: startDate.trim() || undefined,
+      end_date: isCurrent ? "Atual" : endDate.trim() || undefined,
+      description: description.trim() || undefined,
+      media_urls: item?.media_urls || [],
+      salary_cents: salaryCents || undefined,
+      exit_reason: isCurrent ? undefined : (exitReason.trim() || undefined),
+      company_rating: companyRating > 0 ? companyRating : undefined,
+      would_recommend: wouldRecommend,
+      review_text: reviewText.trim() || undefined,
+      is_anonymous: isAnonymous,
+    });
+  };
 
- <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between overflow-hidden">
- <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4 text-xs">
- <div className="space-y-1.5">
- <Label className="text-xs font-bold">Cargo *</Label>
- <Input
- value={title}
- onChange={(e) => setTitle(e.target.value)}
- placeholder="Ex: Coordenador de Marketing"
- className="h-9 rounded-xl text-xs"
- />
- </div>
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+        <div className="p-6 pb-4 border-b border-border/40 shrink-0">
+          <SheetTitle className="text-base font-bold">
+            {item ? "Editar Experiência" : "Nova Experiência Profissional"}
+          </SheetTitle>
+        </div>
 
- <div className="space-y-1.5 relative">
- <Label className="text-xs font-bold">Empresa / Negócio *</Label>
- <Input
- value={company}
- onChange={(e) => handleCompanyChange(e.target.value)}
- placeholder="Digite o nome da empresa..."
- className="h-9 rounded-xl text-xs"
- />
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between overflow-hidden">
+          <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4 text-xs">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Cargo *</Label>
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ex: Coordenador de Marketing"
+                className="h-9 rounded-xl text-xs"
+              />
+            </div>
 
- {suggestions.length > 0 && (
- <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl bg-popover border border-border shadow-lg p-1 space-y-0.5">
- {suggestions.map((s) => (
- <button
- key={s.id}
- type="button"
- onClick={() => handleSelectStore(s)}
- className="w-full text-left p-2 rounded-lg hover:bg-muted text-xs flex items-center gap-2 cursor-pointer"
- >
- {s.logo_url && <img src={s.logo_url} alt="" className="size-5 rounded-md object-cover" />}
- <span className="font-bold">{s.name}</span>
- <Badge variant="secondary" className="text-[9px] ml-auto">Empresa Wider</Badge>
- </button>
- ))}
- </div>
- )}
- </div>
+            <div className="space-y-1.5 relative">
+              <Label className="text-xs font-bold">Empresa / Negócio *</Label>
+              <Input
+                value={company}
+                onChange={(e) => handleCompanyChange(e.target.value)}
+                placeholder="Digite o nome da empresa..."
+                className="h-9 rounded-xl text-xs"
+              />
 
- <div className="grid grid-cols-2 gap-3">
- <div className="space-y-1.5">
- <Label className="text-xs font-bold">Regime de Contratação</Label>
- <Select value={employmentType} onValueChange={setEmploymentType}>
- <SelectTrigger className="h-9 rounded-xl text-xs">
- <SelectValue />
- </SelectTrigger>
- <SelectContent className="rounded-xl">
- <SelectItem value="CLT">CLT (Efetivo)</SelectItem>
- <SelectItem value="PJ">PJ (Pessoa Jurídica)</SelectItem>
- <SelectItem value="Estágio">Estágio</SelectItem>
- <SelectItem value="Freelance">Autônomo / Freelance</SelectItem>
- <SelectItem value="Temporário">Temporário</SelectItem>
- </SelectContent>
- </Select>
- </div>
+              {suggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl bg-popover border border-border shadow-lg p-1 space-y-0.5">
+                  {suggestions.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => handleSelectStore(s)}
+                      className="w-full text-left p-2 rounded-lg hover:bg-muted text-xs flex items-center gap-2 cursor-pointer"
+                    >
+                      {s.logo_url && <img src={s.logo_url} alt="" className="size-5 rounded-md object-cover" />}
+                      <span className="font-bold">{s.name}</span>
+                      <Badge variant="secondary" className="text-[9px] ml-auto">Empresa Wider</Badge>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
- <div className="space-y-1.5">
- <Label className="text-xs font-bold">Localidade</Label>
- <Input
- value={location}
- onChange={(e) => setLocation(e.target.value)}
- placeholder="Chapecó, SC"
- className="h-9 rounded-xl text-xs"
- />
- </div>
- </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">Regime de Contratação</Label>
+                <Select value={employmentType} onValueChange={setEmploymentType}>
+                  <SelectTrigger className="h-9 rounded-xl text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="CLT">CLT (Efetivo)</SelectItem>
+                    <SelectItem value="PJ">PJ (Pessoa Jurídica)</SelectItem>
+                    <SelectItem value="Estágio">Estágio</SelectItem>
+                    <SelectItem value="Freelance">Autônomo / Freelance</SelectItem>
+                    <SelectItem value="Temporário">Temporário</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
- <div className="grid grid-cols-2 gap-3">
- <div className="space-y-1.5">
- <Label className="text-xs font-bold">Data Início</Label>
- <Input
- value={startDate}
- onChange={(e) => setStartDate(e.target.value)}
- placeholder="Ex: Jan 2022"
- className="h-9 rounded-xl text-xs"
- />
- </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">Localidade</Label>
+                <Input
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="Chapecó, SC"
+                  className="h-9 rounded-xl text-xs"
+                />
+              </div>
+            </div>
 
- <div className="space-y-1.5">
- <Label className="text-xs font-bold">Data Fim</Label>
- <Input
- disabled={isCurrent}
- value={isCurrent ? "Atual" : endDate}
- onChange={(e) => setEndDate(e.target.value)}
- placeholder="Ex: Dez 2024"
- className="h-9 rounded-xl text-xs"
- />
- </div>
- </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">Data Início</Label>
+                <Input
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  placeholder="Ex: Jan 2022"
+                  className="h-9 rounded-xl text-xs"
+                />
+              </div>
 
- <label className="flex items-center gap-2 cursor-pointer pt-1">
- <input
- type="checkbox"
- checked={isCurrent}
- onChange={(e) => setIsCurrent(e.target.checked)}
- className="size-4 rounded-md accent-primary"
- />
- <span className="text-xs font-medium text-foreground">Trabalho atualmente nesta empresa</span>
- </label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">Data Fim</Label>
+                <Input
+                  disabled={isCurrent}
+                  value={isCurrent ? "Atual" : endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  placeholder="Ex: Dez 2024"
+                  className="h-9 rounded-xl text-xs"
+                />
+              </div>
+            </div>
 
- <div className="space-y-1.5 pt-2">
- <Label className="text-xs font-bold">Descrição das Realizações e Atividades</Label>
- <Textarea
- value={description}
- onChange={(e) => setDescription(e.target.value)}
- rows={4}
- placeholder="Destaque seus projetos liderados, metas alcançadas e tecnologias utilizadas..."
- className="rounded-xl text-xs resize-none"
- />
- </div>
- </div>
+            <label className="flex items-center gap-2 cursor-pointer pt-1">
+              <input
+                type="checkbox"
+                checked={isCurrent}
+                onChange={(e) => setIsCurrent(e.target.checked)}
+                className="size-4 rounded-md accent-primary"
+              />
+              <span className="text-xs font-medium text-foreground">Trabalho atualmente nesta empresa</span>
+            </label>
 
- <div className="p-4 border-t border-border/40 flex items-center justify-between shrink-0">
- {item ? (
- <Button
- type="button"
- variant="ghost"
- size="sm"
- onClick={() => onSave(null, true)}
- className="text-destructive text-xs hover:bg-destructive/10 rounded-xl"
- >
- <Trash2 className="size-3.5 mr-1" /> Excluir
- </Button>
- ) : <div />}
+            <div className="space-y-1.5 pt-2">
+              <Label className="text-xs font-bold">Descrição das Realizações e Atividades</Label>
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+                placeholder="Destaque seus projetos liderados, metas alcançadas e tecnologias utilizadas..."
+                className="rounded-xl text-xs resize-none"
+              />
+            </div>
 
- <div className="flex items-center gap-2">
- <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} className="rounded-xl text-xs h-9">
- Cancelar
- </Button>
- <Button type="submit" size="sm" className="rounded-xl text-xs h-9 font-bold bg-primary text-primary-foreground">
- Salvar
- </Button>
- </div>
- </div>
- </form>
- </SheetContent>
- </Sheet>
- );
+            {/* ── Avaliação da Empresa & Inteligência de Empregadores (InfoJobs / Glassdoor style) ── */}
+            <div className="pt-4 border-t border-border/40 space-y-3.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <Building2 className="size-3.5 text-primary" />
+                  <span>Avaliação & Salário (Comunidade de Talentos)</span>
+                </Label>
+                <span className="text-[10px] text-muted-foreground font-mono">Opcional</span>
+              </div>
+
+              {/* Campo de Salário */}
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-medium text-foreground/80">
+                  Remuneração / Salário Mensal (R$)
+                </Label>
+                <CurrencyField
+                  value={salaryCents || 0}
+                  onChange={(val) => setSalaryCents(val > 0 ? val : undefined)}
+                  placeholder="R$ 0,00"
+                  className="h-9 rounded-xl text-xs"
+                />
+              </div>
+
+              {/* Motivo de Saída (se não for trabalho atual) */}
+              {!isCurrent && (
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-medium text-foreground/80">
+                    Motivo da Saída
+                  </Label>
+                  <Select value={exitReason} onValueChange={setExitReason}>
+                    <SelectTrigger className="h-9 rounded-xl text-xs">
+                      <SelectValue placeholder="Selecione o motivo..." />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="Transição de Carreira">Transição de Carreira</SelectItem>
+                      <SelectItem value="Proposta Mais Atraente">Proposta Mais Atraente</SelectItem>
+                      <SelectItem value="Mudança Geográfica / Familiar">Mudança Geográfica / Familiar</SelectItem>
+                      <SelectItem value="Desligamento sem Justa Causa">Desligamento sem Justa Causa</SelectItem>
+                      <SelectItem value="Fim de Contrato / Estágio">Fim de Contrato / Estágio</SelectItem>
+                      <SelectItem value="Fechamento de Unidade / Reestruturação">Fechamento de Unidade / Reestruturação</SelectItem>
+                      <SelectItem value="Busca por Novos Desafios">Busca por Novos Desafios</SelectItem>
+                      <SelectItem value="Outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Avaliação em Estrelas (1 a 5) */}
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-medium text-foreground/80">
+                  Como você avalia sua experiência trabalhando nesta empresa?
+                </Label>
+                <div className="flex items-center gap-1.5">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setCompanyRating(star === companyRating ? 0 : star)}
+                      className="p-1 rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                      title={`${star} estrela${star > 1 ? "s" : ""}`}
+                    >
+                      <Star
+                        className={cn(
+                          "size-5 transition-colors",
+                          star <= companyRating
+                            ? "fill-amber-400 text-amber-400"
+                            : "text-muted-foreground/40 hover:text-muted-foreground"
+                        )}
+                      />
+                    </button>
+                  ))}
+                  {companyRating > 0 && (
+                    <span className="text-xs font-mono font-bold text-amber-500 ml-2">
+                      {companyRating}.0 / 5.0
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Recomendação */}
+              <label className="flex items-center gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={wouldRecommend}
+                  onChange={(e) => setWouldRecommend(e.target.checked)}
+                  className="size-4 rounded-md accent-primary"
+                />
+                <span className="text-xs font-medium text-foreground">
+                  Eu recomendaria trabalhar nesta empresa para amigos ou conhecidos
+                </span>
+              </label>
+
+              {/* Review / Feedback Cultural */}
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-medium text-foreground/80">
+                  Comentário sobre ambiente, cultura ou liderança (Estilo InfoJobs)
+                </Label>
+                <Textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  rows={2}
+                  placeholder="O que os futuros candidatos deveriam saber sobre o clima organizacional?"
+                  className="rounded-xl text-xs resize-none"
+                />
+              </div>
+
+              {/* Anonimato */}
+              <label className="flex items-center gap-2.5 cursor-pointer p-2.5 rounded-xl bg-muted/30 border border-border/40">
+                <input
+                  type="checkbox"
+                  checked={isAnonymous}
+                  onChange={(e) => setIsAnonymous(e.target.checked)}
+                  className="size-4 rounded-md accent-primary"
+                />
+                <span className="text-xs font-medium text-foreground">
+                  Manter meu nome anônimo nos rankings comunitários de empresas
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div className="p-4 border-t border-border/40 flex items-center justify-between shrink-0">
+            {item ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => onSave(null, true)}
+                className="text-destructive text-xs hover:bg-destructive/10 rounded-xl"
+              >
+                <Trash2 className="size-3.5 mr-1" /> Excluir
+              </Button>
+            ) : <div />}
+
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} className="rounded-xl text-xs h-9">
+                Cancelar
+              </Button>
+              <Button type="submit" size="sm" className="rounded-xl text-xs h-9 font-bold bg-primary text-primary-foreground">
+                Salvar
+              </Button>
+            </div>
+          </div>
+        </form>
+      </SheetContent>
+    </Sheet>
+  );
 }
 
 /**
@@ -1648,7 +1794,7 @@ function EducationEditSheet({
 
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0">
  <SheetTitle className="text-base font-bold">
  {item ? "Editar Formação" : "Nova Formação Acadêmica"}
@@ -1805,7 +1951,7 @@ function CertificationEditSheet({
 
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0">
  <SheetTitle className="text-base font-bold">
  {item ? "Editar Certificação" : "Nova Licença ou Certificado"}
@@ -1969,7 +2115,7 @@ function ProjectEditSheet({
  return (
  <>
  <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0">
  <SheetTitle className="text-base font-bold">
  {item ? "Editar Projeto" : "Novo Projeto / Portfólio"}
@@ -2135,7 +2281,7 @@ function VolunteeringEditSheet({
 
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0">
  <SheetTitle className="text-base font-bold">
  {item ? "Editar Voluntariado" : "Novo Trabalho Voluntário"}
@@ -2233,7 +2379,7 @@ function CausesEditSheet({
 
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0">
  <SheetTitle className="text-base font-bold">Causas que Você Apoia</SheetTitle>
  <SheetDescription className="text-xs text-muted-foreground">
@@ -2321,7 +2467,7 @@ function LanguageEditSheet({
 
  return (
  <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0">
  <SheetTitle className="text-base font-bold">
  {item ? "Editar Idioma" : "Novo Idioma"}

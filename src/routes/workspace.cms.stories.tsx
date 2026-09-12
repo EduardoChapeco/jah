@@ -58,7 +58,7 @@ export const Route = createFileRoute("/workspace/cms/stories")({
  };
    } catch (err) {
      console.error("[loader:workspace.cms.stories] Unhandled loader error:", err);
-     return null;
+     return { stories: null, collabs: null };
    }
  },
  component: CmsStoriesPage,

@@ -25,6 +25,7 @@ import {
  Boxes,
  Wrench,
  Package,
+ MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,14 +81,14 @@ export const Route = createFileRoute("/workspace/orcamentos/novo")({
  return { store };
    } catch (err) {
      console.error("[loader:workspace.orcamentos.novo] Unhandled loader error:", err);
-     return null;
+     return { store: null };
    }
  },
  component: NovoOrcamentoRouterPage,
 });
 
 function NovoOrcamentoRouterPage() {
- const { store } = Route.useLoaderData();
+ const { store } = ((Route.useLoaderData?.() as any) || {});
  const semantics = getNicheSemantics(store);
  const isTourism =
  semantics.niche === "tourism" ||
@@ -192,6 +193,9 @@ function NovoOrcamentoTravelosPage() {
  const [discountCents, setDiscountCents] = useState<number>(0);
  const [maxInstallments, setMaxInstallments] = useState<number>(1);
  const [validUntilDays, setValidUntilDays] = useState<number>(3);
+
+ // 6. Distribuição de Quartos
+ const [roomDistribution, setRoomDistribution] = useState<string>("");
 
  // Cálculos Automáticos
  const totalPax = Math.max(1, proposalData.adultsCount + proposalData.childrenCount);
@@ -1205,7 +1209,122 @@ function NovoOrcamentoTravelosPage() {
  className="h-10 rounded-xl text-xs font-mono"
  />
  </div>
+ <div className="space-y-1.5">
+ <Label className="text-xs font-bold">Distribuição de Quartos (Acomodação)</Label>
+ <Input
+ value={roomDistribution}
+ onChange={(e) => setRoomDistribution(e.target.value)}
+ placeholder="Ex: 1 Quarto Duplo + 1 Quarto Triplo (Família)"
+ className="h-10 rounded-xl text-xs"
+ />
+ <p className="text-[11px] text-muted-foreground">Detalhamento de quartos para o template do WhatsApp</p>
  </div>
+ </div>
+ </div>
+ </div>
+
+ {/* ─── AÇÃO DE SHARE WHATSAPP ─── */}
+ <div className="p-5 rounded-2xl bg-card border border-border/80 space-y-3">
+ <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
+ <span className="size-4 text-emerald-600 flex items-center justify-center text-sm">💬</span>
+ <span>Compartilhar Cotação via WhatsApp</span>
+ </div>
+ <p className="text-[11px] text-muted-foreground leading-relaxed">
+ Gere um template profissional de proposta turística e envie diretamente para o cliente via WhatsApp.
+ O template inclui destino, datas, passageiros, hotéis, voos, valores e condições de pagamento.
+ </p>
+ <div className="flex flex-wrap gap-2">
+ <button
+ type="button"
+ onClick={() => {
+ const clientName = proposalData.clientName || 'Cliente';
+ const dest = proposalData.destinationCity || selectedCanonicalDest?.name || 'Destino Especial';
+ const startDate = proposalData.travelStartDate ? new Date(proposalData.travelStartDate + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+ const endDate = proposalData.travelEndDate ? new Date(proposalData.travelEndDate + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+ const adultsLabel = proposalData.adultsCount > 0 ? `${proposalData.adultsCount} adulto${proposalData.adultsCount > 1 ? 's' : ''}` : '';
+ const childrenLabel = proposalData.childrenCount > 0 ? ` + ${proposalData.childrenCount} criança${proposalData.childrenCount > 1 ? 's' : ''}` : '';
+ const paxLine = `${adultsLabel}${childrenLabel} (${totalPax} PAX)`;
+ const flightLines = flights.length > 0
+ ? flights.map(f => `   ✈ ${f.type === 'outbound' ? 'Ida' : f.type === 'return' ? 'Volta' : 'Conexão'}: ${f.origin_iata} → ${f.destination_iata} | ${f.airline_name} | ${f.departure_time} – ${f.arrival_time}${f.baggage_included ? ` | Bagagem: ${f.baggage_included}` : ''}`).join('\n')
+ : '   Voos a confirmar';
+ const hotelLines = hotels.length > 0
+ ? hotels.map(h => `   🏨 ${h.hotel_name} (${h.stars ? '★'.repeat(h.stars) : ''}) | ${h.nights_count} noite${h.nights_count > 1 ? 's' : ''} | ${h.board_basis === 'all_inclusive' ? 'All-Inclusive' : h.board_basis === 'breakfast' ? 'Café da Manhã' : h.board_basis === 'half_board' ? 'Meia Pensão' : 'Hospedagem'}`).join('\n')
+ : '   Hotel a confirmar';
+ const pixPrice = Math.round(totalPriceCents * 0.95);
+ const installLine = maxInstallments > 1 ? `   💳 Parcelado: ${maxInstallments}x de ${formatMoney(installmentValueCents)} sem juros` : '';
+
+ const lines = [
+ `✨ *PROPOSTA EXCLUSIVA — ${proposalData.title || `Pacote ${dest}`}* ✨`,
+ ``,
+ `Olá, *${clientName.split(' ')[0]}*! Segue seu roteiro personalizado:`,
+ ``,
+ `📍 *Destino:* ${dest}`,
+ startDate ? `📅 *Período:* ${startDate}${endDate ? ` até ${endDate}` : ''}` : '',
+ `👥 *Passageiros:* ${paxLine}`,
+ roomDistribution ? `🛏️ *Quartos:* ${roomDistribution}` : '',
+ ``,
+ `✈️ *AÉREO*`,
+ flightLines,
+ ``,
+ `🏨 *HOSPEDAGEM*`,
+ hotelLines,
+ ``,
+ `💰 *VALORES DO PACOTE*`,
+ `   👤 Por pessoa: ${formatMoney(Math.round(totalPriceCents / totalPax))}`,
+ `   📦 Total do Pacote: *${formatMoney(totalPriceCents)}*`,
+ `   ⚡ À Vista via Pix (5% OFF): *${formatMoney(pixPrice)}*`,
+ installLine,
+ ``,
+ `📌 *INCLUSO:*`,
+ ...includesText.split('\n').filter(l => l.trim()).map(l => `   ${l}`),
+ ``,
+ `📌 *NÃO INCLUSO:*`,
+ ...excludesText.split('\n').filter(l => l.trim()).map(l => `   ${l}`),
+ ``,
+ `⏳ *Proposta válida por ${validUntilDays} dias.*`,
+ ``,
+ `Entre em contato para confirmar disponibilidade e reservar sua viagem! 🌎`,
+ ].filter(l => l !== '').join('\n');
+
+ const phone = proposalData.clientWhatsapp?.replace(/\D/g, '');
+ const msg = encodeURIComponent(lines);
+ if (phone) {
+ window.open(`https://wa.me/55${phone}?text=${msg}`, '_blank');
+ } else {
+ window.open(`https://wa.me/?text=${msg}`, '_blank');
+ }
+ }}
+ className="h-10 px-5 rounded-xl text-xs font-bold flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer shadow-xs"
+ >
+ <span>💬</span>
+ <span>Enviar Proposta via WhatsApp</span>
+ </button>
+
+ <button
+ type="button"
+ onClick={() => {
+ const clientName = proposalData.clientName || 'Cliente';
+ const dest = proposalData.destinationCity || selectedCanonicalDest?.name || 'Destino Especial';
+ const pixPrice = Math.round(totalPriceCents * 0.95);
+ const installLine = maxInstallments > 1 ? ` | ${maxInstallments}x de ${formatMoney(installmentValueCents)} s/j` : '';
+ const paxLine = `${totalPax} PAX${roomDistribution ? ` | ${roomDistribution}` : ''}`;
+
+ const text = [
+ `✨ *${proposalData.title || `Pacote ${dest}`}*`,
+ `📍 ${dest} | 👥 ${paxLine}`,
+ `💰 Total: *${formatMoney(totalPriceCents)}* | Pix: *${formatMoney(pixPrice)}*${installLine}`,
+ `⏳ Válida por ${validUntilDays} dias.`,
+ `Para mais detalhes, responda esta mensagem! 😊`,
+ ].join('\n');
+
+ navigator.clipboard?.writeText(text);
+ toast.success('Texto copiado! Cole no WhatsApp, e-mail ou onde quiser.');
+ }}
+ className="h-10 px-4 rounded-xl text-xs font-bold flex items-center gap-2 bg-muted hover:bg-muted/80 text-foreground border border-border/60 transition-colors cursor-pointer"
+ >
+ <span>📋</span>
+ <span>Copiar Resumo</span>
+ </button>
  </div>
  </div>
  </TabsContent>
@@ -1918,6 +2037,32 @@ function NovoOrcamentoComercialUniversalPage({ store }: { store?: any }) {
  </>
  )}
  </Button>
+
+ {/* WhatsApp Share Rapido */}
+ {customerData.phone && totalCents > 0 && (
+ <button
+ type="button"
+ className="w-full h-11 mt-2 rounded-xl font-bold text-xs bg-[#25D366] hover:bg-[#128C7E] text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
+ onClick={() => {
+   let msg = `*Orçamento: ${title}*\n\n`;
+   items.forEach(item => {
+     msg += `• ${item.quantity}x ${item.title}\n`;
+     if (item.description) msg += `  _${item.description}_\n`;
+   });
+   msg += `\n*Total: ${formatMoney(totalCents)}*\n`;
+   
+   if (paymentConditions.pix.enabled && paymentConditions.pix.discountPercent > 0) {
+     msg += `*Pix (${paymentConditions.pix.discountPercent}% OFF): ${formatMoney(Math.round(totalCents * (1 - paymentConditions.pix.discountPercent/100)))}*\n`;
+   }
+   
+   const phone = customerData.phone.replace(/\D/g, '');
+   window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+ }}
+ >
+ <MessageCircle className="size-4" />
+ <span>Enviar via WhatsApp</span>
+ </button>
+ )}
  </div>
  </div>
  </form>

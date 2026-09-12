@@ -96,14 +96,14 @@ export const Route = createFileRoute("/workspace/")({
  };
    } catch (err) {
      console.error("[loader:workspace.index] Unhandled loader error:", err);
-     return null;
+     return { session: null, activeStore: null, memberships: null, dashboardMetrics: null };
    }
  },
  component: WorkspaceDashboardPage,
 });
 
 export default function WorkspaceDashboardPage() {
- const { activeStore, dashboardMetrics } = Route.useLoaderData() as any;
+ const { activeStore, dashboardMetrics } = ((Route.useLoaderData?.() as any) || {});
  const semantics = getNicheSemantics(activeStore);
 
  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -324,6 +324,22 @@ export default function WorkspaceDashboardPage() {
  <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold">
  <Link to="/workspace/lojas">
  Trocar Loja
+ </Link>
+ </Button>
+
+ {activeStore?.slug && (
+ <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold gap-1.5 border-border/80">
+ <Link to="/diretorio/$id" params={{ id: activeStore.slug }}>
+ <Store className="size-3.5 text-primary" />
+ <span>Vitrine Pública</span>
+ </Link>
+ </Button>
+ )}
+
+ <Button asChild size="sm" variant="ghost" className="rounded-xl text-xs font-semibold gap-1 text-primary hover:text-primary hover:bg-primary/10">
+ <Link to="/workspace/marketing/vitrine">
+ <Layers className="size-3.5" />
+ <span>Personalizar Vitrine</span>
  </Link>
  </Button>
 

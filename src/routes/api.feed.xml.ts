@@ -27,47 +27,70 @@ export const Route = createFileRoute("/api/feed/xml")({
  try {
  const db = getServerClient();
  const url = new URL(request.url);
- let storeId = url.searchParams.get("store");
+ let storeParam = url.searchParams.get("store") || url.searchParams.get("storeId");
 
- if (!storeId) {
+ if (!storeParam) {
  const { resolveTenantStoreId } = await import("@/lib/tenant.server");
- storeId = await resolveTenantStoreId();
+ storeParam = await resolveTenantStoreId();
  }
 
- if (!storeId) {
+ if (!storeParam) {
  return new Response("Missing store parameter", { status: 400 });
  }
 
- // Validate if Google Merchant Center is active
+ const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(storeParam);
+
+ // Fetch store info by UUID or slug
+ let storeQuery = db.from("stores").select("id, name, slug");
+ if (isUuid) {
+ storeQuery = storeQuery.eq("id", storeParam);
+ } else {
+ storeQuery = storeQuery.eq("slug", storeParam);
+ }
+
+ const { data: store } = await storeQuery.maybeSingle();
+
+ if (!store) {
+ return new Response("Store not found", { status: 404 });
+ }
+
+ const storeId = store.id;
+
+ // Check optional integration credential status
  const { data: gmcIntegration } = await db
  .from("integration_credentials")
  .select("is_active")
  .eq("store_id", storeId)
  .eq("provider", "google_merchant_center")
- .single();
+ .maybeSingle();
 
- if (!gmcIntegration || !gmcIntegration.is_active) {
+ const { data: mktConnector } = await db
+ .from("marketplace_connectors")
+ .select("status")
+ .eq("store_id", storeId)
+ .in("platform", ["google_merchant_center", "google_business", "mercadolivre"])
+ .maybeSingle();
+
+ // If explicitly disabled in credentials, notify caller
+ if (gmcIntegration && gmcIntegration.is_active === false) {
  return new Response(
- "Google Merchant Center integration is inactive or not configured.",
- {
- status: 403,
- },
+ "Google Merchant Center feed is currently paused for this store.",
+ { status: 403 },
  );
  }
 
- // Fetch store info for the feed title
- const { data: store } = await db.from("stores").select("name").eq("id", storeId).single();
  const { data: products, error } = await db
  .from("products")
  .select(
  `
- id, slug, title, short_description, description, manufacturer, price_cents, compare_at_cents, status,
+ id, slug, title, short_description, description, manufacturer, price_cents, compare_at_cents, status, google_product_category,
+ product_categories(name),
  product_variants(id, sku, price_cents, price_override_cents, attributes, stock_on_hand),
- product_media(url, is_thumbnail)
+ product_media(url, sort_order)
  `,
  )
  .eq("store_id", storeId)
- .eq("status", "published");
+ .in("status", ["published", "active"]);
 
  if (error) {
  console.error("Feed XML Error:", error);
@@ -84,13 +107,13 @@ export const Route = createFileRoute("/api/feed/xml")({
  xml += `<link>${url.origin}</link>\n`;
  xml += `<description>Feed de Produtos — ${escapeXml(storeName)}</description>\n`;
 
- for (const p of products) {
+ for (const p of products || []) {
  // For simple products or configurable ones, we export variants as items
  const variants = p.product_variants || [];
- const medias = p.product_media || [];
+ const medias = (p.product_media || []).sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
 
- const thumb = medias.find((m: any) => m.is_thumbnail)?.url || medias[0]?.url || "";
- const additionalImages = medias.filter((m: any) => m.url !== thumb).slice(0, 10);
+ const thumb = medias[0]?.url || "";
+ const additionalImages = medias.slice(1, 11);
 
  if (variants.length === 0) {
  // Fallback to parent product if no variants exist
@@ -116,9 +139,9 @@ export const Route = createFileRoute("/api/feed/xml")({
  ? (p.compare_at_cents / 100).toFixed(2)
  : priceBrl;
 
- const link = `${url.origin}/produtos/${p.slug}?v=${v.sku || v.id}`;
+ const link = `${url.origin}/produto/${p.slug}?v=${v.sku || v.id}`;
 
- const titleExt = Object.values(v.attributes || {}).join(" -");
+ const titleExt = Object.values(v.attributes || {}).join(" - ");
  const itemTitle = titleExt ? `${p.title} - ${titleExt}` : p.title;
  const mpn = v.sku || `${p.slug}-${v.id.substring(0, 8)}`;
 
@@ -145,8 +168,13 @@ export const Route = createFileRoute("/api/feed/xml")({
  xml += ` <g:brand>${escapeXml(p.manufacturer || "Wider")}</g:brand>\n`;
  xml += ` <g:mpn>${escapeXml(mpn)}</g:mpn>\n`;
  xml += ` <g:identifier_exists>false</g:identifier_exists>\n`;
- xml += ` <g:google_product_category>Apparel &amp; Accessories &gt; Shoes</g:google_product_category>\n`;
- xml += ` <g:product_type>Calçados</g:product_type>\n`;
+ // Usa a categoria Google configurada no produto. Campo vazio é ignorado pelo Google (não causa rejeição).
+ if (p.google_product_category) {
+ xml += ` <g:google_product_category>${escapeXml(String(p.google_product_category))}</g:google_product_category>\n`;
+ }
+ if (p.category_name) {
+ xml += ` <g:product_type>${escapeXml(p.category_name)}</g:product_type>\n`;
+ }
 
  if (v.attributes && typeof v.attributes === "object") {
  const attrs = v.attributes as Record<string, string>;

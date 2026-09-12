@@ -35,27 +35,30 @@ export const SubmitPassengerFormSchema = z.object({
 // ---------------------------------------------------------------------------
 
 export const generatePassengerMagicLink = createServerFn({ method: "POST" })
- .validator((d: unknown) => GenerateTokenSchema.parse(d))
- .handler(async ({ data }) => {
- const identity = await getServerIdentity();
- assertStoreAccess(identity);
+  .validator(GenerateTokenSchema)
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+    if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error("Acesso não autorizado para esta organização.");
+    }
 
- const db = getServerClient();
- const { data: created, error } = await db
- .from("group_tour_passenger_tokens")
- .insert({
- store_id: data.store_id,
- tour_id: data.tour_id,
- passenger_seat_number: data.passenger_seat_number || null,
- passenger_name: data.passenger_name || null,
- passenger_phone: data.passenger_phone || null,
- })
- .select("token, passenger_seat_number, expires_at")
- .single();
+    const db = getServerClient();
+    const { data: created, error } = await db
+      .from("group_tour_passenger_tokens")
+      .insert({
+        store_id: data.store_id,
+        tour_id: data.tour_id,
+        passenger_seat_number: data.passenger_seat_number || null,
+        passenger_name: data.passenger_name || null,
+        passenger_phone: data.passenger_phone || null,
+      })
+      .select("token, passenger_seat_number, expires_at")
+      .single();
 
- if (error) throw error;
- return created;
- });
+    if (error) throw error;
+    return created;
+  });
 
 export const getPublicPassengerForm = createServerFn({ method: "GET" })
  .validator(z.object({ token: z.string().min(5) }))
@@ -123,7 +126,7 @@ export const getPublicPassengerForm = createServerFn({ method: "GET" })
  });
 
 export const submitPassengerForm = createServerFn({ method: "POST" })
- .validator((d: unknown) => SubmitPassengerFormSchema.parse(d))
+  .validator(SubmitPassengerFormSchema)
  .handler(async ({ data }) => {
  const db = getAnonServerClient();
 

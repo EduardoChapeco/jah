@@ -80,7 +80,7 @@ function ClinicalRecordDrawer({
 
  return (
  <Sheet open={isOpen} onOpenChange={(val) => !val && onClose()}>
- <SheetContent className="sm:max-w-md flex flex-col h-full bg-card">
+ <SheetContent size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] flex flex-col h-full bg-card">
  <SheetHeader className="pb-3 ">
  <SheetTitle className="text-base font-bold text-foreground">Prontuário & Evolução</SheetTitle>
  <SheetDescription className="text-xs text-muted-foreground">Histórico de atendimento de {guestName}</SheetDescription>

@@ -19,16 +19,23 @@ if (fs.existsSync(secretsPath)) {
 }
 
 const createChainableMock = () => {
- const mock: any = vi.fn(() => mock);
- return new Proxy(mock, {
- get: (target, prop) => {
- if (prop === "then") return undefined;
- if (!(prop in target)) {
- target[prop] = createChainableMock();
- }
- return target[prop];
- },
- });
+  let proxy: any;
+  const fn: any = vi.fn((..._args: any[]) => proxy);
+  proxy = new Proxy(fn, {
+    get: (target, prop) => {
+      if (prop === "then") {
+        return (resolve: any) => resolve({ data: [], error: null });
+      }
+      if (!(prop in target)) {
+        target[prop] = createChainableMock();
+      }
+      return target[prop];
+    },
+    apply: (_target, _thisArg, _argArray) => {
+      return proxy;
+    },
+  });
+  return proxy;
 };
 
 const mockIdentity = {

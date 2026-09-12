@@ -70,6 +70,15 @@ export const Route = createFileRoute("/sitemap.xml")({
  if (news) {
  news.forEach((n) => dynamicPaths.push(`/noticias/${n.slug}`));
  }
+
+ // 7. Fetch active stores/companies for Directory
+ const { data: stores } = await db
+ .from("stores")
+ .select("slug, id")
+ .eq("is_active", true);
+ if (stores) {
+ stores.forEach((s) => dynamicPaths.push(`/diretorio/${s.slug || s.id}`));
+ }
  } catch (e) {
  console.error("Error generating dynamic sitemap paths:", e);
  }

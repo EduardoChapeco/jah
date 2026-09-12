@@ -67,7 +67,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { PageHeader } from "@/components/commerce/page-header";
 import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-canonical-toolbar";
 import { WorkspaceDashboardSheet, type MetricCardItem } from "@/components/workspace/workspace-dashboard-sheet";
 import { ImageUpload } from "@/components/ui/image-upload";
@@ -104,14 +103,14 @@ export const Route = createFileRoute("/workspace/turismo/hoteis")({
  return { hotels: hotels || [], destinations: destinations || [], store };
    } catch (err) {
      console.error("[loader:workspace.turismo.hoteis] Unhandled error:", err);
-     return null;
+     return { hotels: null, destinations: null, store: null };
    }
  },
  component: WorkspaceHotelsPage,
 });
 
 function WorkspaceHotelsPage() {
- const { hotels: initialHotels, destinations = [], store } = Route.useLoaderData();
+ const { hotels: initialHotels, destinations = [], store } = ((Route.useLoaderData?.() as any) || {});
  const queryClient = useQueryClient();
 
  // Estados de Filtros e Visualização
@@ -1027,7 +1026,7 @@ function WorkspaceHotelsPage() {
 
  {/* ── SHEET RAIO-X DO HOTEL & RESORT (TRUTHFUL PREVIEW LATERAL) ── */}
  <Sheet open={!!previewHotel} onOpenChange={(open) => !open && setPreviewHotel(null)}>
- <SheetContent side="right" className="sm:max-w-2xl w-full max-h-screen overflow-y-auto no-scrollbar p-0 bg-card border-l border-border/80">
+ <SheetContent side="right" size="wide" className="sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] w-full max-h-screen overflow-y-auto no-scrollbar p-0 bg-card border-l border-border/80">
  {previewHotel && (
  <div className="space-y-4">
  {/* Header com Foto de Capa Panorâmica */}
@@ -1303,7 +1302,7 @@ function WorkspaceHotelsPage() {
  <div className="space-y-1.5 p-3 rounded-xl bg-muted/40 border border-border/60">
  <Label className="text-[11px] font-bold text-foreground flex items-center gap-1.5">
  <Compass className="size-3 text-primary" />
- <span>Vincular a Destino Canônico (Preenche Cidade/Estado e IATA):</span>
+ <span>Vincular a Destino Oficial (Preenche Cidade/Estado e IATA):</span>
  </Label>
  <div className="flex flex-wrap gap-1 pt-1">
  {CANONICAL_DESTINATIONS.slice(0, 8).map((cd) => (
@@ -1608,12 +1607,14 @@ function WorkspaceHotelsPage() {
  </div>
 
  <div className="space-y-1">
- <Label className="text-[10px] font-semibold text-foreground">URL da Foto do Quarto</Label>
- <Input
+ <Label className="text-[10px] font-semibold text-foreground">Foto do Quarto</Label>
+ <ImageUpload
  value={room.cover_photo_url || ""}
- onChange={(e) => handleUpdateRoomCategory(room.id, { cover_photo_url: e.target.value })}
- placeholder="https://images.unsplash.com/..."
- className="h-8 rounded-lg bg-background text-xs"
+ onChange={(url) => handleUpdateRoomCategory(room.id, { cover_photo_url: url })}
+ onRemove={() => handleUpdateRoomCategory(room.id, { cover_photo_url: "" })}
+ bucket="destination-media"
+ aspectPreset="widescreen"
+ helperText="Upload da foto do quarto"
  />
  </div>
  </div>

@@ -26,7 +26,7 @@ export function StoreCard({
  to="/diretorio/$id"
  params={{ id }}
  className={cn(
- "group relative flex flex-col justify-between w-[280px] sm:w-[320px] md:w-[350px] shrink-0 snap-start rounded-2xl bg-card hover:border-primary/50 transition-all duration-200 overflow-hidden select-none block",
+ "group relative flex flex-col justify-between w-full rounded-2xl bg-card border border-border/60 hover:border-primary/50 transition-all duration-200 overflow-hidden select-none block shadow-2xs",
  className,
  )}
  >

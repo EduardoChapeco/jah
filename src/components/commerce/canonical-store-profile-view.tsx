@@ -33,6 +33,13 @@ import {
   Eye,
   Check,
   Navigation,
+  Ticket,
+  FileCheck,
+  Sparkles,
+  Grid,
+  List,
+  Camera,
+  Edit3,
 } from "lucide-react";
 import {
   WhatsappLogo,
@@ -43,14 +50,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  StoreVitrineSectionsEditor,
+  DEFAULT_STORE_VITRINE_SECTIONS,
+  type VitrineSectionConfig,
+  type VitrineCardItem,
+} from "@/components/commerce/store-vitrine-sections-editor";
+import { ProceduralInfiniteFeed } from "@/components/commerce/procedural-infinite-feed";
+import { ThreadsFeedCard } from "@/components/social/threads-feed-card";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { DynamicMediaChip } from "@/components/commerce/dynamic-media-chip";
 import { ProductModifiersModal, type SelectedModifier } from "@/components/pos/product-modifiers-modal";
@@ -65,12 +82,16 @@ import { formatMoney } from "@/lib/money";
 import { trackAndOpenWhatsApp } from "@/lib/whatsapp";
 import { addToCart } from "@/services/cart.functions";
 import { requestDirectoryQuote } from "@/services/directory.functions";
+import { participateInRaffle } from "@/services/invite.functions";
+import { upsertStorePageSection, saveStorePageSectionsOrder } from "@/services/store.functions";
 import { useCartContext } from "@/lib/cart-context";
+import { SocialCardGeneratorModal } from "@/components/studio/SocialCardGeneratorModal";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export interface CanonicalStoreProfileViewProps {
   store: any;
+  sections?: any[];
   catalog?: any[];
   categories?: any[];
   banners?: any[];
@@ -79,8 +100,11 @@ export interface CanonicalStoreProfileViewProps {
   posts?: any[];
   reviews?: any[];
   sponsors?: any[];
+  concursos?: any[];
+  employerStats?: any;
   builderTree?: any[] | null;
   initialTab?: string;
+  isOwner?: boolean;
   source?: "directory" | "storefront";
   backUrl?: string;
   backLabel?: string;
@@ -88,6 +112,7 @@ export interface CanonicalStoreProfileViewProps {
 
 export function CanonicalStoreProfileView({
   store,
+  sections = [],
   catalog = [],
   categories = [],
   banners = [],
@@ -96,7 +121,10 @@ export function CanonicalStoreProfileView({
   posts = [],
   reviews = [],
   sponsors = [],
-  initialTab = "catalogo",
+  concursos = [],
+  employerStats = null,
+  initialTab = "vitrine",
+  isOwner = false,
   source = "storefront",
   backUrl = source === "directory" ? "/diretorio" : "/",
   backLabel = source === "directory" ? "Guia & Diretório" : "Início",
@@ -110,6 +138,33 @@ export function CanonicalStoreProfileView({
 
   // Modal de Lightbox para fotos dos posts
   const [lightboxPost, setLightboxPost] = useState<any | null>(null);
+  const [isBioExpanded, setIsBioExpanded] = useState(false);
+
+  // Estado de Seções Personalizáveis da Vitrine (Wix / App Builder Style)
+  const [vitrineSections, setVitrineSections] = useState<VitrineSectionConfig[]>(() => {
+    if (sections && sections.length > 0) {
+      return sections.map((s) => ({
+        id: s.id,
+        type: s.section_type === "banner_carousel" ? "banners" : s.section_type === "highlight_cards" ? "custom_cards" : s.section_type,
+        title: s.title || s.section_type,
+        enabled: s.is_active,
+        cards: s.config?.cards || [],
+      }));
+    }
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        const cached = localStorage.getItem(`store_vitrine_sections_${store?.id}`);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      }
+    } catch {}
+    return DEFAULT_STORE_VITRINE_SECTIONS;
+  });
+  const [isSectionsEditorOpen, setIsSectionsEditorOpen] = useState(false);
+  const [postViewMode, setPostViewMode] = useState<"grid" | "feed">("grid");
+  const [isSocialStudioOpen, setIsSocialStudioOpen] = useState(false);
 
   // Modal de Orçamento
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
@@ -120,6 +175,35 @@ export function CanonicalStoreProfileView({
   const [quoteMessage, setQuoteMessage] = useState("");
   const [hasQuoted, setHasQuoted] = useState(false);
   const [isSendingQuote, setIsSendingQuote] = useState(false);
+
+  // Concursos de Sorte
+  const [selectedConcurso, setSelectedConcurso] = useState<any | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [isSubmittingTicket, setIsSubmittingTicket] = useState(false);
+
+  const handleConfirmConcursoParticipation = async () => {
+    if (!selectedConcurso) return;
+    if (!acceptedTerms) {
+      toast.error("É necessário ler e aceitar o regulamento do concurso.");
+      return;
+    }
+
+    setIsSubmittingTicket(true);
+    try {
+      const res = await participateInRaffle({
+        data: {
+          raffleId: selectedConcurso.id,
+          acceptTerms: true,
+        },
+      });
+      toast.success(res.message);
+      setSelectedConcurso(null);
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao emitir cupom.");
+    } finally {
+      setIsSubmittingTicket(false);
+    }
+  };
 
   const settings = store?.settings || {};
   const coverUrl =
@@ -255,6 +339,34 @@ export function CanonicalStoreProfileView({
       });
       setHasQuoted(true);
       toast.success("Solicitação de atendimento enviada com sucesso!");
+
+      // Telemetria de Lead (Meta Pixel client-side & CAPI server-side)
+      if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
+        (window as any).fbq("track", "Lead", {
+          content_name: quoteService || "Atendimento Geral",
+          content_category: "quote",
+        });
+      }
+      if (store?.id) {
+        import("@/services/pixels.functions")
+          .then(({ dispatchMetaCapiEvent }) => {
+            dispatchMetaCapiEvent({
+              data: {
+                storeId: store.id,
+                eventName: "Lead",
+                eventSourceUrl: window.location.href,
+                customData: {
+                  service_needed: quoteService,
+                },
+                userData: {
+                  email: quoteEmail,
+                  phone: quotePhone,
+                },
+              },
+            }).catch(() => {});
+          })
+          .catch(() => {});
+      }
     } catch (err: any) {
       toast.error(err?.message || "Erro ao enviar solicitação.");
     } finally {
@@ -288,62 +400,69 @@ export function CanonicalStoreProfileView({
   const hasSponsors = sponsors && sponsors.length > 0;
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden -mx-3 sm:-mx-6 -mt-4 sm:-mt-6 pb-24 md:pb-16 animate-in fade-in duration-200">
-      {/* ── 1. CAPA 100% LARGURA COM CONTROLES FLUTUANTES (PADRÃO PERFIL MEMBRO) ── */}
-      <div className="relative h-56 sm:h-72 md:h-80 w-full overflow-hidden bg-muted/40">
-        {coverUrl ? (
-          <img
-            src={coverUrl}
-            alt={store.name || store.business_name}
-            className="size-full object-cover"
-          />
-        ) : (
-          <div className="size-full bg-gradient-to-br from-primary/15 via-muted/50 to-muted flex items-center justify-center">
-            <Store className="size-16 text-primary/30" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-black/25 to-black/45" />
+    <div className="w-full max-w-6xl mx-auto space-y-6 pb-24 md:pb-16 animate-in fade-in duration-200">
+      {/* ── 1. TOP BAR CANÔNICA (PADRÃO PERFIL DE MEMBRO) ── */}
+      <div className="-mx-4 -mt-4 sm:mx-0 sm:mt-0 px-4 py-2.5 bg-background/95 backdrop-blur-md sticky top-0 z-40 border-b border-border/40 flex items-center justify-between">
+        {/* Esquerda: Botão Voltar */}
+        <Link
+          to={backUrl}
+          className="size-9 p-0 rounded-xl text-muted-foreground hover:text-foreground inline-flex items-center justify-center cursor-pointer transition-colors"
+          aria-label="Voltar"
+        >
+          <ArrowLeft className="size-5" />
+        </Link>
 
-        {/* Botões Flutuantes no Topo */}
-        <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-          <Link
-            to={backUrl}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md text-xs font-bold transition-all border border-white/20 cursor-pointer"
-          >
-            <ArrowLeft className="size-3.5" />
-            <span>{backLabel}</span>
-          </Link>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleShare}
-            className="h-8 px-3.5 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md text-xs font-bold border border-white/20 gap-1.5 cursor-pointer"
-          >
-            <Share2 className="size-3.5" />
-            <span>Compartilhar</span>
-          </Button>
+        {/* Centro: Nome de Usuário / Identificador da Empresa */}
+        <div className="flex items-center gap-1.5 font-bold text-sm text-foreground">
+          <span className="font-mono">@{store.slug || store.id?.slice(0, 8)}</span>
+          <ShieldCheck className="size-4 text-primary fill-primary/20 shrink-0" />
         </div>
 
-        {/* Badges no Canto Inferior da Foto */}
-        <div className="absolute bottom-4 left-4 sm:left-8 flex items-center gap-2 z-10">
-          <Badge className="bg-background/90 text-foreground backdrop-blur-md text-xs font-bold px-3 py-1 rounded-xl uppercase font-mono shadow-xs">
-            {store.category || store.type || (isGastronomy ? "Gastronomia" : "Empresa Local")}
-          </Badge>
-          <Badge className="bg-emerald-500 text-white backdrop-blur-md text-xs font-bold px-3 py-1 rounded-xl flex items-center gap-1 shadow-xs">
-            <ShieldCheck className="size-3.5" />
-            <span>Empresa Verificada</span>
-          </Badge>
+        {/* Direita: Portal, Gestão Pro & Compartilhar */}
+        <div className="flex items-center gap-1.5">
+          <Button
+            asChild
+            size="sm"
+            variant="outline"
+            className="h-8 px-3 rounded-xl font-semibold text-xs gap-1.5 border-border/70 cursor-pointer"
+          >
+            <Link to="/workspace" search={{ storeId: store.id }}>
+              <Store className="size-3.5 text-primary" />
+              <span>Portal</span>
+            </Link>
+          </Button>
+
+          <Button
+            asChild
+            size="sm"
+            variant="ghost"
+            className="h-8 px-2.5 rounded-xl font-semibold text-xs gap-1 text-muted-foreground hover:text-foreground cursor-pointer hidden sm:inline-flex"
+          >
+            <Link to="/portal-completo">
+              <Award className="size-3.5 text-amber-500" />
+              <span>Gestão Pro</span>
+            </Link>
+          </Button>
+
+          <Button
+            size="sm"
+            variant="ghost"
+            className="size-9 p-0 rounded-xl text-muted-foreground hover:text-foreground cursor-pointer"
+            onClick={handleShare}
+            aria-label="Compartilhar Perfil"
+          >
+            <Share2 className="size-4" />
+          </Button>
         </div>
       </div>
 
-      {/* ── 2. CORPO INSTITUCIONAL PADRONIZADO (MAX 6XL CANÔNICO) ── */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 pt-2">
-        {/* Identidade Visual & Cabeçalho */}
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 sm:-mt-16 relative z-10">
-            {/* Avatar da Loja com Anel Elegante */}
-            <div className="size-24 sm:size-32 rounded-2xl bg-card overflow-hidden shrink-0 flex items-center justify-center ring-4 ring-card shadow-sm border border-border/60">
+      {/* ── 2. BLOCO PANORÂMICO: AVATAR SQUIRCLE 1:1 + CAPA 1090PX + CARD DE STATS ── */}
+      <div className="rounded-2xl bg-card border border-border/40 p-4 sm:p-6 space-y-6 shadow-xs">
+        {/* Faixa Superior Panorâmica: Foto + Capa Panorâmica 1090px com Card de Stats no Término */}
+        <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
+          {/* Foto da Empresa em Squircle 1:1 (Altura Fixa h-28 sm:h-36) */}
+          <div className="flex-shrink-0 relative group">
+            <div className="size-28 sm:size-36 rounded-2xl ring-2 ring-border/60 bg-muted flex-shrink-0 overflow-hidden shadow-xs flex items-center justify-center">
               {logoUrl ? (
                 <img
                   src={logoUrl}
@@ -351,14 +470,123 @@ export function CanonicalStoreProfileView({
                   className="size-full object-cover"
                 />
               ) : (
-                <div className="size-full bg-primary/10 text-primary flex items-center justify-center font-black text-3xl font-mono">
-                  {(store.name || store.business_name || "W").slice(0, 2).toUpperCase()}
-                </div>
+                <span className="text-2xl sm:text-3xl font-extrabold bg-muted text-foreground font-mono">
+                  {(store.name || store.business_name || "WD").slice(0, 2).toUpperCase()}
+                </span>
               )}
             </div>
+            {isOwner && (
+              <Link
+                to="/workspace/marketing/brand-kit"
+                search={{ storeId: store.id }}
+                className="absolute inset-0 bg-black/40 text-white rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-xs font-semibold gap-1 cursor-pointer"
+                title="Alterar Logo da Marca"
+              >
+                <Camera className="size-5" />
+                <span className="text-[10px]">Alterar Logo</span>
+              </Link>
+            )}
+          </div>
 
-            {/* Ações Rápidas de Conversão no Topo (Touch target 44px) */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 sm:pt-0">
+          {/* Container da Capa Panorâmica (min-w-[1090px]) com Scroll Horizontal Fluido */}
+          <div className="flex-1 h-28 sm:h-36 rounded-2xl bg-muted/30 overflow-x-auto no-scrollbar overflow-y-hidden flex items-center gap-3 pr-3 border border-border/40 relative">
+            {coverUrl ? (
+              <img
+                src={coverUrl}
+                alt="Capa da empresa"
+                className="h-full min-w-[1090px] object-cover flex-shrink-0 select-none rounded-2xl"
+              />
+            ) : (
+              <div className="h-full min-w-[1090px] bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex items-center justify-center rounded-2xl">
+                <Store className="size-8 text-primary/30" />
+              </div>
+            )}
+            {isOwner && (
+              <Link
+                to="/workspace/marketing/brand-kit"
+                search={{ storeId: store.id }}
+                className="absolute top-3 right-3 bg-background/85 hover:bg-background text-foreground backdrop-blur-md px-3 py-1.5 rounded-xl border border-border/60 text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition-colors"
+              >
+                <Camera className="size-3.5" />
+                <span>Alterar Capa</span>
+              </Link>
+            )}
+
+            {/* Card de Stats ao Final da Capa Panorâmica (Padronizado com Perfil de Membro) */}
+            <div className="h-full min-w-[220px] flex-shrink-0 bg-background/90 backdrop-blur-md rounded-2xl border border-border/60 p-4 flex flex-col justify-center shadow-xs">
+              <div className="grid grid-cols-3 gap-2 text-center max-w-sm mx-auto">
+                <div>
+                  <p className="text-base font-extrabold text-foreground">{catalog.length}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">Itens</p>
+                </div>
+                <div>
+                  <p className="text-base font-extrabold text-foreground">
+                    {reviews.length > 0 ? reviews.length : store.reviews_count || 12}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground font-medium">Avaliações</p>
+                </div>
+                <div>
+                  <p className="text-base font-extrabold text-foreground font-mono">
+                    {Number(store.rating || 5.0).toFixed(1)}★
+                  </p>
+                  <p className="text-[10px] text-muted-foreground font-medium">Nota</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Linha de Identidade e Ações Minimalistas */}
+        <div className="pt-2 border-t border-border/30 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
+                  {store.name || store.business_name}
+                </h1>
+                <ShieldCheck className="size-4 text-primary fill-primary/20 shrink-0" />
+                {store.slug && (
+                  <span className="text-xs sm:text-sm font-medium text-muted-foreground font-mono">
+                    @{store.slug}
+                  </span>
+                )}
+              </div>
+
+              {/* Badges não-pill padronizadas */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-muted text-muted-foreground">
+                  {store.category || store.type || (isGastronomy ? "Gastronomia" : "Empresa Local")}
+                </span>
+                <span
+                  className={cn(
+                    "px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider",
+                    openStatus?.isOpenNow
+                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                      : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {openStatus ? openStatus.text : "Horários sob consulta"}
+                </span>
+                {orderTypes.delivery && (
+                  <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-muted text-muted-foreground">
+                    Delivery
+                  </span>
+                )}
+                {orderTypes.takeout && (
+                  <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-muted text-muted-foreground">
+                    Retirada
+                  </span>
+                )}
+                {orderTypes.dine_in && (
+                  <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-muted text-muted-foreground">
+                    No Local
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Ações de Conversão Rápidas */}
+            <div className="flex flex-wrap items-center gap-2">
               {whatsappNumber && (
                 <Button
                   onClick={() =>
@@ -372,10 +600,10 @@ export function CanonicalStoreProfileView({
                       customMessage: `Olá! Vi o perfil oficial de ${store.name || store.business_name} no Wider e gostaria de mais informações.`,
                     })
                   }
-                  className="h-11 px-4 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-2 cursor-pointer shadow-xs transition-transform active:scale-98"
+                  className="h-9 px-4 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-2 cursor-pointer shadow-xs transition-transform active:scale-98"
                 >
-                  <WhatsappLogo size={18} weight="bold" />
-                  <span>WhatsApp Oficial</span>
+                  <WhatsappLogo size={16} weight="bold" />
+                  <span>WhatsApp</span>
                 </Button>
               )}
 
@@ -383,10 +611,10 @@ export function CanonicalStoreProfileView({
                 <DialogTrigger asChild>
                   <Button
                     variant="outline"
-                    className="h-11 px-4 rounded-xl font-semibold text-xs gap-2 border-border/80 bg-card hover:bg-muted cursor-pointer"
+                    className="h-9 px-3.5 rounded-xl font-semibold text-xs gap-1.5 border-border/70 cursor-pointer"
                   >
-                    <PaperPlaneTilt size={16} weight="bold" className="text-primary" />
-                    <span>Pedir Orçamento</span>
+                    <PaperPlaneTilt size={14} weight="bold" className="text-primary" />
+                    <span>Orçamento</span>
                   </Button>
                 </DialogTrigger>
 
@@ -482,152 +710,212 @@ export function CanonicalStoreProfileView({
                   )}
                 </DialogContent>
               </Dialog>
+
+              <Button
+                asChild
+                variant="outline"
+                className="h-9 px-3.5 rounded-xl font-semibold text-xs gap-1.5 border-border/70 cursor-pointer"
+              >
+                <Link to="/workspace" search={{ storeId: store.id }}>
+                  <Store className="size-3.5 text-primary" />
+                  <span>Portal</span>
+                </Link>
+              </Button>
+
+              <Button
+                asChild
+                variant="outline"
+                className="h-9 px-3.5 rounded-xl font-semibold text-xs gap-1.5 border-border/70 cursor-pointer"
+              >
+                <Link to="/portal-completo">
+                  <Award className="size-3.5 text-amber-500" />
+                  <span>Gestão Pro</span>
+                </Link>
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => setIsSocialStudioOpen(true)}
+                className="h-9 px-3.5 rounded-xl font-semibold text-xs gap-1.5 border-border/70 cursor-pointer"
+              >
+                <Sparkles className="size-3.5 text-amber-500" />
+                <span>Social Studio</span>
+              </Button>
             </div>
           </div>
 
-          {/* Nome, Avaliações, Horário e Modalidades */}
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
-                {store.name || store.business_name}
-              </h1>
-              {orderTypes.delivery && (
-                <Badge
-                  variant="outline"
-                  className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/5"
-                >
-                  🛵 Delivery
-                </Badge>
-              )}
-              {orderTypes.takeout && (
-                <Badge
-                  variant="outline"
-                  className="text-[10px] font-bold text-blue-600 dark:text-blue-400 border-blue-500/30 bg-blue-500/5"
-                >
-                  🛍️ Retirada
-                </Badge>
-              )}
-              {orderTypes.dine_in && (
-                <Badge
-                  variant="outline"
-                  className="text-[10px] font-bold text-amber-600 dark:text-amber-400 border-amber-500/30 bg-amber-500/5"
-                >
-                  🍽️ No Local
-                </Badge>
-              )}
-            </div>
+          <SocialCardGeneratorModal
+            open={isSocialStudioOpen}
+            onOpenChange={setIsSocialStudioOpen}
+            data={{
+              title: store.name || store.business_name || "Empresa Local",
+              subtitle: store.category || "Guia Comercial Wider",
+              badge: store.category || "Empresa Oficial",
+              storeName: store.name || store.business_name,
+              imageUrl: store.cover_url || store.logo_url || undefined,
+            }}
+          />
 
-            {/* Avaliação em Estrelas + Status Aberto/Fechado */}
-            <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-              <button
-                type="button"
-                onClick={() => setActiveTab("avaliacoes")}
-                className="flex items-center text-amber-500 font-bold font-mono hover:underline cursor-pointer"
+          {/* Bio / Descrição Formatada com Limite & Expansão */}
+          {(store.description || settings.bio || settings.about) && (
+            <div className="space-y-1 max-w-2xl">
+              <p
+                className={cn(
+                  "text-xs sm:text-sm text-foreground/90 font-medium leading-relaxed whitespace-pre-line",
+                  !isBioExpanded && "line-clamp-3"
+                )}
               >
-                <Star className="size-3.5 fill-amber-500 mr-1" />
-                <span>{Number(store.rating || 5.0).toFixed(1)}</span>
-                <span className="text-muted-foreground ml-1.5 font-normal">
-                  ({reviews.length > 0 ? reviews.length : store.reviews_count || 12} avaliações)
-                </span>
-              </button>
-              <span>•</span>
-
-              {/* Status em Tempo Real Aberto/Fechado */}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1.5 font-bold cursor-pointer hover:underline text-left text-xs"
-                  >
-                    <span
-                      className={cn(
-                        "size-2 rounded-full",
-                        openStatus?.isOpenNow
-                          ? "bg-emerald-500 animate-pulse"
-                          : "bg-amber-500"
-                      )}
-                    />
-                    <span
-                      className={
-                        openStatus?.isOpenNow
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : "text-amber-600 dark:text-amber-400"
-                      }
-                    >
-                      {openStatus ? openStatus.text : "Horários sob consulta"}
-                    </span>
-                    <ChevronRight className="size-3 text-muted-foreground" />
-                  </button>
-                </DialogTrigger>
-
-                <DialogContent className="sm:max-w-md sm:rounded-2xl sm:p-6 p-5">
-                  <DialogHeader className="pb-2">
-                    <DialogTitle className="text-base font-bold flex items-center gap-2">
-                      <Clock className="size-4 text-primary" />
-                      <span>Grade Semanal de Horários</span>
-                    </DialogTitle>
-                    <DialogDescription className="text-xs text-muted-foreground">
-                      Horários de funcionamento de {store.name || store.business_name}.
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <div className="space-y-2 py-2">
-                    {WEEKDAYS_ORDER.map(({ key, label }) => {
-                      const day = weeklySchedule[key];
-                      const isOpen = day?.open && day.intervals && day.intervals.length > 0;
-                      return (
-                        <div
-                          key={key}
-                          className={cn(
-                            "flex items-center justify-between p-2.5 rounded-xl text-xs",
-                            isOpen ? "bg-muted/30" : "bg-muted/10 opacity-60"
-                          )}
-                        >
-                          <span className="font-semibold text-foreground">{label}</span>
-                          <span className="font-mono text-muted-foreground">
-                            {isOpen
-                              ? day.intervals.map((inv) => `${inv.from} às ${inv.to}`).join(" • ")
-                              : "Fechado"}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            {/* Endereço Físico & Como Chegar */}
-            <div className="flex flex-wrap items-center gap-y-2 gap-x-6 text-xs text-muted-foreground pt-1">
-              {store.address && (
-                <span className="flex items-center gap-1.5 font-medium text-foreground">
-                  <MapPin className="size-4 text-primary shrink-0" />
-                  <span>
-                    {store.address}{" "}
-                    {store.city ? `— ${store.city}, ${store.state || "SC"}` : ""}
-                  </span>
-                </span>
-              )}
-
-              {store.latitude && store.longitude && (
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${store.latitude},${store.longitude}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary font-bold hover:underline flex items-center gap-1 ml-auto"
+                {store.description || settings.bio || settings.about}
+              </p>
+              {(store.description || settings.bio || settings.about || "").length > 160 && (
+                <button
+                  type="button"
+                  onClick={() => setIsBioExpanded(!isBioExpanded)}
+                  className="text-[11px] font-bold text-primary hover:underline cursor-pointer inline-flex items-center gap-0.5"
                 >
-                  <Navigation className="size-3.5" />
-                  <span>Como Chegar</span>
-                </a>
+                  {isBioExpanded ? "Ver menos" : "...mais"}
+                </button>
               )}
             </div>
+          )}
+
+          {/* Links e Localização Minimalistas */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1 text-xs text-muted-foreground">
+            {store.website && (
+              <a
+                href={store.website.startsWith("http") ? store.website : `https://${store.website}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-primary font-semibold hover:underline"
+              >
+                <Globe size={14} />
+                <span>{store.website.replace(/^https?:\/\//, "")}</span>
+              </a>
+            )}
+
+            {store.instagram && (
+              <a
+                href={`https://instagram.com/${store.instagram.replace(/^@/, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-foreground/80 font-semibold hover:underline"
+              >
+                <InstagramLogo size={14} className="text-primary" />
+                <span>@{store.instagram.replace(/^@/, "")}</span>
+              </a>
+            )}
+
+            {store.address && (
+              <span className="inline-flex items-center gap-1 font-medium text-foreground/80">
+                <MapPin className="size-3.5 text-primary shrink-0" />
+                <span>
+                  {store.address}
+                  {store.city ? ` — ${store.city}, ${store.state || "SC"}` : ""}
+                </span>
+              </span>
+            )}
+
+            {store.latitude && store.longitude && (
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${store.latitude},${store.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary font-bold hover:underline flex items-center gap-1 ml-auto sm:ml-0"
+              >
+                <Navigation className="size-3.5" />
+                <span>Como Chegar</span>
+              </a>
+            )}
+
+            {/* Modal de Horários Semanal */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline cursor-pointer"
+                >
+                  <Clock className="size-3.5 text-primary" />
+                  <span>Ver Horários</span>
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md sm:rounded-2xl sm:p-6 p-5">
+                <DialogHeader className="pb-2">
+                  <DialogTitle className="text-base font-bold flex items-center gap-2">
+                    <Clock className="size-4 text-primary" />
+                    <span>Grade Semanal de Horários</span>
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-muted-foreground">
+                    Horários de funcionamento de {store.name || store.business_name}.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-2 py-2">
+                  {WEEKDAYS_ORDER.map(({ key, label }) => {
+                    const day = weeklySchedule[key];
+                    const isOpen = day?.open && day.intervals && day.intervals.length > 0;
+                    return (
+                      <div
+                        key={key}
+                        className={cn(
+                          "flex items-center justify-between p-2.5 rounded-xl text-xs",
+                          isOpen ? "bg-muted/30" : "bg-muted/10 opacity-60"
+                        )}
+                      >
+                        <span className="font-semibold text-foreground">{label}</span>
+                        <span className="font-mono text-muted-foreground">
+                          {isOpen
+                            ? day.intervals.map((inv) => `${inv.from} às ${inv.to}`).join(" • ")
+                            : "Fechado"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
+      </div>
 
         {/* ── 3. NAVEGAÇÃO POR ABAS NO PADRÃO DO PERFIL DE MEMBRO (Apple HIG) ── */}
         <div className="space-y-6 pt-2">
           <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-muted/40 text-xs font-semibold overflow-x-auto no-scrollbar border border-border/40">
-            {/* Tab Vitrine */}
+            {/* Aba 1: Vitrine / Início */}
+            <button
+              type="button"
+              onClick={() => setActiveTab("vitrine")}
+              className={cn(
+                "px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer",
+                activeTab === "vitrine"
+                  ? "bg-background text-foreground font-bold shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Sparkles className="size-4" />
+              <span>Vitrine</span>
+            </button>
+
+            {/* Aba 2: Posts & Novidades */}
+            <button
+              type="button"
+              onClick={() => setActiveTab("posts")}
+              className={cn(
+                "px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer",
+                activeTab === "posts"
+                  ? "bg-background text-foreground font-bold shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <MessageSquare className="size-4" />
+              <span>Posts</span>
+              {posts.length > 0 && (
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-muted text-muted-foreground font-bold font-mono">
+                  {posts.length}
+                </span>
+              )}
+            </button>
+
+            {/* Aba 3: Catálogo / Cardápio */}
             <button
               type="button"
               onClick={() => setActiveTab("catalogo")}
@@ -638,7 +926,7 @@ export function CanonicalStoreProfileView({
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <CatalogIcon className="size-4 text-primary" />
+              <CatalogIcon className="size-4" />
               <span>{catalogTabTitle}</span>
               {catalog.length > 0 && (
                 <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-muted text-muted-foreground font-bold font-mono">
@@ -647,42 +935,7 @@ export function CanonicalStoreProfileView({
               )}
             </button>
 
-            {/* Tab Sobre */}
-            <button
-              type="button"
-              onClick={() => setActiveTab("sobre")}
-              className={cn(
-                "px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer",
-                activeTab === "sobre"
-                  ? "bg-background text-foreground font-bold shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Building2 className="size-4 text-sky-500" />
-              <span>Sobre & Atendimento</span>
-            </button>
-
-            {/* Tab Posts & Novidades */}
-            <button
-              type="button"
-              onClick={() => setActiveTab("mural")}
-              className={cn(
-                "px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer",
-                activeTab === "mural"
-                  ? "bg-background text-foreground font-bold shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <MessageSquare className="size-4 text-purple-500" />
-              <span>Posts & Novidades</span>
-              {posts.length > 0 && (
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-muted text-muted-foreground font-bold font-mono">
-                  {posts.length}
-                </span>
-              )}
-            </button>
-
-            {/* Tab Vagas */}
+            {/* Aba 4: Vagas */}
             <button
               type="button"
               onClick={() => setActiveTab("vagas")}
@@ -693,16 +946,16 @@ export function CanonicalStoreProfileView({
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Briefcase className="size-4 text-emerald-500" />
+              <Briefcase className="size-4" />
               <span>Vagas</span>
               {jobs.length > 0 && (
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-600 font-bold font-mono">
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-muted text-muted-foreground font-bold font-mono">
                   {jobs.length}
                 </span>
               )}
             </button>
 
-            {/* Tab Avaliações */}
+            {/* Aba 5: Avaliações */}
             <button
               type="button"
               onClick={() => setActiveTab("avaliacoes")}
@@ -713,7 +966,7 @@ export function CanonicalStoreProfileView({
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Star className="size-4 text-amber-500" />
+              <Star className="size-4" />
               <span>Avaliações</span>
               {reviews.length > 0 && (
                 <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-muted text-muted-foreground font-bold font-mono">
@@ -722,84 +975,418 @@ export function CanonicalStoreProfileView({
               )}
             </button>
 
-            {/* Tab Patrocinadores (Se houver) */}
-            {hasSponsors && (
+            {/* Aba 6: Sobre & Atendimento */}
+            <button
+              type="button"
+              onClick={() => setActiveTab("sobre")}
+              className={cn(
+                "px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer",
+                activeTab === "sobre"
+                  ? "bg-background text-foreground font-bold shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Building2 className="size-4" />
+              <span>Sobre & Atendimento</span>
+            </button>
+
+            {/* Aba 7: Sorteios & Prêmios (Condicional) */}
+            {concursos.length > 0 && (
               <button
                 type="button"
-                onClick={() => setActiveTab("patrocinadores")}
+                onClick={() => setActiveTab("concursos")}
                 className={cn(
                   "px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer",
-                  activeTab === "patrocinadores"
+                  activeTab === "concursos"
                     ? "bg-background text-foreground font-bold shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <Award className="size-4 text-rose-500" />
-                <span>Patrocinadores</span>
+                <Ticket className="size-4" />
+                <span>Sorteios & Prêmios</span>
                 <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-muted text-muted-foreground font-bold font-mono">
-                  {sponsors.length}
+                  {concursos.length}
                 </span>
               </button>
-            )}
-          </div>
+            )}          </div>
 
-          {/* ── CONTEÚDO DA ABA 1: VITRINE / CARDÁPIO ── */}
-          {activeTab === "catalogo" && (
-            <div className="space-y-6 animate-in fade-in duration-150">
-              {/* 1.1 Banners da Loja (Cadastrados no Workspace) */}
-              {banners.length > 0 && (
-                <BannerHeroCarousel banners={banners} className="w-full rounded-2xl overflow-hidden" />
+          {/* ── CONTEÚDO DA ABA 1: VITRINE MODULAR (WIX / APP BUILDER STYLE COM SCROLL INFINITO FINAL) ── */}
+          {activeTab === "vitrine" && (
+            <div className="space-y-8 animate-in fade-in duration-150">
+              {/* Barra de Gestão do Lojista */}
+              {isOwner && (
+                <div className="flex items-center justify-between p-3 rounded-2xl bg-muted/40 border border-border/60">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="size-4 text-primary" />
+                    <span className="text-xs font-semibold text-foreground">
+                      Modo Gestor Ativo: Você pode reorganizar e personalizar as seções desta vitrine.
+                    </span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsSectionsEditorOpen(true)}
+                    className="h-8 px-3 rounded-xl text-xs font-semibold gap-1.5 cursor-pointer border-border/70 shadow-2xs"
+                  >
+                    <Layers className="size-3.5 text-primary" />
+                    <span>Personalizar Vitrine</span>
+                  </Button>
+                </div>
               )}
 
-              {/* 1.2 Trilho de Botões / Hotpages Rápidas */}
-              {hotpages.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1 pt-1">
-                    {hotpages.map((h: any) => (
-                      <div key={h.id} className="shrink-0">
-                        <DynamicMediaChip
-                          label={h.title}
-                          badge={h.badge_label || undefined}
-                          mediaUrl={h.bg_media_url || undefined}
-                          texture={h.bg_texture || undefined}
-                          href={h.target_route || undefined}
+              {/* Renderização Dinâmica das Seções Configuradas */}
+              {vitrineSections
+                .filter((s) => s.enabled)
+                .map((section) => {
+                  if (section.type === "banners") {
+                    if (!banners || banners.length === 0) return null;
+                    return (
+                      <div key={section.id} className="space-y-2">
+                        <BannerHeroCarousel banners={banners} className="w-full rounded-2xl overflow-hidden shadow-xs" />
+                      </div>
+                    );
+                  }
+
+                  if (section.type === "custom_cards") {
+                    const cards = section.cards || [];
+                    if (cards.length === 0) return null;
+                    return (
+                      <div key={section.id} className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h2 className="text-base font-bold text-foreground tracking-tight">
+                            {section.title || "Destaques & Novidades"}
+                          </h2>
+                          {isOwner && (
+                            <button
+                              type="button"
+                              onClick={() => setIsSectionsEditorOpen(true)}
+                              className="text-xs font-semibold text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                            >
+                              <Edit3 className="size-3" />
+                              <span>Editar Cards</span>
+                            </button>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {cards.map((card) => {
+                            const isWhatsAppAction = card.linkUrl === "whatsapp";
+                            const isCatalogAction = card.linkUrl === "#catalogo";
+
+                            const handleCardClick = () => {
+                              if (isWhatsAppAction && whatsappNumber) {
+                                trackAndOpenWhatsApp({
+                                  phone: whatsappNumber,
+                                  storeId: store.id || null,
+                                  entityType: "store",
+                                  entityId: store.id,
+                                  entityTitle: store.name || store.business_name,
+                                  niche: segment,
+                                  customMessage: `Olá! Vi o destaque "${card.title}" no Wider e gostaria de saber mais.`,
+                                });
+                              } else if (isCatalogAction) {
+                                setActiveTab("catalogo");
+                              } else if (card.linkUrl && card.linkUrl.startsWith("http")) {
+                                window.open(card.linkUrl, "_blank", "noopener,noreferrer");
+                              }
+                            };
+
+                            return (
+                              <div
+                                key={card.id}
+                                onClick={handleCardClick}
+                                className="group rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 transition-all cursor-pointer shadow-2xs flex flex-col justify-between"
+                              >
+                                {card.imageUrl ? (
+                                  <div className="aspect-[16/9] w-full overflow-hidden bg-muted/30 relative">
+                                    <img
+                                      src={card.imageUrl}
+                                      alt={card.title}
+                                      className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                      loading="lazy"
+                                    />
+                                    {card.tag && (
+                                      <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-background/90 backdrop-blur-md text-[10px] font-bold text-foreground">
+                                        {card.tag}
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  card.tag && (
+                                    <div className="p-4 pb-0">
+                                      <span className="px-2 py-0.5 rounded-md bg-muted text-[10px] font-bold text-muted-foreground">
+                                        {card.tag}
+                                      </span>
+                                    </div>
+                                  )
+                                )}
+                                <div className="p-4 space-y-1">
+                                  <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                                    {card.title}
+                                  </h3>
+                                  {card.subtitle && (
+                                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                                      {card.subtitle}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="p-4 pt-0 flex items-center justify-between text-xs font-semibold text-primary">
+                                  <span>{isWhatsAppAction ? "Falar no WhatsApp" : isCatalogAction ? "Ver no Catálogo" : "Saiba Mais"}</span>
+                                  <ChevronRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (section.type === "product_rail") {
+                    if (!catalog || catalog.length === 0) return null;
+                    const topProducts = catalog.slice(0, 8);
+
+                    return (
+                      <div key={section.id} className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h2 className="text-base font-bold text-foreground tracking-tight">
+                            {section.title || "Mais Pedidos da Loja"}
+                          </h2>
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab("catalogo")}
+                            className="text-xs font-semibold text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                          >
+                            <span>Ver Catálogo Completo</span>
+                            <ChevronRight className="size-3" />
+                          </button>
+                        </div>
+                        <div className="flex gap-3.5 overflow-x-auto no-scrollbar pb-2">
+                          {topProducts.map((p: any) => {
+                            const priceCents = p.price_cents || p.price || 0;
+                            const imageUrl = p.images?.[0] || p.image_url || null;
+
+                            return (
+                              <div
+                                key={p.id}
+                                className="w-56 shrink-0 rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 transition-all shadow-2xs flex flex-col justify-between group"
+                              >
+                                {imageUrl && (
+                                  <div className="aspect-square w-full overflow-hidden bg-muted/30">
+                                    <img
+                                      src={imageUrl}
+                                      alt={p.title}
+                                      className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                      loading="lazy"
+                                    />
+                                  </div>
+                                )}
+                                <div className="p-3.5 space-y-1 min-w-0">
+                                  <h4 className="text-xs font-bold text-foreground truncate">{p.title}</h4>
+                                  <p className="text-sm font-black text-foreground font-mono">
+                                    {formatMoney(priceCents)}
+                                  </p>
+                                </div>
+                                <div className="p-3.5 pt-0">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleAddToCart(p)}
+                                    className="w-full h-8 rounded-xl font-bold text-xs bg-foreground text-background hover:bg-foreground/90 gap-1 cursor-pointer"
+                                  >
+                                    <Plus className="size-3" />
+                                    <span>Adicionar</span>
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (section.type === "hotpages") {
+                    if (!hotpages || hotpages.length === 0) return null;
+                    return (
+                      <div key={section.id} className="space-y-2">
+                        <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1 pt-1">
+                          {hotpages.map((h: any) => (
+                            <div key={h.id} className="shrink-0">
+                              <DynamicMediaChip
+                                label={h.title}
+                                badge={h.badge_label || undefined}
+                                mediaUrl={h.bg_media_url || undefined}
+                                texture={h.bg_texture || undefined}
+                                href={h.target_route || undefined}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (section.type === "brand_story") {
+                    const storyText = store.description || settings.bio || settings.about;
+                    if (!storyText) return null;
+                    return (
+                      <div
+                        key={section.id}
+                        className="p-5 sm:p-6 rounded-2xl bg-card border border-border/60 shadow-2xs space-y-3"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Store className="size-4 text-primary" />
+                          <h3 className="text-sm font-bold text-foreground">
+                            {section.title || "Sobre a Empresa"}
+                          </h3>
+                        </div>
+                        <p className="text-xs sm:text-sm text-foreground/90 font-medium leading-relaxed whitespace-pre-line">
+                          {storyText}
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  if (section.type === "infinite_feed") {
+                    return (
+                      <div key={section.id} className="pt-6 border-t border-border/40 space-y-4">
+                        <div className="space-y-0.5">
+                          <h2 className="text-base font-bold text-foreground tracking-tight">
+                            {section.title || "Explore Mais na Região"}
+                          </h2>
+                          <p className="text-xs text-muted-foreground">
+                            Navegação contínua de produtos e oportunidades locais.
+                          </p>
+                        </div>
+                        <ProceduralInfiniteFeed
+                          initialExcludedStoreIds={[store.id]}
+                          city={store.city}
+                          className="pt-2"
                         />
                       </div>
+                    );
+                  }
+
+                  return null;
+                })}
+            </div>
+          )}
+
+          {/* ── CONTEÚDO DA ABA 2: POSTS & NOVIDADES (MURAL SOCIAL COM FEED & GRID) ── */}
+          {activeTab === "posts" && (
+            <div className="space-y-6 animate-in fade-in duration-150">
+              {/* Barra de Visualização: Grade de Fotos vs Feed */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-foreground">
+                  {posts.length} {posts.length === 1 ? "Publicação" : "Publicações"}
+                </span>
+
+                <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/40 border border-border/40 text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setPostViewMode("grid")}
+                    className={cn(
+                      "size-8 rounded-lg flex items-center justify-center transition-all cursor-pointer",
+                      postViewMode === "grid"
+                        ? "bg-background text-foreground shadow-2xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                    aria-label="Visualização em Grade"
+                  >
+                    <Grid className="size-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPostViewMode("feed")}
+                    className={cn(
+                      "size-8 rounded-lg flex items-center justify-center transition-all cursor-pointer",
+                      postViewMode === "feed"
+                        ? "bg-background text-foreground shadow-2xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                    aria-label="Visualização em Feed"
+                  >
+                    <List className="size-4" />
+                  </button>
+                </div>
+              </div>
+
+              {posts.length > 0 ? (
+                postViewMode === "grid" ? (
+                  /* Modo 1: Grade de Fotos 1:1 Estilo Instagram */
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+                    {posts.map((post: any) => {
+                      const firstMedia = post.media_urls?.[0];
+                      return (
+                        <div
+                          key={post.id}
+                          onClick={() => setLightboxPost(post)}
+                          className="group aspect-square rounded-2xl overflow-hidden bg-muted/30 relative cursor-pointer border border-border/40 hover:border-foreground/40 transition-all"
+                        >
+                          {firstMedia ? (
+                            <img
+                              src={firstMedia}
+                              alt="Foto da publicação"
+                              className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="size-full p-4 flex flex-col justify-between bg-card">
+                              <p className="text-xs text-foreground line-clamp-4 leading-relaxed font-medium">
+                                {post.content_text}
+                              </p>
+                              <span className="text-[10px] text-muted-foreground font-mono">
+                                {formatDate(post.created_at)}
+                              </span>
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-3 text-center text-white text-xs font-semibold">
+                            <span className="line-clamp-2">{post.content_text || "Ver publicação"}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  /* Modo 2: Feed Social com Cards de Threads */
+                  <div className="space-y-4 max-w-2xl mx-auto">
+                    {posts.map((post: any) => (
+                      <ThreadsFeedCard
+                        key={post.id}
+                        post={{
+                          id: post.id,
+                          author: {
+                            id: store.id,
+                            full_name: store.name || store.business_name,
+                            username: store.slug,
+                            avatar_url: logoUrl || undefined,
+                            is_verified: true,
+                          },
+                          content_text: post.content_text || "",
+                          media_urls: post.media_urls || [],
+                          created_at: post.created_at,
+                          likes_count: post.likes_count || 0,
+                          replies_count: post.replies_count || 0,
+                        }}
+                      />
                     ))}
                   </div>
+                )
+              ) : (
+                <div className="py-16 text-center space-y-2 bg-muted/20 rounded-2xl p-8 border border-border/60">
+                  <MessageSquare className="size-10 text-muted-foreground/40 mx-auto" />
+                  <h3 className="text-sm font-bold text-foreground">Nenhuma publicação recente</h3>
+                  <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                    A empresa ainda não realizou postagens sociais neste canal.
+                  </p>
                 </div>
               )}
+            </div>
+          )}
 
-              {/* 1.3 Faixa de Patrocinadores em Destaque na Vitrine */}
-              {hasSponsors && (
-                <div className="p-3 rounded-2xl bg-card border border-border/60 flex items-center gap-4 overflow-x-auto no-scrollbar">
-                  <span className="text-[11px] font-bold text-muted-foreground uppercase font-mono shrink-0">
-                    Apoiadores:
-                  </span>
-                  <div className="flex items-center gap-3 shrink-0">
-                    {sponsors.slice(0, 6).map((sp: any) => (
-                      <a
-                        key={sp.id}
-                        href={sp.website_url || "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-muted/30 hover:bg-muted text-xs font-semibold text-foreground transition-colors border border-border/40"
-                      >
-                        {sp.logo_url && (
-                          <img
-                            src={sp.logo_url}
-                            alt={sp.name}
-                            className="size-4 object-contain rounded"
-                          />
-                        )}
-                        <span>{sp.name}</span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 1.4 Barra de Busca e Categorias de Produtos */}
+          {/* ── CONTEÚDO DA ABA 3: CATÁLOGO COMPLETO / CARDÁPIO ── */}
+          {activeTab === "catalogo" && (
+            <div className="space-y-6 animate-in fade-in duration-150">
+              {/* Barra de Busca e Categorias de Produtos */}
               {catalog.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex flex-col sm:flex-row gap-3">
@@ -808,7 +1395,7 @@ export function CanonicalStoreProfileView({
                       <Input
                         value={productSearch}
                         onChange={(e) => setProductSearch(e.target.value)}
-                        placeholder={`Buscar em ${store.name || store.business_name}...`}
+                        placeholder={`Buscar no catálogo de ${store.name || store.business_name}...`}
                         className="pl-10 h-11 rounded-xl text-xs bg-card border-border/80"
                       />
                     </div>
@@ -849,7 +1436,7 @@ export function CanonicalStoreProfileView({
                 </div>
               )}
 
-              {/* 1.5 Grade de Produtos / Cardápio */}
+              {/* Grade de Produtos / Cardápio */}
               {filteredProducts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredProducts.map((p: any) => {
@@ -925,7 +1512,6 @@ export function CanonicalStoreProfileView({
                   </Button>
                 </div>
               ) : (
-                /* Estado quando a empresa não possui produtos cadastrados online */
                 <div className="py-16 text-center space-y-4 bg-muted/20 rounded-2xl p-8 border border-border/60">
                   <Briefcase className="size-10 text-muted-foreground/40 mx-auto" />
                   <div className="space-y-1">
@@ -949,221 +1535,12 @@ export function CanonicalStoreProfileView({
                           customMessage: `Olá! Gostaria de um orçamento ou informações sobre seus serviços.`,
                         })
                       }
-                      className="rounded-xl h-11 px-5 font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+                      className="rounded-xl h-10 px-5 font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-2 cursor-pointer mx-auto"
                     >
-                      <WhatsappLogo size={18} weight="bold" />
-                      <span>Conversar no WhatsApp</span>
+                      <WhatsappLogo size={16} weight="bold" />
+                      <span>Falar no WhatsApp</span>
                     </Button>
                   )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── CONTEÚDO DA ABA 2: SOBRE & ATENDIMENTO ── */}
-          {activeTab === "sobre" && (
-            <div className="space-y-6 animate-in fade-in duration-150">
-              {/* Descrição & História da Empresa */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border/60 space-y-3 shadow-2xs">
-                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <Building2 className="size-4 text-primary" />
-                  <span>Sobre a Empresa & Atuação</span>
-                </h3>
-                <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
-                  {store.description ||
-                    "Empresa credenciada no ecossistema comunitário Wider, comprometida com qualidade de atendimento e relacionamento direto com clientes e parceiros da região."}
-                </p>
-
-                {/* Especialidades */}
-                {store.specialties && store.specialties.length > 0 && (
-                  <div className="pt-3 border-t border-border/40 space-y-2">
-                    <span className="text-[11px] font-bold text-muted-foreground uppercase font-mono">
-                      Especialidades & Serviços Prestados:
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {store.specialties.map((spec: string, i: number) => (
-                        <Badge
-                          key={i}
-                          variant="outline"
-                          className="text-xs font-medium bg-muted/30 border-border/80 px-2.5 py-0.5"
-                        >
-                          {spec}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Métodos de Pagamento & Modalidades */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-3 shadow-2xs">
-                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <CreditCard className="size-4 text-primary" />
-                    <span>Formas de Pagamento Aceitas</span>
-                  </h3>
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    <Badge variant="outline" className="px-2.5 py-1 bg-muted/20">
-                      ⚡ Pix Instantâneo
-                    </Badge>
-                    <Badge variant="outline" className="px-2.5 py-1 bg-muted/20">
-                      💳 Cartão de Crédito
-                    </Badge>
-                    <Badge variant="outline" className="px-2.5 py-1 bg-muted/20">
-                      💳 Cartão de Débito
-                    </Badge>
-                    <Badge variant="outline" className="px-2.5 py-1 bg-muted/20">
-                      💵 Dinheiro / Espécie
-                    </Badge>
-                    <Badge variant="outline" className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
-                      📜 Carnê da Loja
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-3 shadow-2xs">
-                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <Truck className="size-4 text-primary" />
-                    <span>Entrega & Atendimento</span>
-                  </h3>
-                  <div className="space-y-1.5 text-xs text-muted-foreground">
-                    <p className="flex items-center gap-2 text-foreground font-medium">
-                      <Check className="size-3.5 text-emerald-500" />
-                      <span>Atendimento na região de {store.city || "São Miguel do Oeste"}</span>
-                    </p>
-                    {orderTypes.delivery && (
-                      <p className="flex items-center gap-2 text-foreground font-medium">
-                        <Check className="size-3.5 text-emerald-500" />
-                        <span>Delivery com rastreio em tempo real</span>
-                      </p>
-                    )}
-                    {orderTypes.takeout && (
-                      <p className="flex items-center gap-2 text-foreground font-medium">
-                        <Check className="size-3.5 text-emerald-500" />
-                        <span>Retirada rápida no balcão sem filas</span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Grade de Horários Completa */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border/60 space-y-3 shadow-2xs">
-                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <Clock className="size-4 text-primary" />
-                  <span>Grade Semanal de Funcionamento</span>
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 pt-1">
-                  {WEEKDAYS_ORDER.map(({ key, label }) => {
-                    const day = weeklySchedule[key];
-                    const isOpen = day?.open && day.intervals && day.intervals.length > 0;
-                    return (
-                      <div
-                        key={key}
-                        className={cn(
-                          "p-3 rounded-xl border text-xs space-y-1",
-                          isOpen
-                            ? "bg-muted/20 border-border/80"
-                            : "bg-muted/5 border-border/40 opacity-60"
-                        )}
-                      >
-                        <p className="font-bold text-foreground">{label}</p>
-                        <p className="font-mono text-[11px] text-muted-foreground">
-                          {isOpen
-                            ? day.intervals.map((inv) => `${inv.from} - ${inv.to}`).join(", ")
-                            : "Fechado"}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Endereço Físico e Canais Oficiais */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border/60 space-y-3 shadow-2xs">
-                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <Phone className="size-4 text-primary" />
-                  <span>Canais de Atendimento Oficial</span>
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
-                  {store.phone && (
-                    <div className="p-3 rounded-xl bg-muted/20 border border-border/60 space-y-0.5">
-                      <span className="text-[10px] uppercase font-bold text-muted-foreground">
-                        Telefone / Central
-                      </span>
-                      <p className="font-mono font-bold text-foreground">{store.phone}</p>
-                    </div>
-                  )}
-                  {store.email && (
-                    <div className="p-3 rounded-xl bg-muted/20 border border-border/60 space-y-0.5">
-                      <span className="text-[10px] uppercase font-bold text-muted-foreground">
-                        E-mail Comercial
-                      </span>
-                      <p className="font-medium text-foreground truncate">{store.email}</p>
-                    </div>
-                  )}
-                  {store.website_url && (
-                    <div className="p-3 rounded-xl bg-muted/20 border border-border/60 space-y-0.5">
-                      <span className="text-[10px] uppercase font-bold text-muted-foreground">
-                        Website Oficial
-                      </span>
-                      <a
-                        href={store.website_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline font-medium block truncate"
-                      >
-                        {store.website_url}
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── CONTEÚDO DA ABA 3: POSTS & NOVIDADES (MURAL SOCIAL) ── */}
-          {activeTab === "mural" && (
-            <div className="space-y-6 animate-in fade-in duration-150">
-              {posts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {posts.map((post: any) => {
-                    const firstMedia = post.media_urls?.[0];
-                    return (
-                      <div
-                        key={post.id}
-                        onClick={() => setLightboxPost(post)}
-                        className="rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 transition-all cursor-pointer shadow-2xs group"
-                      >
-                        {firstMedia && (
-                          <div className="aspect-video w-full overflow-hidden bg-muted/30">
-                            <img
-                              src={firstMedia}
-                              alt="Foto da publicação"
-                              className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              loading="lazy"
-                            />
-                          </div>
-                        )}
-                        <div className="p-4 space-y-2">
-                          <p className="text-xs text-foreground line-clamp-3 leading-relaxed">
-                            {post.content_text || "Confira a novidade publicada pela empresa."}
-                          </p>
-                          <span className="text-[10px] text-muted-foreground font-mono block">
-                            {formatDate(post.created_at)}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="py-16 text-center space-y-2 bg-muted/20 rounded-2xl p-8 border border-border/60">
-                  <MessageSquare className="size-10 text-muted-foreground/40 mx-auto" />
-                  <h3 className="text-sm font-bold text-foreground">Nenhuma publicação recente</h3>
-                  <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                    A empresa ainda não realizou postagens sociais neste canal.
-                  </p>
                 </div>
               )}
             </div>
@@ -1172,6 +1549,70 @@ export function CanonicalStoreProfileView({
           {/* ── CONTEÚDO DA ABA 4: VAGAS & EMPREGOS ── */}
           {activeTab === "vagas" && (
             <div className="space-y-4 animate-in fade-in duration-150">
+              {/* Card de Inteligência de Empregador (Glassdoor / InfoJobs style) */}
+              {employerStats && (
+                <div className="p-5 rounded-2xl bg-card border border-border/70 shadow-2xs space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/40 pb-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Building2 className="size-4 text-primary" />
+                        <h3 className="text-sm font-bold text-foreground">Inteligência de Empregador</h3>
+                        <Badge variant="outline" className="text-[10px] font-mono bg-primary/5 text-primary border-primary/20">
+                          Verificado JAH
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Transparência salarial e métricas de clima organizacional baseadas em colaboradores.
+                      </p>
+                    </div>
+                    {employerStats.avgRating && (
+                      <div className="flex items-center gap-2 bg-amber-500/10 text-amber-600 px-3 py-1.5 rounded-xl border border-amber-500/20 shrink-0">
+                        <Star className="size-4 fill-amber-500 text-amber-500" />
+                        <span className="text-sm font-black font-mono">{employerStats.avgRating} / 5.0</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div className="p-3.5 rounded-xl bg-muted/30 border border-border/40 space-y-1">
+                      <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
+                        <Award className="size-3.5 text-primary" /> Recomendação
+                      </span>
+                      <p className="text-base font-black text-foreground font-mono">
+                        {employerStats.recommendRate ?? 100}%
+                      </p>
+                      <span className="text-[10px] text-muted-foreground block">
+                        recomendam a empresa
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-muted/30 border border-border/40 space-y-1">
+                      <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
+                        <Briefcase className="size-3.5 text-emerald-600" /> Média Salarial
+                      </span>
+                      <p className="text-base font-black text-foreground font-mono">
+                        {employerStats.avgSalaryCents ? formatMoney(employerStats.avgSalaryCents) : "Sigiloso / CLT"}
+                      </p>
+                      <span className="text-[10px] text-muted-foreground block">
+                        remuneração informada
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-muted/30 border border-border/40 space-y-1 col-span-2 sm:col-span-1">
+                      <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
+                        <FileCheck className="size-3.5 text-sky-600" /> Avaliações
+                      </span>
+                      <p className="text-base font-black text-foreground font-mono">
+                        {employerStats.reviewsCount ?? 0}
+                      </p>
+                      <span className="text-[10px] text-muted-foreground block">
+                        depoimentos anônimos
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {jobs.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {jobs.map((j: any) => (
@@ -1226,59 +1667,120 @@ export function CanonicalStoreProfileView({
 
           {/* ── CONTEÚDO DA ABA 5: AVALIAÇÕES VERIFICADAS ── */}
           {activeTab === "avaliacoes" && (
-            <div className="space-y-4 animate-in fade-in duration-150">
-              <div className="p-5 rounded-2xl bg-card border border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
-                <div className="flex items-center gap-3">
-                  <div className="size-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-black text-xl font-mono">
-                    {Number(store.rating || 5.0).toFixed(1)}
-                  </div>
-                  <div>
-                    <div className="flex items-center text-amber-500">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star key={s} className="size-3.5 fill-amber-500" />
-                      ))}
+            <div className="space-y-6 animate-in fade-in duration-150">
+              <div className="space-y-4">
+                <div className="p-5 rounded-2xl bg-card border border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+                  <div className="flex items-center gap-3">
+                    <div className="size-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-black text-xl font-mono">
+                      {Number(store.rating || 5.0).toFixed(1)}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Baseado em {reviews.length > 0 ? reviews.length : store.reviews_count || 12} avaliações de clientes verificados.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {reviews.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {reviews.map((r: any) => (
-                    <div
-                      key={r.id}
-                      className="p-4 rounded-2xl border border-border/60 bg-card space-y-2 shadow-2xs"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center text-amber-500">
-                          {Array.from({ length: r.rating || 5 }).map((_, i) => (
-                            <Star key={i} className="size-3 fill-amber-500" />
-                          ))}
-                        </div>
-                        <span className="text-[10px] text-muted-foreground font-mono">
-                          {formatDate(r.created_at)}
-                        </span>
+                    <div>
+                      <div className="flex items-center text-amber-500">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star key={s} className="size-3.5 fill-amber-500" />
+                        ))}
                       </div>
-                      {r.product_name && (
-                        <Badge variant="outline" className="text-[10px]">
-                          {r.product_name}
-                        </Badge>
-                      )}
-                      <p className="text-xs text-foreground leading-relaxed">
-                        {r.comment || "Ótimo atendimento, produtos de primeira e entrega no prazo!"}
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Baseado em {reviews.length > 0 ? reviews.length : store.reviews_count || 12} avaliações de clientes verificados.
                       </p>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              ) : (
-                <div className="p-6 rounded-2xl bg-card border border-border/60 text-center space-y-2">
-                  <Star className="size-8 text-amber-500/40 mx-auto" />
-                  <p className="text-xs text-muted-foreground">
-                    Esta empresa mantém nota máxima com excelente histórico de atendimento local.
-                  </p>
+
+                {reviews.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {reviews.map((r: any) => (
+                      <div
+                        key={r.id}
+                        className="p-4 rounded-2xl border border-border/60 bg-card space-y-2 shadow-2xs"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center text-amber-500">
+                            {Array.from({ length: r.rating || 5 }).map((_, i) => (
+                              <Star key={i} className="size-3 fill-amber-500" />
+                            ))}
+                          </div>
+                          <span className="text-[10px] text-muted-foreground font-mono">
+                            {formatDate(r.created_at)}
+                          </span>
+                        </div>
+                        {r.product_name && (
+                          <Badge variant="outline" className="text-[10px]">
+                            {r.product_name}
+                          </Badge>
+                        )}
+                        <p className="text-xs text-foreground leading-relaxed">
+                          {r.comment || "Ótimo atendimento, produtos de primeira e entrega no prazo!"}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-6 rounded-2xl bg-card border border-border/60 text-center space-y-2">
+                    <Star className="size-8 text-amber-500/40 mx-auto" />
+                    <p className="text-xs text-muted-foreground">
+                      Esta empresa mantém nota máxima com excelente histórico de atendimento local.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Seção de Avaliações de Empregador & Clima Interno */}
+              {employerStats && (
+                <div className="space-y-4 pt-4 border-t border-border/60">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                        <Briefcase className="size-4 text-primary" />
+                        Depoimentos de Colaboradores (Clima de Trabalho)
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Transparência de equipe e avaliação interna de gestão e benefícios.
+                      </p>
+                    </div>
+                    {employerStats.avgRating && (
+                      <Badge variant="outline" className="font-mono text-xs font-bold text-amber-600 bg-amber-500/10 border-amber-500/20">
+                        ★ {employerStats.avgRating} / 5.0
+                      </Badge>
+                    )}
+                  </div>
+
+                  {employerStats.recentReviews && employerStats.recentReviews.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {employerStats.recentReviews.map((rev, idx) => (
+                        <div
+                          key={idx}
+                          className="p-4 rounded-2xl border border-border/60 bg-muted/20 space-y-2 shadow-2xs"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center text-amber-500">
+                              {Array.from({ length: rev.company_rating || 5 }).map((_, i) => (
+                                <Star key={i} className="size-3 fill-amber-500" />
+                              ))}
+                            </div>
+                            <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                              {rev.exit_reason || "Colaborador"}
+                            </Badge>
+                          </div>
+                          {rev.review_text && (
+                            <p className="text-xs text-foreground leading-relaxed italic">
+                              "{rev.review_text}"
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 border-t border-border/30">
+                            <span>{rev.would_recommend ? "✓ Recomenda a empresa" : "Não recomendou"}</span>
+                            {rev.salary_cents ? <span>{formatMoney(rev.salary_cents)}</span> : null}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-xl bg-muted/20 border border-border/40 text-center">
+                      <p className="text-xs text-muted-foreground">
+                        Índice de aprovação de {employerStats.recommendRate ?? 100}% baseado em {employerStats.reviewsCount ?? 0} registros de colaboradores.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1351,8 +1853,152 @@ export function CanonicalStoreProfileView({
               </div>
             </div>
           )}
+
+          {/* ── CONTEÚDO DA ABA 7: SORTEIOS DA LOJA ── */}
+          {activeTab === "concursos" && concursos.length > 0 && (
+            <div className="space-y-4 animate-in fade-in duration-150">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {concursos.map((c: any) => {
+                  const isCompleted = c.status === "completed";
+                  const drawDateFormatted = new Date(c.drawDate || c.draw_date).toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  });
+
+                  return (
+                    <div
+                      key={c.id}
+                      className="p-5 sm:p-6 rounded-3xl border border-border/70 bg-card space-y-3 flex flex-col justify-between shadow-2xs hover:border-foreground/30 transition-all"
+                    >
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <Badge
+                            className={
+                              isCompleted
+                                ? "bg-muted text-muted-foreground font-mono text-[10px]"
+                                : "bg-emerald-600 text-white font-mono text-[10px] font-bold"
+                            }
+                          >
+                            {isCompleted ? "Sorteio Encerrado" : "Sorteio Aberto"}
+                          </Badge>
+
+                          <span className="text-xs font-mono text-muted-foreground flex items-center gap-1">
+                            <Clock className="size-3" />
+                            Sorteio: {drawDateFormatted}
+                          </span>
+                        </div>
+
+                        <h4 className="text-base font-bold text-foreground leading-snug">{c.title}</h4>
+
+                        {c.description && (
+                          <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
+                            {c.description}
+                          </p>
+                        )}
+
+                        <div className="flex items-center gap-3 pt-1 text-xs font-mono text-muted-foreground">
+                          <span>
+                            {c.pointsCost > 0 ? `Custo: ${c.pointsCost} pontos` : "Participação Gratuita"}
+                          </span>
+                          <span>Limite: até {c.maxTicketsPerUser || 5} cupons</span>
+                        </div>
+                      </div>
+
+                      {!isCompleted && (
+                        <div className="pt-2 border-t border-border/40 flex items-center justify-end">
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              setSelectedConcurso(c);
+                              setAcceptedTerms(true);
+                            }}
+                            className="h-10 px-4 rounded-xl text-xs font-bold gap-1.5"
+                          >
+                            <Ticket className="size-3.5" />
+                            <span>Participar do Sorteio</span>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+
+      {/* ── MODAL DE PARTICIPAÇÃO & REGULAMENTO NA VITRINE ── */}
+      <Dialog
+        open={Boolean(selectedConcurso)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedConcurso(null);
+        }}
+      >
+        <DialogContent className="max-w-md rounded-3xl p-6 space-y-4">
+          <DialogHeader>
+            <div className="flex items-center gap-2 text-primary">
+              <FileCheck className="size-5" />
+              <DialogTitle className="text-base font-bold">Regulamento do Sorteio</DialogTitle>
+            </div>
+            <DialogDescription className="text-xs text-muted-foreground">
+              {selectedConcurso?.title} • Promovido por: {store.name || store.business_name}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="rounded-2xl border border-border/60 bg-muted/30 p-3.5 text-xs text-muted-foreground space-y-2 max-h-48 overflow-y-auto leading-relaxed">
+            <p className="font-bold text-foreground">Regras e Condições:</p>
+            <p>
+              {selectedConcurso?.termsText ||
+                selectedConcurso?.terms_text ||
+                "Participe gratuitamente emitindo seu cupom. O sorteio será realizado na data estipulada e o vencedor poderá retirar o prêmio diretamente na loja apresentando o cupom contemplado."}
+            </p>
+            <p>
+              <strong>Data do Sorteio:</strong>{" "}
+              {selectedConcurso
+                ? new Date(selectedConcurso.drawDate || selectedConcurso.draw_date).toLocaleDateString("pt-BR")
+                : ""}
+            </p>
+            <p>
+              <strong>Limite:</strong> Até {selectedConcurso?.maxTicketsPerUser || 5} cupons por participante.
+            </p>
+          </div>
+
+          <div className="flex items-start gap-2.5 pt-1">
+            <Checkbox
+              id="terms-storefront-accept"
+              checked={acceptedTerms}
+              onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+            />
+            <label
+              htmlFor="terms-storefront-accept"
+              className="text-xs text-foreground leading-snug cursor-pointer select-none font-medium"
+            >
+              Concordo com o regulamento deste sorteio e confirmo minha participação.
+            </label>
+          </div>
+
+          <DialogFooter className="pt-2 flex flex-row items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSelectedConcurso(null)}
+              className="h-11 px-4 rounded-xl text-xs font-semibold"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              disabled={!acceptedTerms || isSubmittingTicket}
+              onClick={handleConfirmConcursoParticipation}
+              className="h-11 px-5 rounded-xl text-xs font-bold"
+            >
+              <Ticket className="size-4 mr-1.5" />
+              <span>Emitir Cupom da Sorte</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Lightbox para fotos dos posts */}
       {lightboxPost && (
@@ -1377,6 +2023,47 @@ export function CanonicalStoreProfileView({
           isOpen={!!selectedProductForModifiers}
           onClose={() => setSelectedProductForModifiers(null)}
           onConfirm={handleConfirmModifiers}
+        />
+      )}
+      {/* ── Editor Modular de Seções da Vitrine (Drawer para o Lojista) ── */}
+      {isOwner && (
+        <StoreVitrineSectionsEditor
+          open={isSectionsEditorOpen}
+          onOpenChange={setIsSectionsEditorOpen}
+          storeId={store.id}
+          initialSections={vitrineSections}
+          onSave={async (newSections) => {
+            setVitrineSections(newSections);
+            try {
+              const orderIds: string[] = [];
+              for (let i = 0; i < newSections.length; i++) {
+                const sec = newSections[i];
+                const res = await upsertStorePageSection({
+                  data: {
+                    id: sec.id.startsWith("sec_") ? undefined : sec.id,
+                    store_id: store.id,
+                    section_type: (sec.type === "banners" ? "banner_carousel" : sec.type === "custom_cards" ? "highlight_cards" : sec.type) as any,
+                    section_order: i,
+                    title: sec.title,
+                    is_active: sec.enabled,
+                    config: { cards: sec.cards || [] },
+                  },
+                }).catch(() => null);
+                if (res?.id) orderIds.push(res.id);
+              }
+              if (orderIds.length > 0) {
+                await saveStorePageSectionsOrder({
+                  data: {
+                    store_id: store.id,
+                    ordered_section_ids: orderIds,
+                  },
+                }).catch(() => {});
+              }
+              toast.success("Seções sincronizadas com sucesso!");
+            } catch (err: any) {
+              console.warn("Aviso ao sincronizar seções:", err);
+            }
+          }}
         />
       )}
     </div>

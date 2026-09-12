@@ -36,63 +36,15 @@ function getPassConfig(type: PassType) {
 }
 
 export default function ViajanteCarteiraPage() {
- const [selectedPass, setSelectedPass] = useState<ClientWalletPass | null>(null);
+  const [selectedPass, setSelectedPass] = useState<ClientWalletPass | null>(null);
 
- // Fallback demo passes if none returned
- const defaultPasses: ClientWalletPass[] = [
- {
- id: 'pass-1',
- store_id: '00000000-0000-0000-0000-000000000000',
- pass_type: 'boarding_pass',
- title: 'Voo LA 3214',
- subtitle: 'São Paulo (GRU) -> Miami (MIA)',
- barcode_value: 'LA3214-GRU-MIA-09F',
- color: '#1e1b4b',
- status: 'active',
- expires_at: '2026-10-15T23:30:00Z',
- },
- {
- id: 'pass-2',
- store_id: '00000000-0000-0000-0000-000000000000',
- pass_type: 'voucher',
- title: 'Grand Beach Resort & Spa',
- subtitle: 'Check-in: 16/10 às 15:00 · 7 Noites',
- barcode_value: 'HTL-MIA-98762',
- color: '#3b0764',
- status: 'active',
- expires_at: '2026-10-23T12:00:00Z',
- },
- {
- id: 'pass-3',
- store_id: '00000000-0000-0000-0000-000000000000',
- pass_type: 'ticket',
- title: 'Universal Studios Florida',
- subtitle: 'Ingresso 2-Day Park-to-Park',
- barcode_value: 'UNIV-TKT-441982',
- color: '#78350f',
- status: 'active',
- expires_at: '2026-10-18T20:00:00Z',
- },
- {
- id: 'pass-4',
- store_id: '00000000-0000-0000-0000-000000000000',
- pass_type: 'insurance',
- title: 'Assist Card 150k USD',
- subtitle: 'Apólice Global · Cobertura Total',
- barcode_value: 'ASC-BR-7712490',
- color: '#064e3b',
- status: 'active',
- expires_at: '2026-10-25T23:59:00Z',
- },
- ];
-
- const { data: passes = defaultPasses } = useQuery({
- queryKey: ['client-wallet-passes'],
- queryFn: async () => {
- const res = await listClientWalletPasses({ data: {} });
- return res.length > 0 ? res : defaultPasses;
- },
- });
+  const { data: passes = [], isLoading } = useQuery({
+    queryKey: ['client-wallet-passes'],
+    queryFn: async () => {
+      const res = await listClientWalletPasses({ data: {} });
+      return res || [];
+    },
+  });
 
  return (
  <div className="min-h-screen bg-slate-100 dark:bg-zinc-950 flex flex-col items-center justify-start p-4 sm:p-6">
@@ -117,9 +69,16 @@ export default function ViajanteCarteiraPage() {
  </div>
  </div>
 
- {/* Stack of Cards (Apple Wallet Style) */}
- <div className="relative pt-6 pb-28" style={{ perspective: '1200px' }}>
- {passes.map((pass, index) => {
+      {/* Stack of Cards (Apple Wallet Style) ou Empty State */}
+      {passes.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border/80 p-8 text-center bg-card">
+          <Ticket className="size-10 text-muted-foreground/40 mx-auto mb-2" />
+          <p className="text-sm font-bold text-foreground">Nenhum passe ou voucher na carteira</p>
+          <p className="text-xs text-muted-foreground mt-1">Seus bilhetes, reservas e vouchers aparecerão aqui após a emissão.</p>
+        </div>
+      ) : (
+        <div className="relative pt-6 pb-28" style={{ perspective: '1200px' }}>
+          {passes.map((pass, index) => {
  const config = getPassConfig(pass.pass_type);
  const Icon = config.icon;
  const isSelected = selectedPass?.id === pass.id;
@@ -196,8 +155,9 @@ export default function ViajanteCarteiraPage() {
  </div>
  );
  })}
- </div>
- </div>
- </div>
+        </div>
+      )}
+    </div>
+  </div>
  );
 }

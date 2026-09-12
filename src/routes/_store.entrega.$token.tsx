@@ -32,14 +32,20 @@ import {
 
 export const Route = createFileRoute("/_store/entrega/$token")({
  head: () => ({ meta: [{ title: "Painel do Entregador | Wider OS" }] }),
- loader: async ({ params }) => {
-  return await getDeliveryByToken({ data: { token: params.token } }).catch(() => null);
- },
+  loader: async ({ params }) => {
+    try {
+      const delivery = await getDeliveryByToken({ data: { token: params.token } }).catch(() => null);
+      return { delivery: delivery || null };
+    } catch (err) {
+      console.error("[loader:_store.entrega.$token] Unhandled loader error:", err);
+      return { delivery: null };
+    }
+  },
  component: DeliveryCourierPage,
 });
 
 function DeliveryCourierPage() {
- const delivery = Route.useLoaderData();
+  const { delivery } = (Route.useLoaderData() as any) || {};
  const { token } = Route.useParams();
 
  if (!delivery) {

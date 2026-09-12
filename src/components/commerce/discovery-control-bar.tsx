@@ -117,13 +117,8 @@ export function DiscoveryControlBar({
  )}
  </div>
 
- {/* Totalizadores e Comutador de Visualização */}
- <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
- {typeof resultsCount === "number" && (
- <span className="text-[11px] font-medium text-muted-foreground">
- <strong className="font-mono text-foreground">{resultsCount}</strong> itens
- </span>
- )}
+        {/* Comutador de Visualização */}
+        <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
 
  {allowedViewModes.length > 1 && onViewModeChange && (
  <div className="flex items-center p-1 rounded-2xl bg-muted/60 shrink-0">

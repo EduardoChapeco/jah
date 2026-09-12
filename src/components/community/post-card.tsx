@@ -89,17 +89,18 @@ export function PostCard(props: PostCardProps) {
  const authorInitial = item.author.name?.charAt(0)?.toUpperCase() ?? "J";
 
  const handleShare = () => {
+ const permalinkUrl = typeof window !== "undefined" ? `${window.location.origin}/publicacao/${item.id}` : "";
  if (navigator.share) {
  navigator
  .share({
  title: item.author.name,
  text: item.content_text || "Confira este momento na Wider!",
- url: window.location.href,
+ url: permalinkUrl,
  })
  .catch(() => {});
  } else {
- navigator.clipboard.writeText(window.location.href);
- toast.success("Link copiado para a área de transferência!");
+ navigator.clipboard.writeText(permalinkUrl);
+ toast.success("Link da publicação copiado!");
  }
  };
 
@@ -128,11 +129,27 @@ export function PostCard(props: PostCardProps) {
  <div className="min-w-0">
  <div className="flex items-center gap-2">
  <Link
- to={(item.author.is_store ? "/perfil-da-loja" : `/membro/${item.author.id}`) as any}
+ to={
+ (item.author.is_store
+   ? "/perfil-da-loja"
+   : (item.publish_as_handle || item.metadata?.as_creator)
+   ? `/u/${item.publish_as_handle || item.metadata?.creator_handle}`
+   : `/membro/${item.author.id}`) as any
+ }
  className="text-sm font-bold text-foreground truncate hover:text-primary transition-colors"
  >
- {item.author.name}
+ {(item.publish_as_handle || item.metadata?.as_creator)
+ ? item.metadata?.creator_name || `@${item.publish_as_handle || item.metadata?.creator_handle}`
+ : item.author.name}
  </Link>
+ {(item.publish_as_handle || item.metadata?.as_creator) && (
+ <Badge
+ variant="outline"
+ className="text-[10px] font-bold px-1.5 py-0 bg-primary/10 text-primary border-primary/20 shrink-0"
+ >
+ @{item.publish_as_handle || item.metadata?.creator_handle}
+ </Badge>
+ )}
  {item.author.is_store && (
  <Badge
  variant="secondary"
@@ -144,14 +161,27 @@ export function PostCard(props: PostCardProps) {
  </div>
 
  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
- <span>{formatRelativeTime(item.created_at)}</span>
- {item.location_name && (
+ <Link to={`/publicacao/${item.id}` as any} className="hover:underline hover:text-foreground">
+ {formatRelativeTime(item.created_at)}
+ </Link>
+ {(item.city || item.location_name) && (
  <>
  <span>•</span>
  <div className="flex items-center gap-0.5 truncate text-foreground/70">
  <MapPin className="size-3 shrink-0 text-primary" />
- <span className="truncate">{item.location_name}</span>
+ <span className="truncate">
+ {item.city || item.location_name}
+ {item.region ? ` (${item.region})` : ""}
+ </span>
  </div>
+ </>
+ )}
+ {(item.collaborators?.length || item.metadata?.collaborator) && (
+ <>
+ <span>•</span>
+ <span className="text-primary font-medium truncate">
+ com {item.collaborators?.join(", ") || item.metadata?.collaborator}
+ </span>
  </>
  )}
  </div>
@@ -169,6 +199,33 @@ export function PostCard(props: PostCardProps) {
  />
  </div>
  </div>
+
+ {/* ── 1.5 Parceria Comercial Paga (Estilo Instagram Collabs) ── */}
+ {(item.paid_partner_handle || item.metadata?.sponsored_collab) && (
+ <div className="mb-3 flex items-center justify-between px-3 py-1.5 rounded-xl bg-muted/40 border border-border/50 text-xs">
+ <div className="flex items-center gap-1.5 text-muted-foreground">
+ <ShoppingBag className="size-3.5 text-primary shrink-0" />
+ <span>
+ {item.paid_partner_label || (
+ <>
+ Em parceria paga com{" "}
+ <strong className="text-foreground">
+ {item.paid_partner_handle || item.metadata?.sponsored_store_name}
+ </strong>
+ </>
+ )}
+ </span>
+ </div>
+ {(item.metadata?.coupon_code || item.metadata?.coupon) && (
+ <Badge
+ variant="outline"
+ className="font-mono text-[10px] font-bold bg-primary/10 text-primary border-primary/25"
+ >
+ Cupom: {item.metadata?.coupon_code || item.metadata?.coupon}
+ </Badge>
+ )}
+ </div>
+ )}
 
  {/* ── 2. Texto do Post (quando houver) ─────────────────────────── */}
  {item.content_text && item.post_type !== "news" && (

@@ -16,14 +16,14 @@ export const Route = createFileRoute("/workspace/contratos/")({
  return { contracts };
    } catch (err) {
      console.error("[loader:workspace.contratos.index] Unhandled error:", err);
-     return null;
+     return { contracts: null };
    }
  },
  component: ContractsDashboard,
 });
 
 function ContractsDashboard() {
- const { contracts: initialContracts } = Route.useLoaderData();
+ const { contracts: initialContracts } = ((Route.useLoaderData?.() as any) || {});
 
  const { data: contracts } = useQuery({
  queryKey: ["contracts-list"],

@@ -48,7 +48,7 @@ export const Route = createFileRoute("/admin-master/marca")({
 });
 
 function AdminMasterMarcaPage() {
- const { brand: initialBrand } = Route.useLoaderData();
+ const { brand: initialBrand } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
 
  // Estados dos Campos
@@ -238,7 +238,7 @@ function AdminMasterMarcaPage() {
  <div>
  <h2 className="text-sm font-bold text-foreground">Nome & Marca da Cidade</h2>
  <p className="text-[11px] text-muted-foreground">
- Título canônico exibido nos cabeçalhos, títulos de página e metadados SEO.
+ Título oficial exibido nos cabeçalhos, títulos de página e metadados SEO.
  </p>
  </div>
  </div>

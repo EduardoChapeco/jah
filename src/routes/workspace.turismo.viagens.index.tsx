@@ -47,7 +47,7 @@ export const Route = createFileRoute("/workspace/turismo/viagens/")({
     return { trips: trips || [], store };
     } catch (err) {
       console.error("[loader:workspace.turismo.viagens.index] Unhandled error:", err);
-      return null;
+      return { trips: null, store: null };
     }
   },
   component: WorkspaceTripsListPage,
@@ -56,7 +56,7 @@ export const Route = createFileRoute("/workspace/turismo/viagens/")({
 type TripStatus = "all" | "confirmed" | "in_progress" | "completed" | "cancelled";
 
 export default function WorkspaceTripsListPage() {
-  const { trips: initialTrips, store } = Route.useLoaderData() as any;
+  const { trips: initialTrips, store } = ((Route.useLoaderData?.() as any) || {});
   const storeId = store?.id || "";
   const navigate = useNavigate();
 

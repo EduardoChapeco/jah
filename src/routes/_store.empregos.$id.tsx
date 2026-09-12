@@ -45,6 +45,7 @@ import { getUserSession } from "@/services/auth.functions";
 import { formatDate } from "@/lib/datetime";
 import { toast } from "sonner";
 import { trackAndOpenWhatsApp } from "@/lib/whatsapp";
+import { ProtectedContactButton } from "@/components/common/protected-contact-button";
 
 export const Route = createFileRoute("/_store/empregos/$id")({
  head: ({ loaderData }: any) => ({
@@ -79,14 +80,14 @@ export const Route = createFileRoute("/_store/empregos/$id")({
  return { job, session, employerInsights };
    } catch (err) {
      console.error("[loader:_store.empregos.$id] Unhandled error:", err);
-     return null;
+     return { job: null, session: null, employerInsights: null };
    }
  },
  component: JobDetailPage,
 });
 
 function JobDetailPage() {
- const { job, session, employerInsights } = Route.useLoaderData() as any;
+ const { job, session, employerInsights } = ((Route.useLoaderData?.() as any) || {});
  const [isApplyOpen, setIsApplyOpen] = useState(false);
  const [candidateName, setCandidateName] = useState(session?.user_metadata?.full_name || "");
  const [candidateEmail, setCandidateEmail] = useState(session?.email || "");
@@ -368,7 +369,7 @@ function JobDetailPage() {
  </Button>
  </SheetTrigger>
 
- <SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
  <div className="p-6 pb-4 border-b border-border/40 shrink-0">
  <SheetTitle className="text-xl font-extrabold text-foreground">
  Candidatura — {job.title}
@@ -561,27 +562,21 @@ function JobDetailPage() {
  </SheetContent>
  </Sheet>
 
- {/* Contato WhatsApp Direto — Rastreado */}
- {job.contact_whatsapp && (
- <Button
- type="button"
- variant="outline"
- onClick={() =>
- trackAndOpenWhatsApp({
- phone: job.contact_whatsapp!,
- storeId: (job as any).store_id || null,
- entityType: "job",
- entityId: job.id,
- entityTitle: `${job.title} — ${job.company_name}`,
- niche: job.category || "empregos",
- })
- }
- className="w-full rounded-xl font-bold h-11 text-xs border-border gap-2 cursor-pointer"
- >
- <WhatsappLogo size={18} weight="bold" />
- <span>Falar com o Recrutador</span>
- </Button>
- )}
+            {/* Contato WhatsApp Direto — Rastreado e Protegido por Login */}
+            {job.contact_whatsapp && (
+              <ProtectedContactButton
+                phone={job.contact_whatsapp}
+                storeId={(job as any).store_id || null}
+                entityType="job"
+                entityId={job.id}
+                entityTitle={`${job.title} — ${job.company_name}`}
+                niche={job.category || "empregos"}
+                variant="outline"
+                size="lg"
+                label="Falar com o Recrutador via WhatsApp"
+                className="w-full rounded-xl font-bold h-11 text-xs border-border gap-2"
+              />
+            )}
 
  <div className="pt-3 space-y-2 text-[11px] text-muted-foreground">
  <div className="flex items-center gap-2">

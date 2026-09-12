@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Select,
   SelectContent,
@@ -48,7 +49,7 @@ export const Route = createFileRoute("/workspace/marketing/brand-kit")({
     return { store, brandKit };
     } catch (err) {
       console.error("[loader:workspace.marketing.brand-kit] Unhandled loader error:", err);
-      return null;
+      return { store: null, brandKit: null };
     }
   },
   component: BrandKitPage,
@@ -260,7 +261,7 @@ function SectionCard({
 
 // ── Página Principal ──────────────────────────────────────────────────────────
 export function BrandKitPage() {
-  const { brandKit: initialBrandKit } = Route.useLoaderData() as any;
+  const { brandKit: initialBrandKit } = ((Route.useLoaderData?.() as any) || {});
   const [form, setForm] = useState<BrandKitForm>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -695,33 +696,14 @@ export function BrandKitPage() {
                   <Label className="text-sm font-semibold">{label}</Label>
                   <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
                 </div>
-                <div className="p-5 space-y-3">
-                  {(form as any)[key] ? (
-                    <div className="relative w-full h-32 bg-muted/30 rounded-xl border border-border/30 overflow-hidden flex items-center justify-center">
-                      <img
-                        src={(form as any)[key]}
-                        alt={label}
-                        className="max-h-full max-w-full object-contain p-4"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => update({ [key]: "" } as any)}
-                        className="absolute top-2 right-2 p-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="w-full h-32 bg-muted/20 border border-dashed border-border/40 rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                      <ImageIcon className="w-6 h-6 opacity-40" />
-                      <span className="text-xs">Sem logo configurada</span>
-                    </div>
-                  )}
-                  <Input
-                    placeholder="https://cdn.seusite.com/logo.svg"
+                <div className="p-5">
+                  <ImageUpload
                     value={(form as any)[key] || ""}
-                    onChange={(e) => update({ [key]: e.target.value } as any)}
-                    className="h-9 text-xs rounded-xl border-border/50"
+                    onChange={(url) => update({ [key]: url } as any)}
+                    onRemove={() => update({ [key]: "" } as any)}
+                    bucket="store-assets"
+                    aspectPreset="square"
+                    helperText={`Upload de ${label}`}
                   />
                 </div>
               </div>

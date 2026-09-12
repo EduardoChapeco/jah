@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
  Sheet,
@@ -38,6 +38,7 @@ import {
 import { toast } from "sonner";
 import { formatMoney } from "@/lib/money";
 import { createAgencyTravelQuote } from "@/services/tourism.functions";
+import { listHotelsBank } from "@/services/travel-catalog.functions";
 import { cn } from "@/lib/utils";
 
 import {
@@ -103,16 +104,55 @@ export function QuotationBuilderSheet({
  const [destFilterQuery, setDestFilterQuery] = useState("");
  const [departureDate, setDepartureDate] = useState("");
  const [returnDate, setReturnDate] = useState("");
- const [adults, setAdults] = useState(2);
- const [children, setChildren] = useState(0);
- const [flexibleDates, setFlexibleDates] = useState(false);
 
- // Tab 2: Hospedagem
- const [hotelName, setHotelName] = useState("");
- const [hotelStars, setHotelStars] = useState<number>(4);
- const [mealPlan, setMealPlan] = useState<"all_inclusive" | "meia_pensao" | "cafe" | "sem_refeicao">("cafe");
- const [roomType, setRoomType] = useState<"standard" | "vista_mar" | "suite" | "bangalo">("standard");
- const [roomsCount, setRoomsCount] = useState(1);
+  // Tab 2: Hospedagem
+  const [hotelName, setHotelName] = useState("");
+  const [hotelSearchQuery, setHotelSearchQuery] = useState("");
+  const [hotelSuggestions, setHotelSuggestions] = useState<any[]>([]);
+  const [showHotelDropdown, setShowHotelDropdown] = useState(false);
+  const [hotelCategory, setHotelCategory] = useState<"pousada" | "padrao" | "superior" | "resort">("superior");
+  const [mealPlan, setMealPlan] = useState<"all_inclusive" | "meia_pensao" | "cafe" | "sem_refeicao">("cafe");
+  const [roomType, setRoomType] = useState<"standard" | "vista_mar" | "suite" | "bangalo">("standard");
+  // Room distribution: each room has { adults, children: [{age}] }
+  const [roomDistribution, setRoomDistribution] = useState<Array<{ adults: number; children: number[] }>>([{ adults: 2, children: [] }]);
+  const hotelSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleHotelSearch = useCallback(async (query: string) => {
+    setHotelSearchQuery(query);
+    setHotelName(query);
+    if (!query.trim() || query.length < 2) {
+      setHotelSuggestions([]);
+      setShowHotelDropdown(false);
+      return;
+    }
+    if (hotelSearchTimeout.current) clearTimeout(hotelSearchTimeout.current);
+    hotelSearchTimeout.current = setTimeout(async () => {
+      try {
+        const results = await listHotelsBank({ data: { search: query } });
+        setHotelSuggestions(results.slice(0, 8));
+        setShowHotelDropdown(results.length > 0);
+      } catch {
+        setHotelSuggestions([]);
+      }
+    }, 280);
+  }, []);
+
+  const handleSelectHotel = (hotel: any) => {
+    setHotelName(hotel.name);
+    setHotelSearchQuery(hotel.name);
+    setShowHotelDropdown(false);
+    // Auto-fill category
+    const stars = hotel.stars || 4;
+    if (stars <= 3) setHotelCategory("pousada");
+    else if (stars === 4) setHotelCategory("superior");
+    else setHotelCategory("resort");
+    // Auto-fill meal plan if hotel has a regime
+    if (hotel.regime_options?.includes("All Inclusive")) setMealPlan("all_inclusive");
+    else if (hotel.regime_options?.includes("Café da Manhã")) setMealPlan("cafe");
+  };
+
+  const totalRoomsAdults = roomDistribution.reduce((s, r) => s + r.adults, 0);
+  const totalRoomsChildren = roomDistribution.reduce((s, r) => s + r.children.length, 0);
 
  // Tab 3: Transporte & Logística
  const [tripType, setTripType] = useState<"air_package" | "hotel_only" | "cruise" | "bus" | "visa_assistance">("air_package");
@@ -120,7 +160,26 @@ export function QuotationBuilderSheet({
  const [baggage, setBaggage] = useState<"mao" | "despachada">("mao");
  const [includeTransfer, setIncludeTransfer] = useState(true);
  const [includeInsurance, setIncludeInsurance] = useState(true);
- const [includeTours, setIncludeTours] = useState(false);
+ // excursions/activities as dynamic tags
+ const [excursionTags, setExcursionTags] = useState<string[]>([]);
+ const [excursionInput, setExcursionInput] = useState("");
+ const addExcursion = (val: string) => {
+ const t = val.trim();
+ if (t && !excursionTags.includes(t)) setExcursionTags(prev => [...prev, t]);
+ setExcursionInput("");
+ };
+ const removeExcursion = (val: string) => setExcursionTags(prev => prev.filter(t => t !== val));
+ const presetExcursions = useMemo(() => {
+ const dest = (destinationCity || "").toLowerCase();
+ if (dest.includes("porto de galinhas")) return ["Jangada com Piscinas Naturais", "Passeio de Buggy", "Snorkeling", "Merepe", "Praia Maracaípe"];
+ if (dest.includes("maragogi")) return ["Galés de Maragogi", "Passeio de Buggy", "Dunas de Marapé", "Japaratinga"];
+ if (dest.includes("gramado")) return ["Mini Mundo", "Snowland (ingresso)", "Garibaldi", "Cascata do Caracol", "Beto Carrero"];
+ if (dest.includes("foz do iguaçu") || dest.includes("foz do iguacu")) return ["Cataratas Brasileira", "Cataratas Argentina", "Parque das Aves", "Itaipu", "Rafain Show"];
+ if (dest.includes("beach park")) return ["Beach Park (ingresso)", "Aquapark (day use)", "Cabana Premium", "Área VIP"];
+ if (dest.includes("bonito")) return ["Gruta do Lago Azul", "Mergulho no Rio", "Boia Cross", "Nascente Azul"];
+ if (dest.includes("noronha") || dest.includes("fernando")) return ["Mergulho Autônomo", "Passeio de Barco", "Baía dos Porcos", "Snorkeling"];
+ return ["City Tour", "Passeio de Barco", "Mergulho / Snorkeling", "Ingresso Parque Aquático", "Transfer Aeroporto", "Guia Local Bilíngue", "Jantar Temático", "Trilha Ecológica"];
+ }, [destinationCity]);
 
  // Tab 4: Condições Comerciais
  const [budgetTier, setBudgetTier] = useState<"economy" | "standard" | "premium" | "luxury">("standard");
@@ -207,15 +266,19 @@ export function QuotationBuilderSheet({
  }
  }
 
- // 5. Passageiros
- if (lower.includes("casal") || lower.includes("2 adultos") || lower.includes("duas pessoas")) setAdults(2);
- else if (lower.includes("1 adulto") || lower.includes("sozinho") || lower.includes("individual")) setAdults(1);
- else if (lower.includes("3 adultos")) setAdults(3);
- else if (lower.includes("4 adultos")) setAdults(4);
+ // 5. Passageiros → atualiza distribuição do quarto 1
+  let aiAdults = 2;
+  let aiChildren = 0;
+  if (lower.includes("casal") || lower.includes("2 adultos") || lower.includes("duas pessoas")) aiAdults = 2;
+  else if (lower.includes("1 adulto") || lower.includes("sozinho") || lower.includes("individual")) aiAdults = 1;
+  else if (lower.includes("3 adultos")) aiAdults = 3;
+  else if (lower.includes("4 adultos")) aiAdults = 4;
 
- const childMatch = text.match(/([0-9]+)\s*(?:crianças?|filhos?|kids?)/i);
- if (childMatch) setChildren(parseInt(childMatch[1], 10));
- else if (lower.includes("com crianca") || lower.includes("com criança") || lower.includes("1 filho")) setChildren(1);
+  const childMatch = text.match(/([0-9]+)\s*(?:crianças?|filhos?|kids?)/i);
+  if (childMatch) aiChildren = parseInt(childMatch[1], 10);
+  else if (lower.includes("com crianca") || lower.includes("com criança") || lower.includes("1 filho")) aiChildren = 1;
+
+  setRoomDistribution([{ adults: aiAdults, children: Array.from({ length: aiChildren }, () => 7) }]);
 
  // 6. Datas
  const datePattern = /([0-9]{1,2})[\/\.-]([0-9]{1,2})(?:[\/\.-]([0-9]{2,4}))?/g;
@@ -248,9 +311,9 @@ export function QuotationBuilderSheet({
  setMealPlan("meia_pensao");
  }
 
- // 9. Estrelas
- if (lower.includes("5 estrelas") || lower.includes("resort") || lower.includes("luxo")) setHotelStars(5);
- else if (lower.includes("3 estrelas") || lower.includes("pousada") || lower.includes("economico")) setHotelStars(3);
+ // 9. Categoria
+ if (lower.includes("5 estrelas") || lower.includes("resort") || lower.includes("luxo")) setHotelCategory("resort");
+ else if (lower.includes("3 estrelas") || lower.includes("pousada") || lower.includes("economico")) setHotelCategory("pousada");
 
  // 10. Bagagem & Transfer
  if (lower.includes("bagagem despachada") || lower.includes("mala 23kg")) setBaggage("despachada");
@@ -278,19 +341,19 @@ export function QuotationBuilderSheet({
  setDestFilterQuery("");
  setDepartureDate("");
  setReturnDate("");
- setAdults(2);
- setChildren(0);
  setHotelName("");
- setHotelStars(4);
+ setHotelCategory("superior");
  setMealPlan("cafe");
  setRoomType("standard");
- setRoomsCount(1);
+ setRoomDistribution([{ adults: 2, children: [] }]);
  setTripType("air_package");
  setPreferredAirline("qualquer");
  setBaggage("mao");
  setIncludeTransfer(true);
  setIncludeInsurance(true);
- setIncludeTours(false);
+ setExcursionTags([]);
+ setExcursionInput("");
+ setHotelSearchQuery("");
  setQuoteAmountStr("");
  setSpecialNotes("");
  setAgencyNotes("");
@@ -310,11 +373,16 @@ export function QuotationBuilderSheet({
  mealPlan === "meia_pensao" ? "Meia Pensão 🍽️ (Café da manhã + Almoço ou Jantar)" :
  mealPlan === "cafe" ? "Café da Manhã Incluso ☕" : "Somente Hospedagem 🏨";
 
- const starsStr = hotelStars ? `(Categoria ${hotelStars} Estrelas)` : "";
  const nightsStr = nightsCount ? ` (${nightsCount} noites)` : "";
  const totalDisplay = quoteAmountCents > 0 ? formatMoney(quoteAmountCents) : "Sob Consulta";
  const pixDisplay = quoteAmountCents > 0 ? formatMoney(Math.round(quoteAmountCents * 0.95)) : "Desconto à vista";
  const installmentDisplay = quoteAmountCents > 0 ? `10x de ${formatMoney(Math.round(quoteAmountCents / 10))} sem juros` : "10x sem juros no cartão";
+
+ const totalPax = Math.max(1, totalRoomsAdults + totalRoomsChildren);
+ const perPersonTotal = quoteAmountCents > 0 ? Math.round(quoteAmountCents / totalPax) : 0;
+ const perPersonInstallment = perPersonTotal > 0 ? Math.round(perPersonTotal / 10) : 0;
+ const perRoomTotal = quoteAmountCents > 0 && roomDistribution.length > 1 ? Math.round(quoteAmountCents / roomDistribution.length) : null;
+ const perRoomInstallment = perRoomTotal ? Math.round(perRoomTotal / 10) : null;
 
  const originDisplay = originIata ? `${originCity} (${originIata})` : originCity;
  const destDisplay = destinationIata ? `${destinationCity} (${destinationIata})` : destinationCity;
@@ -324,16 +392,16 @@ export function QuotationBuilderSheet({
  const template = `✈️ *PROPOSTA DE VIAGEM EXCLUSIVA*
 📍 *Origem:* ${originDisplay} ➔ *Destino:* ${destDisplay}
 📅 *Período:* ${departureDate || "Data a definir"} até ${returnDate || "Data a definir"}${nightsStr}
-👥 *Viajantes:* ${adults} ${adults === 1 ? "Adulto" : "Adultos"}${children > 0 ? `, ${children} ${children === 1 ? "Criança" : "Crianças"}` : ""}
+👥 *Viajantes:* ${totalRoomsAdults} Adultos${totalRoomsChildren > 0 ? `, ${totalRoomsChildren} Crianças` : ""}
 
-🏨 *Hospedagem:* ${hotelName || "Hotel Selecionado"} ${starsStr}
+🏨 *Hospedagem:* ${hotelName || "Hotel Selecionado"} (${hotelCategory})
 🍽️ *Regime:* ${mealPlanLabel}
 🛏️ *Acomodação:* Quarto ${roomType.toUpperCase()}
 ✈️ *Aéreo & Logística:* ${preferredAirline !== "qualquer" ? `Voo ${preferredAirline.toUpperCase()}` : "Melhor Tarifa Aérea"} com ${baggage === "despachada" ? "🧳 Mala Despachada (23kg)" : "🧳 Bagagem de Mão (10kg)"}
-${includeTransfer ? "🚗 *Transfer:* Incluso Aeroporto ↔ Hotel In/Out\n" : ""}${includeInsurance ? "🛡️ *Seguro Viagem:* Incluso com assistência médica completa\n" : ""}${includeTours ? "🎫 *Passeios:* Roteiro com experiências inclusas\n" : ""}${seasonTip}${gastroTip}
+${includeTransfer ? "🚗 *Transfer:* Incluso Aeroporto ↔ Hotel In/Out\n" : ""}${includeInsurance ? "🛡️ *Seguro Viagem:* Incluso com assistência médica completa\n" : ""}${excursionTags.length > 0 ? `🎫 *Passeios & Ingressos:* ${excursionTags.join(", ")}\n` : ""}${seasonTip}${gastroTip}
 💰 *Investimento Total:* ${totalDisplay}
 💳 *Condições:* ${installmentDisplay}
-⚡ *À vista no Pix:* ${pixDisplay} (5% off)
+${totalPax > 1 && quoteAmountCents > 0 ? `👥 *Por Pessoa (${totalPax} viajantes):* ${formatMoney(perPersonTotal)} ou 10x de ${formatMoney(perPersonInstallment)} sem juros\n` : ""}${perRoomTotal ? `🛏️ *Por Quarto (${roomDistribution.length} acomodações):* ${formatMoney(perRoomTotal)} ou 10x de ${formatMoney(perRoomInstallment)} sem juros\n` : ""}⚡ *À vista no Pix:* ${pixDisplay} (5% off)
 
 _Valores sujeitos a reajuste tarifário sem aviso prévio. Garanta sua reserva!_
 📲 *${agencyName}*`;
@@ -353,7 +421,7 @@ _Valores sujeitos a reajuste tarifário sem aviso prévio. Garanta sua reserva!_
 
  const structuredNotes = [
  specialNotes ? `Solicitação: ${specialNotes}` : null,
- hotelName ? `Hotel: ${hotelName} (${hotelStars} Estrelas)` : `Padrão: ${hotelStars} Estrelas`,
+ hotelName ? `Hotel: ${hotelName} (${hotelCategory})` : `Padrão: ${hotelCategory}`,
  `Regime: ${mealPlanLabel}`,
  `Quarto: ${roomType}`,
  `Aéreo/Bagagem: ${preferredAirline.toUpperCase()} - ${baggage === "despachada" ? "Mala Despachada 23kg" : "Bagagem de Mão 10kg"}`,
@@ -361,7 +429,7 @@ _Valores sujeitos a reajuste tarifário sem aviso prévio. Garanta sua reserva!_
  destinationIata ? `Destino IATA: ${destinationIata}` : null,
  includeTransfer ? "Transfer In/Out Incluso" : null,
  includeInsurance ? "Seguro Viagem Incluso" : null,
- includeTours ? "Passeios Inclusos" : null,
+ excursionTags.length > 0 ? `Passeios: ${excursionTags.join(", ")}` : null,
  ].filter(Boolean).join(" | ");
 
  return createAgencyTravelQuote({
@@ -375,9 +443,9 @@ _Valores sujeitos a reajuste tarifário sem aviso prévio. Garanta sua reserva!_
  destination_iata: destinationIata.trim() || null,
  departure_date: departureDate || null,
  return_date: returnDate || null,
- adults_count: adults,
- children_count: children,
- rooms_count: roomsCount,
+ adults_count: totalRoomsAdults,
+ children_count: totalRoomsChildren,
+ rooms_count: roomDistribution.length,
  trip_type: tripType,
  budget_tier: budgetTier,
  special_notes: structuredNotes || null,
@@ -397,12 +465,13 @@ _Valores sujeitos a reajuste tarifário sem aviso prévio. Garanta sua reserva!_
  onError: (err: any) => toast.error(err?.message || "Erro ao cadastrar cotação."),
  });
 
- return (
- <Sheet open={open} onOpenChange={onOpenChange}>
- <SheetContent
- side="right"
- className="sm:max-w-xl md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto no-scrollbar bg-card flex flex-col justify-between shadow-2xl"
- >
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        size="wide"
+        className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto no-scrollbar bg-card flex flex-col justify-between shadow-2xl"
+      >
  {/* ── 1. Top Header ── */}
  <SheetHeader className="p-5 sm:p-6 border-b border-border/80 bg-muted/20 text-left space-y-1.5">
  <div className="flex items-center justify-between">
@@ -597,112 +666,11 @@ _Valores sujeitos a reajuste tarifário sem aviso prévio. Garanta sua reserva!_
  />
  </div>
  </div>
-
- <div className="text-[10px] text-muted-foreground flex items-center justify-between">
- <span>Preencha ou selecione no catálogo abaixo:</span>
  </div>
  </div>
- </div>
-
- {/* Seletor Canônico de Destinos em Chips */}
- <div className="space-y-1.5 pt-1">
- <div className="flex items-center justify-between">
- <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
- Catálogo Canônico de Destinos (1 Toque):
- </span>
- <span className="text-[10px] font-mono text-muted-foreground">
- {CANONICAL_DESTINATIONS.length} destinos cadastrados
- </span>
- </div>
- <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar pr-1">
- {CANONICAL_DESTINATIONS.map((dest) => (
- <button
- key={dest.id}
- type="button"
- onClick={() => {
- setDestinationCity(dest.name);
- setDestinationIata(dest.iata);
- setSelectedCanonicalDest(dest);
- }}
- className={cn(
- "text-[11px] font-medium px-2.5 py-1 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5",
- destinationIata === dest.iata || destinationCity === dest.name
- ? "bg-primary text-primary-foreground border-primary font-bold shadow-2xs"
- : "bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground border-border/60"
- )}
- >
- <span>{dest.name}</span>
- <span
- className={cn(
- "text-[9px] font-mono font-black px-1 rounded",
- destinationIata === dest.iata || destinationCity === dest.name
- ? "bg-white/20 text-white"
- : "bg-muted text-foreground"
- )}
- >
- {dest.iata}
- </span>
- </button>
- ))}
- </div>
- </div>
-
- {/* Card de Inteligência Canônica do Destino Selecionado */}
- {selectedCanonicalDest && (
- <div className="p-3.5 rounded-2xl bg-primary/5 border border-primary/20 space-y-2.5 animate-in fade-in duration-150">
- <div className="flex items-start gap-3">
- <img
- src={selectedCanonicalDest.coverImage}
- alt={selectedCanonicalDest.name}
- className="size-14 rounded-xl object-cover border border-border/60 shrink-0"
- />
- <div className="min-w-0 flex-1">
- <div className="flex items-center gap-2 flex-wrap">
- <h4 className="text-xs font-bold text-foreground truncate">{selectedCanonicalDest.name}</h4>
- <Badge variant="secondary" className="text-[9px] font-mono font-bold bg-primary/10 text-primary">
- IATA {selectedCanonicalDest.iata} • {selectedCanonicalDest.state}
- </Badge>
- </div>
- <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
- {selectedCanonicalDest.description}
- </p>
- <div className="text-[10px] text-primary font-medium mt-1 flex items-center gap-1">
- <span>☀️ <strong>Melhor época:</strong> {selectedCanonicalDest.bestSeason}</span>
- </div>
- </div>
- </div>
-
- {/* Gastronomia & Dicas de Roteiro */}
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-primary/10 text-[10px] text-muted-foreground">
- <div>
- <span className="font-bold text-foreground block">🍽️ Sugestão Gastronômica:</span>
- <span className="line-clamp-2">{selectedCanonicalDest.gastronomyTip}</span>
- </div>
- <div>
- <span className="font-bold text-foreground block">🎯 Destaques do Destino:</span>
- <div className="flex flex-wrap gap-1 mt-0.5">
- {selectedCanonicalDest.highlights.slice(0, 4).map((hl, i) => (
- <button
- key={i}
- type="button"
- onClick={() => {
- setSpecialNotes((prev) => (prev ? `${prev} + ${hl}` : hl));
- toast.success(`Destaque "${hl}" adicionado às observações!`);
- }}
- className="text-[9px] px-1.5 py-0.5 rounded bg-background border border-primary/20 text-foreground hover:bg-primary/10 cursor-pointer transition-all"
- title="Clique para adicionar às observações"
- >
- + {hl}
- </button>
- ))}
- </div>
- </div>
- </div>
- </div>
- )}
 
  {/* Datas com Cálculo de Noites */}
- <div className="p-3.5 rounded-2xl bg-muted/30 border border-border/60 space-y-2">
+ <div className="p-3.5 rounded-2xl bg-muted/30 border border-border/60 space-y-2 mt-4">
  <div className="flex items-center justify-between">
  <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
  <Calendar className="size-3.5 text-primary" />
@@ -735,215 +703,207 @@ _Valores sujeitos a reajuste tarifário sem aviso prévio. Garanta sua reserva!_
  />
  </div>
  </div>
-
- <div className="flex items-center gap-2 pt-1">
- <button
- type="button"
- onClick={() => setFlexibleDates(!flexibleDates)}
- className={cn(
- "text-xs px-3 py-1 rounded-xl border font-semibold flex items-center gap-1.5 cursor-pointer transition-all",
- flexibleDates
- ? "bg-primary/10 text-primary border-primary/30"
- : "bg-background text-muted-foreground border-border/60"
- )}
- >
- <Check className={cn("size-3", flexibleDates ? "opacity-100" : "opacity-0")} />
- <span>Datas Flexíveis (+/- 3 dias)</span>
- </button>
- </div>
- </div>
-
- {/* Stepper de Passageiros */}
- <div className="grid grid-cols-2 gap-3">
- <div className="p-3 rounded-2xl bg-card border border-border/70 flex items-center justify-between">
- <div>
- <span className="text-xs font-bold text-foreground block">Adultos</span>
- <span className="text-[10px] text-muted-foreground">+12 anos</span>
- </div>
- <div className="flex items-center gap-2">
- <Button
- type="button"
- variant="outline"
- size="icon"
- onClick={() => setAdults(Math.max(1, adults - 1))}
- className="size-7 rounded-lg"
- >
- <Minus className="size-3" />
- </Button>
- <span className="text-sm font-bold font-mono w-4 text-center">{adults}</span>
- <Button
- type="button"
- variant="outline"
- size="icon"
- onClick={() => setAdults(adults + 1)}
- className="size-7 rounded-lg"
- >
- <Plus className="size-3" />
- </Button>
- </div>
- </div>
-
- <div className="p-3 rounded-2xl bg-card border border-border/70 flex items-center justify-between">
- <div>
- <span className="text-xs font-bold text-foreground block">Crianças</span>
- <span className="text-[10px] text-muted-foreground">0 a 11 anos</span>
- </div>
- <div className="flex items-center gap-2">
- <Button
- type="button"
- variant="outline"
- size="icon"
- onClick={() => setChildren(Math.max(0, children - 1))}
- className="size-7 rounded-lg"
- >
- <Minus className="size-3" />
- </Button>
- <span className="text-sm font-bold font-mono w-4 text-center">{children}</span>
- <Button
- type="button"
- variant="outline"
- size="icon"
- onClick={() => setChildren(children + 1)}
- className="size-7 rounded-lg"
- >
- <Plus className="size-3" />
- </Button>
- </div>
- </div>
  </div>
  </TabsContent>
 
  {/* ── ABA 2: HOSPEDAGEM & CONFORTO ── */}
- <TabsContent value="hospedagem" className="space-y-4 m-0 flex-1">
- <div className="space-y-1">
- <Label className="text-xs font-bold text-foreground">Hotel / Resort Sugerido (opcional)</Label>
- <Input
- value={hotelName}
- onChange={(e) => setHotelName(e.target.value)}
- placeholder="Ex: Pratagy Beach Resort All Inclusive ou similar"
- className="h-9 rounded-xl text-xs bg-background"
- />
- </div>
+  <TabsContent value="hospedagem" className="space-y-4 m-0 flex-1">
 
- {/* Padrão de Estrelas */}
- <div className="space-y-2">
- <Label className="text-xs font-bold text-foreground">Categoria / Padrão de Estrelas</Label>
- <div className="grid grid-cols-3 gap-2">
- {[
- { stars: 3, label: "3 Estrelas (Econômico / Pousada)" },
- { stars: 4, label: "4 Estrelas (Conforto / Superior)" },
- { stars: 5, label: "5 Estrelas (Resort / Luxo)" },
- ].map((item) => (
- <button
- key={item.stars}
- type="button"
- onClick={() => setHotelStars(item.stars)}
- className={cn(
- "p-3 rounded-2xl border text-left flex flex-col justify-between gap-1.5 transition-all cursor-pointer",
- hotelStars === item.stars
- ? "bg-primary/10 border-primary text-foreground shadow-2xs font-bold"
- : "bg-card border-border/70 text-muted-foreground hover:bg-muted/40"
- )}
- >
- <span className="text-[11px] font-mono font-bold text-primary">
- {item.stars} Estrelas
- </span>
- <span className="text-xs leading-snug">{item.label}</span>
- </button>
- ))}
- </div>
- </div>
+  {/* Hotel Autocomplete */}
+  <div className="space-y-1 relative">
+  <Label className="text-xs font-bold text-foreground">Hospedagem</Label>
+  <div className="relative">
+  <Hotel className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+  <Input
+  value={hotelSearchQuery}
+  onChange={(e) => handleHotelSearch(e.target.value)}
+  onFocus={() => hotelSearchQuery.length >= 2 && setShowHotelDropdown(hotelSuggestions.length > 0)}
+  onBlur={() => setTimeout(() => setShowHotelDropdown(false), 180)}
+  placeholder="Digite o nome do hotel ou resort..."
+  className="h-10 rounded-xl text-xs bg-background pl-8"
+  />
+  </div>
+  {showHotelDropdown && hotelSuggestions.length > 0 && (
+  <div className="absolute z-50 left-0 right-0 mt-1 bg-popover border border-border/80 rounded-2xl shadow-xl overflow-hidden">
+  {hotelSuggestions.map((h) => (
+  <button
+  key={h.id}
+  type="button"
+  onMouseDown={() => handleSelectHotel(h)}
+  className="w-full px-4 py-2.5 text-left hover:bg-muted/50 flex items-center justify-between gap-3 transition-colors border-b border-border/40 last:border-0"
+  >
+  <div>
+  <span className="text-xs font-bold text-foreground block">{h.name}</span>
+  <span className="text-[10px] text-muted-foreground">{h.city}{h.state ? `, ${h.state}` : ""}</span>
+  </div>
+  {h.regime_options?.[0] && (
+  <Badge variant="secondary" className="text-[9px] shrink-0">{h.regime_options[0]}</Badge>
+  )}
+  </button>
+  ))}
+  </div>
+  )}
+  <p className="text-[10px] text-muted-foreground pt-0.5">Digite para buscar hotéis cadastrados ou escreva livremente.</p>
+  </div>
 
- {/* Regime de Alimentação */}
- <div className="space-y-2">
- <Label className="text-xs font-bold text-foreground">Regime de Alimentação</Label>
- <div className="grid grid-cols-2 gap-2">
- {[
- { id: "cafe", label: "Café da Manhã", desc: "Buffet incluso", icon: Coffee },
- { id: "meia_pensao", label: "Meia Pensão", desc: "Café + Almoço ou Jantar", icon: Utensils },
- { id: "all_inclusive", label: "All Inclusive", desc: "Comidas e bebidas liberadas", icon: CheckCircle2 },
- { id: "sem_refeicao", label: "Só Hospedagem", desc: "Sem refeições", icon: Hotel },
- ].map((plan) => {
- const Icon = plan.icon;
- return (
- <button
- key={plan.id}
- type="button"
- onClick={() => setMealPlan(plan.id as any)}
- className={cn(
- "p-3 rounded-2xl border text-left flex items-start gap-2.5 transition-all cursor-pointer",
- mealPlan === plan.id
- ? "bg-primary/10 border-primary text-foreground shadow-2xs font-bold"
- : "bg-card border-border/70 text-muted-foreground hover:bg-muted/40"
- )}
- >
- <div className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
- <Icon className="size-3.5" />
- </div>
- <div>
- <span className="text-xs font-bold block">{plan.label}</span>
- <span className="text-[10px] text-muted-foreground block">{plan.desc}</span>
- </div>
- </button>
- );
- })}
- </div>
- </div>
+  {/* Categoria sem estrelas */}
+  <div className="space-y-2">
+  <Label className="text-xs font-bold text-foreground">Categoria</Label>
+  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+  {[
+  { id: "pousada", label: "Pousada", sub: "Econômico" },
+  { id: "padrao", label: "Hotel Padrão", sub: "Conforto básico" },
+  { id: "superior", label: "Superior", sub: "Conforto / Boutique" },
+  { id: "resort", label: "Resort / Luxo", sub: "Experiência premium" },
+  ].map((cat) => (
+  <button
+  key={cat.id}
+  type="button"
+  onClick={() => setHotelCategory(cat.id as any)}
+  className={cn(
+  "p-3 rounded-2xl border text-left flex flex-col gap-0.5 transition-all cursor-pointer",
+  hotelCategory === cat.id
+  ? "bg-primary/10 border-primary text-foreground shadow-2xs"
+  : "bg-card border-border/70 text-muted-foreground hover:bg-muted/40"
+  )}
+  >
+  <span className="text-xs font-bold block">{cat.label}</span>
+  <span className="text-[10px] leading-snug">{cat.sub}</span>
+  </button>
+  ))}
+  </div>
+  </div>
 
- {/* Tipo de Quarto */}
- <div className="grid grid-cols-2 gap-3">
- <div className="space-y-1">
- <Label className="text-xs font-bold text-foreground">Tipo de Quarto</Label>
- <div className="grid grid-cols-2 gap-1.5">
- {[
- { id: "standard", label: "Standard" },
- { id: "vista_mar", label: "Vista Mar" },
- { id: "suite", label: "Suíte" },
- { id: "bangalo", label: "Bangalô" },
- ].map((r) => (
- <button
- key={r.id}
- type="button"
- onClick={() => setRoomType(r.id as any)}
- className={cn(
- "h-8 text-xs font-semibold rounded-xl border transition-all cursor-pointer",
- roomType === r.id
- ? "bg-primary text-primary-foreground border-primary font-bold"
- : "bg-background text-muted-foreground border-border/60 hover:text-foreground"
- )}
- >
- {r.label}
- </button>
- ))}
- </div>
- </div>
+  {/* Regime de Alimentação */}
+  <div className="space-y-2">
+  <Label className="text-xs font-bold text-foreground">Regime de Alimentação</Label>
+  <div className="grid grid-cols-2 gap-2">
+  {[
+  { id: "cafe", label: "Café da Manhã", icon: Coffee },
+  { id: "meia_pensao", label: "Meia Pensão", icon: Utensils },
+  { id: "all_inclusive", label: "All Inclusive", icon: CheckCircle2 },
+  { id: "sem_refeicao", label: "Só Hospedagem", icon: Hotel },
+  ].map((plan) => {
+  const Icon = plan.icon;
+  return (
+  <button
+  key={plan.id}
+  type="button"
+  onClick={() => setMealPlan(plan.id as any)}
+  className={cn(
+  "p-3 rounded-2xl border text-left flex items-start gap-2.5 transition-all cursor-pointer",
+  mealPlan === plan.id
+  ? "bg-primary/10 border-primary text-foreground shadow-2xs font-bold"
+  : "bg-card border-border/70 text-muted-foreground hover:bg-muted/40"
+  )}
+  >
+  <div className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+  <Icon className="size-3.5" />
+  </div>
+  <div>
+  <span className="text-xs font-bold block">{plan.label}</span>
+  </div>
+  </button>
+  );
+  })}
+  </div>
+  </div>
 
- <div className="space-y-1">
- <Label className="text-xs font-bold text-foreground">Qtd. de Quartos</Label>
- <div className="flex items-center gap-2 pt-1">
- <Button
- type="button"
- variant="outline"
- size="icon"
- onClick={() => setRoomsCount(Math.max(1, roomsCount - 1))}
- className="size-8 rounded-xl"
- >
- <Minus className="size-3.5" />
- </Button>
- <span className="text-sm font-bold font-mono w-6 text-center">{roomsCount}</span>
- <Button
- type="button"
- variant="outline"
- size="icon"
- onClick={() => setRoomsCount(roomsCount + 1)}
- className="size-8 rounded-xl"
- >
- <Plus className="size-3.5" />
- </Button>
- </div>
- </div>
- </div>
- </TabsContent>
+  {/* Distribuição de Viajantes por Quarto */}
+  <div className="space-y-2">
+  <div className="flex items-center justify-between">
+  <Label className="text-xs font-bold text-foreground">Distribuição de Quartos</Label>
+  <div className="flex items-center gap-2">
+  <Button
+  type="button"
+  variant="outline"
+  size="sm"
+  onClick={() => setRoomDistribution(prev => [...prev, { adults: 2, children: [] }])}
+  className="h-7 rounded-xl text-xs gap-1"
+  >
+  <Plus className="size-3" /> Quarto
+  </Button>
+  {roomDistribution.length > 1 && (
+  <Button
+  type="button"
+  variant="outline"
+  size="sm"
+  onClick={() => setRoomDistribution(prev => prev.slice(0, -1))}
+  className="h-7 rounded-xl text-xs gap-1 text-destructive border-destructive/40"
+  >
+  <Minus className="size-3" /> Remover
+  </Button>
+  )}
+  </div>
+  </div>
+
+  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+  <Users className="size-3.5" />
+  <span>{roomDistribution.length} {roomDistribution.length === 1 ? "quarto" : "quartos"} • {totalRoomsAdults} adulto{totalRoomsAdults !== 1 ? "s" : ""}{totalRoomsChildren > 0 ? ` • ${totalRoomsChildren} criança${totalRoomsChildren !== 1 ? "s" : ""}` : ""}</span>
+  </div>
+
+  <div className="space-y-2">
+  {roomDistribution.map((room, ri) => (
+  <div key={ri} className="p-3 rounded-2xl border border-border/70 bg-card space-y-2">
+  <div className="flex items-center justify-between">
+  <span className="text-[11px] font-bold text-foreground">Quarto {ri + 1}</span>
+  <Badge variant="secondary" className="text-[9px]">
+  {room.adults} adulto{room.adults !== 1 ? "s" : ""}{room.children.length > 0 ? ` + ${room.children.length} criança${room.children.length !== 1 ? "s" : ""}` : ""}
+  </Badge>
+  </div>
+  <div className="grid grid-cols-2 gap-3">
+  <div className="space-y-1">
+  <span className="text-[10px] text-muted-foreground">Adultos (+12 anos)</span>
+  <div className="flex items-center gap-2">
+  <Button type="button" variant="outline" size="icon"
+  onClick={() => setRoomDistribution(prev => prev.map((r, i) => i === ri ? { ...r, adults: Math.max(1, r.adults - 1) } : r))}
+  className="size-7 rounded-lg"><Minus className="size-3" /></Button>
+  <span className="text-sm font-bold font-mono w-4 text-center">{room.adults}</span>
+  <Button type="button" variant="outline" size="icon"
+  onClick={() => setRoomDistribution(prev => prev.map((r, i) => i === ri ? { ...r, adults: r.adults + 1 } : r))}
+  className="size-7 rounded-lg"><Plus className="size-3" /></Button>
+  </div>
+  </div>
+  <div className="space-y-1">
+  <span className="text-[10px] text-muted-foreground">Crianças (0-11 anos)</span>
+  <div className="flex items-center gap-2">
+  <Button type="button" variant="outline" size="icon"
+  onClick={() => setRoomDistribution(prev => prev.map((r, i) => i === ri ? { ...r, children: r.children.slice(0, -1) } : r))}
+  disabled={room.children.length === 0}
+  className="size-7 rounded-lg"><Minus className="size-3" /></Button>
+  <span className="text-sm font-bold font-mono w-4 text-center">{room.children.length}</span>
+  <Button type="button" variant="outline" size="icon"
+  onClick={() => setRoomDistribution(prev => prev.map((r, i) => i === ri ? { ...r, children: [...r.children, 7] } : r))}
+  className="size-7 rounded-lg"><Plus className="size-3" /></Button>
+  </div>
+  </div>
+  </div>
+  {room.children.length > 0 && (
+  <div className="pt-1 space-y-1">
+  <span className="text-[10px] text-muted-foreground">Idades das crianças:</span>
+  <div className="flex flex-wrap gap-2">
+  {room.children.map((age, ci) => (
+  <div key={ci} className="flex items-center gap-1">
+  <span className="text-[10px] text-muted-foreground">C{ci + 1}:</span>
+  <select
+  value={age}
+  onChange={(e) => setRoomDistribution(prev => prev.map((r, i) => i === ri ? { ...r, children: r.children.map((a, j) => j === ci ? parseInt(e.target.value) : a) } : r))}
+  className="h-6 px-1.5 rounded-lg border border-input bg-background text-xs font-medium cursor-pointer"
+  >
+  {Array.from({ length: 12 }, (_, a) => a).map(a => (
+  <option key={a} value={a}>{a === 0 ? "< 1 ano" : `${a} anos`}</option>
+  ))}
+  </select>
+  </div>
+  ))}
+  </div>
+  </div>
+  )}
+  </div>
+  ))}
+  </div>
+  </div>
+  </TabsContent>
 
  {/* ── ABA 3: TRANSPORTE & LOGÍSTICA ── */}
  <TabsContent value="transporte" className="space-y-4 m-0 flex-1">
@@ -980,19 +940,6 @@ _Valores sujeitos a reajuste tarifário sem aviso prévio. Garanta sua reserva!_
  {/* Preferência de Aéreo & Bagagem */}
  {tripType === "air_package" && (
  <div className="p-3.5 rounded-2xl bg-muted/30 border border-border/60 space-y-3">
- {/* Rota IATA da Viagem */}
- <div className="p-2.5 rounded-xl bg-card border border-border/60 flex items-center justify-between">
- <div className="flex items-center gap-2 text-xs font-bold text-foreground">
- <Plane className="size-4 text-primary" />
- <span>{originCity} ({originIata || "XAP"})</span>
- <span className="text-muted-foreground font-normal">➔</span>
- <span className="text-primary">{destinationCity || "Destino"} ({destinationIata || "IATA"})</span>
- </div>
- <Badge variant="secondary" className="text-[9px] font-mono font-bold bg-primary/10 text-primary">
- Rota Canônica
- </Badge>
- </div>
-
  <div className="space-y-1.5">
  <span className="text-xs font-bold text-foreground block">Cia Aérea Preferencial</span>
  <div className="grid grid-cols-4 gap-1.5">
@@ -1035,7 +982,6 @@ _Valores sujeitos a reajuste tarifário sem aviso prévio. Garanta sua reserva!_
  <Luggage className="size-4 text-primary" />
  <div>
  <span className="text-xs block">Bagagem de Mão (10kg)</span>
- <span className="text-[10px] text-muted-foreground">Inclusa na tarifa</span>
  </div>
  </button>
 
@@ -1052,7 +998,6 @@ _Valores sujeitos a reajuste tarifário sem aviso prévio. Garanta sua reserva!_
  <Luggage className="size-4 text-primary" />
  <div>
  <span className="text-xs block">Mala Despachada (23kg)</span>
- <span className="text-[10px] text-muted-foreground">Para o porão</span>
  </div>
  </button>
  </div>
@@ -1060,16 +1005,16 @@ _Valores sujeitos a reajuste tarifário sem aviso prévio. Garanta sua reserva!_
  </div>
  )}
 
- {/* Inclusões de Pacote */}
+ {/* Serviços Inclusos */}
  <div className="space-y-2">
- <Label className="text-xs font-bold text-foreground">Inclusões & Serviços no Pacote</Label>
+ <Label className="text-xs font-bold text-foreground">Serviços Inclusos</Label>
  <div className="space-y-2">
  {[
  {
  checked: includeTransfer,
  toggle: () => setIncludeTransfer(!includeTransfer),
  icon: Car,
- title: "Transfer Aeroporto ↔ Hotel (In / Out)",
+ title: "Transfer Aeroporto ↔ Hospedagem",
  desc: "Recepção privativa ou regular no destino",
  },
  {
@@ -1078,13 +1023,6 @@ _Valores sujeitos a reajuste tarifário sem aviso prévio. Garanta sua reserva!_
  icon: ShieldCheck,
  title: "Seguro Viagem & Assistência Médica",
  desc: "Cobertura de saúde, extravio de bagagem e imprevistos",
- },
- {
- checked: includeTours,
- toggle: () => setIncludeTours(!includeTours),
- icon: Compass,
- title: "City Tour / Ingressos de Atrações",
- desc: "Passeios locais inclusos na proposta",
  },
  ].map((item, idx) => {
  const Icon = item.icon;
@@ -1095,9 +1033,7 @@ _Valores sujeitos a reajuste tarifário sem aviso prévio. Garanta sua reserva!_
  onClick={item.toggle}
  className={cn(
  "w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer",
- item.checked
- ? "bg-primary/5 border-primary/40 text-foreground"
- : "bg-card border-border/60 text-muted-foreground"
+ item.checked ? "bg-primary/5 border-primary/40 text-foreground" : "bg-card border-border/60 text-muted-foreground"
  )}
  >
  <div className="flex items-center gap-2.5">
@@ -1109,12 +1045,81 @@ _Valores sujeitos a reajuste tarifário sem aviso prévio. Garanta sua reserva!_
  <span className="text-[10px] text-muted-foreground block">{item.desc}</span>
  </div>
  </div>
- <div className={cn("size-5 rounded-md border flex items-center justify-center text-xs font-bold", item.checked ? "bg-primary text-primary-foreground border-primary" : "border-border/80")}>
+ <div className={cn("size-5 rounded-md border flex items-center justify-center", item.checked ? "bg-primary text-primary-foreground border-primary" : "border-border/80")}>
  {item.checked && <Check className="size-3.5" />}
  </div>
  </button>
  );
  })}
+ </div>
+ </div>
+
+ {/* Passeios & Ingressos como Tags Dinâmicas */}
+ <div className="space-y-2">
+ <div className="flex items-center justify-between">
+ <Label className="text-xs font-bold text-foreground">Passeios & Ingressos</Label>
+ {excursionTags.length > 0 && (
+ <Badge variant="secondary" className="text-[9px] font-mono">{excursionTags.length} item{excursionTags.length !== 1 ? "s" : ""}</Badge>
+ )}
+ </div>
+
+ {/* Tags Adicionadas */}
+ {excursionTags.length > 0 && (
+ <div className="flex flex-wrap gap-1.5 p-2.5 rounded-xl bg-muted/30 border border-border/50">
+ {excursionTags.map((tag) => (
+ <span
+ key={tag}
+ className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold border border-primary/20"
+ >
+ {tag}
+ <button
+ type="button"
+ onClick={() => removeExcursion(tag)}
+ className="ml-0.5 text-primary/60 hover:text-primary cursor-pointer leading-none"
+ >
+ ×
+ </button>
+ </span>
+ ))}
+ </div>
+ )}
+
+ {/* Atalhos rápidos */}
+ <div className="space-y-1.5">
+ <span className="text-[10px] text-muted-foreground">Adicionar rapidamente:</span>
+ <div className="flex flex-wrap gap-1.5">
+ {presetExcursions.filter((p) => !excursionTags.includes(p)).slice(0, 8).map((preset) => (
+ <button
+ key={preset}
+ type="button"
+ onClick={() => addExcursion(preset)}
+ className="px-2.5 py-1 rounded-full bg-card border border-border/70 text-[11px] text-muted-foreground hover:text-foreground hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer"
+ >
+ + {preset}
+ </button>
+ ))}
+ </div>
+ </div>
+
+ {/* Input livre */}
+ <div className="flex gap-2">
+ <Input
+ value={excursionInput}
+ onChange={(e) => setExcursionInput(e.target.value)}
+ onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addExcursion(excursionInput); } }}
+ placeholder="Ex: Mergulho em Noronha, Passeio à Praia do Francês..."
+ className="h-9 rounded-xl text-xs bg-background flex-1"
+ />
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ onClick={() => addExcursion(excursionInput)}
+ disabled={!excursionInput.trim()}
+ className="h-9 rounded-xl text-xs shrink-0"
+ >
+ <Plus className="size-3.5" />
+ </Button>
  </div>
  </div>
  </TabsContent>
@@ -1192,6 +1197,26 @@ _Valores sujeitos a reajuste tarifário sem aviso prévio. Garanta sua reserva!_
  <span className="text-xs font-bold text-foreground font-mono">
  {formatMoney(Math.round(quoteAmountCents * 0.2))} + 10x {formatMoney(Math.round((quoteAmountCents * 0.8) / 10))}
  </span>
+
+            {Math.max(1, totalRoomsAdults + totalRoomsChildren) > 1 && (
+              <div className="p-2.5 rounded-xl bg-background border border-emerald-500/20 text-foreground">
+                <span className="text-[10px] text-muted-foreground block">Por Pessoa ({Math.max(1, totalRoomsAdults + totalRoomsChildren)} pax)</span>
+                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 font-mono">
+                  {formatMoney(Math.round(quoteAmountCents / Math.max(1, totalRoomsAdults + totalRoomsChildren)))}
+                  <span className="text-[10px] font-normal text-muted-foreground block">ou 10x {formatMoney(Math.round(quoteAmountCents / (10 * Math.max(1, totalRoomsAdults + totalRoomsChildren))))}</span>
+                </span>
+              </div>
+            )}
+
+            {roomDistribution.length > 1 && (
+              <div className="p-2.5 rounded-xl bg-background border border-emerald-500/20 text-foreground">
+                <span className="text-[10px] text-muted-foreground block">Por Quarto ({roomDistribution.length} qtos)</span>
+                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 font-mono">
+                  {formatMoney(Math.round(quoteAmountCents / roomDistribution.length))}
+                  <span className="text-[10px] font-normal text-muted-foreground block">ou 10x {formatMoney(Math.round(quoteAmountCents / (10 * roomDistribution.length)))}</span>
+                </span>
+              </div>
+            )}
  </div>
  </div>
  </div>

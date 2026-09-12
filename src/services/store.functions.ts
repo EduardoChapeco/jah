@@ -20,7 +20,7 @@ export async function _getStoreSettings() {
  const { data: store } = await db
  .from("stores")
  .select(
- "id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, settings",
+ "id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, pix_key, payment_instructions, settings",
  )
  .eq("id", targetStoreId)
  .maybeSingle();
@@ -30,6 +30,9 @@ export async function _getStoreSettings() {
  const settings = (store.settings as Record<string, any>) || {};
  return {
  ...store,
+ pix_key: store.pix_key || null,
+ payment_instructions: store.payment_instructions || null,
+ payment_processing_mode: settings.payment_processing_mode || "platform_gateway",
  logo_url: settings.logoUrl || settings.logo_url || null,
  segment: settings.segment || settings.type || settings.niche || null,
  type: settings.type || settings.segment || null,
@@ -50,6 +53,9 @@ export const saveStoreSettingsSchema = z.object({
  state: z.string().max(2).optional(),
  zip_code: z.string().max(9).optional(),
  description: z.string().max(500).optional(),
+ pix_key: z.string().max(120).optional().or(z.literal("")),
+ payment_instructions: z.string().max(1000).optional().or(z.literal("")),
+ payment_processing_mode: z.enum(["platform_gateway", "direct_store"]).optional(),
  segment: z.string().optional(),
  type: z.string().optional(),
  niche: z.string().optional(),
@@ -89,6 +95,7 @@ export async function _saveStoreSettings(data: z.infer<typeof saveStoreSettingsS
  holiday_exceptions,
  emergency_pause_until,
  order_types,
+ payment_processing_mode,
  ...columns
  } = data;
  const db = getServerClient();
@@ -105,6 +112,7 @@ export async function _saveStoreSettings(data: z.infer<typeof saveStoreSettingsS
  ...(type && !segment ? { type, segment: type, niche: type } : {}),
  ...(niche && !segment && !type ? { niche, segment: niche, type: niche } : {}),
  ...(enabled_modules !== undefined ? { enabled_modules } : {}),
+ ...(payment_processing_mode !== undefined ? { payment_processing_mode } : {}),
  logoUrl,
  bannerUrl,
  faviconUrl,
@@ -209,8 +217,8 @@ export async function _toggleStoreOpenStatus(data: z.infer<typeof toggleStoreOpe
 }
 
 export const toggleStoreOpenStatus = createServerFn({ method: "POST" })
- .validator((d: unknown) => toggleStoreOpenStatusSchema.parse(d))
- .handler(async ({ data }) => _toggleStoreOpenStatus(data));
+  .validator(toggleStoreOpenStatusSchema)
+  .handler(async ({ data }) => _toggleStoreOpenStatus(data));
 
 // --- POLÍTICAS DA LOJA ---
 
@@ -876,6 +884,230 @@ export const updateStoreDetails = createServerFn({ method: "POST" })
  }
  }
 
- return { success: true, store_id: data.store_id, name: data.name };
- });
+  return { success: true, store_id: data.store_id, name: data.name };
+});
 
+// --- SEÇÕES CUSTOMIZÁVEIS DA PÁGINA PÚBLICA (ESTILO WIX/APP EDITOR) ---
+
+export const storePageSectionSchema = z.object({
+  id: z.string().uuid().optional(),
+  store_id: z.string().uuid().optional(),
+  section_type: z.enum([
+    "banner_carousel",
+    "highlight_cards",
+    "featured_services",
+    "custom_text_block",
+    "infinite_feed",
+    "contact_hours",
+    "coupons_grid",
+  ]),
+  section_order: z.number().int().default(0),
+  title: z.string().nullable().optional(),
+  config: z.record(z.any()).default({}),
+  is_active: z.boolean().default(true),
+});
+
+export const getStorePublicProfileWithSections = createServerFn({ method: "GET" })
+  .validator(z.object({ slug: z.string().optional(), store_id: z.string().uuid().optional() }))
+  .handler(async ({ data }) => {
+    const db = getServerClient();
+    let query = db.from("stores").select(`
+      id, name, slug, description, phone, email, address, city, state, cnpj,
+      logo_url, banner_url, settings, plan_tier, enabled_modules, created_at
+    `);
+
+    if (data.slug) {
+      query = query.eq("slug", data.slug);
+    } else if (data.store_id) {
+      query = query.eq("id", data.store_id);
+    } else {
+      return null;
+    }
+
+    const { data: store, error } = await query.maybeSingle();
+    if (!store || error) return null;
+
+    const { data: sections } = await db
+      .from("store_page_sections")
+      .select("*")
+      .eq("store_id", store.id)
+      .eq("is_active", true)
+      .order("section_order", { ascending: true });
+
+    const [productsCount, reviewsRes, followersCount] = await Promise.all([
+      db.from("products").select("id", { count: "exact", head: true }).eq("store_id", store.id).in("status", ["published", "active"]),
+      db.from("deal_reviews").select("rating").eq("store_id", store.id),
+      db.from("store_followers").select("customer_id", { count: "exact", head: true }).eq("store_id", store.id),
+    ]);
+
+    const reviews = reviewsRes.data || [];
+    const avgRating =
+      reviews.length > 0
+        ? Number((reviews.reduce((acc, r) => acc + (r.rating || 5), 0) / reviews.length).toFixed(1))
+        : 5.0;
+
+    return {
+      store,
+      sections: sections || [],
+      stats: {
+        total_products: productsCount.count || 0,
+        total_reviews: reviews.length,
+        average_rating: avgRating,
+        followers_count: followersCount.count || 0,
+      },
+    };
+  });
+
+export const getStorePageSections = createServerFn({ method: "GET" })
+  .validator(z.object({ store_id: z.string().uuid().optional() }))
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    const targetStoreId = data.store_id || identity.store_id;
+    if (!targetStoreId) throw new Error("Store ID não fornecido");
+    assertStoreAccess(identity, ["owner", "admin", "manager"], targetStoreId);
+
+    const db = getServerClient();
+    const { data: sections, error } = await db
+      .from("store_page_sections")
+      .select("*")
+      .eq("store_id", targetStoreId)
+      .order("section_order", { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return sections || [];
+  });
+
+export const saveStorePageSectionsOrder = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      store_id: z.string().uuid().optional(),
+      ordered_section_ids: z.array(z.string().uuid()),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    const targetStoreId = data.store_id || identity.store_id;
+    if (!targetStoreId) throw new Error("Store ID não fornecido");
+    assertStoreAccess(identity, ["owner", "admin", "manager"], targetStoreId);
+
+    const db = getServerClient();
+    const updates = data.ordered_section_ids.map((id, index) =>
+      db
+        .from("store_page_sections")
+        .update({ section_order: index })
+        .eq("id", id)
+        .eq("store_id", targetStoreId),
+    );
+
+    await Promise.all(updates);
+    return { success: true };
+  });
+
+export const upsertStorePageSection = createServerFn({ method: "POST" })
+  .validator(storePageSectionSchema)
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    const targetStoreId = data.store_id || identity.store_id;
+    if (!targetStoreId) throw new Error("Store ID não fornecido");
+    assertStoreAccess(identity, ["owner", "admin", "manager"], targetStoreId);
+
+    const db = getServerClient();
+    const payload = {
+      store_id: targetStoreId,
+      section_type: data.section_type,
+      section_order: data.section_order,
+      title: data.title || null,
+      config: data.config,
+      is_active: data.is_active,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (data.id) {
+      const { data: updated, error } = await db
+        .from("store_page_sections")
+        .update(payload)
+        .eq("id", data.id)
+        .eq("store_id", targetStoreId)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      return updated;
+    } else {
+      const { data: created, error } = await db
+        .from("store_page_sections")
+        .insert(payload)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      return created;
+    }
+  });
+
+export const deleteStorePageSection = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid(), store_id: z.string().uuid().optional() }))
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    const targetStoreId = data.store_id || identity.store_id;
+    if (!targetStoreId) throw new Error("Store ID não fornecido");
+    assertStoreAccess(identity, ["owner", "admin", "manager"], targetStoreId);
+
+    const db = getServerClient();
+    const { error } = await db
+      .from("store_page_sections")
+      .delete()
+      .eq("id", data.id)
+      .eq("store_id", targetStoreId);
+    if (error) throw new Error(error.message);
+    return { success: true };
+  });
+
+export const getStoreDashboardSummary = createServerFn({ method: "GET" })
+  .validator(z.object({ store_id: z.string().uuid().optional() }))
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    const targetStoreId = data.store_id || identity.store_id;
+    if (!targetStoreId) throw new Error("Store ID não fornecido");
+    assertStoreAccess(identity, ["owner", "admin", "manager", "staff"], targetStoreId);
+
+    const db = getServerClient();
+    const today = new Date().toISOString().split("T")[0];
+
+    const [storeRes, productsRes, ordersRes, pendingOrdersRes] = await Promise.all([
+      db
+        .from("stores")
+        .select("id, name, slug, logo_url, plan_tier, enabled_modules")
+        .eq("id", targetStoreId)
+        .single(),
+      db
+        .from("products")
+        .select("id", { count: "exact", head: true })
+        .eq("store_id", targetStoreId)
+        .eq("status", "active"),
+      db
+        .from("orders")
+        .select("total_cents")
+        .eq("store_id", targetStoreId)
+        .gte("created_at", today),
+      db
+        .from("orders")
+        .select("id", { count: "exact", head: true })
+        .eq("store_id", targetStoreId)
+        .eq("status", "pending"),
+    ]);
+
+    const store = storeRes.data;
+    const activeProducts = productsRes.count || 0;
+    const todayOrders = ordersRes.data || [];
+    const todayRevenueCents = todayOrders.reduce((sum, o) => sum + (o.total_cents || 0), 0);
+    const pendingOrdersCount = pendingOrdersRes.count || 0;
+
+    return {
+      store,
+      metrics: {
+        activeProducts,
+        todayOrdersCount: todayOrders.length,
+        todayRevenueCents,
+        pendingOrdersCount,
+      },
+    };
+  });

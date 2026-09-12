@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start';
+import { z } from 'zod';
 import { getServerClient } from '@/lib/supabase';
 import { getServerIdentity, assertStoreAccess } from '@/lib/server-access';
 import type { 
@@ -11,36 +12,72 @@ import type {
   ClaimCategory
 } from '@/types/claim-intelligence';
 
-export interface SubmitClaimInput {
-  storeId: string;
-  entityId: string;
-  entityType: EntityType;
-  requesterName: string;
-  requesterEmail: string;
-  requesterDocument?: string;
-  proofType: ProofType;
-  proofData: Record<string, any>;
-  additionalNotes?: string;
-}
+export const SubmitClaimInputSchema = z.object({
+  storeId: z.string().uuid(),
+  entityId: z.string().min(1),
+  entityType: z.enum(['company', 'professional', 'product', 'event']),
+  requesterName: z.string().min(2),
+  requesterEmail: z.string().email(),
+  requesterDocument: z.string().optional().nullable(),
+  proofType: z.enum(['email_domain', 'document', 'phone', 'social_media', 'other']),
+  proofData: z.record(z.any()).default({}),
+  additionalNotes: z.string().optional().nullable(),
+});
+export type SubmitClaimInput = z.infer<typeof SubmitClaimInputSchema>;
 
-export interface RespondClaimInput {
-  claimId: string;
-  storeId: string;
-  response: string;
-}
+export const ListClaimRequestsSchema = z.object({
+  storeId: z.string().uuid(),
+  status: z.enum(['pending', 'approved', 'rejected', 'verified']).optional(),
+});
 
-export interface EscalateLegalInput {
-  claimId: string;
-  storeId: string;
-  notes?: string;
-}
+export const GetClaimIntelligenceSchema = z.object({
+  storeId: z.string().uuid(),
+  entityId: z.string().min(1),
+});
+
+export const CreateConsumerClaimSchema = z.object({
+  storeId: z.string().uuid(),
+  consumerName: z.string().min(2),
+  consumerEmail: z.string().email(),
+  consumerDocument: z.string().optional().nullable(),
+  targetEntityName: z.string().min(2),
+  targetCnpj: z.string().optional().nullable(),
+  category: z.enum(['atraso_voo', 'cancelamento', 'cobranca_indevida', 'defeito', 'atendimento', 'fraude', 'outro']),
+  title: z.string().min(3),
+  description: z.string().min(10),
+  incidentDate: z.string().optional().nullable(),
+  legalAdviseNeeded: z.boolean().optional(),
+});
+
+export const ListConsumerClaimsSchema = z.object({
+  storeId: z.string().uuid(),
+  targetEntityName: z.string().optional(),
+  status: z.string().optional(),
+});
+
+export const RespondClaimInputSchema = z.object({
+  claimId: z.string().uuid(),
+  storeId: z.string().uuid(),
+  response: z.string().min(5),
+});
+export type RespondClaimInput = z.infer<typeof RespondClaimInputSchema>;
+
+export const EscalateLegalInputSchema = z.object({
+  claimId: z.string().uuid(),
+  storeId: z.string().uuid(),
+  notes: z.string().optional(),
+});
+export type EscalateLegalInput = z.infer<typeof EscalateLegalInputSchema>;
 
 // 1. Submeter Reivindicação de Perfil / Empresa
 export const submitClaimProfile = createServerFn({ method: 'POST' })
-  .validator((data: SubmitClaimInput) => data)
+  .validator(SubmitClaimInputSchema)
   .handler(async ({ data }): Promise<{ success: boolean; claim: ClaimProfile }> => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
+    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error('Acesso não autorizado para esta organização.');
+    }
 
     const db = getServerClient();
     const { data: inserted, error } = await db
@@ -68,10 +105,13 @@ export const submitClaimProfile = createServerFn({ method: 'POST' })
 
 // 2. Listar Solicitações de Claim
 export const listClaimRequests = createServerFn({ method: 'GET' })
-  .validator((data: { storeId: string; status?: ClaimStatus }) => data)
+  .validator(ListClaimRequestsSchema)
   .handler(async ({ data }): Promise<ClaimProfile[]> => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
+    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error('Acesso não autorizado para esta organização.');
+    }
 
     const db = getServerClient();
     let query = db
@@ -93,10 +133,13 @@ export const listClaimRequests = createServerFn({ method: 'GET' })
 
 // 3. Obter Inteligência de Mercado e Reputação
 export const getClaimIntelligence = createServerFn({ method: 'GET' })
-  .validator((data: { storeId: string; entityId: string }) => data)
+  .validator(GetClaimIntelligenceSchema)
   .handler(async ({ data }): Promise<ClaimIntelligence | null> => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
+    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error('Acesso não autorizado para esta organização.');
+    }
 
     const db = getServerClient();
     const { data: row, error } = await db
@@ -114,22 +157,13 @@ export const getClaimIntelligence = createServerFn({ method: 'GET' })
 
 // 4. Criar Reclamação Pública do Consumidor
 export const createConsumerClaim = createServerFn({ method: 'POST' })
-  .validator((data: {
-    storeId: string;
-    consumerName: string;
-    consumerEmail: string;
-    consumerDocument?: string;
-    targetEntityName: string;
-    targetCnpj?: string;
-    category: ClaimCategory;
-    title: string;
-    description: string;
-    incidentDate?: string;
-    legalAdviseNeeded?: boolean;
-  }) => data)
+  .validator(CreateConsumerClaimSchema)
   .handler(async ({ data }): Promise<{ success: boolean; claim: ConsumerClaim }> => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
+    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error('Acesso não autorizado para esta organização.');
+    }
 
     const db = getServerClient();
     const { data: inserted, error } = await db
@@ -159,10 +193,13 @@ export const createConsumerClaim = createServerFn({ method: 'POST' })
 
 // 5. Listar Reclamações de Consumidores
 export const listConsumerClaims = createServerFn({ method: 'GET' })
-  .validator((data: { storeId: string; targetEntityName?: string; status?: string }) => data)
+  .validator(ListConsumerClaimsSchema)
   .handler(async ({ data }): Promise<ConsumerClaim[]> => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
+    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error('Acesso não autorizado para esta organização.');
+    }
 
     const db = getServerClient();
     let query = db
@@ -187,10 +224,13 @@ export const listConsumerClaims = createServerFn({ method: 'GET' })
 
 // 6. Responder Reclamação
 export const respondToConsumerClaim = createServerFn({ method: 'POST' })
-  .validator((data: RespondClaimInput) => data)
+  .validator(RespondClaimInputSchema)
   .handler(async ({ data }): Promise<{ success: boolean }> => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
+    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error('Acesso não autorizado para esta organização.');
+    }
 
     const db = getServerClient();
     const { error } = await db
@@ -212,10 +252,13 @@ export const respondToConsumerClaim = createServerFn({ method: 'POST' })
 
 // 7. Escalar para Mediação Jurídica (JUS 360°)
 export const escalateClaimToLegal = createServerFn({ method: 'POST' })
-  .validator((data: EscalateLegalInput) => data)
+  .validator(EscalateLegalInputSchema)
   .handler(async ({ data }): Promise<{ success: boolean; lawsuitId?: string }> => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
+    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error('Acesso não autorizado para esta organização.');
+    }
 
     const db = getServerClient();
     const { data: claim, error: fetchErr } = await db

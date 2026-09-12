@@ -65,18 +65,21 @@ export const Route = createFileRoute("/_store/empregos/")({
  listPublicJobs().catch(() => []),
  ]);
 
- return { banners, hotpages, jobs };
-   } catch (err) {
-     console.error("[loader:_store.empregos.index] Unhandled error:", err);
-     return null;
-   }
- },
+      return { banners: banners || [], hotpages: hotpages || [], jobs: jobs || [] };
+    } catch (err) {
+      console.error("[loader:_store.empregos.index] Unhandled error:", err);
+      return { banners: [], hotpages: [], jobs: [] };
+    }
+  },
  component: JobsMasterPage,
 });
 
 function JobsMasterPage() {
- const { banners, hotpages, jobs: initialJobs } = Route.useLoaderData();
- const [selectedCategory, setSelectedCategory] = useState("todos");
+  const loaderData = (Route.useLoaderData() as any) || {};
+  const banners = loaderData.banners || [];
+  const hotpages = loaderData.hotpages || [];
+  const initialJobs = loaderData.jobs || [];
+  const [selectedCategory, setSelectedCategory] = useState("todos");
  const [viewMode, setViewMode] = useState<ViewModeType>("feed");
  const [search, setSearch] = useState("");
  const isDefaultFilter = selectedCategory === "todos" && !search;
@@ -151,7 +154,6 @@ function JobsMasterPage() {
  viewMode={viewMode}
  onViewModeChange={setViewMode}
  allowedViewModes={["feed", "grid", "list"]}
- resultsCount={jobsList.length}
  />
 
  {/* ── 4. Renderização Conforme o Modo de Visualização ── */}
@@ -182,7 +184,6 @@ function JobsMasterPage() {
  key={categoryKey}
  title={categoryName}
  hideHeader={true}
- badge={`${items.length} ${items.length === 1 ? "vaga" : "vagas"}`}
  actionLabel="Ver todas"
  onAction={() => {
  setSelectedCategory(categoryKey);
@@ -204,9 +205,7 @@ function JobsMasterPage() {
  <Briefcase size={18} weight="bold" className="text-primary" />
  <span>Todas as Vagas Recentes da Região</span>
  </h2>
- <span className="text-xs text-muted-foreground font-mono font-bold">
- {jobsList.length} vagas ativas
- </span>
+ 
  </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

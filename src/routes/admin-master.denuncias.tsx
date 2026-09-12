@@ -51,7 +51,7 @@ export const Route = createFileRoute("/admin-master/denuncias")({
 });
 
 function AdminDenunciasPage() {
- const { reports: initialReports } = Route.useLoaderData();
+ const { reports: initialReports } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
 
  const [selectedReport, setSelectedReport] = useState<any | null>(null);

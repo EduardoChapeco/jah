@@ -83,7 +83,7 @@ export const Route = createFileRoute("/_store/eletronicos")({
  };
    } catch (err) {
      console.error("[loader:_store.eletronicos] Unhandled error:", err);
-     return null;
+     return { banners: null, hotpages: null, marketplaceFeed: null, catalogProducts: null };
    }
  },
  component: EletronicosVerticalPage,
@@ -91,7 +91,7 @@ export const Route = createFileRoute("/_store/eletronicos")({
 });
 
 function EletronicosVerticalPage() {
- const { banners, hotpages, marketplaceFeed } = Route.useLoaderData();
+ const { banners, hotpages, marketplaceFeed } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch();
  const navigate = useNavigate({ from: Route.fullPath });
 
@@ -181,7 +181,6 @@ function EletronicosVerticalPage() {
  onSelectCategory={handleDepartmentChange}
  viewMode={viewMode}
  onViewModeChange={handleViewModeChange}
- resultsCount={allProducts.length}
  />
 
  {/* ── 4. Lojas Especializadas em Tecnologia da Região ── */}

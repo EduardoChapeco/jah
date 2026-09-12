@@ -57,7 +57,7 @@ export const Route = createFileRoute("/_store/turismo/")({
  return { banners, hotpages, tourismItems };
    } catch (err) {
      console.error("[loader:_store.turismo.index] Unhandled error:", err);
-     return null;
+     return { banners: [], hotpages: [], tourismItems: [] };
    }
  },
  component: TourismMasterPage,
@@ -74,7 +74,7 @@ const CATEGORY_CHIPS: FilterChipOption[] = [
 ];
 
 function TourismMasterPage() {
- const { banners, hotpages, tourismItems: initialItems } = Route.useLoaderData();
+ const { banners = [], hotpages = [], tourismItems: initialItems = [] } = ((Route.useLoaderData() as any) || {});
  const [selectedCategory, setSelectedCategory] = useState("todos");
  const [viewMode, setViewMode] = useState<ViewModeType>("grid");
  const [search, setSearch] = useState("");
@@ -158,7 +158,6 @@ function TourismMasterPage() {
  onSelectCategory={(id) => setSelectedCategory(id)}
  viewMode={viewMode}
  onViewModeChange={setViewMode}
- resultsCount={tourismList.length}
  />
 
  {/* ── 5. Modo Feed / Modo Grade de Turismo com Mídia Full Bleed ── */}
@@ -303,18 +302,30 @@ function TourismMasterPage() {
  </h4>
  </div>
 
- <div className="pt-2 flex items-center justify-between">
- <span className="font-black font-mono text-sm text-foreground">
- {item.price_display || "Consulte"}
- </span>
- <Button
- size="sm"
- onClick={() => handleOpenQuote(item.title)}
- className="h-8 px-3 rounded-lg font-bold text-xs bg-foreground text-background"
- >
- Cotar
- </Button>
- </div>
+ <div className="pt-2 flex items-center justify-between gap-2">
+										<span className="font-black font-mono text-sm text-foreground">
+											{item.price_display || "Consulte"}
+										</span>
+										<div className="flex items-center gap-1.5">
+											<Button
+												size="sm"
+												variant="outline"
+												onClick={() => handleOpenQuote(item.title)}
+												className="h-9 px-3 rounded-xl font-bold text-xs"
+											>
+												Cotar
+											</Button>
+											<Button
+												asChild
+												size="sm"
+												className="h-9 px-3 rounded-xl font-bold text-xs bg-foreground text-background"
+											>
+												<Link to="/turismo/$id" params={{ id: item.id }}>
+													Ver
+												</Link>
+											</Button>
+										</div>
+									</div>
  </div>
  </div>
  ))}

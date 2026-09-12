@@ -326,7 +326,7 @@ export const listStoreCarnes = createServerFn({ method: "GET" })
       .select(
         `
         *,
-        debtor:debtor_id (id, full_name, avatar_url, phone, email, username),
+        debtor:debtor_id (id, full_name, avatar_url, phone, username, cpf),
         creditor:creditor_id (id, full_name, avatar_url),
         contract:contract_id (id, title, status, verification_code),
         installments:receivable_installments (*)
@@ -402,7 +402,7 @@ export const listStoreCarnes = createServerFn({ method: "GET" })
         (c: any) =>
           c.title?.toLowerCase().includes(term) ||
           c.debtor?.full_name?.toLowerCase().includes(term) ||
-          c.debtor?.email?.toLowerCase().includes(term) ||
+          c.debtor?.username?.toLowerCase().includes(term) ||
           c.debtor?.phone?.includes(term),
       );
     }
@@ -883,8 +883,8 @@ export const searchCustomersForCarne = createServerFn({ method: "GET" })
     const supabase = getServerClient();
     const { data } = await supabase
       .from("profiles")
-      .select("id, full_name, email, phone, username, avatar_url")
-      .or(`full_name.ilike.%${input.query}%,email.ilike.%${input.query}%,phone.ilike.%${input.query}%`)
+      .select("id, full_name, phone, username, avatar_url, cpf")
+      .or(`full_name.ilike.%${input.query}%,username.ilike.%${input.query}%,phone.ilike.%${input.query}%,cpf.ilike.%${input.query}%`)
       .limit(10);
     return data || [];
   });
@@ -910,7 +910,7 @@ export const listMasterCarnes = createServerFn({ method: "GET" })
       .select(
         `
         *,
-        debtor:debtor_id (id, full_name, avatar_url, phone, email, username),
+        debtor:debtor_id (id, full_name, avatar_url, phone, username, cpf),
         creditor:creditor_id (id, full_name, avatar_url),
         store:store_id (id, name, logo_url, phone),
         contract:contract_id (id, title, status, verification_code),
@@ -985,7 +985,8 @@ export const listMasterCarnes = createServerFn({ method: "GET" })
           c.title?.toLowerCase().includes(term) ||
           c.store?.name?.toLowerCase().includes(term) ||
           c.debtor?.full_name?.toLowerCase().includes(term) ||
-          c.debtor?.email?.toLowerCase().includes(term),
+          c.debtor?.username?.toLowerCase().includes(term) ||
+          c.debtor?.phone?.includes(term),
       );
     }
 

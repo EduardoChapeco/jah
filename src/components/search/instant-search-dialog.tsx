@@ -177,7 +177,7 @@ export function InstantSearchDialog({ open, onOpenChange }: InstantSearchDialogP
  { label: "Gastronomia", to: "/gastronomia" },
  { label: "Mercado Local", to: "/mercado" },
  { label: "Serviços", to: "/servicos" },
- { label: "Eventos & Shows", to: "/agenda" },
+ { label: "Eventos", to: "/eventos" },
  ].map((cat) => (
  <Link
  key={cat.label}

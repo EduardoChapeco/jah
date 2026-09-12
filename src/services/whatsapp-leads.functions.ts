@@ -108,6 +108,103 @@ export const recordWhatsAppLead = createServerFn({ method: "POST" })
  };
  });
 
+// ============================================================================
+// getProtectedWhatsAppContact — Gating Estrito de Contato (Login Obrigatório)
+// ============================================================================
+
+export const getProtectedWhatsAppContact = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      phone: z.string(),
+      store_id: z.string().uuid().optional().nullable(),
+      entity_type: z.enum([
+        "store",
+        "product",
+        "classified",
+        "job",
+        "tourism",
+        "directory",
+        "event",
+        "quote",
+        "custom",
+      ]),
+      entity_id: z.string().optional().nullable(),
+      entity_title: z.string().optional().nullable(),
+      custom_message: z.string().optional().nullable(),
+      origin_url: z.string().optional().nullable(),
+      niche: z.string().optional().nullable(),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    const identity = await getServerIdentity().catch(() => null);
+    const userId = identity?.id || null;
+
+    // Se visitante não está logado, mascara o número e bloqueia o redirecionamento
+    if (!userId) {
+      const cleanDigits = input.phone.replace(/\D/g, "");
+      const masked = cleanDigits.length >= 8
+        ? `(${cleanDigits.slice(0, 2) || "**"}) ${cleanDigits.slice(2, 7) || "*****"}-****`
+        : "(**) *****-****";
+
+      return {
+        authorized: false,
+        message: "O contato direto via WhatsApp está protegido contra robôs e spam. Faça login ou crie uma conta para falar com este anunciante.",
+        maskedPhone: masked,
+        targetUrl: null,
+        leadCode: null,
+      };
+    }
+
+    // Usuário autenticado: extrai telefone e grava lead rastreável
+    const sanitizedPhone = input.phone.replace(/\D/g, "");
+    const tempLeadCode = `WDR-W${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+
+    const supabase = getServerClient();
+    let leadCode = tempLeadCode;
+
+    try {
+      const { data: res } = await supabase.rpc("record_whatsapp_lead", {
+        p_store_id: input.store_id || null,
+        p_entity_type: input.entity_type,
+        p_entity_id: input.entity_id || null,
+        p_entity_title: input.entity_title || null,
+        p_phone_target: sanitizedPhone,
+        p_origin_url: input.origin_url || null,
+        p_utm_source: null,
+        p_utm_medium: null,
+        p_utm_campaign: null,
+        p_visitor_id: null,
+        p_user_id: userId,
+        p_device_type: "mobile",
+        p_metadata: { niche: input.niche, authenticated_lead: true },
+      });
+
+      if (res?.lead_code) {
+        leadCode = res.lead_code;
+      }
+    } catch (err) {
+      console.warn("[whatsapp-leads] Erro na gravação de lead protegido:", err);
+    }
+
+    const cleanWithDdi = sanitizedPhone.length === 10 || sanitizedPhone.length === 11
+      ? `55${sanitizedPhone}`
+      : sanitizedPhone;
+
+    const messageText = input.custom_message
+      ? `${input.custom_message.trim()}\n\nRef: #${leadCode}`
+      : `Olá! Vi o anúncio "${input.entity_title || "no Wider"}" e tenho interesse. Ainda está disponível?\n\nRef: #${leadCode}`;
+
+    const targetUrl = `https://wa.me/${cleanWithDdi}?text=${encodeURIComponent(messageText)}`;
+
+    return {
+      authorized: true,
+      message: "Contato liberado com sucesso.",
+      phone: cleanWithDdi,
+      leadCode,
+      targetUrl,
+    };
+  });
+
 export const getStoreWhatsAppAnalytics = createServerFn({ method: "GET" })
  .validator(
  z

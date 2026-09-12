@@ -31,14 +31,14 @@ export const Route = createFileRoute('/workspace/turismo/vistos')({
  return { store };
    } catch (err) {
      console.error("[loader:workspace.turismo.vistos] Unhandled loader error:", err);
-     return null;
+     return { store: null };
    }
  },
  component: WorkspaceVisasPage,
 });
 
 function WorkspaceVisasPage() {
- const { store } = Route.useLoaderData();
+ const { store } = ((Route.useLoaderData?.() as any) || {});
  const storeId = store?.id || '';
 
  const [search, setSearch] = useState('');

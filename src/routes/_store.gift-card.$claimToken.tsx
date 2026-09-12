@@ -33,14 +33,14 @@ export const Route = createFileRoute("/_store/gift-card/$claimToken")({
  }
    } catch (err) {
      console.error("[loader:_store.gift-card.$claimToken] Unhandled loader error:", err);
-     return null;
+     return { code: null, card: null, user: null, error: null };
    }
  },
  component: ClaimGiftCardPage,
 });
 
 function ClaimGiftCardPage() {
- const { code, card, user, error } = Route.useLoaderData();
+ const { code, card, user, error } = ((Route.useLoaderData?.() as any) || {});
  const navigate = useNavigate();
  const [isRedeeming, setIsRedeeming] = useState(false);
  const [showAnimation, setShowAnimation] = useState(false);

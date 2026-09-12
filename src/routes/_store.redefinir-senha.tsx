@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_store/redefinir-senha")({
 });
 
 function ResetPasswordPage() {
- const { hasActiveSession } = Route.useLoaderData();
+ const { hasActiveSession } = ((Route.useLoaderData?.() as any) || {});
  const navigate = useNavigate();
  const [password, setPassword] = useState("");
  const [confirmPassword, setConfirmPassword] = useState("");

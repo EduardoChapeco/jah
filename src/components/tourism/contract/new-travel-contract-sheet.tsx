@@ -324,8 +324,7 @@ export function NewTravelContractSheet({
  return (
  <Sheet open={isOpen} onOpenChange={onOpenChange}>
  <SheetContent
- side="right"
- className="w-full sm:max-w-xl md:max-w-2xl flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border shadow-2xl"
+ side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-2xl flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border shadow-2xl"
  >
  {/* Header Premium do Contrato */}
  <SheetHeader className="p-6 pb-4 border-b border-border/70 bg-muted/20">

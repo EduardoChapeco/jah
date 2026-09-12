@@ -25,14 +25,14 @@ export const Route = createFileRoute("/admin-master/")({
  return { metrics, stores, invoices };
    } catch (err) {
      console.error("[loader:admin-master.index] Unhandled loader error:", err);
-     return null;
+     return { metrics: null, stores: null, invoices: null };
    }
  },
  component: AdminMasterDashboard,
 });
 
 function AdminMasterDashboard() {
- const { metrics, stores, invoices } = Route.useLoaderData();
+ const { metrics, stores, invoices } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
  const [loadingId, setLoadingId] = useState<string | null>(null);
 

@@ -51,14 +51,14 @@ export const Route = createFileRoute("/admin-master/entregadores/auditoria")({
     return { applications };
     } catch (err) {
       console.error("[loader:admin-master.entregadores.auditoria] Unhandled loader error:", err);
-      return null;
+      return { applications: null };
     }
   },
   component: AdminCourierAuditPage,
 });
 
 function AdminCourierAuditPage() {
-  const { applications: initialApps } = Route.useLoaderData();
+  const { applications: initialApps } = ((Route.useLoaderData?.() as any) || {});
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedApp, setSelectedApp] = useState<CourierApplicationDTO | null>(null);
   const [isPending, startTransition] = useTransition();

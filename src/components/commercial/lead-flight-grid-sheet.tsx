@@ -137,7 +137,11 @@ export function LeadFlightGridSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-xl bg-card border-l border-border p-6 overflow-y-auto space-y-6 select-none">
+      <SheetContent
+        side="right"
+        size="wide"
+        className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] bg-card border-l border-border p-6 overflow-y-auto space-y-6 select-none"
+      >
         <SheetHeader className="space-y-1">
           <div className="flex items-center gap-2">
             <Plane className="size-5 text-sky-500" />

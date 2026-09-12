@@ -82,7 +82,7 @@ export const Route = createFileRoute("/_store/livros")({
  };
    } catch (err) {
      console.error("[loader:_store.livros] Unhandled error:", err);
-     return null;
+     return { banners: null, hotpages: null, marketplaceFeed: null, catalogProducts: null };
    }
  },
  component: LivrosVerticalPage,
@@ -90,7 +90,7 @@ export const Route = createFileRoute("/_store/livros")({
 });
 
 function LivrosVerticalPage() {
- const { banners, hotpages, marketplaceFeed, catalogProducts } = Route.useLoaderData();
+ const { banners, hotpages, marketplaceFeed, catalogProducts } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch();
  const navigate = useNavigate({ from: Route.fullPath });
 
@@ -201,7 +201,6 @@ function LivrosVerticalPage() {
  onSelectCategory={handleDepartmentChange}
  viewMode={viewMode}
  onViewModeChange={handleViewModeChange}
- resultsCount={filteredProducts.length}
  />
 
  {/* ── 4. Renderização do Feed Modular ou Grade Filtrada ── */}

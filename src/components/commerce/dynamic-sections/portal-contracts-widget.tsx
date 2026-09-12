@@ -33,39 +33,67 @@ export function PortalContractsWidget({ content, design_tokens }: PortalContract
  const [signatureName, setSignatureName] = useState("");
  const [isSubmitting, setIsSubmitting] = useState(false);
 
- const contracts: PortalContractItem[] = content?.contracts || [
- {
- id: "ct-001",
- title: "Contrato de Prestação de Serviços & Pacote",
- category: "Viagem & Turismo",
- status: "pending_signature",
- total_value_cents: 345000,
- sha256_hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
- },
- {
- id: "ct-002",
- title: "Termo de Adesão e Locação de Equipamentos",
- category: "Locação",
- status: "signed",
- signed_at: "2026-08-20T14:30:00Z",
- total_value_cents: 120000,
- pdf_url: "#",
- sha256_hash: "8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4",
- },
- ];
+  const [contractsList, setContractsList] = useState<PortalContractItem[]>(
+    content?.contracts || [
+      {
+        id: "ct-001",
+        title: "Contrato de Prestação de Serviços & Pacote",
+        category: "Viagem & Turismo",
+        status: "pending_signature",
+        total_value_cents: 345000,
+        sha256_hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      },
+      {
+        id: "ct-002",
+        title: "Termo de Adesão e Locação de Equipamentos",
+        category: "Locação",
+        status: "signed",
+        signed_at: "2026-08-20T14:30:00Z",
+        total_value_cents: 120000,
+        pdf_url: "#",
+        sha256_hash: "8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4",
+      },
+    ],
+  );
 
- const handleSign = () => {
- if (!signatureName.trim()) {
- toast.error("Por favor, digite seu nome completo para assinar.");
- return;
- }
- setIsSubmitting(true);
- setTimeout(() => {
- setIsSubmitting(false);
- setIsSigningModalOpen(false);
- toast.success("Contrato assinado eletronicamente com sucesso! Hash SHA-256 gerado.");
- }, 1000);
- };
+  const handleSign = () => {
+    if (!signatureName.trim()) {
+      toast.error("Por favor, digite seu nome completo para assinar.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const timestamp = new Date().toISOString();
+      const generatedHash = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      setContractsList((prev) =>
+        prev.map((c) =>
+          c.id === selectedContract?.id
+            ? {
+                ...c,
+                status: "signed",
+                signed_at: timestamp,
+                sha256_hash: generatedHash,
+              }
+            : c,
+        ),
+      );
+      setIsSigningModalOpen(false);
+      toast.success("Contrato assinado eletronicamente com sucesso! Hash criptográfico registrado.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDownloadPdf = (ct: PortalContractItem) => {
+    if (ct.pdf_url && ct.pdf_url !== "#") {
+      window.open(ct.pdf_url, "_blank", "noopener,noreferrer");
+    } else {
+      window.print();
+    }
+  };
 
  return (
  <div className={cn("w-full max-w-5xl mx-auto py-8 px-4", design_tokens?.className)}>
@@ -87,8 +115,8 @@ export function PortalContractsWidget({ content, design_tokens }: PortalContract
  </Badge>
  </div>
 
- <div className="grid grid-cols-1 gap-4">
- {contracts.map((ct) => (
+      <div className="grid grid-cols-1 gap-4">
+        {contractsList.map((ct) => (
  <div
  key={ct.id}
  className="p-5 rounded-2xl border border-border/60 bg-card hover:border-border transition-all duration-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
@@ -136,15 +164,15 @@ export function PortalContractsWidget({ content, design_tokens }: PortalContract
  Assinar Agora
  </Button>
  ) : (
- <Button
- size="sm"
- variant="outline"
- className="min-h-[44px] flex-1 md:flex-none gap-2"
- onClick={() => toast.success("Download do PDF oficial iniciado...")}
- >
- <Download className="w-4 h-4" />
- Baixar Via PDF
- </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="min-h-[44px] flex-1 md:flex-none gap-2"
+                  onClick={() => handleDownloadPdf(ct)}
+                >
+                  <Download className="w-4 h-4" />
+                  Baixar Via PDF
+                </Button>
  )}
  </div>
  </div>

@@ -41,7 +41,15 @@ import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/financeiro/caixa/lancamentos")({
  head: () => ({ meta: [{ title: "Lançamentos de Caixa | Workspace Wider OS" }] }),
- loader: () => getActiveRegister(),
+  loader: async () => {
+    try {
+      const register = await getActiveRegister().catch(() => null);
+      return { register: register || null };
+    } catch (err) {
+      console.error("[loader:workspace.financeiro.caixa.lancamentos] Unhandled loader error:", err);
+      return { register: null };
+    }
+  },
  component: CaixaLancamentosPage,
 });
 
@@ -56,8 +64,25 @@ function translateMethod(method: string) {
  return map[method] || method;
 }
 
+function renderChannelBadge(source?: string) {
+  switch (source) {
+    case "mercadolivre":
+      return <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30 text-[10px] font-medium">Mercado Livre</Badge>;
+    case "ifood":
+      return <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/30 text-[10px] font-medium">iFood</Badge>;
+    case "shopee":
+      return <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/30 text-[10px] font-medium">Shopee</Badge>;
+    case "amazon":
+      return <Badge variant="outline" className="bg-neutral-500/10 text-neutral-700 dark:text-neutral-300 border-neutral-500/30 text-[10px] font-medium">Amazon</Badge>;
+    case "classifieds":
+      return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30 text-[10px] font-medium">Classificados</Badge>;
+    default:
+      return <Badge variant="outline" className="bg-muted text-muted-foreground border-border text-[10px] font-medium">Loja Física / PDV</Badge>;
+  }
+}
+
 function CaixaLancamentosPage() {
- const register = Route.useLoaderData();
+  const { register } = (Route.useLoaderData() as any) || {};
  const router = useRouter();
  const [open, setOpen] = useState(false);
  const [isSaving, setIsSaving] = useState(false);
@@ -281,6 +306,7 @@ function CaixaLancamentosPage() {
  <TableRow>
  <TableHead>Data/Hora</TableHead>
  <TableHead>Descrição</TableHead>
+ <TableHead>Canal</TableHead>
  <TableHead>Método</TableHead>
  <TableHead className="text-right">Valor</TableHead>
  </TableRow>
@@ -289,7 +315,17 @@ function CaixaLancamentosPage() {
  {register.recentEntries.map((entry: any) => (
  <TableRow key={entry.id}>
  <TableCell className="text-sm">{formatDateTime(entry.created_at)}</TableCell>
- <TableCell className="font-medium text-foreground">{entry.description}</TableCell>
+ <TableCell className="font-medium text-foreground">
+ <div>{entry.description}</div>
+ {entry.marketplace_fee_cents > 0 && (
+ <div className="text-[11px] text-muted-foreground">
+ Taxa canal: -{formatMoney(entry.marketplace_fee_cents)} • Líq: {formatMoney(entry.net_payout_cents || (entry.amount_cents - entry.marketplace_fee_cents))}
+ </div>
+ )}
+ </TableCell>
+ <TableCell>
+ {renderChannelBadge(entry.channel_source)}
+ </TableCell>
  <TableCell>
  <Badge variant="outline" className="capitalize">
  {translateMethod(entry.method)}
@@ -305,7 +341,7 @@ function CaixaLancamentosPage() {
  ))}
  {register.recentEntries.length === 0 && (
  <TableRow>
- <TableCell colSpan={4} className="text-center h-24 text-muted-foreground text-sm">
+ <TableCell colSpan={5} className="text-center h-24 text-muted-foreground text-sm">
  Nenhum lançamento registrado neste turno.
  </TableCell>
  </TableRow>

@@ -15,6 +15,9 @@ import {
  MapPin,
  Utensils,
  ChevronDown,
+ Ticket,
+ MessageSquare,
+ Target,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,15 +48,18 @@ export const SYSTEM_DESTINATIONS: DestinationPreset[] = [
  { label: "Ofertas Relâmpago", url: "/ofertas", category: "Vitrine & Comércio", icon: Flame, badge: "Descontos" },
  { label: "Busca / Catálogo Geral", url: "/buscar", category: "Vitrine & Comércio", icon: ShoppingBag },
  
- { label: "Notícias Locais", url: "/noticias", category: "Conteúdo & Cidade", icon: Newspaper, badge: "Editorial" },
- { label: "Agenda & Eventos", url: "/agenda", category: "Conteúdo & Cidade", icon: Calendar, badge: "Cultura" },
+ { label: "Feed Social", url: "/feed", category: "Conteúdo & Cidade", icon: MessageSquare, badge: "Comunidade" },
+ { label: "Notícias Locais", url: "/noticias", category: "Conteúdo & Cidade", icon: Newspaper, badge: "Jornalismo" },
+ { label: "Eventos & Shows", url: "/eventos", category: "Conteúdo & Cidade", icon: Ticket, badge: "Ingressos" },
+ { label: "Agenda da Cidade", url: "/agenda", category: "Conteúdo & Cidade", icon: Calendar, badge: "Datas" },
  { label: "Turismo & Passeios", url: "/turismo", category: "Conteúdo & Cidade", icon: Plane, badge: "Lazer" },
  { label: "Mapa da Cidade", url: "/mapa", category: "Conteúdo & Cidade", icon: MapPin },
  { label: "Mobilidade Urbana", url: "/mobilidade", category: "Conteúdo & Cidade", icon: Car },
 
- { label: "Classificados & Imóveis", url: "/classificados", category: "Serviços & Negócios", icon: Tag },
- { label: "Diretório de Empresas", url: "/diretorio", category: "Serviços & Negócios", icon: Compass },
- { label: "Vagas de Emprego", url: "/empregos", category: "Serviços & Negócios", icon: Briefcase, badge: "Vagas" },
+ { label: "Classificados", url: "/classificados", category: "Serviços & Negócios", icon: Tag },
+ { label: "Places (Lista Telefônica)", url: "/diretorio", category: "Serviços & Negócios", icon: Compass },
+ { label: "Empregos", url: "/empregos", category: "Serviços & Negócios", icon: Briefcase, badge: "Vagas" },
+ { label: "Afiliados", url: "/afiliados", category: "Serviços & Negócios", icon: Target, badge: "Recompensas" },
 ];
 
 export interface DestinationPickerProps {

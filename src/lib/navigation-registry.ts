@@ -1,4 +1,4 @@
-import { Home, MapPin, ShoppingBag, Tag, Calendar, Compass, User, LayoutDashboard, Bookmark, Handshake, Package, MessageSquare, Coins, Gift, CreditCard, RefreshCcw, Sliders, Flame, Clock, Heart, Plus, Search, SlidersHorizontal, Store, Layers, Utensils, Music, Shirt, HelpCircle, ShieldCheck, Building, Car, Truck, Laptop, Briefcase, Ticket, Mountain, Newspaper } from 'lucide-react';
+import { Home, MapPin, ShoppingBag, Tag, Calendar, Compass, User, LayoutDashboard, Bookmark, Handshake, Package, MessageSquare, Coins, Gift, CreditCard, RefreshCcw, Sliders, Flame, Clock, Heart, Plus, Search, SlidersHorizontal, Store, Layers, Utensils, Music, Shirt, HelpCircle, ShieldCheck, Building, Car, Truck, Laptop, Briefcase, Ticket, Mountain, Newspaper, Target, Trophy } from 'lucide-react';
 
 export type ContentWidthMode =
  "social-feed" | "catalog" | "reading" | "workspace" | "full" | "media-detail";
@@ -37,17 +37,17 @@ export interface ContextConfig {
 }
 
 /**
- * ─── Destinos Globais da Global Rail ─────────────────────────────────────────
- * Ordem MVP: Notícias > Classificados > Ofertas > Mercado > Eventos > Guia > Mapa
+ * ─── Destinos Globais da Global Rail (8 Módulos Canônicos Independentes) ─────
  */
 export const GLOBAL_DESTINATIONS: NavigationItem[] = [
-  { to: "/noticias", label: "Notícias", icon: Newspaper },
+  { to: "/diretorio", label: "Places", icon: Compass },
   { to: "/classificados", label: "Classificados", icon: Tag },
-  { to: "/ofertas", label: "Ofertas", icon: Flame },
-  { to: "/mercado", label: "Mercado", icon: ShoppingBag },
-  { to: "/agenda", label: "Eventos", icon: Calendar },
-  { to: "/diretorio", label: "Guia & Empresas", icon: Compass },
-  { to: "/mapa", label: "Mapa", icon: MapPin },
+  { to: "/feed", label: "Feed", icon: MessageSquare },
+  { to: "/noticias", label: "Notícias", icon: Newspaper },
+  { to: "/empregos", label: "Empregos", icon: Briefcase },
+  { to: "/eventos", label: "Eventos", icon: Ticket },
+  { to: "/agenda", label: "Agenda", icon: Calendar },
+  { to: "/afiliados", label: "Afiliados", icon: Target },
 ];
 
 /**
@@ -61,6 +61,7 @@ export const PERSONAL_NAV_GROUPS: NavigationGroup[] = [
  { to: "/conta", label: "Visão Geral", icon: User, exact: true },
  { to: "/conta/perfil", label: "Meu Perfil", icon: User },
  { to: "/convite", label: "Programa de Convites", icon: Gift },
+ { to: "/conta/concursos", label: "Meus Sorteios", icon: Trophy },
  { to: "/conta/salvos", label: "Itens Salvos", icon: Bookmark },
  ],
  },
@@ -89,73 +90,122 @@ export const PERSONAL_NAV_GROUPS: NavigationGroup[] = [
 ];
 
 /**
- * ─── Grupos de Navegação do Mural / Feed ────────────────────────────────────
+ * ─── Grupos de Navegação do Feed Social (/feed) ─────────────────────────────
  */
 export const FEED_NAV_GROUPS: NavigationGroup[] = [
- {
- id: "feed-discovery",
- title: "Descobrir",
- items: [
- { to: "/", label: "Para Você", icon: Sliders, exact: true },
- { to: "/?tab=moments", label: "Moments da Rua", icon: Flame },
- { to: "/?tab=classifieds", label: "Classificados no Feed", icon: Tag },
- { to: "/conta/salvos", label: "Meus Salvos", icon: Bookmark },
- ],
- },
+  {
+    id: "feed-explore",
+    title: "Feed da Comunidade",
+    items: [
+      { to: "/feed", label: "Para Você", icon: Sliders, exact: true },
+      { to: "/feed?type=simple", label: "Fotos & Ideias", icon: MessageSquare },
+      { to: "/feed?type=news", label: "Novidades Locais", icon: Flame },
+      { to: "/feed?type=travel", label: "Roteiros", icon: Compass },
+    ],
+  },
+];
+
+/**
+ * ─── Grupos de Navegação de Notícias (/noticias) ────────────────────────────
+ */
+export const NEWS_NAV_GROUPS: NavigationGroup[] = [
+  {
+    id: "news-explore",
+    title: "Portal de Notícias",
+    items: [
+      { to: "/noticias", label: "Todas as Notícias", icon: Newspaper, exact: true },
+      { to: "/noticias?category=cidade", label: "Cidade & Região", icon: MapPin },
+      { to: "/noticias?category=economia", label: "Negócios & Economia", icon: Flame },
+      { to: "/noticias?category=cultura", label: "Cultura & Lazer", icon: Calendar },
+    ],
+  },
+];
+
+/**
+ * ─── Grupos de Navegação de Afiliados (/afiliados) ──────────────────────────
+ */
+export const AFFILIATES_NAV_GROUPS: NavigationGroup[] = [
+  {
+    id: "affiliates-explore",
+    title: "Programa de Afiliados",
+    items: [
+      { to: "/afiliados", label: "Visão Geral", icon: Target, exact: true },
+      { to: "/conta/tokens", label: "Meus Tokens & Saldo", icon: Coins },
+      { to: "/workspace/financeiro/afiliados", label: "Painel Comercial", icon: LayoutDashboard },
+    ],
+  },
 ];
 
 /**
  * ─── Grupos de Navegação do Mercado ─────────────────────────────────────────
  */
 export const MARKET_NAV_GROUPS: NavigationGroup[] = [
- {
- id: "market-explore",
- title: "Explorar Mercado",
- items: [
- { to: "/mercado", label: "Todos os Produtos", icon: ShoppingBag, exact: true },
- { to: "/ofertas", label: "Ofertas Relâmpago", icon: Flame },
- { to: "/mercado?sort=newest", label: "Novidades da Cidade", icon: Clock },
- { to: "/conta/salvos", label: "Lista de Desejos", icon: Heart },
- ],
- },
- {
- id: "market-niches",
- title: "Hubs & Verticais",
- items: [
- { to: "/gastronomia", label: "Gastronomia & Delivery", icon: Utensils },
- { to: "/mercado", label: "Mercado & Hortifrúti", icon: Store },
- { to: "/farmacia", label: "Farmácia & Saúde", icon: Heart },
- { to: "/bebidas", label: "Bebidas & Adega", icon: Flame },
- { to: "/acougue", label: "Açougue & Carnes", icon: Flame },
- { to: "/eletronicos", label: "Eletrônicos & Tech", icon: Laptop },
- { to: "/moda", label: "Moda & Calçados", icon: Shirt },
- { to: "/casa", label: "Móveis & Decoração", icon: Home },
- { to: "/limpeza", label: "Limpeza & Descartáveis", icon: Package },
- { to: "/livros", label: "Livraria & Papelaria", icon: Store },
- { to: "/servicos", label: "Serviços & Obras", icon: Briefcase },
- { to: "/imoveis", label: "Imóveis & Moradia", icon: Building },
- { to: "/beleza", label: "Beleza & Barbearia", icon: Sliders },
- { to: "/turismo", label: "Turismo & Passeios", icon: Compass },
- { to: "/empregos", label: "Vagas & Empregos", icon: Briefcase },
- { to: "/doacoes", label: "Doações & Solidariedade", icon: Heart },
- ],
- },
+  {
+    id: "market-explore",
+    title: "Explorar Mercado",
+    items: [
+      { to: "/mercado", label: "Todos os Produtos", icon: ShoppingBag, exact: true },
+      { to: "/ofertas", label: "Ofertas Relâmpago", icon: Flame },
+      { to: "/mercado?sort=newest", label: "Novidades da Cidade", icon: Clock },
+      { to: "/conta/salvos", label: "Lista de Desejos", icon: Heart },
+    ],
+  },
+  {
+    id: "market-niches",
+    title: "Hubs & Verticais",
+    items: [
+      { to: "/gastronomia", label: "Gastronomia & Delivery", icon: Utensils },
+      { to: "/mercado", label: "Mercado & Hortifrúti", icon: Store },
+      { to: "/farmacia", label: "Farmácia & Saúde", icon: Heart },
+      { to: "/bebidas", label: "Bebidas & Adega", icon: Flame },
+      { to: "/acougue", label: "Açougue & Carnes", icon: Flame },
+      { to: "/eletronicos", label: "Eletrônicos & Tech", icon: Laptop },
+      { to: "/moda", label: "Moda & Calçados", icon: Shirt },
+      { to: "/casa", label: "Móveis & Decoração", icon: Home },
+      { to: "/limpeza", label: "Limpeza & Descartáveis", icon: Package },
+      { to: "/livros", label: "Livraria & Papelaria", icon: Store },
+      { to: "/servicos", label: "Serviços & Obras", icon: Briefcase },
+      { to: "/imoveis", label: "Imóveis & Moradia", icon: Building },
+      { to: "/beleza", label: "Beleza & Barbearia", icon: Sliders },
+      { to: "/turismo", label: "Turismo & Passeios", icon: Compass },
+      { to: "/empregos", label: "Vagas & Empregos", icon: Briefcase },
+      { to: "/doacoes", label: "Doações & Solidariedade", icon: Heart },
+    ],
+  },
 ];
 
 /**
- * ─── Grupos de Navegação de Eventos / Agenda ────────────────────────────────
+ * ─── Grupos de Navegação de Eventos (/eventos) ──────────────────────────────
  */
 export const EVENTS_NAV_GROUPS: NavigationGroup[] = [
- {
- id: "events-explore",
- title: "Agenda Cultural",
- items: [
- { to: "/agenda", label: "Todos os Eventos", icon: Calendar, exact: true },
- { to: "/agenda?when=today", label: "Hoje", icon: Clock },
- { to: "/agenda?when=weekend", label: "Este Fim de Semana", icon: Sliders },
- { to: "/conta/pedidos", label: "Meus Ingressos", icon: Package },
- ],
- },
+  {
+    id: "events-explore",
+    title: "Eventos & Shows",
+    items: [
+      { to: "/eventos", label: "Todos os Eventos", icon: Ticket, exact: true },
+      { to: "/eventos?category=shows", label: "Shows & Festivais", icon: Ticket },
+      { to: "/eventos?category=gastronomico", label: "Gastronomia & Feiras", icon: Utensils },
+      { to: "/conta/ingressos", label: "Meus Ingressos", icon: Ticket },
+    ],
+  },
+];
+
+/**
+ * ─── Grupos de Navegação da Agenda Cultural (/agenda) ───────────────────────
+ */
+export const AGENDA_NAV_GROUPS: NavigationGroup[] = [
+  {
+    id: "agenda-explore",
+    title: "Agenda Cultural",
+    items: [
+      { to: "/agenda", label: "Toda a Programação", icon: Calendar, exact: true },
+      { to: "/agenda?when=today", label: "Hoje", icon: Clock },
+      { to: "/agenda?when=tomorrow", label: "Amanhã", icon: Calendar },
+      { to: "/agenda?when=weekend", label: "Este Fim de Semana", icon: Sliders },
+      { to: "/agenda?when=next7", label: "Próximos 7 Dias", icon: Calendar },
+      { to: "/agenda?when=month", label: "Este Mês", icon: Calendar },
+    ],
+  },
 ];
 
 /**
@@ -274,83 +324,136 @@ export function resolveContextNavigation(pathname: string, session?: any): Conte
  };
  }
 
- // 2.7. Vagas & Empregos
- if (pathname.startsWith("/empregos") || pathname.startsWith("/vagas")) {
- return {
- moduleId: "jobs",
- title: "Vagas & Empregos",
- subtitle: "Oportunidades de trabalho e talentos locais",
- groups: [
- {
- id: "jobs-categories",
- title: "Carreiras",
- items: [
- { to: "/empregos", label: "Todas as Vagas", icon: Briefcase, exact: true },
- { to: "/empregos?category=clt", label: "Comércio & CLT", icon: Store },
- { to: "/empregos?category=tech", label: "Tech & Dev", icon: Laptop },
- { to: "/empregos?category=comercial", label: "Vendas & B2B", icon: Flame },
- { to: "/empregos?category=estagio", label: "Estágios", icon: User },
- ],
- },
- ],
- action: {
- label: "Publicar Vaga",
- type: "navigate",
- to: "/conta/classificados/novo",
- icon: Plus,
- },
- widthMode: "catalog",
- showContextSidebar: true,
- };
- }
+  // 2.7. Classificados
+  if (pathname.startsWith("/classificados")) {
+    const isNew = pathname.startsWith("/classificados/novo") || pathname.startsWith("/conta/classificados/novo");
+    return {
+      moduleId: "classifieds",
+      title: "Classificados",
+      subtitle: "Compra e venda direta na comunidade",
+      groups: [
+        {
+          id: "classifieds-nav",
+          title: "Categorias",
+          items: [
+            { to: "/classificados", label: "Todos os Anúncios", icon: Tag, exact: true },
+            { to: "/classificados?category=veiculos", label: "Veículos & Autos", icon: Car },
+            { to: "/classificados?category=imoveis", label: "Imóveis", icon: Building },
+            { to: "/classificados?category=tecnologia", label: "Tecnologia", icon: Laptop },
+            { to: "/conta/classificados", label: "Meus Anúncios", icon: SlidersHorizontal },
+          ],
+        },
+      ],
+      action: {
+        label: "Anunciar Grátis",
+        type: "navigate",
+        to: "/conta/classificados/novo",
+        icon: Plus,
+      },
+      widthMode: isNew ? "reading" : "catalog",
+      showContextSidebar: !isNew,
+    };
+  }
 
- // 2.8. Classificados & Desapegos
- if (pathname.startsWith("/classificados")) {
- const isNew = pathname.startsWith("/classificados/novo");
- return {
- moduleId: "classifieds",
- title: "Classificados & Desapegos",
- subtitle: "Negociações diretas entre moradores da comunidade",
- groups: [
- {
- id: "classifieds-categories",
- title: "Categorias",
- items: [
- { to: "/classificados", label: "Todos os Anúncios", icon: Tag, exact: true },
- { to: "/classificados?category=vehicle", label: "Veículos & Autos", icon: Car },
- { to: "/classificados?category=real_estate", label: "Imóveis & Aluguel", icon: Home },
- { to: "/classificados?category=sale", label: "Desapegos & Tech", icon: Laptop },
- ],
- },
- ],
- action: {
- label: "Anunciar Grátis",
- type: "navigate",
- to: "/conta/classificados/novo",
- icon: Plus,
- },
- widthMode: isNew ? "reading" : "catalog",
- showContextSidebar: !isNew,
- };
- }
+  // 2.8. Feed Social (Independente)
+  if (pathname.startsWith("/feed")) {
+    return {
+      moduleId: "feed",
+      title: "Feed",
+      subtitle: "Publicações, fotos e interações da comunidade",
+      groups: FEED_NAV_GROUPS,
+      action: {
+        label: "Publicar no Feed",
+        type: "dialog",
+        dialogType: "publish_post",
+        icon: Plus,
+      },
+      widthMode: "social-feed",
+      showContextSidebar: true,
+    };
+  }
 
- // 3. Agenda / Eventos
- if (pathname.startsWith("/agenda") || pathname.startsWith("/evento")) {
- return {
- moduleId: "events",
- title: "Agenda & Eventos",
- subtitle: "Shows, feiras e encontros culturais",
- groups: EVENTS_NAV_GROUPS,
- action: {
- label: "Divulgar Evento",
- type: "navigate",
- to: "/workspace/eventos",
- icon: Plus,
- },
- widthMode: pathname.startsWith("/evento/") ? "media-detail" : "catalog",
- showContextSidebar: !pathname.startsWith("/evento/"),
- };
- }
+  // 2.9. Notícias (Independente)
+  if (pathname.startsWith("/noticias")) {
+    return {
+      moduleId: "news",
+      title: "Notícias",
+      subtitle: "Cobertura jornalística e artigos da cidade",
+      groups: NEWS_NAV_GROUPS,
+      widthMode: "catalog",
+      showContextSidebar: true,
+    };
+  }
+
+  // 2.10. Empregos (Independente)
+  if (pathname.startsWith("/empregos")) {
+    return {
+      moduleId: "jobs",
+      title: "Empregos",
+      subtitle: "Vagas de emprego e oportunidades locais",
+      groups: [
+        {
+          id: "jobs-categories",
+          title: "Vagas",
+          items: [
+            { to: "/empregos", label: "Todas as Vagas", icon: Briefcase, exact: true },
+            { to: "/empregos?type=clt", label: "Vagas CLT", icon: Building },
+            { to: "/empregos?type=estagio", label: "Estágios", icon: Laptop },
+          ],
+        },
+      ],
+      action: {
+        label: "Publicar Vaga",
+        type: "navigate",
+        to: "/workspace/vagas",
+        icon: Plus,
+      },
+      widthMode: "catalog",
+      showContextSidebar: true,
+    };
+  }
+
+  // 3. Eventos (Independente de Agenda!)
+  if (pathname.startsWith("/eventos") || pathname.startsWith("/evento")) {
+    return {
+      moduleId: "events",
+      title: "Eventos",
+      subtitle: "Shows, festas, festivais e ingressos",
+      groups: EVENTS_NAV_GROUPS,
+      action: {
+        label: "Divulgar Evento",
+        type: "navigate",
+        to: "/workspace/eventos",
+        icon: Plus,
+      },
+      widthMode: pathname.startsWith("/evento/") ? "media-detail" : "catalog",
+      showContextSidebar: !pathname.startsWith("/evento/"),
+    };
+  }
+
+  // 3.1. Agenda (Independente de Eventos!)
+  if (pathname.startsWith("/agenda")) {
+    return {
+      moduleId: "agenda",
+      title: "Agenda",
+      subtitle: "Calendário e programação da cidade",
+      groups: AGENDA_NAV_GROUPS,
+      widthMode: "catalog",
+      showContextSidebar: true,
+    };
+  }
+
+  // 3.2. Afiliados (Independente!)
+  if (pathname.startsWith("/afiliados")) {
+    return {
+      moduleId: "affiliates",
+      title: "Afiliados",
+      subtitle: "Programa de afiliados, indicações e saldo",
+      groups: AFFILIATES_NAV_GROUPS,
+      widthMode: "catalog",
+      showContextSidebar: true,
+    };
+  }
 
  // 4. Mapa Urbano & Moments
  if (pathname.startsWith("/mapa")) {
@@ -382,25 +485,73 @@ export function resolveContextNavigation(pathname: string, session?: any): Conte
  };
  }
 
- // 5. Diretório
- if (pathname.startsWith("/diretorio") || pathname.startsWith("/membro")) {
- return {
- moduleId: "directory",
- title: "Diretório de Membros",
- subtitle: "Produtores, artistas e criadores",
- groups: [
- {
- id: "directory",
- items: [
- { to: "/diretorio", label: "Explorar Membros", icon: Compass },
- { to: "/conta/perfil", label: "Editar Meu Perfil", icon: User },
- ],
- },
- ],
- widthMode: "catalog",
- showContextSidebar: true,
- };
- }
+  // 5. Places (Guia Telefônico & Comercial)
+  if (pathname.startsWith("/diretorio") || pathname.startsWith("/membro")) {
+    return {
+      moduleId: "places",
+      title: "Places",
+      subtitle: "Guia comercial, telefones e locais da cidade",
+      groups: [
+        {
+          id: "places-nav",
+          title: "Guia da Cidade",
+          items: [
+            { to: "/diretorio", label: "Todos os Locais", icon: Compass, exact: true },
+            { to: "/diretorio?category=gastronomia", label: "Gastronomia & Delivery", icon: Utensils },
+            { to: "/diretorio?category=servicos", label: "Serviços & Autônomos", icon: Briefcase },
+            { to: "/diretorio?category=comercio", label: "Comércio & Varejo", icon: Store },
+            { to: "/conta/perfil", label: "Meu Perfil", icon: User },
+          ],
+        },
+      ],
+      action: {
+        label: "Cadastrar Local",
+        type: "navigate",
+        to: "/criar-negocio",
+        icon: Plus,
+      },
+      widthMode: "catalog",
+      showContextSidebar: true,
+    };
+  }
+
+  // 5.1. Classificados (Independente)
+  if (pathname === "/classificados" || pathname === "/classificados/" || pathname.startsWith("/classificados?")) {
+    return {
+      moduleId: "classifieds",
+      title: "Classificados",
+      subtitle: "Imóveis, veículos, desapegos e serviços",
+      groups: [
+        {
+          id: "classifieds-categories",
+          title: "Categorias",
+          items: [
+            { to: "/classificados", label: "Todos os Anúncios", icon: Tag, exact: true },
+            { to: "/classificados?category=real_estate", label: "Imóveis & Moradia", icon: Building },
+            { to: "/classificados?category=vehicle", label: "Veículos & Autos", icon: Car },
+            { to: "/classificados?category=sale", label: "Desapegos & Tech", icon: Laptop },
+            { to: "/classificados?category=service", label: "Serviços & B2B", icon: Briefcase },
+          ],
+        },
+        {
+          id: "classifieds-personal",
+          title: "Meus Anúncios",
+          items: [
+            { to: "/conta/classificados", label: "Gerenciar Anúncios", icon: Tag },
+            { to: "/conta/classificados/novo", label: "Publicar Anúncio", icon: Plus },
+          ],
+        },
+      ],
+      action: {
+        label: "Publicar Anúncio",
+        type: "navigate",
+        to: "/conta/classificados/novo",
+        icon: Plus,
+      },
+      widthMode: "catalog",
+      showContextSidebar: true,
+    };
+  }
 
  // 6. Produto / Classificado Detail
  if (pathname.startsWith("/produto/") || pathname.startsWith("/classificados/")) {

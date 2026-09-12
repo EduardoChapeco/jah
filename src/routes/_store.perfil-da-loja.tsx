@@ -9,7 +9,8 @@ import { listPublicJobs } from "@/services/jobs.functions";
 import { getPublicExperienceDocumentBySlug } from "@/services/builder.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { listActiveBanners } from "@/services/banner.functions";
-import { getMuralFeed } from "@/services/social.functions";
+import { getIdentity } from "@/services/identity.functions";
+import { getMuralFeed, getCompanyEmployerStats } from "@/services/social.functions";
 import { listStorePublicReviews } from "@/services/cms.functions";
 import { listStorePublicSponsors } from "@/services/news.functions";
 import { CanonicalStoreProfileView } from "@/components/commerce/canonical-store-profile-view";
@@ -73,72 +74,100 @@ export const Route = createFileRoute("/_store/perfil-da-loja")({
 
   loader: async ({ location }) => {
     try {
-    const search = (location.search || {}) as any;
-    const targetStore = search.storeId || search.slug;
+      const search = (location.search || {}) as any;
+      const targetStore = search.storeId || search.slug;
 
-    const [
-      profile,
-      docRes,
-      catalogRes,
-      jobsRes,
-      hotpagesRes,
-      bannersRes,
-      postsRes,
-      reviewsRes,
-      sponsorsRes,
-    ] = await Promise.all([
-      getPublicStoreProfile({ data: targetStore ? { storeId: targetStore } : undefined }).catch(
-        () => null
-      ),
-      getPublicExperienceDocumentBySlug({
-        data: { slug: "home", document_type: "storefront", storeId: targetStore },
-      }).catch(() => null),
-      getStorePublicCatalog({ data: targetStore ? { storeId: targetStore } : undefined }).catch(
-        () => null
-      ),
-      listPublicJobs({ data: {} }).catch(() => null),
-      listHotpages({ data: { module: "home" } }).catch(() => []),
-      listActiveBanners({ data: { placement: "store" } }).catch(() => []),
-      targetStore
-        ? getMuralFeed({ data: { store_id: targetStore, limit: 12 } }).catch(() => null)
-        : Promise.resolve(null),
-      targetStore
-        ? listStorePublicReviews({ data: { storeId: targetStore } }).catch(() => [])
-        : Promise.resolve([]),
-      targetStore
-        ? listStorePublicSponsors({ data: { storeId: targetStore } }).catch(() => [])
-        : Promise.resolve([]),
-    ]);
+      const [
+        profile,
+        docRes,
+        catalogRes,
+        jobsRes,
+        hotpagesRes,
+        bannersRes,
+        postsRes,
+        reviewsRes,
+        sponsorsRes,
+        employerStatsRes,
+        identityRes,
+      ] = await Promise.all([
+        getPublicStoreProfile({ data: targetStore ? { storeId: targetStore } : undefined }).catch(
+          () => null
+        ),
+        getPublicExperienceDocumentBySlug({
+          data: { slug: "home", document_type: "storefront", storeId: targetStore },
+        }).catch(() => null),
+        getStorePublicCatalog({ data: targetStore ? { storeId: targetStore } : undefined }).catch(
+          () => null
+        ),
+        listPublicJobs({ data: {} }).catch(() => null),
+        listHotpages({ data: { module: "home" } }).catch(() => []),
+        listActiveBanners({ data: { placement: "store" } }).catch(() => []),
+        targetStore
+          ? getMuralFeed({ data: { store_id: targetStore, limit: 12 } }).catch(() => null)
+          : Promise.resolve(null),
+        targetStore
+          ? listStorePublicReviews({ data: { storeId: targetStore } }).catch(() => [])
+          : Promise.resolve([]),
+        targetStore
+          ? listStorePublicSponsors({ data: { storeId: targetStore } }).catch(() => [])
+          : Promise.resolve([]),
+        targetStore
+          ? getCompanyEmployerStats({ data: { storeId: targetStore } }).catch(() => null)
+          : Promise.resolve(null),
+        getIdentity().catch(() => null),
+      ]);
 
-    const rawJobs = Array.isArray(jobsRes) ? jobsRes : (jobsRes as any)?.jobs || [];
-    const storeJobs = rawJobs.filter((j: any) => {
-      if (!profile?.id) return false;
-      return (
-        j.store_id === profile.id ||
-        j.company_name?.toLowerCase() === profile.name?.toLowerCase()
+      const rawJobs = Array.isArray(jobsRes) ? jobsRes : (jobsRes as any)?.jobs || [];
+      const storeJobs = rawJobs.filter((j: any) => {
+        if (!profile?.id) return false;
+        return (
+          j.store_id === profile.id ||
+          j.company_name?.toLowerCase() === profile.name?.toLowerCase()
+        );
+      });
+
+      const storePosts = (postsRes as any)?.items || [];
+
+      const isOwner = Boolean(
+        identityRes?.id &&
+        (profile?.owner_id === identityRes.id ||
+         profile?.user_id === identityRes.id ||
+         identityRes.store_id === profile?.id ||
+         identityRes.role === "admin")
       );
-    });
 
-    const storePosts = (postsRes as any)?.items || [];
-
-    return {
-      profile,
-      catalog: catalogRes?.products || [],
-      categories: catalogRes?.categories || [],
-      jobs: storeJobs,
-      hotpages: Array.isArray(hotpagesRes) ? hotpagesRes : [],
-      banners: Array.isArray(bannersRes) ? bannersRes : [],
-      posts: storePosts,
-      reviews: Array.isArray(reviewsRes) ? reviewsRes : [],
-      sponsors: Array.isArray(sponsorsRes) ? sponsorsRes : [],
-      builderTree:
-        docRes?.status === "ok" && (docRes.data as any).tree?.length > 0
-          ? (docRes.data as any).tree
-          : null,
-    };
+      return {
+        profile,
+        catalog: catalogRes?.products || [],
+        categories: catalogRes?.categories || [],
+        jobs: storeJobs,
+        hotpages: Array.isArray(hotpagesRes) ? hotpagesRes : [],
+        banners: Array.isArray(bannersRes) ? bannersRes : [],
+        posts: storePosts,
+        reviews: Array.isArray(reviewsRes) ? reviewsRes : [],
+        sponsors: Array.isArray(sponsorsRes) ? sponsorsRes : [],
+        employerStats: employerStatsRes || null,
+        isOwner,
+        builderTree:
+          docRes?.status === "ok" && (docRes.data as any).tree?.length > 0
+            ? (docRes.data as any).tree
+            : null,
+      };
     } catch (err) {
       console.error("[loader:_store.perfil-da-loja] Unhandled error:", err);
-      return null;
+      return {
+        profile: null,
+        catalog: null,
+        categories: null,
+        jobs: null,
+        hotpages: null,
+        banners: null,
+        posts: null,
+        reviews: null,
+        sponsors: null,
+        employerStats: null,
+        builderTree: null,
+      };
     }
   },
 
@@ -156,8 +185,9 @@ function StorePerfilPage() {
     posts,
     reviews,
     sponsors,
+    employerStats,
     builderTree,
-  } = Route.useLoaderData();
+  } = ((Route.useLoaderData?.() as any) || {});
 
   const search = Route.useSearch();
 
@@ -180,8 +210,10 @@ function StorePerfilPage() {
       posts={posts}
       reviews={reviews}
       sponsors={sponsors}
+      employerStats={employerStats}
       builderTree={builderTree}
-      initialTab={search.aba || "catalogo"}
+      initialTab={search.aba || "vitrine"}
+      isOwner={isOwner ?? false}
       source="storefront"
       backUrl="/"
       backLabel="Início"

@@ -52,12 +52,15 @@ const MODULE_TABS: Array<{ id: HotpageModule; label: string }> = [
  { id: "beleza", label: "Beleza" },
  { id: "limpeza", label: "Limpeza" },
  { id: "livros", label: "Livros" },
+ { id: "feed", label: "Feed" },
  { id: "noticias", label: "Notícias" },
- { id: "agenda", label: "Agenda & Eventos" },
+ { id: "eventos", label: "Eventos" },
+ { id: "agenda", label: "Agenda" },
+ { id: "afiliados", label: "Afiliados" },
  { id: "turismo", label: "Turismo" },
  { id: "empregos", label: "Empregos" },
  { id: "classificados", label: "Classificados" },
- { id: "diretorio", label: "Guia & Diretório" },
+ { id: "diretorio", label: "Places (Lista Telefônica)" },
  { id: "mobilidade", label: "Mobilidade" },
  { id: "ofertas", label: "Ofertas Relâmpago" },
 ];
@@ -74,14 +77,14 @@ export const Route = createFileRoute("/admin-master/botoes")({
  return { hotpages };
    } catch (err) {
      console.error("[loader:admin-master.botoes] Unhandled loader error:", err);
-     return null;
+     return { hotpages: null };
    }
  },
  component: AdminMasterHotpagesPage,
 });
 
 function AdminMasterHotpagesPage() {
- const { hotpages: initialHotpages } = Route.useLoaderData();
+ const { hotpages: initialHotpages } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch();
  const router = useRouter();
  const [hotpages, setHotpages] = useState<HotpageDTO[]>(initialHotpages || []);
@@ -317,7 +320,7 @@ function AdminMasterHotpagesPage() {
  toast.success(
  res.insertedCount > 0
  ? `${res.insertedCount} itens padrão sincronizados com sucesso!`
- : "Padrões canônicos restaurados e sincronizados com sucesso!"
+ : "Padrões oficiais restaurados e sincronizados com sucesso!"
  );
  router.invalidate();
  } catch (err: any) {
@@ -483,7 +486,7 @@ function AdminMasterHotpagesPage() {
  </div>
  <h3 className="text-sm font-bold text-foreground">Nenhum item nesta seção</h3>
  <p className="text-xs text-muted-foreground max-w-sm mx-auto">
- Clique em "Restaurar / Sincronizar Padrões" para carregar os módulos canônicos ou cadastre manualmente.
+ Clique em "Restaurar / Sincronizar Padrões" para carregar os módulos oficiais ou cadastre manualmente.
  </p>
  <div className="flex justify-center gap-2 pt-2">
  <Button

@@ -48,14 +48,14 @@ export const Route = createFileRoute("/workspace/orcamentos/$id")({
  return { quote: data };
    } catch (err) {
      console.error("[loader:workspace.orcamentos.$id] Unhandled loader error:", err);
-     return null;
+     return { quote: null };
    }
  },
  component: QuoteDetailPage,
 });
 
 function QuoteDetailPage() {
- const { quote: initial } = Route.useLoaderData();
+ const { quote: initial } = ((Route.useLoaderData?.() as any) || {});
  const params = Route.useParams();
  const navigate = useNavigate();
  const qc = useQueryClient();

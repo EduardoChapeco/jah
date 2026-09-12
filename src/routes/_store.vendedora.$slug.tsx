@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_store/vendedora/$slug")({
  };
    } catch (err) {
      console.error("[loader:_store.vendedora.$slug] Unhandled error:", err);
-     return null;
+     return { document: null, tree: null };
    }
  },
  head: ({ loaderData }) => {
@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_store/vendedora/$slug")({
 });
 
 function SellerShowcasePage() {
- const { document, tree } = Route.useLoaderData();
+ const { document, tree } = ((Route.useLoaderData?.() as any) || {});
 
  useEffect(() => {
  if (document && document.owner_id) {

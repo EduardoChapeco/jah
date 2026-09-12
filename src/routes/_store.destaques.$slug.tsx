@@ -259,7 +259,7 @@ export const Route = createFileRoute("/_store/destaques/$slug")({
  };
    } catch (err) {
      console.error("[loader:_store.destaques.$slug] Unhandled loader error:", err);
-     return null;
+     return { hotpage: null, initialProducts: null, marketFeed: null, classifieds: null, slug: null };
    }
  },
  component: DedicatedHotpageView,
@@ -576,9 +576,7 @@ function DedicatedHotpageView() {
  <h2 className="text-sm sm:text-base font-bold text-foreground">
  {theme.featuredRailTitle}
  </h2>
- <span className="text-xs text-muted-foreground font-mono font-bold">
- {filteredProducts.length} itens encontrados
- </span>
+ 
  </div>
 
  {filteredProducts.length === 0 ? (

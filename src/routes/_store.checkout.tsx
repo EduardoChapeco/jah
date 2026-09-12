@@ -37,108 +37,127 @@ import { toast } from "sonner";
 import { Surface } from "@/components/ui/surface";
 
 export const Route = createFileRoute("/_store/checkout")({
- head: () => ({ meta: [{ title: "Checkout | Wider OS" }] }),
- validateSearch: (search: Record<string, unknown>): { store?: string } => {
- return {
- store: (search.store as string) || undefined,
- };
- },
- loaderDeps: ({ search: { store } }) => ({ store }),
- loader: async ({ deps: { store } }) => {
-   try {
- const [
- cart,
- globalCarts,
- profileRes,
- paymentMethodsRes,
- gatewayStatus,
- userProfile,
- userAddresses,
- ] = await Promise.all([
- getCart().catch((e) => {
- console.warn("[checkout] getCart fallback:", e);
- return null;
- }),
- getGlobalCarts().catch(() => []),
- getPublicStoreProfile(store ? { data: { storeId: store } } : undefined).catch(() => null),
- getPublicPaymentMethods(store ? { data: { storeId: store } } : undefined).catch(() => []),
- getGatewayStatus(store ? { data: { storeId: store } } : undefined).catch(() => false),
- getProfile().catch(() => null),
- getCustomerAddresses().catch(() => []),
- ]);
+  head: () => ({ meta: [{ title: "Checkout | Wider OS" }] }),
+  validateSearch: (search: Record<string, unknown>): { store?: string } => {
+    return {
+      store: (search.store as string) || undefined,
+    };
+  },
+  loaderDeps: ({ search: { store } }) => ({ store }),
+  loader: async ({ deps: { store } }) => {
+    try {
+      const [
+        cart,
+        globalCarts,
+        profileRes,
+        paymentMethodsRes,
+        gatewayStatus,
+        userProfile,
+        userAddresses,
+      ] = await Promise.all([
+        getCart(store ? { data: { storeId: store } } : undefined).catch((e) => {
+          console.warn("[checkout] getCart fallback:", e);
+          return null;
+        }),
+        getGlobalCarts().catch(() => []),
+        getPublicStoreProfile(store ? { data: { storeId: store } } : undefined).catch(() => null),
+        getPublicPaymentMethods(store ? { data: { storeId: store } } : undefined).catch(() => []),
+        getGatewayStatus(store ? { data: { storeId: store } } : undefined).catch(() => false),
+        getProfile().catch(() => null),
+        getCustomerAddresses().catch(() => []),
+      ]);
 
- return {
- initialCart: cart || {
- id: "",
- items: [],
- totalCents: 0,
- subtotalCents: 0,
- discountCents: 0,
- shippingCents: 0,
- shippingMethod: "",
- couponCode: null,
- itemCount: 0,
- },
- globalCarts,
- storeProfile: profileRes || null,
- paymentMethods: paymentMethodsRes || [],
- isGatewayConfigured: gatewayStatus || false,
- userProfile: userProfile || null,
- userAddresses: userAddresses || [],
- };
-   } catch (err) {
-     console.error("[loader:_store.checkout] Unhandled loader error:", err);
-     return null;
-   }
- },
- component: CheckoutPage,
+      const matchingCart = store
+        ? (globalCarts.find((c: any) => c.storeId === store) || cart)
+        : (cart || (globalCarts.length > 0 ? globalCarts[0] : null));
+
+      return {
+        initialCart: matchingCart || {
+          id: "",
+          items: [],
+          totalCents: 0,
+          subtotalCents: 0,
+          discountCents: 0,
+          shippingCents: 0,
+          shippingMethod: "",
+          couponCode: null,
+          itemCount: 0,
+        },
+        globalCarts,
+        storeProfile: profileRes || null,
+        paymentMethods: paymentMethodsRes || [],
+        isGatewayConfigured: gatewayStatus || false,
+        userProfile: userProfile || null,
+        userAddresses: userAddresses || [],
+      };
+    } catch (err) {
+      console.error("[loader:_store.checkout] Unhandled loader error:", err);
+      return {
+        initialCart: {
+          id: "",
+          items: [],
+          totalCents: 0,
+          subtotalCents: 0,
+          discountCents: 0,
+          shippingCents: 0,
+        },
+        globalCarts: [],
+        storeProfile: null,
+        paymentMethods: [],
+        isGatewayConfigured: false,
+        userProfile: null,
+        userAddresses: [],
+      } as any;
+    }
+  },
+  component: CheckoutPage,
 });
 
 interface ManualPaymentOption {
- id: string;
- name: string;
- instructions: string;
- surcharge_percentage: number;
- discount_percentage: number;
+  id: string;
+  name: string;
+  instructions: string;
+  surcharge_percentage: number;
+  discount_percentage: number;
 }
 
 export function CheckoutPage() {
- const {
- initialCart,
- globalCarts,
- storeProfile,
- paymentMethods,
- userProfile,
- userAddresses,
- isGatewayConfigured,
- } = Route.useLoaderData();
- const navigate = useNavigate();
- const router = useRouter();
+  const {
+    initialCart,
+    globalCarts,
+    storeProfile,
+    paymentMethods,
+    userProfile,
+    userAddresses,
+    isGatewayConfigured,
+  } = ((Route.useLoaderData?.() as any) || {});
+  const navigate = useNavigate();
+  const router = useRouter();
 
- const [cart, setCart] = useState(initialCart);
- const [activeStep, setActiveStep] = useState(1); // 1: Identificação, 2: Entrega/Retirada, 3: Pagamento, 4: Revisão
- const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cart, setCart] = useState(initialCart);
+  const [activeStep, setActiveStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
- // Credit card states
- const [selectedInstallment, setSelectedInstallment] = useState<number>(1);
- const [creditCardData, setCreditCardData] = useState({
- number: "",
- holderName: "",
- expiryDate: "",
- cvv: "",
- });
+  // Credit card states
+  const [selectedInstallment, setSelectedInstallment] = useState<number>(1);
+  const [creditCardData, setCreditCardData] = useState({
+    number: "",
+    holderName: "",
+    expiryDate: "",
+    cvv: "",
+  });
 
- // Shipping & Address states
- const [shippingRates, setShippingRates] = useState<any[]>([]);
- const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
- const [noShippingRatesFound, setNoShippingRatesFound] = useState(false);
- const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
- const [isLocatingGPS, setIsLocatingGPS] = useState(false);
- const [showNewAddressForm, setShowNewAddressForm] = useState(false);
+  // Shipping & Address states
+  const [shippingRates, setShippingRates] = useState<any[]>([]);
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
+  const [noShippingRatesFound, setNoShippingRatesFound] = useState(false);
+  const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
+  const [isLocatingGPS, setIsLocatingGPS] = useState(false);
+  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
 
- // Promo & Gift Card code states
- const [promoCode, setPromoCode] = useState("");
- const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+  // Promo & Gift Card code states
+  const [promoCode, setPromoCode] = useState("");
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
  const [appliedGiftCard, setAppliedGiftCard] = useState<{
  code: string;
  balanceCents: number;
@@ -376,8 +395,8 @@ export function CheckoutPage() {
  const match = paymentMethods.find((p: any) => p.id === formData.paymentMethodId);
  if (match) return match as ManualPaymentOption;
  }
- return null;
- };
+ return {} as any;
+    };
 
  const paymentSettings = storeProfile?.settings?.payment_settings || {};
  const pixDiscountPercent = Number(paymentSettings.pix_discount_percentage || 0);
@@ -1284,7 +1303,7 @@ export function CheckoutPage() {
  <Label className="text-xs font-bold text-foreground">Escolha a Forma de Pagamento</Label>
 
  <div className="space-y-3">
- {/* 1. PIX Instantâneo */}
+ {/* 1. PIX */}
  <button
  type="button"
  onClick={() => setFormData({ ...formData, paymentMethod: "pix", paymentMethodId: "" })}
@@ -1300,18 +1319,50 @@ export function CheckoutPage() {
  <QrCode size={18} />
  </div>
  <div>
- <p className="text-xs font-bold text-foreground">PIX Instantâneo</p>
- <p className="text-[11px] text-muted-foreground">Aprovação imediata com QR Code</p>
+ <p className="text-xs font-bold text-foreground">
+ {storeProfile?.settings?.payment_processing_mode === "direct_store"
+ ? "PIX Direto para a Loja"
+ : "PIX Instantâneo"}
+ </p>
+ <p className="text-[11px] text-muted-foreground">
+ {storeProfile?.settings?.payment_processing_mode === "direct_store"
+ ? (storeProfile?.settings?.pix_key
+ ? `Chave Pix oficial: ${storeProfile.settings.pix_key}`
+ : "Recebimento direto na chave Pix da empresa")
+ : "Aprovação imediata com QR Code automático"}
+ </p>
  </div>
  </div>
+ <div className="flex items-center gap-1.5">
+ {storeProfile?.settings?.payment_processing_mode === "direct_store" ? (
+ <Badge variant="outline" className="text-[10px] font-bold border-emerald-500/40 text-emerald-600">
+ Direto da Loja
+ </Badge>
+ ) : null}
  {pixDiscountPercent > 0 && (
  <Badge className="bg-emerald-500 text-white text-[10px] font-bold">
  {pixDiscountPercent}% OFF
  </Badge>
  )}
+ </div>
  </button>
 
- {/* 2. Cartão de Crédito */}
+ {formData.paymentMethod === "pix" &&
+ storeProfile?.settings?.payment_processing_mode === "direct_store" &&
+ storeProfile?.settings?.payment_instructions && (
+ <div className="p-3.5 rounded-xl bg-muted/40 border border-border/60 text-xs text-muted-foreground space-y-1 animate-in fade-in-50">
+ <span className="text-[10px] font-bold uppercase text-foreground tracking-wider block">
+ Instruções da Loja para Pagamento Pix:
+ </span>
+ <p className="text-foreground/90 leading-relaxed">
+ {storeProfile.settings.payment_instructions}
+ </p>
+ </div>
+ )}
+
+ {/* 2. Cartão de Crédito Online (apenas se gateway ativo na plataforma ou configurado) */}
+ {(isGatewayConfigured || storeProfile?.settings?.payment_processing_mode !== "direct_store") && (
+ <>
  <button
  type="button"
  onClick={() => setFormData({ ...formData, paymentMethod: "credit_card", paymentMethodId: "" })}
@@ -1327,7 +1378,7 @@ export function CheckoutPage() {
  <CreditCard size={18} />
  </div>
  <div>
- <p className="text-xs font-bold text-foreground">Cartão de Crédito</p>
+ <p className="text-xs font-bold text-foreground">Cartão de Crédito Online</p>
  <p className="text-[11px] text-muted-foreground">
  Até {maxInstallments}x no cartão
  </p>
@@ -1402,6 +1453,8 @@ export function CheckoutPage() {
  </div>
  )}
  </div>
+ )}
+ </>
  )}
 
  {/* 3. Pagamento na Entrega / Manual (se configurado pela loja) */}

@@ -779,103 +779,142 @@ export const recordStoreOrganicReferral = createServerFn({ method: "POST" })
 // 9. ADMIN MASTER: EXECUTAR CONCILIAÇÃO & AUDITORIA CRIPTOGRÁFICA
 // ============================================================
 export const runTokenReconciliationAdmin = createServerFn({ method: "POST" }).handler(async () => {
- const identity = await getServerIdentity();
- if (identity.role !== "platform_admin" && identity.role !== "master") {
- throw new Error("Acesso restrito ao Admin Master.");
- }
+  const identity = await getServerIdentity();
+  if (identity.role !== "platform_admin" && identity.role !== "master") {
+    throw new Error("Acesso restrito ao Admin Master.");
+  }
 
- const db = getServerClient();
+  const db = getServerClient();
 
- // Executar conciliação de todas as lojas via Stored Procedure ou cálculo no banco
- const { data: stores } = await db
- .from("stores")
- .select("id, name, slug, settings");
+  // 1. Executar Stored Procedure de Reconciliação Criptográfica Global no Banco
+  let rpcResult: any = null;
+  try {
+    const { data, error } = await db.rpc("reconcile_platform_token_solvency");
+    if (!error && data) {
+      rpcResult = data;
+    }
+  } catch (rpcErr) {
+    console.warn("[reconciliation] Erro ao chamar procedure RPC, usando fallback:", rpcErr);
+  }
 
- let totalCirculating = 0;
- let totalLedgerSum = 0;
- let tamperedWalletsCount = 0;
- const storeReports: any[] = [];
+  // 2. Coletar dados detalhados das lojas
+  const { data: stores } = await db
+    .from("stores")
+    .select("id, name, slug, settings");
 
- for (const store of stores || []) {
- const settings = store.settings || {};
- const wallet = settings.token_wallet || { balance: 50_000, lifetime_purchased: 50_000 };
+  let totalCirculating = rpcResult?.total_circulating_in_wallets ?? 0;
+  let totalLedgerSum = rpcResult?.total_audited_in_ledger ?? 0;
+  let tamperedWalletsCount = rpcResult?.tampered_wallets_found ?? 0;
+  const storeReports: any[] = [];
 
- // Buscar todos os registros do ledger dessa loja
- const { data: logs } = await db
- .from("audit_logs")
- .select("payload_snapshot")
- .eq("store_id", store.id)
- .eq("entity_type", "token_transaction");
+  for (const store of stores || []) {
+    const settings = store.settings || {};
+    const wallet = settings.token_wallet || { balance: 50_000, lifetime_purchased: 50_000 };
 
- const ledgerSum = (logs || []).reduce((acc: number, l: any) => {
- return acc + (l.payload_snapshot?.amount || 0);
- }, 50_000); // 50k base inicial
+    // Buscar registros do ledger dessa loja
+    const { data: logs } = await db
+      .from("audit_logs")
+      .select("payload_snapshot")
+      .eq("store_id", store.id)
+      .eq("entity_type", "token_transaction");
 
- const divergence = (wallet.balance || 0) - ledgerSum;
- const isClean = divergence === 0;
+    const ledgerSum = (logs || []).reduce((acc: number, l: any) => {
+      return acc + (l.payload_snapshot?.amount || 0);
+    }, 50_000);
 
- if (!isClean) {
- tamperedWalletsCount++;
- }
+    const divergence = (wallet.balance || 0) - ledgerSum;
+    const isClean = divergence === 0;
 
- totalCirculating += wallet.balance || 0;
- totalLedgerSum += ledgerSum;
+    if (!rpcResult && !isClean) {
+      tamperedWalletsCount++;
+    }
 
- storeReports.push({
- store_id: store.id,
- store_name: store.name,
- store_slug: store.slug,
- wallet_balance: wallet.balance || 0,
- audited_balance: ledgerSum,
- divergence,
- status: isClean ? "CONCILIATED_CLEAN" : "DIVERGENCE_ALERT",
- is_locked: wallet.is_locked || false,
- });
- }
+    if (!rpcResult) {
+      totalCirculating += wallet.balance || 0;
+      totalLedgerSum += ledgerSum;
+    }
 
- return {
- success: true,
- total_wallets_audited: (stores || []).length,
- total_circulating: totalCirculating,
- total_ledger_sum: totalLedgerSum,
- net_divergence: totalCirculating - totalLedgerSum,
- tampered_wallets_found: tamperedWalletsCount,
- solvency_status:
- tamperedWalletsCount === 0 && totalCirculating - totalLedgerSum === 0
- ? "100%_SECURE_SOLVENT"
- : "REQUIRES_INVESTIGATION",
- audit_timestamp: new Date().toISOString(),
- store_reports: storeReports,
- };
+    storeReports.push({
+      store_id: store.id,
+      store_name: store.name,
+      store_slug: store.slug,
+      wallet_balance: wallet.balance || 0,
+      audited_balance: ledgerSum,
+      divergence,
+      status: isClean ? "CONCILIATED_CLEAN" : "DIVERGENCE_ALERT",
+      is_locked: wallet.is_locked || false,
+    });
+  }
+
+  return {
+    success: true,
+    total_wallets_audited: rpcResult?.total_wallets_audited ?? (stores || []).length,
+    total_circulating: totalCirculating,
+    total_ledger_sum: totalLedgerSum,
+    net_divergence: rpcResult?.net_divergence ?? (totalCirculating - totalLedgerSum),
+    tampered_wallets_found: tamperedWalletsCount,
+    solvency_status:
+      rpcResult?.solvency_status ||
+      (tamperedWalletsCount === 0 && totalCirculating - totalLedgerSum === 0
+        ? "100%_SECURE_SOLVENT"
+        : "REQUIRES_INVESTIGATION"),
+    audit_timestamp: rpcResult?.audit_timestamp || new Date().toISOString(),
+    store_reports: storeReports,
+  };
 });
 
 // ============================================================
 // 10. ADMIN MASTER: LISTAR EVENTOS DE SEGURANÇA & FRAUDE
 // ============================================================
 export const getSecurityAuditEventsAdmin = createServerFn({ method: "GET" }).handler(async () => {
- const identity = await getServerIdentity();
- if (identity.role !== "platform_admin" && identity.role !== "master") {
- throw new Error("Acesso restrito ao Admin Master.");
- }
+  const identity = await getServerIdentity();
+  if (identity.role !== "platform_admin" && identity.role !== "master") {
+    throw new Error("Acesso restrito ao Admin Master.");
+  }
 
- const db = getServerClient();
+  const db = getServerClient();
 
- const { data: events } = await db
- .from("audit_logs")
- .select("*")
- .order("created_at", { ascending: false })
- .limit(40);
+  // 1. Busca eventos forenses da tabela security_audit_events
+  const { data: secEvents } = await db
+    .from("security_audit_events")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(30);
 
- return {
- events: (events || []).map((e: any) => ({
- id: e.id,
- created_at: e.created_at,
- action: e.action,
- entity_type: e.entity_type,
- payload: e.payload_snapshot,
- ip: e.ip_address || "Servidor Seguro (SSL/TLS)",
- })),
- };
+  // 2. Busca logs de auditoria gerais
+  const { data: auditLogs } = await db
+    .from("audit_logs")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(30);
+
+  const formattedSecEvents = (secEvents || []).map((e: any) => ({
+    id: e.id,
+    created_at: e.created_at,
+    action: e.event_type || "ALERTA_SEGURANÇA",
+    entity_type: e.entity_type || "security_vault",
+    severity: e.severity || "info",
+    resolved: e.resolved || false,
+    payload: e.details,
+    ip: e.ip_address || "Servidor Seguro (SSL/TLS)",
+  }));
+
+  const formattedAuditLogs = (auditLogs || []).map((e: any) => ({
+    id: e.id,
+    created_at: e.created_at,
+    action: e.action,
+    entity_type: e.entity_type,
+    severity: "info",
+    resolved: true,
+    payload: e.payload_snapshot,
+    ip: e.ip_address || "Servidor Seguro (SSL/TLS)",
+  }));
+
+  return {
+    events: [...formattedSecEvents, ...formattedAuditLogs].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    ).slice(0, 50),
+  };
 });
 
 // ============================================================

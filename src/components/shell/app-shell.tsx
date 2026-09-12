@@ -102,7 +102,7 @@ export function AppShell({ children, session, brandSettings }: AppShellProps) {
  : "px-4 sm:px-6 py-4 sm:py-6 pb-24 md:pb-8"
  }`}
  >
- <div className={`w-full mx-auto flex flex-col items-stretch min-w-0 flex-1 ${isFormPage ? "max-w-7xl" : "max-w-6xl"}`}>
+ <div className={`w-full mx-auto flex flex-col items-stretch min-w-0 flex-1 ${isFormPage ? "max-w-7xl" : "max-w-7xl 2xl:max-w-[1440px]"}`}>
  {children}
  </div>
  </main>

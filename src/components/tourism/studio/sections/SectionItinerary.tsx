@@ -2,10 +2,10 @@ import { useState } from "react";
 import { type Proposal, type ItineraryDay } from "@/services/proposals";
 import { Accordion, Card, AddBtn, L, Inp } from "@/components/proposals/ProposalFormFields";
 import { replaceAt, SMALL_INPUT } from "@/components/proposals/ProposalFormFields";
-import { supabase } from "@/integrations/supabase/client";
+import { uploadMediaUniversal } from "@/services/storage.functions";
 import { StudioUnsplashPicker } from "@/components/studio/StudioUnsplashPicker";
 
-import { Sparkles, Loader2, Search } from "lucide-react";
+import { MapPin, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { refineItineraryText } from "@/services/proposals";
 import { Button } from "@/components/ui/button";
@@ -29,20 +29,29 @@ export function SectionItinerary({ draft, save }: Props) {
   async function handleImageUpload(i: number, file: File) {
     try {
       setUploadingImage(i);
-      const uidVal = crypto.randomUUID();
-      const fileExt = file.name.split(".").pop();
-      const path = `${draft.agency_id}/studio/${draft.id}/itinerary-${i}-${uidVal}.${fileExt}`;
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
-      const { error: uploadError } = await supabase.storage.from("agency-media").upload(path, file);
-      if (uploadError) throw uploadError;
+      const res = await uploadMediaUniversal({
+        data: {
+          fileName: file.name,
+          fileType: file.type || "image/jpeg",
+          base64Data,
+          bucket: "public_media",
+          folder: `proposals/${draft.agency_id || "general"}/${draft.id || "itinerary"}`,
+        },
+      });
 
-      const { data } = supabase.storage.from("agency-media").getPublicUrl(path);
-      const publicUrl = data.publicUrl;
-
-      const day = itinerary[i];
-      const newImages = [...(day.images || []), publicUrl];
-      upd(i, { images: newImages });
-      toast.success("Imagem enviada com sucesso!");
+      if (res?.url) {
+        const day = itinerary[i];
+        const newImages = [...(day.images || []), res.url];
+        upd(i, { images: newImages });
+        toast.success("Imagem enviada com sucesso!");
+      }
     } catch (error: any) {
       toast.error(`Erro no upload: ${error.message}`);
     } finally {
@@ -256,7 +265,7 @@ export function SectionItinerary({ draft, save }: Props) {
               {refining === i ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
               ) : (
-                <Sparkles className="h-3 w-3" />
+                <MapPin className="h-3 w-3" />
               )}
               {refining === i ? "Refinando…" : "Melhorar com IA"}
             </Button>

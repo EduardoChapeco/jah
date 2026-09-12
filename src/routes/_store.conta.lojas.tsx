@@ -26,14 +26,14 @@ export const Route = createFileRoute("/_store/conta/lojas")({
  return { stores: stores || [] };
    } catch (err) {
      console.error("[loader:_store.conta.lojas] Unhandled loader error:", err);
-     return null;
+     return { stores: null };
    }
  },
  component: ContaLojasPage,
 });
 
 export default function ContaLojasPage() {
- const { stores } = Route.useLoaderData();
+ const { stores } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
  const [switchingId, setSwitchingId] = useState<string | null>(null);
 
@@ -53,33 +53,27 @@ export default function ContaLojasPage() {
  };
 
  return (
- <div className="space-y-6 max-w-5xl mx-auto py-4">
- {/* ── Top Header ── */}
- <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
- <div>
- <div className="flex items-center gap-2 mb-1">
- <h1 className="text-2xl font-bold tracking-tight text-foreground">
- Minhas Lojas & Negócios
- </h1>
- <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
- {stores.length} {stores.length === 1 ? "Loja" : "Lojas"}
- </Badge>
- </div>
- <p className="text-sm text-muted-foreground">
- Acesse o painel operacional de cada uma de suas lojas ou crie novas unidades.
- </p>
- </div>
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Lojas
+          </h1>
+          {stores.length > 0 && (
+            <Badge variant="secondary" className="text-xs font-mono font-bold px-2 py-0.5 rounded-full">
+              {stores.length}
+            </Badge>
+          )}
+        </div>
 
- {/* Botão de Criação */}
- <div className="flex items-center gap-2">
- <Button asChild className="gap-2 rounded-xl text-xs font-bold ">
- <Link to="/criar-negocio">
- <Plus className="size-4" />
- Cadastrar Nova Loja
- </Link>
- </Button>
- </div>
- </div>
+        <Button asChild size="sm" className="rounded-xl h-8 px-3.5 text-xs font-semibold gap-1.5 bg-foreground text-background hover:bg-foreground/90 shrink-0 shadow-xs cursor-pointer">
+          <Link to="/criar-negocio">
+            <Plus className="size-3.5" />
+            <span>Nova Loja</span>
+          </Link>
+        </Button>
+      </div>
 
  {/* ── Grid de Lojas / Empty State ── */}
  {stores.length === 0 ? (

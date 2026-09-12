@@ -15,7 +15,6 @@ import {
  Plane,
 } from "lucide-react";
 
-import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -65,7 +64,7 @@ export const Route = createFileRoute("/workspace/turismo/frota/")({
  };
    } catch (err) {
      console.error("[loader:workspace.turismo.frota.index] Unhandled loader error:", err);
-     return null;
+     return { store: null, initialLayouts: null };
    }
  },
  component: VehicleLayoutsListPage,
@@ -350,8 +349,12 @@ function VehicleLayoutsListPage() {
  )}
 
  {/* ── 4. Sheet Lateral de Novo Modelo ── */}
-  <Sheet open={modalOpen} onOpenChange={setModalOpen}>
-    <SheetContent side="right" className="sm:max-w-md w-full border-l border-border/70 bg-card p-6 space-y-4 overflow-y-auto">
+   <Sheet open={modalOpen} onOpenChange={setModalOpen}>
+     <SheetContent
+       side="right"
+       size="wide"
+       className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-3xl lg:max-w-[70vw] xl:max-w-[70vw] border-l border-border/70 bg-card p-6 space-y-4 overflow-y-auto"
+     >
       <SheetHeader>
         <SheetTitle className="text-base font-bold text-foreground">
           Novo Modelo de Veículo

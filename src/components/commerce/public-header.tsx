@@ -10,11 +10,12 @@ import { useCartContext } from "@/lib/cart-context";
 import { InstantSearchDialog } from "@/components/search/instant-search-dialog";
 
 const DEFAULT_NAV_LINKS = [
- { url: "/", label: "Mural" },
- { url: "/mapa", label: "Mapa" },
- { url: "/mercado", label: "Mercado" },
- { url: "/agenda", label: "Agenda" },
- { url: "/diretorio", label: "Diretório" },
+  { url: "/", label: "Mural" },
+  { url: "/classificados", label: "Classificados" },
+  { url: "/agenda", label: "Eventos" },
+  { url: "/empregos", label: "Empregos" },
+  { url: "/noticias", label: "Notícias" },
+  { url: "/diretorio", label: "Guia da Cidade" },
 ];
 
 export function PublicHeader({

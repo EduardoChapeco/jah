@@ -37,7 +37,7 @@ export const Route = createFileRoute("/admin-master/simlabs")({
 });
 
 function AdminSimLabsPage() {
-  const { personas, sessions } = Route.useLoaderData() as any;
+  const { personas, sessions } = ((Route.useLoaderData?.() as any) || {});
   const [activeTab, setActiveTab] = useState<"sessions" | "personas" | "new_sim">("sessions");
   const [isPending, startTransition] = useTransition();
 

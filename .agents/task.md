@@ -12,7 +12,8 @@
   - `[x]` Adicionar botões de Editar/Excluir.
   - `[x]` Implementar a mecânica de atualização no Modal existente.
   - `[x]` Implementar server functions (`updateProductType`, `deleteProductType`).
-- `[ ]` **4. Revisão Geral e Limpeza**
-  - `[ ]` Remover mockups em tabelas de `clientes` e `pedidos` (se houver) e focar em EmptyStates ou CRUDS reais.
-  - `[ ]` Garantir que todas as páginas não apresentem erros e sigam as regras do Design System.
-  - `[ ]` Build check (`npm run build`) e envio para a nuvem.
+- `[x]` **4. Revisão Geral e Limpeza**
+  - `[x]` Remover mockups em tabelas de `clientes` e `pedidos` (concluído: erradicados mocks de UUID zerado em `workspace.pedidos.expedicao.tsx` e conectado à seleção real de lotes e sessões).
+  - `[x]` Garantir que todas as páginas não apresentem erros e sigam as regras do Design System.
+  - `[x]` Build check (`npm run build`) com Exit Code 0 absoluto.
+

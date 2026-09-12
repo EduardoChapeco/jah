@@ -113,7 +113,7 @@ export const Route = createFileRoute("/workspace/catalogo/atributos")({
 });
 
 function OptionGroupsPage() {
- const { groups, store } = Route.useLoaderData() as any;
+ const { groups, store } = ((Route.useLoaderData?.() as any) || {});
  const semantics = getNicheSemantics(store);
  const isTourism = semantics.nicheId === "tourism";
  const isServices = semantics.nicheId === "services";

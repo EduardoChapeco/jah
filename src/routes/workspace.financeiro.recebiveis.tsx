@@ -71,7 +71,7 @@ export const Route = createFileRoute("/workspace/financeiro/recebiveis")({
 });
 
 function ReceivablesDashboard() {
-  const { carnes: initialCarnes, report: initialReport } = Route.useLoaderData();
+  const { carnes: initialCarnes, report: initialReport } = ((Route.useLoaderData?.() as any) || {});
   const queryClient = useQueryClient();
 
   const [activeFilter, setActiveFilter] = useState<
@@ -294,9 +294,9 @@ function ReceivablesDashboard() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <PageHeader title="Carnês & Contas a Receber" />
+          <PageHeader title="Recebíveis" />
           <p className="text-muted-foreground text-sm max-w-2xl mt-1">
-            Gestão bancária de compras parceladas direto com a loja. Concilie comprovantes enviados por clientes, conceda isenções e dispare cobranças.
+            Controle de parcelamentos, conciliação de comprovantes e cobranças da loja.
           </p>
         </div>
 

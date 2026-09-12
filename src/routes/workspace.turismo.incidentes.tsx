@@ -64,7 +64,7 @@ export const Route = createFileRoute('/workspace/turismo/incidentes')({
     return { store };
     } catch (err) {
       console.error("[loader:workspace.turismo.incidentes] Unhandled error:", err);
-      return null;
+      return { store: null };
     }
   },
   component: TourismIncidentsPage,
@@ -345,7 +345,8 @@ export default function TourismIncidentsPage() {
       <Sheet open={Boolean(selectedId)} onOpenChange={(open) => !open && setSelectedId(null)}>
         <SheetContent
           side="right"
-          className="sm:max-w-lg md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 flex flex-col h-full bg-card overflow-hidden"
+          size="wide"
+          className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-3xl lg:max-w-[70vw] border-l p-0 flex flex-col h-full bg-card overflow-hidden"
         >
           {detailLoading ? (
             <div className="flex-1 flex items-center justify-center">
@@ -544,7 +545,8 @@ export default function TourismIncidentsPage() {
       <Sheet open={newOpen} onOpenChange={setNewOpen}>
         <SheetContent
           side="right"
-          className="sm:max-w-lg md:max-w-xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto no-scrollbar bg-card flex flex-col h-full"
+          size="wide"
+          className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-3xl lg:max-w-[70vw] border-l p-0 overflow-y-auto no-scrollbar bg-card flex flex-col h-full"
         >
           <SheetHeader className="px-5 py-4 border-b border-border/60 bg-muted/20 shrink-0">
             <SheetTitle className="text-sm font-bold text-foreground flex items-center gap-2">

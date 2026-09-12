@@ -417,7 +417,7 @@ export async function captureAndAnalyzeCompetitor(
 
     // ── Captura Real via Steel.dev / Firecrawl ──
     const captured = await captureBrowserScreenshotAndContent(targetUrl);
-    const screenshotUrl = captured.screenshotUrl || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80";
+    const screenshotUrl = captured.screenshotUrl || targetUrl;
 
     // ── Análise Cognitiva Real via IA (Gemini / Groq) ──
     const aiAnalysis = await analyzeCompetitorDnaWithAI(comp.name, targetUrl, captured.markdown);

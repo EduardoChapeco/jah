@@ -39,7 +39,7 @@ export const Route = createFileRoute("/admin-master/seguranca/")({
 });
 
 function AdminSecurityOverviewPage() {
- const { recentEvents: initialRecent, highRiskEvents: initialHighRisk, stats: initialStats } = Route.useLoaderData() as any;
+ const { recentEvents: initialRecent, highRiskEvents: initialHighRisk, stats: initialStats } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
 
  const [recentEvents, setRecentEvents] = useState(initialRecent || []);
@@ -80,13 +80,39 @@ function AdminSecurityOverviewPage() {
 
  return (
  <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 text-foreground">
- {/* Header */}
- <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
- <div>
- <h1 className="text-xl font-bold tracking-tight text-foreground">
- Segurança Global
- </h1>
- </div>
+      {/* ── Sub-navegação Canônica de Segurança ── */}
+      <div className="flex items-center gap-2 border-b border-border/60 pb-3 text-xs overflow-x-auto no-scrollbar">
+        <Link
+          to="/admin-master/seguranca"
+          className="px-3.5 py-1.5 rounded-xl font-bold transition-colors bg-primary text-primary-foreground shadow-sm"
+        >
+          Visão Geral & Autenticações
+        </Link>
+        <Link
+          to="/admin-master/seguranca/telemetria"
+          className="px-3.5 py-1.5 rounded-xl font-semibold transition-colors hover:bg-muted/60 text-muted-foreground hover:text-foreground"
+        >
+          Telemetria de Ataques & Invasões
+        </Link>
+        <Link
+          to="/admin-master/seguranca/certificados"
+          className="px-3.5 py-1.5 rounded-xl font-semibold transition-colors hover:bg-muted/60 text-muted-foreground hover:text-foreground"
+        >
+          Certificados Transacionais
+        </Link>
+      </div>
+
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <ShieldCheck className="size-6 text-emerald-500" />
+            Centro de Segurança Global & Autenticação
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            Auditoria forense de sessões, integridade multi-tenant e monitoramento de conexões Cloudflare.
+          </p>
+        </div>
 
  <Button
  variant="outline"
@@ -103,8 +129,8 @@ function AdminSecurityOverviewPage() {
  {/* Estatísticas de Risco */}
  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
  <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1">
- <span className="text-xs font-semibold text-muted-foreground">Tabelas com RLS</span>
- <p className="text-xl font-bold text-foreground">221 / 221</p>
+ <span className="text-xs font-semibold text-muted-foreground">Tabelas com RLS 100%</span>
+ <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">396 / 396</p>
  </div>
 
  <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1">

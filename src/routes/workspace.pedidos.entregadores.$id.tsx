@@ -47,7 +47,7 @@ export const Route = createFileRoute("/workspace/pedidos/entregadores/$id")({
  return { courier: courier || null, id: params.id };
    } catch (err) {
      console.error("[loader:workspace.pedidos.entregadores.$id] Unhandled loader error:", err);
-     return null;
+     return { courier: null, id: null };
    }
  },
  component: EntregadorDetailPage,
@@ -91,7 +91,7 @@ const STATUS_OPTIONS = [
 
 function EntregadorDetailPage() {
  const navigate = useNavigate();
- const { courier, id } = Route.useLoaderData() as any;
+ const { courier, id } = ((Route.useLoaderData?.() as any) || {});
  const [isSubmitting, setIsSubmitting] = useState(false);
 
  const [form, setForm] = useState({

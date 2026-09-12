@@ -11,9 +11,14 @@ import { getStorePublicCatalog } from "@/services/catalog.functions";
 import { listPublicJobs } from "@/services/jobs.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { listActiveBanners } from "@/services/banner.functions";
-import { getMuralFeed } from "@/services/social.functions";
+import { getIdentity } from "@/services/identity.functions";
+import { getMuralFeed, getCompanyEmployerStats } from "@/services/social.functions";
 import { listStorePublicReviews } from "@/services/cms.functions";
+import { listStoreDealReviews } from "@/services/deal-reviews.functions";
 import { listStorePublicSponsors } from "@/services/news.functions";
+import { getPublicClassifieds } from "@/services/classifieds.functions";
+import { getStoreConcursos } from "@/services/invite.functions";
+import { getStorePublicProfileWithSections } from "@/services/store.functions";
 import { CanonicalStoreProfileView } from "@/components/commerce/canonical-store-profile-view";
 
 export const Route = createFileRoute("/_store/diretorio/$id")({
@@ -61,7 +66,12 @@ export const Route = createFileRoute("/_store/diretorio/$id")({
         bannersRes,
         postsRes,
         reviewsRes,
+        dealReviewsRes,
         sponsorsRes,
+        classifiedsRes,
+        concursosRes,
+        employerStatsRes,
+        identityRes,
       ] = await Promise.all([
         getStorePublicCatalog({ data: targetStore ? { storeId: targetStore } : undefined }).catch(
           () => null
@@ -76,8 +86,24 @@ export const Route = createFileRoute("/_store/diretorio/$id")({
           ? listStorePublicReviews({ data: { storeId: targetStore } }).catch(() => [])
           : Promise.resolve([]),
         targetStore
+          ? listStoreDealReviews({ data: { storeId: targetStore } }).catch(() => ({ reviews: [] }))
+          : Promise.resolve({ reviews: [] }),
+        targetStore
           ? listStorePublicSponsors({ data: { storeId: targetStore } }).catch(() => [])
           : Promise.resolve([]),
+        targetStore
+          ? getPublicClassifieds({ data: { storeId: targetStore, limit: 30 } }).catch(() => null)
+          : Promise.resolve(null),
+        targetStore
+          ? getStoreConcursos({ data: { storeId: targetStore } }).catch(() => [])
+          : Promise.resolve([]),
+        targetStore
+          ? getCompanyEmployerStats({ data: { storeId: targetStore, companyName: listing.business_name || listing.name } }).catch(() => null)
+          : Promise.resolve(null),
+        targetStore
+          ? getStorePublicProfileWithSections({ data: { store_id: targetStore } }).catch(() => null)
+          : Promise.resolve(null),
+        getIdentity().catch(() => null),
       ]);
 
       const rawJobs = Array.isArray(jobsRes) ? jobsRes : (jobsRes as any)?.jobs || [];
@@ -90,17 +116,60 @@ export const Route = createFileRoute("/_store/diretorio/$id")({
       });
 
       const storePosts = (postsRes as any)?.items || [];
+      const rawClassifieds = (classifiedsRes as any)?.items || [];
+      const classifiedProducts = rawClassifieds.map((item: any) => ({
+        id: item.id,
+        name: item.title,
+        title: item.title,
+        description: item.content,
+        content: item.content,
+        price_cents: item.price_cents,
+        price: item.price_cents ? item.price_cents / 100 : 0,
+        image_url: item.media?.[0] || item.images?.[0] || null,
+        images: item.media || item.images || [],
+        category: item.category,
+        is_classified: true,
+      }));
+
+      const finalCatalog = (catalogRes?.products && catalogRes.products.length > 0)
+        ? catalogRes.products
+        : classifiedProducts;
+
+      // Unificar avaliações legadas e avaliações auditadas de deals
+      const publicReviews = Array.isArray(reviewsRes) ? reviewsRes : [];
+      const dealReviews = ((dealReviewsRes as any)?.reviews || []).map((dr: any) => ({
+        id: dr.id,
+        rating: dr.rating,
+        comment: dr.comment,
+        created_at: dr.created_at,
+        reviewer_name: dr.reviewer?.full_name || "Comprador Verificado",
+        product_name: dr.classified?.title || "Pacote / Serviço Verificado",
+        is_verified: true,
+      }));
+
+      const combinedReviews = [...dealReviews, ...publicReviews];
+      const isOwner = Boolean(
+        identityRes?.id &&
+        (listing.owner_id === identityRes.id ||
+         listing.user_id === identityRes.id ||
+         identityRes.store_id === targetStore ||
+         identityRes.role === "admin")
+      );
 
       return {
         listing,
-        catalog: catalogRes?.products || [],
+        sections: (storeProfileRes as any)?.sections || [],
+        catalog: finalCatalog,
         categories: catalogRes?.categories || [],
         jobs: storeJobs,
         hotpages: Array.isArray(hotpagesRes) ? hotpagesRes : [],
         banners: Array.isArray(bannersRes) ? bannersRes : [],
         posts: storePosts,
-        reviews: Array.isArray(reviewsRes) ? reviewsRes : [],
+        reviews: combinedReviews,
         sponsors: Array.isArray(sponsorsRes) ? sponsorsRes : [],
+        concursos: Array.isArray(concursosRes) ? concursosRes : [],
+        employerStats: employerStatsRes || null,
+        isOwner,
       };
     } catch (err) {
       console.error("[loader:_store.diretorio.$id] Unhandled error:", err);
@@ -114,6 +183,7 @@ export const Route = createFileRoute("/_store/diretorio/$id")({
         posts: [],
         reviews: [],
         sponsors: [],
+        concursos: [],
       };
     }
   },
@@ -131,6 +201,10 @@ function CanonicalDirectoryDetailPage() {
   const posts = data?.posts ?? [];
   const reviews = data?.reviews ?? [];
   const sponsors = data?.sponsors ?? [];
+  const concursos = data?.concursos ?? [];
+  const sections = data?.sections ?? [];
+  const employerStats = data?.employerStats ?? null;
+  const isOwner = data?.isOwner ?? false;
 
   if (!listing) {
     return (
@@ -155,6 +229,7 @@ function CanonicalDirectoryDetailPage() {
   return (
     <CanonicalStoreProfileView
       store={listing}
+      sections={sections}
       catalog={catalog}
       categories={categories}
       banners={banners}
@@ -163,6 +238,9 @@ function CanonicalDirectoryDetailPage() {
       posts={posts}
       reviews={reviews}
       sponsors={sponsors}
+      concursos={concursos}
+      employerStats={employerStats}
+      isOwner={isOwner}
       source="directory"
       backUrl="/diretorio"
       backLabel="Guia & Diretório"

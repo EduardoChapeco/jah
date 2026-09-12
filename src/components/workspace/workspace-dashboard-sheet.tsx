@@ -63,8 +63,7 @@ export function WorkspaceDashboardSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
-        side="right"
-        className="w-full sm:max-w-xl p-0 flex flex-col h-full bg-background border-l border-border/70 overflow-hidden select-none"
+        side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-0 flex flex-col h-full bg-background border-l border-border/70 overflow-hidden select-none"
       >
         {/* ── 1. Topo do Painel de Métricas ── */}
         <div className="p-5 border-b border-border/60 bg-muted/20 shrink-0 space-y-3">

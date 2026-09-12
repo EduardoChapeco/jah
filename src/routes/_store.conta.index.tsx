@@ -8,7 +8,7 @@ import { getProfile, getUserSession, signOut } from "@/services/auth.functions";
 import { getMyStoresList } from "@/services/store.functions";
 import { formatDate } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
-import { Shield, Store, LayoutDashboard, ArrowUpRight, Plus, Eye, Edit3, ArrowRight, ShoppingBag, Calendar, Ticket, Bookmark, Plane, CreditCard, Coins, Gift, HelpCircle, RotateCcw, Layers, LogOut, User, ExternalLink, ChevronRight, Building2, Lock, ShieldCheck, Briefcase, Car, Wallet, FileText } from 'lucide-react';
+import { Shield, Store, LayoutDashboard, ArrowUpRight, Plus, Eye, Edit3, ArrowRight, ShoppingBag, Calendar, Ticket, Bookmark, Plane, CreditCard, Coins, Gift, HelpCircle, RotateCcw, Layers, LogOut, User, ExternalLink, ChevronRight, Building2, Lock, ShieldCheck, Briefcase, Car, Wallet, FileText, Sparkles, Trophy } from 'lucide-react';
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/")({
@@ -40,7 +40,10 @@ export const Route = createFileRoute("/_store/conta/")({
 });
 
 const ACCOUNT_SECTIONS = [
- { to: "/conta/financas", label: "Finanças", icon: Wallet },
+  { to: "/conta/empresa", label: "Minha Empresa", icon: Store },
+  { to: "/conta/criadores", label: "Criadores & Parcerias", icon: Sparkles },
+  { to: "/conta/comissoes", label: "Comissões & Afiliados", icon: Coins },
+  { to: "/conta/financas", label: "Finanças", icon: Wallet },
  { to: "/conta/contratos", label: "Contratos", icon: FileText },
  { to: "/conta/carnes", label: "Carnês", icon: CreditCard },
  { to: "/conta/pedidos", label: "Pedidos", icon: ShoppingBag },
@@ -49,6 +52,8 @@ const ACCOUNT_SECTIONS = [
  { to: "/conta/mobilidade", label: "Mobilidade", icon: Car },
  { to: "/conta/agendamentos", label: "Agendamentos", icon: Calendar },
  { to: "/conta/pacotes", label: "Pacotes", icon: Ticket },
+ { to: "/conta/concursos", label: "Sorteios & Cupons", icon: Ticket },
+ { to: "/convite", label: "Membro Fundador", icon: Trophy },
  { to: "/conta/viagens", label: "Viagens", icon: Plane },
  { to: "/conta/salvos", label: "Salvos", icon: Bookmark },
  { to: "/conta/classificados", label: "Anúncios", icon: Layers },

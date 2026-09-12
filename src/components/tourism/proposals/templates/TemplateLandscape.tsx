@@ -56,14 +56,13 @@ export default function TemplateLandscape({ proposal: p, agency }: TemplateProps
     <div className="flex flex-col bg-slate-950 font-sans text-slate-100 select-text">
       {/* ─── SLIDE 1: CAPA ─── */}
       <DocumentPage format={format} className="relative flex-col bg-slate-900 border-none">
-        <img
-          src={
-            p.cover_image_url ||
-            "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1600&q=80"
-          }
-          crossOrigin="anonymous"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        {p.cover_image_url && (
+          <img
+            src={p.cover_image_url}
+            crossOrigin="anonymous"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
         {/* Degradê escuro sobreposto */}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-slate-950/60" />
 

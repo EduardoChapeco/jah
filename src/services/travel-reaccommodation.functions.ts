@@ -1,10 +1,10 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { getServerClient } from '@/lib/supabase';
+import { getServerIdentity, assertStoreAccess } from '@/lib/server-access';
 import type {
   TravelFlightChangeCase,
   ChangeReason,
-  ReaccommodationPriority,
   AnacRightsSummary,
 } from '@/types/travel-reaccommodation';
 
@@ -25,8 +25,19 @@ export function calculateAnacRights(reason: ChangeReason, delayHours: number = 0
 }
 
 export const listFlightChangeCases = createServerFn({ method: 'GET' })
-  .validator((data: { storeId: string; tripId?: string }) => data)
+  .validator(
+    z.object({
+      storeId: z.string().uuid().optional(),
+      tripId: z.string().uuid().optional(),
+    }).optional()
+  )
   .handler(async ({ data }): Promise<TravelFlightChangeCase[]> => {
+    const identity = await getServerIdentity();
+    const effectiveStoreId = data?.storeId || identity.store_id;
+    if (!effectiveStoreId) {
+      throw new Error("Identificador da loja não fornecido.");
+    }
+
     const db = getServerClient();
     let query = db
       .from('travel_flight_change_cases')
@@ -34,10 +45,10 @@ export const listFlightChangeCases = createServerFn({ method: 'GET' })
         *,
         alternatives:travel_flight_alternatives(*)
       `)
-      .eq('store_id', data.storeId)
+      .eq('store_id', effectiveStoreId)
       .order('created_at', { ascending: false });
 
-    if (data.tripId) {
+    if (data?.tripId) {
       query = query.eq('trip_id', data.tripId);
     }
 
@@ -49,7 +60,7 @@ export const listFlightChangeCases = createServerFn({ method: 'GET' })
 export const createFlightChangeCase = createServerFn({ method: 'POST' })
   .validator(
     z.object({
-      store_id: z.string().uuid(),
+      store_id: z.string().uuid().optional(),
       trip_id: z.string().uuid().optional().nullable(),
       original_itinerary_id: z.string().uuid().optional().nullable(),
       change_reason: z.enum([
@@ -66,13 +77,20 @@ export const createFlightChangeCase = createServerFn({ method: 'POST' })
     })
   )
   .handler(async ({ data }): Promise<TravelFlightChangeCase> => {
+    const identity = await getServerIdentity();
+    const effectiveStoreId = data.store_id || identity.store_id;
+    if (!effectiveStoreId) {
+      throw new Error("Identificador da loja não fornecido.");
+    }
+    assertStoreAccess(identity, ['owner', 'admin', 'manager', 'seller']);
+
     const db = getServerClient();
     const rights = calculateAnacRights(data.change_reason as ChangeReason, data.delay_hours);
 
     const { data: row, error } = await db
       .from('travel_flight_change_cases')
       .insert({
-        store_id: data.store_id,
+        store_id: effectiveStoreId,
         trip_id: data.trip_id,
         original_itinerary_id: data.original_itinerary_id,
         change_reason: data.change_reason,
@@ -106,7 +124,26 @@ export const updateChangeCaseWorkflow = createServerFn({ method: 'POST' })
     })
   )
   .handler(async ({ data }): Promise<{ success: boolean }> => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ['owner', 'admin', 'manager', 'seller']);
+
     const db = getServerClient();
+
+    // Valida se o caso pertence à loja gerenciada
+    const { data: flightCase, error: fetchErr } = await db
+      .from('travel_flight_change_cases')
+      .select('id, store_id')
+      .eq('id', data.id)
+      .single();
+
+    if (fetchErr || !flightCase) {
+      throw new Error("Caso de reacomodação não encontrado.");
+    }
+
+    if (flightCase.store_id !== identity.store_id && !identity.is_super_admin) {
+      throw new Error("Acesso não autorizado para esta loja.");
+    }
+
     const { error } = await db
       .from('travel_flight_change_cases')
       .update({

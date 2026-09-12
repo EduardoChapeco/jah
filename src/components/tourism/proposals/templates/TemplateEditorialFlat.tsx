@@ -62,15 +62,16 @@ export default function TemplateEditorialFlat({ proposal: p, agency }: TemplateP
 
         {/* Direita: Imagem de capa */}
         <div className="relative">
-          <img
-            src={
-              p.cover_image_url ||
-              "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80"
-            }
-            alt="Destino"
-            crossOrigin="anonymous"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+          {p.cover_image_url ? (
+            <img
+              src={p.cover_image_url}
+              alt="Destino"
+              crossOrigin="anonymous"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 w-full h-full bg-slate-100" />
+          )}
         </div>
       </div>
 

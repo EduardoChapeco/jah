@@ -57,7 +57,24 @@ export const Route = createFileRoute("/workspace/marketing/telemetria")({
  return { sponsorData, whatsappAnalytics };
    } catch (err) {
      console.error("[loader:workspace.marketing.telemetria] Unhandled error:", err);
-     return null;
+     return {
+       sponsorData: {
+         totalImpressions: 0,
+         totalUniqueViews: 0,
+         totalClicks: 0,
+         avgCtr: 0,
+         sponsorsMetrics: [] as SponsorMetricsDTO[],
+       },
+       whatsappAnalytics: {
+         total_leads: 0,
+         responded_leads: 0,
+         converted_leads: 0,
+         conversion_rate: 0,
+         entity_distribution: [],
+         top_items: [],
+         daily_trend: [],
+       } as WhatsAppAnalyticsDTO,
+     };
    }
  },
  component: WorkspaceTelemetriaPage,
@@ -130,9 +147,25 @@ function LeadRow({ lead, onStatusChange }: { lead: WhatsAppLeadDTO; onStatusChan
 
 // ─── Página Principal ─────────────────────────────────────────────────────────
 function WorkspaceTelemetriaPage() {
- const { sponsorData, whatsappAnalytics } = Route.useLoaderData();
- const { totalImpressions, totalUniqueViews, totalClicks, avgCtr, sponsorsMetrics } = sponsorData;
- const [activeTab, setActiveTab] = useState<"whatsapp" | "sponsors">("whatsapp");
+  const loaderData = (Route.useLoaderData() as any) || {};
+  const sponsorData = loaderData.sponsorData || {
+    totalImpressions: 0,
+    totalUniqueViews: 0,
+    totalClicks: 0,
+    avgCtr: 0,
+    sponsorsMetrics: [],
+  };
+  const whatsappAnalytics = loaderData.whatsappAnalytics || {
+    total_leads: 0,
+    responded_leads: 0,
+    converted_leads: 0,
+    conversion_rate: 0,
+    entity_distribution: [],
+    top_items: [],
+    daily_trend: [],
+  };
+  const { totalImpressions, totalUniqueViews, totalClicks, avgCtr, sponsorsMetrics } = sponsorData;
+  const [activeTab, setActiveTab] = useState<"whatsapp" | "sponsors">("whatsapp");
  const [statusFilter, setStatusFilter] = useState<string>("all");
 
  const { data: leads = [], refetch: refetchLeads, isLoading: leadsLoading } = useQuery({
@@ -164,12 +197,20 @@ function WorkspaceTelemetriaPage() {
  Mensuração real de leads de WhatsApp, alcance de patrocinadores e taxa de conversão.
  </p>
  </div>
- <Button asChild variant="outline" className="rounded-2xl font-bold text-xs w-fit">
+ <div className="flex items-center gap-2">
+ <Button asChild variant="outline" className="rounded-xl font-bold text-xs h-9">
+ <Link to="/workspace/marketing/pixels">
+ <CursorClick size={16} weight="bold" className="mr-1.5 text-primary" />
+ Pixels & CAPI
+ </Link>
+ </Button>
+ <Button asChild variant="outline" className="rounded-xl font-bold text-xs h-9">
  <Link to="/workspace/marketing/patrocinadores">
  <Megaphone size={16} weight="bold" className="mr-1.5" />
  Patrocinadores
  </Link>
  </Button>
+ </div>
  </div>
 
  {/* Tabs */}

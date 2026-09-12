@@ -104,7 +104,7 @@ const STATUS_CONFIG: Record<
 };
 
 function PdvComandasPage() {
- const { tables: initialData, store } = Route.useLoaderData() as any;
+ const { tables: initialData, store } = ((Route.useLoaderData?.() as any) || {});
  const queryClient = useQueryClient();
  const navigate = useNavigate();
 
@@ -224,7 +224,7 @@ function PdvComandasPage() {
  </Button>
  <div>
  <div className="flex items-center gap-2">
- <h1 className="text-xl font-bold tracking-tight text-foreground">Salão & Mesas</h1>
+ <h1 className="text-xl font-bold tracking-tight text-foreground">Comandas & Mesas</h1>
  <Badge variant="outline" className="text-[10px] font-mono font-bold">
  {summary?.occupied_count || 0}/{summary?.total_tables || 0} Ocupadas
  </Badge>
@@ -463,8 +463,8 @@ function PdvComandasPage() {
 
  {/* ── SHEET LATERAL DE DETALHES DA MESA ── */}
  <Sheet open={Boolean(selectedTable)} onOpenChange={(open) => !open && setSelectedTable(null)}>
- <SheetContent className="sm:max-w-md flex flex-col">
- <SheetHeader className="pb-4 border-b border-border/70">
+ <SheetContent side="right" className="w-full sm:max-w-xl flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+ <SheetHeader className="p-4 sm:p-5 pb-4 border-b border-border/70">
  <div className="flex items-center justify-between">
  <SheetTitle className="text-lg font-bold flex items-center gap-2 font-mono">
  <UtensilsCrossed className="size-5 text-primary" />
@@ -620,7 +620,7 @@ function PdvComandasPage() {
  <Sheet open={checkoutModalOpen} onOpenChange={setCheckoutModalOpen}>
  <SheetContent
  side="right"
- className="sm:max-w-md md:max-w-lg w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-hidden bg-card flex flex-col"
+ className="w-full sm:max-w-xl border-l p-0 overflow-hidden bg-card flex flex-col"
  >
  <SheetHeader className="p-4 sm:p-5 border-b border-border/80 bg-muted/20 text-left">
  <SheetTitle className="font-bold text-base sm:text-lg text-foreground">
@@ -729,7 +729,8 @@ function PdvComandasPage() {
  <Sheet open={qrModalOpen} onOpenChange={setQrModalOpen}>
  <SheetContent
  side="right"
- className="sm:max-w-xl md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-hidden bg-card flex flex-col"
+ size="wide"
+ className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-hidden bg-card flex flex-col"
  >
  <SheetHeader className="p-4 sm:p-5 border-b border-border/80 bg-muted/20 text-left">
  <SheetTitle className="font-bold text-base sm:text-lg flex items-center gap-2 text-foreground">

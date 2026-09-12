@@ -8,7 +8,7 @@ import {
   Trash2,
   Edit2,
   Clock,
-  Sparkles,
+  Zap,
   Check,
   Globe,
   Tag,

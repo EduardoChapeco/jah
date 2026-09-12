@@ -24,8 +24,9 @@ import {
  DollarSign,
  ShieldCheck,
  FileText,
+ Plane,
+ Ticket,
 } from "lucide-react";
-import { PageHeader } from "@/components/commerce/page-header";
 import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-canonical-toolbar";
 import { WorkspaceDashboardSheet, type MetricCardItem } from "@/components/workspace/workspace-dashboard-sheet";
 import { Button } from "@/components/ui/button";
@@ -76,15 +77,18 @@ export const Route = createFileRoute("/workspace/clientes/")({
  };
    } catch (err) {
      console.error("[loader:workspace.clientes.index] Unhandled loader error:", err);
-     return null;
+     return { customers: [], team: [], store: null };
    }
  },
  component: CarteiraClientesPage,
 });
 
 function CarteiraClientesPage() {
- const { customers, team, store } = Route.useLoaderData();
- const router = useRouter();
+  const loaderData = Route.useLoaderData?.() as any;
+  const customers = loaderData?.customers || [];
+  const team = loaderData?.team || [];
+  const store = loaderData?.store || null;
+  const router = useRouter();
 
  const isTourism =
  store?.settings?.niche === "tourism" ||
@@ -487,11 +491,41 @@ function CarteiraClientesPage() {
  <MoreVertical className="size-3.5" />
  </Button>
  </DropdownMenuTrigger>
- <DropdownMenuContent align="end" className="w-44 rounded-xl text-xs">
+ <DropdownMenuContent align="end" className="w-52 rounded-xl text-xs">
  <DropdownMenuItem asChild>
  <Link to="/workspace/clientes/$id" params={{ id: c.id }} className="cursor-pointer gap-2">
  <FileText className="size-3.5" />
  <span>Ver Ficha Completa</span>
+ </Link>
+ </DropdownMenuItem>
+
+ <DropdownMenuItem asChild>
+ <Link to="/workspace/comercial" className="cursor-pointer gap-2">
+ <Plane className="size-3.5 text-primary" />
+ <span>Criar Oportunidade / Viagem</span>
+ </Link>
+ </DropdownMenuItem>
+
+ <DropdownMenuItem asChild>
+ <Link
+ to="/workspace/turismo/cotacoes"
+ search={{
+ leadName: c.fullName,
+ leadPhone: c.phone || undefined,
+ leadEmail: c.email || undefined,
+ clientId: c.id,
+ } as any}
+ className="cursor-pointer gap-2"
+ >
+ <DollarSign className="size-3.5 text-primary" />
+ <span>Iniciar Cotação de Viagem</span>
+ </Link>
+ </DropdownMenuItem>
+
+ <DropdownMenuItem asChild>
+ <Link to="/workspace/turismo/aereos" className="cursor-pointer gap-2">
+ <Ticket className="size-3.5 text-primary" />
+ <span>Emitir Bilhete Aéreo</span>
  </Link>
  </DropdownMenuItem>
 

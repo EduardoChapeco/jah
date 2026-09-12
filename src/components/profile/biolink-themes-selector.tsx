@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Check, Sparkles, Palette, Layers, Eye } from "lucide-react";
+import { Check, Zap, Palette, Layers, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 

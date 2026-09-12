@@ -1,0 +1,317 @@
+[
+  {
+    "file": "src\\services\\ai-builder-phase8.test.ts",
+    "line": 60,
+    "content": "const fetchMock = vi.fn().mockResolvedValue({"
+  },
+  {
+    "file": "src\\services\\auth.functions.ts",
+    "line": 877,
+    "content": "const { error: fallbackErr } = await supabase"
+  },
+  {
+    "file": "src\\services\\builder.functions.ts",
+    "line": 2253,
+    "content": "const { data: fallbackDoc } = await db"
+  },
+  {
+    "file": "src\\services\\catalog.functions.ts",
+    "line": 10,
+    "content": "* Never returns fabricated/mock data."
+  },
+  {
+    "file": "src\\services\\catalog.functions.ts",
+    "line": 307,
+    "content": "return 0; // fallback to DB original order"
+  },
+  {
+    "file": "src\\services\\classifieds-and-token-security.test.ts",
+    "line": 46,
+    "content": "const mockAuditInsert = vi.fn().mockResolvedValue({ data: null, error: null });"
+  },
+  {
+    "file": "src\\services\\company-delivery.functions.ts",
+    "line": 157,
+    "content": "return { success: true, settings: payload, fallback: true };"
+  },
+  {
+    "file": "src\\services\\company-delivery.functions.ts",
+    "line": 294,
+    "content": "return { success: true, status: data.status, fallback: true };"
+  },
+  {
+    "file": "src\\services\\company-mvp.functions.ts",
+    "line": 541,
+    "content": "const { data: fallbackProf } = await supabase"
+  },
+  {
+    "file": "src\\services\\destination-intelligence.test.ts",
+    "line": 37,
+    "content": "const MOCK_DESTINATIONS: DestinationIntelligence[] = ["
+  },
+  {
+    "file": "src\\services\\destination-intelligence.test.ts",
+    "line": 43,
+    "content": "const MOCK_ALERTS: TravelAlert[] = ["
+  },
+  {
+    "file": "src\\services\\destination-intelligence.test.ts",
+    "line": 51,
+    "content": "const d = MOCK_DESTINATIONS[0];"
+  },
+  {
+    "file": "src\\services\\destination-intelligence.test.ts",
+    "line": 63,
+    "content": "const a = MOCK_ALERTS[0];"
+  },
+  {
+    "file": "src\\services\\destination-intelligence.test.ts",
+    "line": 98,
+    "content": "const r = filterDestinations(MOCK_DESTINATIONS, 'Miami', 'all');"
+  },
+  {
+    "file": "src\\services\\destination-intelligence.test.ts",
+    "line": 103,
+    "content": "const r = filterDestinations(MOCK_DESTINATIONS, 'tango', 'all');"
+  },
+  {
+    "file": "src\\services\\destination-intelligence.test.ts",
+    "line": 117,
+    "content": "const sorted = [...MOCK_ALERTS].sort((a, b) => computeAlertPriority(b.severity) - computeAlertPriority(a.severity));"
+  },
+  {
+    "file": "src\\services\\destination-intelligence.test.ts",
+    "line": 121,
+    "content": "const withInactive = [...MOCK_ALERTS, { ...MOCK_ALERTS[0], id: 'a-3', is_active: false }];"
+  },
+  {
+    "file": "src\\services\\market-radar.functions.ts",
+    "line": 30,
+    "content": "if (value === null || value === undefined) return fallback;"
+  },
+  {
+    "file": "src\\services\\market-radar.functions.ts",
+    "line": 38,
+    "content": "return (parsed || fallback) as T;"
+  },
+  {
+    "file": "src\\services\\market-radar.functions.ts",
+    "line": 40,
+    "content": "return fallback;"
+  },
+  {
+    "file": "src\\services\\market-radar.functions.ts",
+    "line": 43,
+    "content": "return fallback;"
+  },
+  {
+    "file": "src\\services\\multimodal-onboarding.test.ts",
+    "line": 147,
+    "content": "const mockDb = {"
+  },
+  {
+    "file": "src\\services\\multimodal-onboarding.test.ts",
+    "line": 183,
+    "content": "const result = await executeGenerateStorefrontFromOnboarding(mockDb, {"
+  },
+  {
+    "file": "src\\services\\portal-completo.functions.ts",
+    "line": 214,
+    "content": "return { success: true, waitlistEntry: record, fallback: true };"
+  },
+  {
+    "file": "src\\services\\portal-waitlist.functions.ts",
+    "line": 50,
+    "content": "return { success: true, waitlistEntry: record, fallback: true };"
+  },
+  {
+    "file": "src\\services\\resume-profile-talent.test.ts",
+    "line": 54,
+    "content": "it('should ensure claim intelligence functions have zero simulated mock returns', () => {"
+  },
+  {
+    "file": "src\\services\\squads-runtime.functions.ts",
+    "line": 30,
+    "content": "if (value === null || value === undefined) return fallback;"
+  },
+  {
+    "file": "src\\services\\squads-runtime.functions.ts",
+    "line": 38,
+    "content": "return (parsed || fallback) as T;"
+  },
+  {
+    "file": "src\\services\\squads-runtime.functions.ts",
+    "line": 40,
+    "content": "return fallback;"
+  },
+  {
+    "file": "src\\services\\squads-runtime.functions.ts",
+    "line": 43,
+    "content": "return fallback;"
+  },
+  {
+    "file": "src\\services\\store.functions.ts",
+    "line": 648,
+    "content": "if (!raw) return [{ from: \"09:00\", to: \"18:00\" }]; // fallback seguro"
+  },
+  {
+    "file": "src\\services\\travel-lifecycle.functions.ts",
+    "line": 1161,
+    "content": "const fallbackParsed: OperatorParsedVoucherDTO = {"
+  },
+  {
+    "file": "src\\services\\wave4-creative-studio.test.ts",
+    "line": 47,
+    "content": "const mockSlide = {"
+  },
+  {
+    "file": "src\\services\\whatsapp-leads.functions.ts",
+    "line": 93,
+    "content": "const fallbackCode = `WDR-W${Math.random().toString(36).substring(2, 7).toUpperCase()}`;"
+  },
+  {
+    "file": "src\\routes\\m.excursao.$token.tsx",
+    "line": 204,
+    "content": "placeholder=\"Nome como consta no documento\""
+  },
+  {
+    "file": "src\\routes\\_store.eventos.tsx",
+    "line": 43,
+    "content": "const FALLBACK_EVENT_COVERS: Record<string, string> = {"
+  },
+  {
+    "file": "src\\routes\\_store.eventos.tsx",
+    "line": 57,
+    "content": "if (!event) return FALLBACK_EVENT_COVERS.default;"
+  },
+  {
+    "file": "src\\routes\\_store.eventos.tsx",
+    "line": 63,
+    "content": "return FALLBACK_EVENT_COVERS[cat] || FALLBACK_EVENT_COVERS.default;"
+  },
+  {
+    "file": "src\\lib\\agency-context.tsx",
+    "line": 214,
+    "content": "const fallback = await supabase"
+  },
+  {
+    "file": "src\\lib\\agency-context.tsx",
+    "line": 306,
+    "content": "const fallbackColor = color || \"#1E3A5F\";"
+  },
+  {
+    "file": "src\\lib\\cart-context.tsx",
+    "line": 166,
+    "content": "const fallbackCartContext: CartContextType = {"
+  },
+  {
+    "file": "src\\lib\\cart-context.tsx",
+    "line": 183,
+    "content": "return fallbackCartContext;"
+  },
+  {
+    "file": "src\\lib\\constants\\status.ts",
+    "line": 106,
+    "content": "return map[status]?.label || fallback || status;"
+  },
+  {
+    "file": "src\\lib\\constants\\status.ts",
+    "line": 117,
+    "content": "return map[status]?.tone || fallback;"
+  },
+  {
+    "file": "src\\lib\\engines\\module-auditor-sanity.test.ts",
+    "line": 7,
+    "content": "const mockClient: any = {"
+  },
+  {
+    "file": "src\\lib\\engines\\module-auditor-sanity.test.ts",
+    "line": 44,
+    "content": "const report = await ModuleAuditor.auditStoreWorkspace('store-123', 'gastronomia', mockClient);"
+  },
+  {
+    "file": "src\\lib\\loader-observability.ts",
+    "line": 34,
+    "content": "return fallbackValue;"
+  },
+  {
+    "file": "src\\lib\\return-path.ts",
+    "line": 6,
+    "content": "return fallback;"
+  },
+  {
+    "file": "src\\components\\classifieds\\travel-booking-dossier-modal.test.ts",
+    "line": 11,
+    "content": "const mockClassified = {"
+  },
+  {
+    "file": "src\\components\\commerce\\experience-renderer.tsx",
+    "line": 627,
+    "content": "const fallbackStore = {"
+  },
+  {
+    "file": "src\\components\\commerce\\experience-renderer.tsx",
+    "line": 645,
+    "content": "const rawStore = nodeTransientData?.store_hero ?? nodeTransientData?.store ?? nodeTransientData ?? transientData?.store ?? fallbackStore;"
+  },
+  {
+    "file": "src\\components\\commerce\\experience-renderer.tsx",
+    "line": 646,
+    "content": "const storeObj = typeof rawStore === \"object\" && rawStore !== null ? { ...fallbackStore, ...rawStore } : fallbackStore;"
+  },
+  {
+    "file": "src\\components\\location\\geolocation-permission-sheet.tsx",
+    "line": 99,
+    "content": "const fallbackLoc: LocationState = {"
+  },
+  {
+    "file": "src\\components\\location\\location-master-pill.tsx",
+    "line": 271,
+    "content": "const fallbackLoc: LocationState = {"
+  },
+  {
+    "file": "src\\components\\studio\\motion\\motion-templates.ts",
+    "line": 96,
+    "content": "const asString = (value: unknown, fallback = \"\") => (typeof value === \"string\" ? value : fallback);"
+  },
+  {
+    "file": "src\\components\\studio\\motion\\motion-templates.ts",
+    "line": 97,
+    "content": "const asNumber = (value: unknown, fallback = 0) =>"
+  },
+  {
+    "file": "src\\components\\studio\\motion\\motion-templates.ts",
+    "line": 99,
+    "content": "const asBoolean = (value: unknown, fallback = false) => (typeof value === \"boolean\" ? value : fallback);"
+  },
+  {
+    "file": "src\\components\\studio\\motion\\motion-templates.ts",
+    "line": 102,
+    "content": "const asRatio = (value: unknown, fallback: MotionStudioRatio): MotionStudioRatio => {"
+  },
+  {
+    "file": "src\\components\\studio\\motion\\motion-templates.ts",
+    "line": 104,
+    "content": "return fallback;"
+  },
+  {
+    "file": "src\\components\\tourism\\groups\\new-group-tour-sheet.tsx",
+    "line": 202,
+    "content": "const [fallbackCapacity, setFallbackCapacity] = useState<number>(46);"
+  },
+  {
+    "file": "src\\components\\tourism\\groups\\new-group-tour-sheet.tsx",
+    "line": 232,
+    "content": "const effectiveTotalSeats = selectedLayout ? selectedLayout.total_capacity : fallbackCapacity;"
+  },
+  {
+    "file": "src\\components\\tourism\\radar\\radar-map-widget.tsx",
+    "line": 14,
+    "content": "export const MOCK_ACTIVE_TRAVELERS: ActiveTravelerLocation[] = ["
+  },
+  {
+    "file": "src\\components\\ui\\image-upload.tsx",
+    "line": 126,
+    "content": "const fallbackRes = await uploadMediaUniversal({"
+  }
+]

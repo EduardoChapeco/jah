@@ -109,32 +109,38 @@ export const Route = createFileRoute("/_store/mercado")({
  listHotpages({ data: { module: "mercado" } }).catch(() => []),
  ]);
 
- return {
- products: productsRes || { status: "ok", data: [] },
- categories: categoriesRes || [],
- availableAttributes: attributesRes || [],
- feed: feedRes || { sections: [], allProducts: [] },
- banners: bannersRes || [],
- hotpages: hotpagesRes || [],
- };
-   } catch (err) {
-     console.error("[loader:_store.mercado] Unhandled error:", err);
-     return null;
-   }
- },
+      return {
+        products: productsRes || { status: "ok", data: [] },
+        categories: categoriesRes || [],
+        availableAttributes: attributesRes || [],
+        feed: feedRes || { sections: [], allProducts: [] },
+        banners: bannersRes || [],
+        hotpages: hotpagesRes || [],
+      };
+    } catch (err) {
+      console.error("[loader:_store.mercado] Unhandled error:", err);
+      return {
+        products: { status: "ok", data: [] },
+        categories: [],
+        availableAttributes: [],
+        feed: { sections: [], allProducts: [] },
+        banners: [],
+        hotpages: [],
+      };
+    }
+  },
  pendingComponent: PageSkeleton,
  component: SupermarketMasterPage,
 });
 
 function SupermarketMasterPage() {
- const {
- products: result,
- categories,
- availableAttributes,
- feed,
- banners,
- hotpages,
- } = Route.useLoaderData();
+  const loaderData = (Route.useLoaderData() as any) || {};
+  const result = loaderData.products || { status: "ok", data: [] };
+  const categories = loaderData.categories || [];
+  const availableAttributes = loaderData.availableAttributes || [];
+  const feed = loaderData.feed || { sections: [], allProducts: [] };
+  const banners = loaderData.banners || [];
+  const hotpages = loaderData.hotpages || [];
  const search = Route.useSearch();
  const navigate = useNavigate();
 
@@ -285,7 +291,6 @@ function SupermarketMasterPage() {
  viewMode={currentView}
  onViewModeChange={handleViewModeChange}
  allowedViewModes={["feed", "grid", "list"]}
- resultsCount={displayedProducts.length}
  />
 
  {/* ── 6. Filtros Especiais de Dieta & Estilo de Vida (Pills) ── */}
@@ -321,14 +326,10 @@ function SupermarketMasterPage() {
 
  {/* Gôndola de Produtos Multi-Supermercados */}
  <div className="space-y-4 pt-4 ">
- <div className="flex items-center justify-end">
- <span className="text-xs text-muted-foreground font-mono font-bold">
- {displayedProducts.length} itens encontrados
- </span>
- </div>
+ 
 
  {displayedProducts.length > 0 ? (
- <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+ <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-5">
  {displayedProducts.map((prod) => (
  <GroceryProductCard key={prod.id} product={prod} />
  ))}
@@ -365,7 +366,7 @@ function SupermarketMasterPage() {
  <EmptyState title="Nenhum item encontrado nos supermercados" />
  </div>
  ) : (
- <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+ <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-5">
  {displayedProducts.map((prod) => (
  <GroceryProductCard key={prod.id} product={prod} viewMode="grid" />
  ))}

@@ -1,8 +1,10 @@
+import { z } from 'zod';
 import { generateSyntheticCohort, BRAZILIAN_CITIES, CANONICAL_BRAZIL_ARCHETYPES } from '@/lib/simlab/brazil-demographics';
 import { decomposeOffer, evaluateMcFaddenDiscreteChoice } from '@/lib/simlab/econometric-engine';
 import { getNextActiveKey, markKeyError } from '@/services/api-orchestrator.functions';
 import { createServerFn } from '@tanstack/react-start';
 import { getServerClient } from '@/lib/supabase';
+import { logSystemError } from '@/lib/logger';
 import type { 
   SyntheticArchetype,
   SimLabExperiment,
@@ -49,22 +51,35 @@ export async function fetchSyntheticArchetypes(data?: { socialClasses?: string[]
         } as SyntheticArchetype;
       });
     }
-  } catch (err: any) {
-    console.warn('[simlab] fetchSyntheticArchetypes fallback para arquétipos canônicos:', err.message);
-  }
 
-  let filtered = [...CANONICAL_BRAZIL_ARCHETYPES];
-  if (data?.socialClasses && data.socialClasses.length > 0) {
-    filtered = filtered.filter(a => data.socialClasses!.includes(a.abep_social_class));
+    // Padrão canônico de calibração demográfica IBGE 2022 / ABEP caso o banco esteja sem registros
+    let fallback = [...CANONICAL_BRAZIL_ARCHETYPES];
+    if (data?.socialClasses && data.socialClasses.length > 0) {
+      fallback = fallback.filter(a => data.socialClasses!.includes(a.abep_social_class));
+    }
+    if (data?.regions && data.regions.length > 0) {
+      fallback = fallback.filter(a => data.regions!.includes(a.region));
+    }
+    return fallback;
+  } catch (err: any) {
+    logSystemError({
+      route: 'simlab.fetchSyntheticArchetypes',
+      error: err,
+      schemaName: 'public',
+      tableName: 'synthetic_population_archetypes',
+      contractName: 'listSyntheticArchetypes',
+    });
+    throw new Error(`Falha ao carregar arquétipos do SimLab: ${err.message}`);
   }
-  if (data?.regions && data.regions.length > 0) {
-    filtered = filtered.filter(a => data.regions!.includes(a.region));
-  }
-  return filtered;
 }
 
+export const ListSyntheticArchetypesSchema = z.object({
+  socialClasses: z.array(z.string()).optional(),
+  regions: z.array(z.string()).optional(),
+}).optional();
+
 export const listSyntheticArchetypes = createServerFn({ method: 'GET' })
-  .validator((data: { socialClasses?: string[]; regions?: string[] } | undefined) => data || {})
+  .validator(ListSyntheticArchetypesSchema)
   .handler(async ({ data }): Promise<SyntheticArchetype[]> => {
     return fetchSyntheticArchetypes(data);
   });
@@ -100,15 +115,17 @@ export async function executeCreateSimLabExperiment(data: {
   return { success: true, experiment: row as SimLabExperiment };
 }
 
+export const CreateSimLabExperimentSchema = z.object({
+  storeId: z.string(),
+  title: z.string().min(2),
+  objective: z.string().min(2),
+  stimulusPayload: z.record(z.any()),
+  targetAudienceFilters: z.record(z.any()).optional(),
+  sampleSize: z.number().int().positive().optional(),
+});
+
 export const createSimLabExperiment = createServerFn({ method: 'POST' })
-  .validator((data: {
-    storeId: string;
-    title: string;
-    objective: string;
-    stimulusPayload: Record<string, any>;
-    targetAudienceFilters?: Record<string, any>;
-    sampleSize?: number;
-  }) => data)
+  .validator(CreateSimLabExperimentSchema)
   .handler(async ({ data }) => {
     return executeCreateSimLabExperiment(data);
   });
@@ -457,8 +474,13 @@ export async function executeSimLabBatchSimulation(data: {
   };
 }
 
+export const RunSimLabBatchSimulationSchema = z.object({
+  experimentId: z.string().min(1),
+  storeId: z.string().min(1),
+});
+
 export const runSimLabBatchSimulation = createServerFn({ method: 'POST' })
-  .validator((data: { experimentId: string; storeId: string }) => data)
+  .validator(RunSimLabBatchSimulationSchema)
   .handler(async ({ data }) => {
     return executeSimLabBatchSimulation(data);
   });
@@ -487,24 +509,26 @@ export async function executeCreateFocusGroupSession(data: {
     if (error) throw error;
     return { success: true, session: row as FocusGroupSession };
   } catch (err: any) {
-    console.warn('[simlab] createFocusGroupSession fallback:', err.message);
-    return {
-      success: true,
-      session: {
-        id: 'focus-' + Date.now(),
-        store_id: data.storeId,
-        session_title: data.sessionTitle,
-        selected_persona_ids: data.personaIds,
-        moderator_goal: data.moderatorGoal || null,
-        status: 'active',
-        created_at: new Date().toISOString(),
-      }
-    };
+    logSystemError({
+      route: 'simlab.executeCreateFocusGroupSession',
+      error: err,
+      schemaName: 'public',
+      tableName: 'simlab_focus_group_sessions',
+      contractName: 'createFocusGroupSession',
+    });
+    throw new Error(`Erro ao criar sessão de focus group no SimLab: ${err.message}`);
   }
 }
 
+export const CreateFocusGroupSessionSchema = z.object({
+  storeId: z.string().min(1),
+  sessionTitle: z.string().min(2),
+  personaIds: z.array(z.string()),
+  moderatorGoal: z.string().optional(),
+});
+
 export const createFocusGroupSession = createServerFn({ method: 'POST' })
-  .validator((data: { storeId: string; sessionTitle: string; personaIds: string[]; moderatorGoal?: string }) => data)
+  .validator(CreateFocusGroupSessionSchema)
   .handler(async ({ data }) => {
     return executeCreateFocusGroupSession(data);
   });
@@ -530,7 +554,7 @@ export async function executeGetOrCreateActiveFocusSession(data: {
 
     const defaultIds = data.personaIds && data.personaIds.length > 0 
       ? data.personaIds 
-      : CANONICAL_BRAZIL_ARCHETYPES.slice(0, 3).map(a => a.id);
+      : [];
 
     const created = await executeCreateFocusGroupSession({
       storeId: data.storeId,
@@ -540,21 +564,24 @@ export async function executeGetOrCreateActiveFocusSession(data: {
     });
     return { session: created.session };
   } catch (e: any) {
-    return {
-      session: {
-        id: 'session-default',
-        store_id: data.storeId,
-        session_title: 'Focus Group Virtual — Avaliação de Ofertas',
-        selected_persona_ids: data.personaIds || [],
-        status: 'active',
-        created_at: new Date().toISOString()
-      }
-    };
+    logSystemError({
+      route: 'simlab.executeGetOrCreateActiveFocusSession',
+      error: e,
+      schemaName: 'public',
+      tableName: 'simlab_focus_group_sessions',
+      contractName: 'getOrCreateActiveFocusSession',
+    });
+    throw new Error(`Não foi possível inicializar a sessão de Focus Group: ${e.message}`);
   }
 }
 
+export const GetOrCreateActiveFocusSessionSchema = z.object({
+  storeId: z.string().min(1),
+  personaIds: z.array(z.string()).optional(),
+});
+
 export const getOrCreateActiveFocusSession = createServerFn({ method: 'POST' })
-  .validator((data: { storeId: string; personaIds?: string[] }) => data)
+  .validator(GetOrCreateActiveFocusSessionSchema)
   .handler(async ({ data }) => {
     return executeGetOrCreateActiveFocusSession(data);
   });
@@ -573,14 +600,21 @@ export async function executeListFocusGroupMessages(data: { sessionId: string })
       if (error) throw error;
       if (rows && rows.length > 0) return rows as FocusGroupMessage[];
     }
+    return [];
   } catch (err: any) {
-    console.warn('[simlab] listFocusGroupMessages fallback:', err.message);
+    logSystemError({
+      route: 'simlab.executeListFocusGroupMessages',
+      error: err,
+      schemaName: 'public',
+      tableName: 'simlab_focus_group_messages',
+      contractName: 'listFocusGroupMessages',
+    });
+    throw new Error(`Erro ao buscar mensagens do Focus Group: ${err.message}`);
   }
-  return [];
 }
 
 export const listFocusGroupMessages = createServerFn({ method: 'GET' })
-  .validator((data: { sessionId: string }) => data)
+  .validator(z.object({ sessionId: z.string().min(1) }))
   .handler(async ({ data }) => {
     return executeListFocusGroupMessages(data);
   });
@@ -808,8 +842,14 @@ ${JSON.stringify(
   };
 }
 
+export const SendFocusGroupMessageSchema = z.object({
+  sessionId: z.string().min(1),
+  userMessage: z.string().min(1),
+  selectedPersonas: z.array(z.any()),
+});
+
 export const sendFocusGroupMessage = createServerFn({ method: 'POST' })
-  .validator((data: { sessionId: string; userMessage: string; selectedPersonas: SyntheticArchetype[] }) => data)
+  .validator(SendFocusGroupMessageSchema)
   .handler(async ({ data }) => {
     return executeSendFocusGroupMessage(data);
   });
@@ -833,8 +873,15 @@ export const getSimLabStatus = createServerFn({ method: 'GET' })
     };
   });
 
+export const RunPersonaSimulationSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().min(1),
+  priceCents: z.number().int().nonnegative(),
+  niche: z.any().optional(),
+});
+
 export const runPersonaSimulation = createServerFn({ method: 'POST' })
-  .validator((data: { title: string; description: string; priceCents: number; niche: any }) => data)
+  .validator(RunPersonaSimulationSchema)
   .handler(async ({ data }) => {
     const { runSimulation } = await import('@/lib/simlab/simulator');
     return runSimulation({
@@ -889,8 +936,16 @@ export const listResearchSessions = createServerFn({ method: 'GET' })
     }
   });
 
+export const CreateSimLabPersonaSchema = z.object({
+  name: z.string().min(1),
+  archetype: z.string(),
+  neighborhood: z.string(),
+  prompt_persona: z.string(),
+  habits: z.array(z.string()).optional(),
+});
+
 export const createSimLabPersona = createServerFn({ method: 'POST' })
-  .validator((data: { name: string; archetype: string; neighborhood: string; prompt_persona: string; habits?: string[] }) => data)
+  .validator(CreateSimLabPersonaSchema)
   .handler(async ({ data }) => {
     try {
       const db = getServerClient();
@@ -916,8 +971,14 @@ export const createSimLabPersona = createServerFn({ method: 'POST' })
     }
   });
 
+export const RunSimLabResearchSchema = z.object({
+  title: z.string().min(1),
+  objective: z.string().min(1),
+  simulated_personas_count: z.number().int().positive(),
+});
+
 export const runSimLabResearch = createServerFn({ method: 'POST' })
-  .validator((data: { title: string; objective: string; simulated_personas_count: number }) => data)
+  .validator(RunSimLabResearchSchema)
   .handler(async ({ data }) => {
     return executeSimLabBatchSimulation({ experimentId: 'temp-' + Date.now(), storeId: 'default' });
   });

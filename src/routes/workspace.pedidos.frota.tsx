@@ -60,19 +60,17 @@ export const Route = createFileRoute("/workspace/pedidos/frota")({
  return { dispatches, priceTables, pendingOrders, couriers };
    } catch (err) {
      console.error("[loader:workspace.pedidos.frota] Unhandled loader error:", err);
-     return null;
+     return { dispatches: null, priceTables: null, pendingOrders: null, couriers: null };
    }
  },
  component: FrotaEntregasPage,
 });
 
 function FrotaEntregasPage() {
- const {
- dispatches: initialDispatches,
+ const { dispatches: initialDispatches,
  priceTables: initialPriceTables,
  pendingOrders: initialPendingOrders,
- couriers: initialCouriers,
- } = Route.useLoaderData();
+ couriers: initialCouriers, } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
  const [activeTab, setActiveTab] = useState<"dispatches" | "pricing">("dispatches");
 
@@ -337,7 +335,7 @@ function FrotaEntregasPage() {
  <span>Novo Despacho</span>
  </Button>
  </SheetTrigger>
- <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
  <SheetHeader className="p-6 pb-4 border-b border-border/60 bg-card">
  <SheetTitle className="text-base font-semibold text-foreground">
  Despachar Pedido para Entrega
@@ -568,7 +566,7 @@ function FrotaEntregasPage() {
  <span>Adicionar Tabela de Tarifa</span>
  </Button>
  </SheetTrigger>
- <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
  <SheetHeader className="p-6 pb-4 border-b border-border/60 bg-card">
  <SheetTitle className="text-base font-semibold text-foreground">
  Nova Tabela de Tarifa de Mobilidade / Frete

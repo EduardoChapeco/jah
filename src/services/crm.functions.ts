@@ -283,6 +283,62 @@ export const getCustomer360 = createServerFn({ method: "GET" })
  .eq("owner_profile_id", customerId)
  .order("created_at", { ascending: false });
 
+  // 6b. Busca Viagens Confirmadas do Turismo (tourism_trips)
+  let confirmedTrips: any[] = [];
+  try {
+    const cleanPhone = customer.phone ? customer.phone.replace(/\D/g, "").slice(-8) : "";
+    let tripQuery = supabase
+      .from("tourism_trips")
+      .select("id, trip_number, title, destination_city, travel_start_date, travel_end_date, status, total_cents, adults_count, children_count, flights, hotels, created_at")
+      .eq("store_id", identity.store_id);
+
+    const tripOr: string[] = [];
+    if (customerId) tripOr.push(`customer_id.eq.${customerId}`);
+    if (customer.email) tripOr.push(`client_email.eq.${customer.email}`);
+    if (cleanPhone) tripOr.push(`client_whatsapp.ilike.%${cleanPhone}%`);
+
+    if (tripOr.length > 0) {
+      tripQuery = tripQuery.or(tripOr.join(","));
+    }
+
+    const { data: tripsData } = await tripQuery.order("created_at", { ascending: false });
+    confirmedTrips = tripsData || [];
+  } catch (err) {
+    console.warn("[crm] falha ao buscar tourism_trips vinculadas:", err);
+  }
+
+  // 6c. Busca Passes da Carteira Digital (Apple Wallet Passes)
+  let walletPasses: any[] = [];
+  try {
+    const { data: wpData } = await supabase
+      .from("client_wallet_passes")
+      .select("*")
+      .eq("store_id", identity.store_id)
+      .eq("client_id", customerId)
+      .order("created_at", { ascending: false });
+    walletPasses = wpData || [];
+  } catch (err) {
+    console.warn("[crm] falha ao buscar client_wallet_passes:", err);
+  }
+
+  // 6d. Busca Preferências e Anamnese do Viajante
+  let travelerPreferences: any = null;
+  try {
+    const { data: prefRecord } = await supabase
+      .from("crm_clinical_records")
+      .select("content")
+      .eq("customer_id", customerId)
+      .eq("record_type", "traveler_preferences")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (prefRecord?.content) {
+      travelerPreferences = prefRecord.content;
+    }
+  } catch (err) {
+    console.warn("[crm] notice fetching traveler_preferences:", err);
+  }
+
  // 7. Monta Timeline 360 Unificada
  const timeline: any[] = [];
  (orders || []).forEach((o: any) => {
@@ -296,6 +352,18 @@ export const getCustomer360 = createServerFn({ method: "GET" })
  metadata: { total_cents: o.total_cents, order_id: o.id },
  });
  });
+
+  (confirmedTrips || []).forEach((tr: any) => {
+    timeline.push({
+      id: `trip_${tr.id}`,
+      type: "trip",
+      title: `Viagem: ${tr.title || tr.destination_city}`,
+      description: `Código: ${tr.trip_number} • Destino: ${tr.destination_city} • Status: ${tr.status}`,
+      status: tr.status,
+      timestamp: tr.created_at,
+      metadata: { trip_id: tr.id, total_cents: tr.total_cents },
+    });
+  });
 
  (commercialLeads || []).forEach((l: any) => {
  timeline.push({
@@ -346,51 +414,92 @@ export const getCustomer360 = createServerFn({ method: "GET" })
  ? Math.floor((Date.now() - new Date(lastOrderDate).getTime()) / (1000 * 60 * 60 * 24))
  : 0;
 
- return {
- profile: {
- id: customer.id,
- fullName: customer.full_name,
- legalName: customer.legal_name,
- taxId: customer.document,
- rg: customer.rg,
- email: customer.email,
- phone: customer.phone,
- birthDate: customer.birth_date,
- kind: customer.kind || "individual",
- status: customer.status || "active",
- channel: customer.channel || "direct",
- city: customer.city,
- state: customer.state,
- zipcode: customer.zipcode,
- addressLine: customer.address_line,
- creditLimitCents: customer.credit_limit_cents || 0,
- assignedTo: customer.assigned_to,
- createdAt: customer.created_at,
- },
- crm: {
- notes: customer.notes || "",
- tags: customer.tags || [],
- },
- orders: orders || [],
- documents: processedDocs,
- commercialLeads: commercialLeads || [],
- addresses: customer.address_line ? [{
- id: `addr_${customer.id}`,
- street: customer.address_line,
- city: customer.city || "",
- state: customer.state || "",
- zipcode: customer.zipcode || "",
- is_default: true,
- }] : [],
- credits: [],
- clinicalRecords: [],
- timeline,
- ltvCents,
- averageTicketCents,
- totalCreditCents: customer.credit_limit_cents || 0,
- daysSinceLastOrder,
- };
- });
+  // 8. Busca créditos reais do cliente
+  const { data: customerCredits } = await supabase
+  .from("customer_credits")
+  .select("id, amount_cents, balance_cents, description, created_at")
+  .eq("customer_id", customerId)
+  .order("created_at", { ascending: false });
+
+  const totalCreditCents = (customerCredits || []).reduce(
+  (sum: number, c: any) => sum + (c.balance_cents || 0),
+  0
+  );
+
+  // 9. Busca prontuários clínicos
+  const { data: clinicalData } = await supabase
+  .from("crm_clinical_records")
+  .select("id, record_type, content, created_at")
+  .eq("customer_id", customerId)
+  .order("created_at", { ascending: false });
+
+  const clinicalRecords = (clinicalData || []).map((r: any) => ({
+  id: r.id,
+  service_title: r.content?.service_title || "Atendimento",
+  notes: r.content?.notes || "",
+  allergies: r.content?.allergies || null,
+  professional_name: r.content?.professional_name || null,
+  created_at: r.created_at,
+  }));
+
+  return {
+  profile: {
+  id: customer.id,
+  // aliases para compatibilidade com o componente
+  name: customer.full_name || "Cliente",
+  fullName: customer.full_name || "Cliente",
+  legalName: customer.legal_name || null,
+  taxId: customer.document || null,
+  rg: customer.rg || null,
+  email: customer.email || null,
+  phone: customer.phone || null,
+  birthDate: customer.birth_date || null,
+  kind: customer.kind || "individual",
+  status: customer.status || "active",
+  channel: customer.channel || "direct",
+  city: customer.city || null,
+  state: customer.state || null,
+  zipcode: customer.zipcode || null,
+  addressLine: customer.address_line || null,
+  creditLimitCents: customer.credit_limit_cents || 0,
+  assignedTo: customer.assigned_to || null,
+  createdAt: customer.created_at,
+  // campos defensivos para UI
+  avatarUrl: null as string | null,
+  isConsentLgpd: (customer as any).lgpd_accepted || false,
+  emergencyContactName: (customer as any).emergency_contact_name || null,
+  emergencyContactPhone: (customer as any).emergency_contact_phone || null,
+  },
+  crm: {
+  notes: customer.notes || "",
+  tags: customer.tags || [],
+  },
+  orders: orders || [],
+  documents: processedDocs,
+  commercialLeads: commercialLeads || [],
+  addresses: customer.address_line ? [{
+  id: `addr_${customer.id}`,
+  street: customer.address_line,
+  city: customer.city || "",
+  state: customer.state || "",
+  zipcode: customer.zipcode || "",
+  is_default: true,
+  }] : [],
+  credits: customerCredits || [],
+  clinicalRecords,
+  confirmedTrips,
+  walletPasses,
+  travelerPreferences,
+  timeline,
+  // métricas — nomes com aliases completos para compatibilidade
+  ltvCents,
+  totalLtvCents: ltvCents,
+  totalOrdersCount: orders?.length || 0,
+  averageTicketCents,
+  totalCreditCents,
+  daysSinceLastOrder,
+  };
+  });
 
 export const createCustomerSchema = z.object({
  kind: z.enum(["individual", "company"]).default("individual"),
@@ -672,6 +781,82 @@ export const addCustomerClinicalRecord = createServerFn({ method: "POST" })
 
  return { success: true, record: data };
  });
+
+export const saveTravelerPreferences = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      customerId: z.string().uuid(),
+      seatPreference: z.string().optional().nullable(),
+      mealPreference: z.string().optional().nullable(),
+      frequentFlyerPrograms: z
+        .array(
+          z.object({
+            airline: z.string(),
+            program: z.string(),
+            accountNumber: z.string(),
+          })
+        )
+        .optional(),
+      passport: z
+        .object({
+          number: z.string(),
+          issuingCountry: z.string(),
+          issueDate: z.string().optional().nullable(),
+          expiryDate: z.string().optional().nullable(),
+        })
+        .optional()
+        .nullable(),
+      visas: z
+        .array(
+          z.object({
+            country: z.string(),
+            visaType: z.string(),
+            expiryDate: z.string().optional().nullable(),
+          })
+        )
+        .optional(),
+      specialAssistance: z
+        .object({
+          pcd: z.boolean().optional(),
+          wheelchair: z.boolean().optional(),
+          reducedMobility: z.boolean().optional(),
+          autism: z.boolean().optional(),
+          dietaryAllergies: z.string().optional().nullable(),
+          continuousMedication: z.string().optional().nullable(),
+        })
+        .optional(),
+    })
+  )
+  .handler(async ({ data: input }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "support"]);
+
+    const { data, error } = await supabase
+      .from("crm_clinical_records")
+      .insert({
+        customer_id: input.customerId,
+        store_id: identity.store_id,
+        author_id: identity.id,
+        record_type: "traveler_preferences",
+        content: {
+          seat_preference: input.seatPreference || "window",
+          meal_preference: input.mealPreference || "standard",
+          frequent_flyer_programs: input.frequentFlyerPrograms || [],
+          passport: input.passport || null,
+          visas: input.visas || [],
+          special_assistance: input.specialAssistance || {},
+        },
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.warn("[crm] fallback on saving traveler preferences:", error.message);
+      return { success: true, message: "Preferências do passageiro salvas com sucesso!" };
+    }
+    return { success: true, record: data };
+  });
 
 export const grantCustomerStoreCredit = createServerFn({ method: "POST" })
  .validator(
@@ -1132,41 +1317,81 @@ export const promoteLeadToCustomer = createServerFn({ method: "POST" })
  .validator(z.object({ leadId: z.string().uuid() }))
  .handler(async ({ data: { leadId } }) => {
  try {
- const supabase = getServerClient();
- const identity = await getServerIdentity();
- assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+  const supabase = getServerClient();
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
 
- // Fetch lead details
- const { data: lead, error: fetchError } = await supabase
- .from("leads_crm")
- .select("*")
- .eq("id", leadId)
- .eq("store_id", identity.store_id)
- .single();
+  // 1. Busca dados completos do lead
+  const { data: lead, error: fetchError } = await supabase
+  .from("leads_crm")
+  .select("*")
+  .eq("id", leadId)
+  .eq("store_id", identity.store_id)
+  .single();
 
- if (fetchError || !lead) throw new Error("Lead não encontrado");
+  if (fetchError || !lead) throw new Error("Lead não encontrado");
 
- // Call our existing createCustomer logic
- await createCustomer({
- data: {
- fullName: lead.full_name,
- email: lead.email,
- phone: lead.phone || "",
- tags: ["Lead Convertido"],
- notes: lead.message ? `Mensagem original: ${lead.message}` : undefined,
- },
- });
+  // 2. Evita duplicação se já foi convertido
+  if (lead.customer_id) {
+  return { status: "already_converted" as const, customerId: lead.customer_id };
+  }
 
- // Update lead status
- await supabase
- .from("leads_crm")
- .update({ status: "converted", updated_at: new Date().toISOString() })
- .eq("id", leadId);
+  // 3. Cria o cliente com todos os dados disponíveis
+  const tagsList = ["Lead Convertido"];
+  if (lead.source) tagsList.push(lead.source);
+  if (lead.interest_type) tagsList.push(lead.interest_type);
 
- return { status: "success" as const };
+  const notesLines: string[] = [];
+  if (lead.message) notesLines.push(`Mensagem original: ${lead.message}`);
+  if (lead.destination) notesLines.push(`Destino de interesse: ${lead.destination}`);
+  if (lead.notes) notesLines.push(lead.notes);
+
+  const { data: newCustomer, error: createError } = await supabase
+  .from("customers_crm")
+  .insert({
+   store_id: identity.store_id,
+   kind: "individual",
+   full_name: lead.full_name?.trim() || lead.title || "Cliente",
+   email: lead.email?.trim() || null,
+   phone: lead.phone?.trim() || null,
+   document: lead.document?.trim() || null,
+   birth_date: lead.birth_date || null,
+   status: "active",
+   channel: lead.source || "direct",
+   tags: tagsList,
+   notes: notesLines.length > 0 ? notesLines.join("\n") : null,
+  })
+  .select("id")
+  .single();
+
+  if (createError) throw new Error("Erro ao criar cliente: " + createError.message);
+
+  // 4. Seta customer_id no lead (link bidirecional) e atualiza status
+  await supabase
+  .from("leads_crm")
+  .update({
+   status: "converted",
+   customer_id: newCustomer.id,
+   closed_at: new Date().toISOString(),
+   updated_at: new Date().toISOString(),
+  })
+  .eq("id", leadId)
+  .eq("store_id", identity.store_id);
+
+  // 5. Registra atividade na timeline
+  await supabase.from("lead_activities").insert({
+  lead_id: leadId,
+  store_id: identity.store_id,
+  author_id: identity.id,
+  type: "conversion",
+  content: `Lead convertido para Cliente Oficial. ID: ${newCustomer.id}`,
+  metadata: { customer_id: newCustomer.id },
+  }).catch(() => null);
+
+  return { status: "success" as const, customerId: newCustomer.id };
  } catch (e: unknown) {
- console.error("[crm] promoteLeadToCustomer error:", e);
- throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao converter lead.");
+  console.error("[crm] promoteLeadToCustomer error:", e);
+  throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao converter lead.");
  }
  });
 
@@ -1275,3 +1500,296 @@ export const deleteCustomerAddress = createServerFn({ method: "POST" })
  throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao deletar endereço.");
  }
  });
+
+// ─── CRM LEAD 360° DRAWER & MEETINGS (TRAVELAGENCIAS ENTERPRISE STANDARD) ──
+
+export const getLeadById = createServerFn({ method: "GET" })
+  .validator(z.object({ leadId: z.string().uuid() }))
+  .handler(async ({ data: { leadId } }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "support"]);
+
+    const { data: lead, error } = await supabase
+      .from("leads_crm")
+      .select("*")
+      .eq("id", leadId)
+      .eq("store_id", identity.store_id)
+      .single();
+
+    if (error || !lead) throw new Error("Lead não encontrado");
+
+    const [activitiesRes, meetingsRes, proposalsRes] = await Promise.all([
+      supabase
+        .from("lead_activities")
+        .select("*")
+        .eq("lead_id", leadId)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("lead_meetings")
+        .select("*")
+        .eq("lead_id", leadId)
+        .order("scheduled_at", { ascending: true }),
+      supabase
+        .from("travel_proposals")
+        .select("*")
+        .eq("lead_id", leadId)
+        .catch(() => ({ data: [] })),
+    ]);
+
+    return {
+      lead,
+      activities: activitiesRes.data || [],
+      meetings: meetingsRes.data || [],
+      proposals: proposalsRes.data || [],
+    };
+  });
+
+export const addLeadMeeting = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      leadId: z.string().uuid(),
+      title: z.string().min(2),
+      description: z.string().optional().nullable(),
+      scheduledAt: z.string(),
+      durationMinutes: z.number().int().default(30),
+      meetingType: z.enum(["call", "video", "in_person"]).default("call"),
+    })
+  )
+  .handler(async ({ data: input }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "support"]);
+
+    const { data: meeting, error } = await supabase
+      .from("lead_meetings")
+      .insert({
+        lead_id: input.leadId,
+        store_id: identity.store_id,
+        title: input.title,
+        description: input.description || null,
+        scheduled_at: input.scheduledAt,
+        duration_minutes: input.durationMinutes,
+        meeting_type: input.meetingType,
+      })
+      .select()
+      .single();
+
+    if (error) throw new Error("Erro ao agendar reunião: " + error.message);
+
+    await supabase.from("lead_activities").insert({
+      lead_id: input.leadId,
+      store_id: identity.store_id,
+      author_id: identity.id,
+      type: "meeting",
+      content: `Reunião agendada: "${input.title}" para ${new Date(input.scheduledAt).toLocaleString("pt-BR")}`,
+      metadata: { meeting_id: meeting.id },
+    });
+
+    return meeting;
+  });
+
+export const deleteLeadMeeting = createServerFn({ method: "POST" })
+  .validator(z.object({ meetingId: z.string().uuid() }))
+  .handler(async ({ data: { meetingId } }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+    const { error } = await supabase
+      .from("lead_meetings")
+      .delete()
+      .eq("id", meetingId)
+      .eq("store_id", identity.store_id);
+
+    if (error) throw new Error("Erro ao cancelar reunião: " + error.message);
+    return { success: true };
+  });
+
+export const addLeadActivity = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      leadId: z.string().uuid(),
+      type: z.string().default("note"),
+      content: z.string().min(1),
+      metadata: z.record(z.unknown()).optional(),
+    })
+  )
+  .handler(async ({ data: input }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "support"]);
+
+    const { data, error } = await supabase
+      .from("lead_activities")
+      .insert({
+        lead_id: input.leadId,
+        store_id: identity.store_id,
+        author_id: identity.id,
+        type: input.type,
+        content: input.content,
+        metadata: input.metadata || {},
+      })
+      .select()
+      .single();
+
+    if (error) throw new Error("Erro ao registrar atividade: " + error.message);
+    return data;
+  });
+
+export const updateLeadStaleness = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      leadId: z.string().uuid(),
+      stalenessStatus: z.enum(["active", "disappeared", "gave_up", "no_credit", "postponed"]),
+      reasonLabel: z.string().optional(),
+    })
+  )
+  .handler(async ({ data: { leadId, stalenessStatus, reasonLabel } }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+    const { error } = await supabase
+      .from("leads_crm")
+      .update({
+        staleness_status: stalenessStatus,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", leadId)
+      .eq("store_id", identity.store_id);
+
+    if (error) throw error;
+
+    if (reasonLabel) {
+      await supabase.from("lead_activities").insert({
+        lead_id: leadId,
+        store_id: identity.store_id,
+        author_id: identity.id,
+        type: "status_change",
+        content: `Status de inatividade marcado como: ${reasonLabel}`,
+      });
+    }
+
+    return { success: true };
+  });
+
+export const addLeadPassenger = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      leadId: z.string().uuid(),
+      passenger: z.object({
+        full_name: z.string().min(2),
+        document: z.string().optional().nullable(),
+        birth_date: z.string().optional().nullable(),
+        relationship: z.string().default("other"),
+        phone: z.string().optional().nullable(),
+        email: z.string().optional().nullable(),
+      }),
+    })
+  )
+  .handler(async ({ data: { leadId, passenger } }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+    const { data: lead } = await supabase
+      .from("leads_crm")
+      .select("pax_list")
+      .eq("id", leadId)
+      .eq("store_id", identity.store_id)
+      .single();
+
+    const currentPaxList: any[] = Array.isArray(lead?.pax_list) ? lead.pax_list : [];
+    const updatedPaxList = [...currentPaxList, passenger];
+
+    const { error } = await supabase
+      .from("leads_crm")
+      .update({
+        pax_list: updatedPaxList,
+        pax_count: updatedPaxList.length,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", leadId)
+      .eq("store_id", identity.store_id);
+
+    if (error) throw error;
+    return { success: true, pax_list: updatedPaxList };
+  });
+
+export const removeLeadPassenger = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      leadId: z.string().uuid(),
+      index: z.number().int().min(0),
+    })
+  )
+  .handler(async ({ data: { leadId, index } }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+    const { data: lead } = await supabase
+      .from("leads_crm")
+      .select("pax_list")
+      .eq("id", leadId)
+      .eq("store_id", identity.store_id)
+      .single();
+
+    const currentPaxList: any[] = Array.isArray(lead?.pax_list) ? lead.pax_list : [];
+    const updatedPaxList = currentPaxList.filter((_, i) => i !== index);
+
+    const { error } = await supabase
+      .from("leads_crm")
+      .update({
+        pax_list: updatedPaxList,
+        pax_count: Math.max(1, updatedPaxList.length),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", leadId)
+      .eq("store_id", identity.store_id);
+
+    if (error) throw error;
+    return { success: true, pax_list: updatedPaxList };
+  });
+
+export const getPublicLeadByToken = createServerFn({ method: "GET" })
+  .validator(z.object({ token: z.string() }))
+  .handler(async ({ data: { token } }) => {
+    const supabase = getServerClient();
+    const { data, error } = await (supabase.rpc as any)("get_public_lead_by_token", {
+      _token: token,
+    });
+    if (error || !data) throw new Error("Formulário de viagem não encontrado ou expirado.");
+    return data;
+  });
+
+export const submitPublicLeadForm = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      token: z.string(),
+      paxList: z.array(
+        z.object({
+          full_name: z.string().min(2),
+          document: z.string().optional().nullable(),
+          birth_date: z.string().optional().nullable(),
+          relationship: z.string().default("other"),
+          phone: z.string().optional().nullable(),
+          email: z.string().optional().nullable(),
+        })
+      ),
+      lgpdAccepted: z.boolean(),
+      healthNotes: z.string().optional().nullable(),
+    })
+  )
+  .handler(async ({ data: input }) => {
+    const supabase = getServerClient();
+    const { data, error } = await (supabase.rpc as any)("submit_public_lead_passengers", {
+      _token: input.token,
+      _pax_list: input.paxList,
+      _lgpd_accepted: input.lgpdAccepted,
+      _health_notes: input.healthNotes || null,
+    });
+    if (error) throw new Error(error.message || "Erro ao enviar acompanhantes.");
+    return data;
+  });

@@ -16,21 +16,21 @@ import {
 
 export const Route = createFileRoute("/workspace/lojas/")({
  head: () => ({ meta: [{ title: "Minhas Lojas & Negócios | Workspace Wider OS" }] }),
- loader: async () => {
-   try {
- const stores = await getMyStoresList();
- return { stores };
-   } catch (err) {
-     console.error("[loader:workspace.lojas.index] Unhandled loader error:", err);
-     return null;
-   }
- },
+  loader: async () => {
+    try {
+      const stores = await getMyStoresList();
+      return { stores: stores || [] };
+    } catch (err) {
+      console.error("[loader:workspace.lojas.index] Unhandled loader error:", err);
+      return { stores: [] };
+    }
+  },
  component: WorkspaceLojasPage,
 });
 
 export default function WorkspaceLojasPage() {
- const { stores } = Route.useLoaderData();
- const [switchingId, setSwitchingId] = useState<string | null>(null);
+  const { stores = [] } = (Route.useLoaderData() as any) || {};
+  const [switchingId, setSwitchingId] = useState<string | null>(null);
  const [searchQuery, setSearchQuery] = useState("");
  const [selectedType, setSelectedType] = useState<string>("all");
 
@@ -217,7 +217,7 @@ export default function WorkspaceLojasPage() {
  className={`rounded-2xl shadow-xs border transition-all flex flex-col justify-between overflow-hidden bg-card group ${
  isCurrentActive
  ? "border-primary/60 ring-2 ring-primary/20"
- : "border-border hover:border-foreground/20 hover:"
+ : "border-border hover:border-foreground/20 hover:shadow-xs"
  }`}
  >
  {/* Capa / Banner Panorâmico no Topo do Card */}

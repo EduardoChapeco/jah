@@ -13,6 +13,7 @@ import { useState, useMemo } from "react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/commerce/page-header";
+import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-canonical-toolbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -57,7 +58,7 @@ export const Route = createFileRoute("/workspace/catalogo/categorias/")({
 });
 
 function AdminCategoriesPage() {
- const { categories, store } = Route.useLoaderData();
+ const { categories, store } = ((Route.useLoaderData?.() as any) || {});
  const semantics = getNicheSemantics(store);
  const router = useRouter();
  const [statusFilter, setStatusFilter] = useState<"active" | "archived">("active");
@@ -97,45 +98,24 @@ function AdminCategoriesPage() {
  }
  };
 
- return (
- <div className="space-y-6">
- <PageHeader
- eyebrow="Catálogo"
- title={semantics.categoriesLabel}
- actions={
- <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground ">
- <Link to="/workspace/catalogo/categorias/novo">
- <Plus className="size-3.5" aria-hidden />
- <span>{semantics.newCategoryAction}</span>
- </Link>
- </Button>
- }
- />
-
- {/* Toolbar & Filtros */}
- <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-card rounded-2xl px-4 py-3 ">
- <Tabs
- defaultValue="active"
- value={statusFilter}
- onValueChange={(val) => setStatusFilter(val as "active" | "archived")}
- >
- <TabsList className="grid w-[280px] grid-cols-2 h-8">
- <TabsTrigger value="active" className="text-xs">Ativas ({activeCategoriesCount})</TabsTrigger>
- <TabsTrigger value="archived" className="text-xs">Arquivo Morto ({archivedCategoriesCount})</TabsTrigger>
- </TabsList>
- </Tabs>
-
- <div className="relative w-full sm:w-72">
- <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" aria-hidden />
- <Input
- type="search"
- placeholder="Buscar por nome ou slug..."
- className="pl-8 text-xs w-full rounded-xl h-8 bg-background"
- value={searchQuery}
- onChange={(e) => setSearchQuery(e.target.value)}
- />
- </div>
- </div>
+  return (
+    <div className="space-y-6">
+      <WorkspaceCanonicalToolbar
+        tabs={[
+          { id: "active", label: "Ativas", count: activeCategoriesCount },
+          { id: "archived", label: "Arquivo Morto", count: archivedCategoriesCount },
+        ]}
+        activeTab={statusFilter}
+        onTabChange={(val) => setStatusFilter(val as "active" | "archived")}
+        searchPlaceholder="Buscar por nome ou slug..."
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        primaryAction={{
+          label: semantics.newCategoryAction,
+          icon: Plus,
+          onClick: () => router.navigate({ to: "/workspace/catalogo/categorias/novo" }),
+        }}
+      />
 
  {filteredCategories.length === 0 ? (
  <div className="py-12 text-center rounded-2xl border-0 bg-card/60 space-y-4">

@@ -57,7 +57,7 @@ export const Route = createFileRoute("/workspace/suporte")({
     return { store, initialTickets: tickets as SupportTicketItem[] };
     } catch (err) {
       console.error("[loader:workspace.suporte] Unhandled loader error:", err);
-      return null;
+      return { store: null, initialTickets: null };
     }
   },
   component: WorkspaceSupportPage,
@@ -419,8 +419,7 @@ function WorkspaceSupportPage() {
       {/* ── 4. Sheet Lateral de Novo Chamado ── */}
       <Sheet open={newModalOpen} onOpenChange={setNewModalOpen}>
         <SheetContent
-          side="right"
-          className="sm:max-w-xl md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto no-scrollbar bg-card flex flex-col h-full"
+          side="right" size="wide" className="sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto no-scrollbar bg-card flex flex-col h-full"
         >
           <SheetHeader className="px-6 py-4 border-b border-border/60 bg-muted/20">
             <SheetTitle className="text-base font-bold text-foreground flex items-center gap-2">
@@ -581,8 +580,7 @@ function WorkspaceSupportPage() {
       {/* ── 5. Drawer de Thread de Atendimento ── */}
       <Sheet open={Boolean(selectedTicketId)} onOpenChange={(open) => !open && setSelectedTicketId(null)}>
         <SheetContent
-          side="right"
-          className="sm:max-w-xl md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 flex flex-col h-full bg-card"
+          side="right" size="wide" className="sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 flex flex-col h-full bg-card"
         >
           <SheetHeader className="px-6 py-4 border-b border-border/60 bg-muted/20">
             <SheetTitle className="text-base font-bold text-foreground flex items-center justify-between">

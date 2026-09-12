@@ -1,0 +1,27 @@
+[
+  {
+    "file": "src\\services\\mining.functions.ts",
+    "line": 279,
+    "content": "// 3. Extração de conteúdo bruto (Firecrawl → fallback HTTP)"
+  },
+  {
+    "file": "src\\routes\\admin-master.mining.tsx",
+    "line": 793,
+    "content": "<li>Firecrawl extrai o conteúdo limpo (ou fallback HTTP)</li>"
+  },
+  {
+    "file": "src\\routes\\admin-master.seguranca.telemetria.tsx",
+    "line": 200,
+    "content": "{ type: \"token_wallet_tamper_attempt\", sev: \"critical\", route: \"/services/tokens.functions\", payload: { fake_balance_injection: 999999, signature: \"invalid_hmac\" } },"
+  },
+  {
+    "file": "src\\components\\commerce\\store-vitrine-sections-editor.tsx",
+    "line": 63,
+    "content": "imageUrl: \"https://images.unsplash.com/photo-1556742049-0a67c5574f73?w=600&auto=format&fit=crop&q=80\","
+  },
+  {
+    "file": "src\\components\\commerce\\store-vitrine-sections-editor.tsx",
+    "line": 71,
+    "content": "imageUrl: \"https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&auto=format&fit=crop&q=80\","
+  }
+]

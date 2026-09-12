@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, isRedirect } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { getOrCreateBiolinkExperienceDocument } from "@/services/builder.functions";
 
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/workspace/cms/bio")({
  }
  } catch (e: any) {
  // If it's already a redirect, re-throw it
- if (e?.to || e?.status) throw e;
+ if (isRedirect(e) || e?.to || e?.status) throw e;
  }
 
  // Fallback: Redireciona para o Hub de Sites & Vitrines

@@ -686,7 +686,7 @@ export function BuilderInspector({
  </SelectTrigger>
  <SelectContent>
  <SelectItem value="full">100% (Full Width)</SelectItem>
- <SelectItem value="6xl">Canônico (max-w-6xl)</SelectItem>
+ <SelectItem value="6xl">Padrão Recomendado (max-w-6xl)</SelectItem>
  <SelectItem value="4xl">Médio (max-w-4xl)</SelectItem>
  <SelectItem value="2xl">Compacto (max-w-2xl)</SelectItem>
  </SelectContent>
@@ -809,7 +809,7 @@ export function BuilderInspector({
  <SelectContent>
  <SelectItem value="rounded-none">Reto (0px)</SelectItem>
  <SelectItem value="rounded-lg">Suave (8px)</SelectItem>
- <SelectItem value="rounded-2xl">Canônico (16px)</SelectItem>
+ <SelectItem value="rounded-2xl">Padrão Recomendado (16px)</SelectItem>
  <SelectItem value="rounded-2xl">Amplo (24px)</SelectItem>
  <SelectItem value="rounded-full">Pílula (Pill)</SelectItem>
  </SelectContent>

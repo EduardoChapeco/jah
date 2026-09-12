@@ -134,7 +134,7 @@ export const Route = createFileRoute("/workspace/catalogo/produtos/$id")({
 });
 
 function EditProductPage() {
- const { product, categories, productTypes, optionGroupsList, store } = Route.useLoaderData();
+ const { product, categories, productTypes, optionGroupsList, store } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
 
  const semantics = getNicheSemantics(store);

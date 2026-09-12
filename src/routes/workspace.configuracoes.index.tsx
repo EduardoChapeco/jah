@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Store, Save, Loader2, Building2, Phone, Mail, MapPin, Clock, ShieldCheck, CreditCard, FileText, Upload, Image as ImageIcon, Check, ExternalLink, ChevronRight, Layers, Plus, Trash2, HelpCircle, ListChecks } from 'lucide-react';
+import { Store, Save, Loader2, Building2, Phone, Mail, MapPin, Clock, ShieldCheck, CreditCard, FileText, Upload, Image as ImageIcon, Check, CheckCircle2, ExternalLink, ChevronRight, Layers, Plus, Trash2, HelpCircle, ListChecks } from 'lucide-react';
 import {
  getStoreSettings,
  saveStoreSettings,
@@ -9,6 +9,11 @@ import {
  getPolicies,
  savePolicies,
 } from "@/services/store.functions";
+import {
+ listManualPaymentMethods,
+ saveManualPaymentMethod,
+ deleteManualPaymentMethod,
+} from "@/services/payment.functions";
 import { uploadStoreMedia } from "@/services/storage.functions";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
@@ -37,21 +42,24 @@ export const Route = createFileRoute("/workspace/configuracoes/")({
  head: () => ({ meta: [{ title: "Configurações da Loja & Perfil Comercial | Workspace Wider OS" }] }),
  loader: async () => {
  try {
- const [settingsRes, hoursRes, policiesRes] = await Promise.all([
+ const [settingsRes, hoursRes, policiesRes, manualMethodsRes] = await Promise.all([
  getStoreSettings().catch(() => null),
  getWorkingHours().catch(() => null),
  getPolicies().catch(() => null),
+ listManualPaymentMethods().catch(() => []),
  ]);
  return {
  store: settingsRes,
  workingHours: hoursRes,
  policies: policiesRes?.policies || {},
+ manualMethods: manualMethodsRes || [],
  };
  } catch {
  return {
  store: null,
  workingHours: null,
  policies: {},
+ manualMethods: [],
  };
  }
  },
@@ -116,38 +124,111 @@ export function getDefaultModulesForNiche(nicheId: string): string[] {
 }
 
 export default function WorkspaceConfiguracoesPage() {
- const { store, workingHours: initialHours, policies: initialPolicies } = Route.useLoaderData();
- const router = useRouter();
+  const {
+    store,
+    workingHours: initialHours,
+    policies: initialPolicies,
+    manualMethods: initialManualMethods,
+  } = ((Route.useLoaderData?.() as any) || {});
+  const router = useRouter();
 
- // Estados da Loja
- const [name, setName] = useState(store?.name || "");
- const [description, setDescription] = useState(store?.description || "");
- const [logoUrl, setLogoUrl] = useState(store?.settings?.logoUrl || (store as any)?.logo_url || "");
- const [bannerUrl, setBannerUrl] = useState(store?.settings?.bannerUrl || (store as any)?.banner_url || "");
- const [faviconUrl, setFaviconUrl] = useState(store?.settings?.faviconUrl || "");
- const [phone, setPhone] = useState(store?.phone || "");
- const [email, setEmail] = useState(store?.email || "");
- const [cnpj, setCnpj] = useState(store?.cnpj || "");
- const [address, setAddress] = useState(store?.address || "");
- const [segment, setSegment] = useState(
-   store?.settings?.segment || store?.settings?.type || store?.settings?.niche || (store?.name?.toLowerCase()?.includes("tour") ? "tourism" : "gastronomy")
- );
+  // Estados da Loja
+  const [name, setName] = useState(store?.name || "");
+  const [description, setDescription] = useState(store?.description || "");
+  const [logoUrl, setLogoUrl] = useState(store?.settings?.logoUrl || (store as any)?.logo_url || "");
+  const [bannerUrl, setBannerUrl] = useState(store?.settings?.bannerUrl || (store as any)?.banner_url || "");
+  const [faviconUrl, setFaviconUrl] = useState(store?.settings?.faviconUrl || "");
+  const [phone, setPhone] = useState(store?.phone || "");
+  const [email, setEmail] = useState(store?.email || "");
+  const [cnpj, setCnpj] = useState(store?.cnpj || "");
+  const [address, setAddress] = useState(store?.address || "");
+  const [segment, setSegment] = useState(
+    store?.settings?.segment || store?.settings?.type || store?.settings?.niche || (store?.name?.toLowerCase()?.includes("tour") ? "tourism" : "gastronomy")
+  );
 
- const initialResolvedModules = (() => {
-   const existing = store?.settings?.enabled_modules;
-   const currentNicheKey = store?.settings?.segment || store?.settings?.type || store?.settings?.niche || (store?.name?.toLowerCase()?.includes("tour") ? "tourism" : "gastronomy");
-   const defaults = getDefaultModulesForNiche(currentNicheKey);
-   if (!existing || existing.length === 0) return defaults;
-   if (currentNicheKey === "tourism" || currentNicheKey.includes("tour")) {
-     return Array.from(new Set([...existing, "tourism", "events", "jobs"]));
-   }
-   return existing;
- })();
+  const initialResolvedModules = (() => {
+    const existing = store?.settings?.enabled_modules;
+    const currentNicheKey = store?.settings?.segment || store?.settings?.type || store?.settings?.niche || (store?.name?.toLowerCase()?.includes("tour") ? "tourism" : "gastronomy");
+    const defaults = getDefaultModulesForNiche(currentNicheKey);
+    if (!existing || existing.length === 0) return defaults;
+    if (currentNicheKey === "tourism" || currentNicheKey.includes("tour")) {
+      return Array.from(new Set([...existing, "tourism", "events", "jobs"]));
+    }
+    return existing;
+  })();
 
- const [enabledModules, setEnabledModules] = useState<string[]>(initialResolvedModules);
- const [city, setCity] = useState(store?.city || "");
- const [state, setState] = useState(store?.state || "");
- const [zipCode, setZipCode] = useState(store?.zip_code || "");
+  const [enabledModules, setEnabledModules] = useState<string[]>(initialResolvedModules);
+  const [city, setCity] = useState(store?.city || "");
+  const [state, setState] = useState(store?.state || "");
+  const [zipCode, setZipCode] = useState(store?.zip_code || "");
+
+  // Formas de Pagamento & Gateway
+  const [pixKey, setPixKey] = useState(store?.pix_key || "");
+  const [paymentInstructions, setPaymentInstructions] = useState(store?.payment_instructions || "");
+  const [paymentProcessingMode, setPaymentProcessingMode] = useState<"platform_gateway" | "direct_store">(
+    store?.payment_processing_mode || store?.settings?.payment_processing_mode || "platform_gateway"
+  );
+  const [manualMethods, setManualMethods] = useState<any[]>(initialManualMethods || []);
+  const [newMethodName, setNewMethodName] = useState("");
+  const [newMethodInstructions, setNewMethodInstructions] = useState("");
+  const [isAddingMethod, setIsAddingMethod] = useState(false);
+
+  const handleToggleManualMethod = async (method: any) => {
+    try {
+      await saveManualPaymentMethod({
+        data: {
+          id: method.id,
+          name: method.name,
+          instructions: method.instructions || "",
+          surcharge_percentage: Number(method.surcharge_percentage || 0),
+          discount_percentage: Number(method.discount_percentage || 0),
+          is_active: !method.is_active,
+        },
+      });
+      setManualMethods((prev) =>
+        prev.map((m) => (m.id === method.id ? { ...m, is_active: !m.is_active } : m))
+      );
+      toast.success(method.is_active ? "Opção desativada." : "Opção ativada!");
+    } catch {
+      toast.error("Erro ao atualizar status da forma de pagamento.");
+    }
+  };
+
+  const handleDeleteManualMethod = async (id: string) => {
+    try {
+      await deleteManualPaymentMethod({ data: { id } });
+      setManualMethods((prev) => prev.filter((m) => m.id !== id));
+      toast.success("Forma de pagamento removida.");
+    } catch {
+      toast.error("Erro ao remover forma de pagamento.");
+    }
+  };
+
+  const handleCreateManualMethod = async () => {
+    if (!newMethodName.trim()) {
+      toast.error("Informe o nome da forma de pagamento.");
+      return;
+    }
+    try {
+      await saveManualPaymentMethod({
+        data: {
+          name: newMethodName.trim(),
+          instructions: newMethodInstructions.trim() || undefined,
+          surcharge_percentage: 0,
+          discount_percentage: 0,
+          is_active: true,
+        },
+      });
+      const refreshed = await listManualPaymentMethods();
+      setManualMethods(refreshed);
+      setNewMethodName("");
+      setNewMethodInstructions("");
+      setIsAddingMethod(false);
+      toast.success("Forma de pagamento cadastrada com sucesso!");
+    } catch {
+      toast.error("Erro ao cadastrar forma de pagamento.");
+    }
+  };
 
  // Horários
  const [hours, setHours] = useState<any>(initialHours || {});
@@ -277,6 +358,9 @@ export default function WorkspaceConfiguracoesPage() {
  emergencyPauseUntil: emergencyPauseUntil,
  delivery_matrix: deliveryConfig,
  order_types: orderTypes,
+ pix_key: pixKey.trim() || undefined,
+ payment_instructions: paymentInstructions.trim() || undefined,
+ payment_processing_mode: paymentProcessingMode,
  } as any,
  });
 
@@ -1148,8 +1232,254 @@ export default function WorkspaceConfiguracoesPage() {
  </Card>
  </TabsContent>
 
- {/* ABA 5: Perguntas de Checkout Personalizadas */}
+ {/* ABA 5: Checkout & Modalidades de Pagamento */}
  <TabsContent value="checkout" className="space-y-6">
+ {/* ── Modalidade de Processamento de Pagamentos & Gateway ── */}
+ <Card className="p-6 rounded-2xl border-border bg-card space-y-6">
+ <div className="pb-2 border-b border-border/40 flex items-center justify-between">
+ <div>
+ <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+ <CreditCard className="size-4 text-primary" />
+ <span>Meios de Pagamento & Gateway da Loja</span>
+ </h2>
+ <p className="text-xs text-muted-foreground mt-0.5">
+ Escolha se sua loja prefere vender via Gateway Integrado da Plataforma ou com Pagamento Direto.
+ </p>
+ </div>
+ </div>
+
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+ <div
+ onClick={() => setPaymentProcessingMode("platform_gateway")}
+ className={cn(
+ "rounded-2xl border p-4 cursor-pointer transition-all space-y-2",
+ paymentProcessingMode === "platform_gateway"
+ ? "border-primary bg-primary/5 ring-1 ring-primary"
+ : "border-border/70 hover:border-border"
+ )}
+ >
+ <div className="flex items-center justify-between">
+ <span className="text-xs font-bold text-foreground">Gateway Central Wider</span>
+ {paymentProcessingMode === "platform_gateway" && (
+ <CheckCircle2 className="size-4 text-primary" />
+ )}
+ </div>
+ <p className="text-[11px] text-muted-foreground leading-relaxed">
+ Cartão de crédito online e Pix automático com split financeiro e conciliação instantânea.
+ </p>
+ </div>
+
+ <div
+ onClick={() => setPaymentProcessingMode("direct_store")}
+ className={cn(
+ "rounded-2xl border p-4 cursor-pointer transition-all space-y-2",
+ paymentProcessingMode === "direct_store"
+ ? "border-primary bg-primary/5 ring-1 ring-primary"
+ : "border-border/70 hover:border-border"
+ )}
+ >
+ <div className="flex items-center justify-between">
+ <span className="text-xs font-bold text-foreground">Venda Direta da Loja</span>
+ {paymentProcessingMode === "direct_store" && (
+ <CheckCircle2 className="size-4 text-primary" />
+ )}
+ </div>
+ <p className="text-[11px] text-muted-foreground leading-relaxed">
+ Chave Pix da sua empresa sem taxas intermediárias, ou pagamento na entrega/retirada no balcão.
+ </p>
+ </div>
+ </div>
+
+ {paymentProcessingMode === "direct_store" && (
+ <div className="space-y-4 pt-2 border-t border-border/40 animate-in fade-in duration-150">
+ <div className="space-y-1.5">
+ <Label className="text-xs font-bold text-foreground">Chave Pix da Loja (Recebimento Direto)</Label>
+ <Input
+ value={pixKey}
+ onChange={(e) => setPixKey(e.target.value)}
+ placeholder="CPF, CNPJ, E-mail, Telefone ou Chave Aleatória"
+ className="h-10 text-xs rounded-xl font-mono"
+ />
+ </div>
+
+ <div className="space-y-1.5">
+ <Label className="text-xs font-bold text-foreground">Instruções de Pagamento aos Clientes</Label>
+ <Textarea
+ value={paymentInstructions}
+ onChange={(e) => setPaymentInstructions(e.target.value)}
+ placeholder="Ex: Efetue o Pix e envie o comprovante pelo WhatsApp da loja, ou pague com maquininha no momento da entrega."
+ className="min-h-[80px] text-xs rounded-xl"
+ />
+ </div>
+ </div>
+ )}
+ </Card>
+
+ {/* ── Formas de Pagamento na Entrega / Balcão (Venda Direta) ── */}
+ <Card className="p-6 rounded-2xl border-border bg-card space-y-6">
+ <div className="flex items-center justify-between gap-3 pb-3 border-b border-border/40">
+ <div>
+ <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+ <CreditCard className="size-4 text-primary" />
+ <span>Pagamento Presencial / na Entrega</span>
+ </h2>
+ <p className="text-xs text-muted-foreground mt-0.5">
+ Opções para o cliente pagar ao motorista/entregador ou no balcão da loja.
+ </p>
+ </div>
+
+ <Button
+ type="button"
+ size="sm"
+ onClick={() => setIsAddingMethod(!isAddingMethod)}
+ className="rounded-xl text-xs font-bold gap-1.5 shrink-0 bg-primary text-primary-foreground cursor-pointer"
+ >
+ <Plus className="size-3.5" />
+ <span>Nova Forma</span>
+ </Button>
+ </div>
+
+ {/* Sugestões Rápidas de Presets */}
+ <div className="space-y-1.5">
+ <Label className="text-[11px] font-bold text-muted-foreground">Sugestões Rápidas:</Label>
+ <div className="flex flex-wrap gap-2">
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ className="rounded-xl text-xs h-8"
+ onClick={() => {
+ setNewMethodName("Maquininha de Cartão (Débito e Crédito)");
+ setNewMethodInstructions("Levamos a maquininha até você. Aceitamos Visa, Master, Elo e Hipercard.");
+ setIsAddingMethod(true);
+ }}
+ >
+ + Maquininha na Entrega
+ </Button>
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ className="rounded-xl text-xs h-8"
+ onClick={() => {
+ setNewMethodName("Dinheiro (Informar Troco)");
+ setNewMethodInstructions("Pagamento em dinheiro no momento da entrega.");
+ setIsAddingMethod(true);
+ }}
+ >
+ + Dinheiro com Troco
+ </Button>
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ className="rounded-xl text-xs h-8"
+ onClick={() => {
+ setNewMethodName("Pix no Balcão");
+ setNewMethodInstructions("Pague via QR Code exibido diretamente no balcão da loja.");
+ setIsAddingMethod(true);
+ }}
+ >
+ + Pix no Balcão
+ </Button>
+ </div>
+ </div>
+
+ {/* Formulário de Adicionar Nova Forma */}
+ {isAddingMethod && (
+ <div className="p-4 rounded-xl bg-muted/40 border border-border/70 space-y-3 animate-in fade-in-50">
+ <div className="space-y-1">
+ <Label className="text-xs font-bold text-foreground">Nome da Forma *</Label>
+ <Input
+ value={newMethodName}
+ onChange={(e) => setNewMethodName(e.target.value)}
+ placeholder="Ex: Maquininha de Cartão na Entrega, Dinheiro..."
+ className="h-10 text-xs rounded-xl"
+ />
+ </div>
+ <div className="space-y-1">
+ <Label className="text-xs font-bold text-foreground">Instruções ao Cliente (Opcional)</Label>
+ <Input
+ value={newMethodInstructions}
+ onChange={(e) => setNewMethodInstructions(e.target.value)}
+ placeholder="Ex: Aceitamos débito, crédito e vale refeição..."
+ className="h-10 text-xs rounded-xl"
+ />
+ </div>
+ <div className="flex justify-end gap-2 pt-1">
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ onClick={() => {
+ setIsAddingMethod(false);
+ setNewMethodName("");
+ setNewMethodInstructions("");
+ }}
+ className="rounded-xl text-xs"
+ >
+ Cancelar
+ </Button>
+ <Button
+ type="button"
+ size="sm"
+ onClick={handleCreateManualMethod}
+ className="rounded-xl text-xs font-bold"
+ >
+ Salvar Opção
+ </Button>
+ </div>
+ </div>
+ )}
+
+ {/* Listagem de Formas Cadastradas */}
+ {manualMethods.length === 0 ? (
+ <p className="text-xs text-muted-foreground italic">
+ Nenhuma forma presencial cadastrada ainda. Utilize os botões de sugestão rápida acima para adicionar.
+ </p>
+ ) : (
+ <div className="space-y-2.5">
+ {manualMethods.map((method: any) => (
+ <div
+ key={method.id}
+ className="p-3.5 rounded-xl border border-border/70 bg-card flex items-center justify-between gap-3"
+ >
+ <div className="space-y-0.5 min-w-0">
+ <div className="flex items-center gap-2">
+ <span className="text-xs font-bold text-foreground">{method.name}</span>
+ <Badge
+ variant={method.is_active ? "default" : "secondary"}
+ className="text-[10px] font-semibold"
+ >
+ {method.is_active ? "Ativo" : "Inativo"}
+ </Badge>
+ </div>
+ {method.instructions && (
+ <p className="text-[11px] text-muted-foreground truncate">{method.instructions}</p>
+ )}
+ </div>
+
+ <div className="flex items-center gap-3 shrink-0">
+ <Switch
+ checked={method.is_active}
+ onCheckedChange={() => handleToggleManualMethod(method)}
+ />
+ <Button
+ type="button"
+ variant="ghost"
+ size="sm"
+ onClick={() => handleDeleteManualMethod(method.id)}
+ className="size-8 p-0 text-destructive/70 hover:text-destructive hover:bg-destructive/10 rounded-lg cursor-pointer"
+ >
+ <Trash2 className="size-3.5" />
+ </Button>
+ </div>
+ </div>
+ ))}
+ </div>
+ )}
+ </Card>
+
  <Card className="p-6 rounded-2xl border-border bg-card space-y-6">
  <div className="flex items-center justify-between gap-3 pb-3 border-b border-border/40">
  <div>

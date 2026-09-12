@@ -50,7 +50,7 @@ export const Route = createFileRoute("/admin-master/modulos")({
 });
 
 function AdminMasterModulosPage() {
-  const { modules: initialModules } = Route.useLoaderData();
+  const { modules: initialModules } = ((Route.useLoaderData?.() as any) || {});
   const router = useRouter();
 
   const [modules, setModules] = useState<PlatformModuleDTO[]>(initialModules);

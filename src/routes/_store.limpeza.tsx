@@ -81,7 +81,7 @@ export const Route = createFileRoute("/_store/limpeza")({
  };
    } catch (err) {
      console.error("[loader:_store.limpeza] Unhandled error:", err);
-     return null;
+     return { banners: null, hotpages: null, marketplaceFeed: null, catalogProducts: null };
    }
  },
  component: LimpezaVerticalPage,
@@ -89,7 +89,7 @@ export const Route = createFileRoute("/_store/limpeza")({
 });
 
 function LimpezaVerticalPage() {
- const { banners, hotpages, marketplaceFeed, catalogProducts } = Route.useLoaderData();
+ const { banners, hotpages, marketplaceFeed, catalogProducts } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch();
  const navigate = useNavigate({ from: Route.fullPath });
 
@@ -178,7 +178,6 @@ function LimpezaVerticalPage() {
  onSelectCategory={handleDepartmentChange}
  viewMode={viewMode}
  onViewModeChange={handleViewModeChange}
- resultsCount={allProducts.length}
  />
 
  {/* ── 4. Distribuidoras & Lojas de Limpeza ── */}

@@ -21,7 +21,7 @@ interface ImageUploadProps {
  value?: string | null;
  onChange: (url: string) => void;
  onRemove?: () => void;
- bucket?: "product-media" | "cms-media" | "receipts" | "identity-vault";
+ bucket?: "product-media" | "cms-media" | "receipts" | "identity-vault" | "avatars" | "store-assets" | "destination-media" | string;
  className?: string;
  variant?: "default" | "minimal" | "avatar" | "banner";
  aspect?: number;

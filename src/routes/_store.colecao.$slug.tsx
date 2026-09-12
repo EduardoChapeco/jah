@@ -11,8 +11,8 @@ export const Route = createFileRoute("/_store/colecao/$slug")({
  return getCollectionBySlug({ data: { slug: params.slug } });
    } catch (err) {
      console.error("[loader:_store.colecao.$slug] Unhandled error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  head: ({ loaderData }) => {
  const data = loaderData as any;
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_store/colecao/$slug")({
 });
 
 function CollectionPage() {
- const { collection, products } = Route.useLoaderData() as any;
+ const { collection, products } = ((Route.useLoaderData?.() as any) || {});
 
  if (!collection) {
  return (

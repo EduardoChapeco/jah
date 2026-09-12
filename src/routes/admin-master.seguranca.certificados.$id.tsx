@@ -17,28 +17,37 @@ import {
  Eye,
  Package,
  ShoppingCart,
- Calendar,
- FileSignature,
- CreditCard,
- MapPin,
+  Calendar,
+  FileSignature,
+  CreditCard,
+  MapPin,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin-master/seguranca/certificados/$id")({
- head: () => ({ meta: [{ title: "Certificado de Transação | Admin Master" }] }),
- loader: async ({ params }) => {
-    return await getCertificateDetail({ data: { id: params.id } }).catch((err: any) => ({
-      success: false,
-      error: err?.message || "Erro ao carregar certificado",
-      certificate: null,
-      related_events: [],
-    }));
+  head: () => ({ meta: [{ title: "Certificado de Transação | Admin Master" }] }),
+  loader: async ({ params }) => {
+    try {
+      return await getCertificateDetail({ data: { id: params.id } }).catch((err: any) => ({
+        success: false,
+        error: err?.message || "Erro ao carregar certificado",
+        certificate: null,
+        related_events: [],
+      }));
+    } catch (err: any) {
+      console.error("[loader:admin-master.seguranca.certificados.$id] Unhandled loader error:", err);
+      return {
+        success: false,
+        error: err?.message || "Erro ao carregar certificado",
+        certificate: null,
+        related_events: [],
+      };
+    }
   },
- component: CertificateDetailPage,
+  component: CertificateDetailPage,
 });
 
-// ─── Helper: Bandeira emoji por código de país ────────────────────────────────
 function countryFlag(code: string | null): string {
  if (!code || code.length !== 2) return "🌐";
  return code.toUpperCase().replace(/./g, c =>

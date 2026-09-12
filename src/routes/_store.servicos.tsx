@@ -168,24 +168,33 @@ export const Route = createFileRoute("/_store/servicos")({
  listPublicStorePackages().catch(() => []),
  ]);
 
- return {
- banners,
- hotpages,
- marketplaceFeed,
- packages,
- };
-   } catch (err) {
-     console.error("[loader:_store.servicos] Unhandled error:", err);
-     return null;
-   }
- },
+      return {
+        banners: banners || [],
+        hotpages: hotpages || [],
+        marketplaceFeed: marketplaceFeed || { sections: [], allProducts: [] },
+        packages: packages || [],
+      };
+    } catch (err) {
+      console.error("[loader:_store.servicos] Unhandled error:", err);
+      return {
+        banners: [],
+        hotpages: [],
+        marketplaceFeed: { sections: [], allProducts: [] },
+        packages: [],
+      };
+    }
+  },
  component: ServicosVerticalPage,
  pendingComponent: PageSkeleton,
 });
 
 function ServicosVerticalPage() {
- const { banners, hotpages, marketplaceFeed, packages } = Route.useLoaderData();
- const search = Route.useSearch();
+  const loaderData = (Route.useLoaderData() as any) || {};
+  const banners = loaderData.banners || [];
+  const hotpages = loaderData.hotpages || [];
+  const marketplaceFeed = loaderData.marketplaceFeed || { sections: [], allProducts: [] };
+  const packages = loaderData.packages || [];
+  const search = Route.useSearch();
  const navigate = useNavigate({ from: Route.fullPath });
 
  const [activeCategory, setActiveCategory] = useState(search.categoria || "todos");
@@ -309,7 +318,6 @@ function ServicosVerticalPage() {
  }))}
  activeCategory={activeCategory}
  onSelectCategory={handleCategoryChange}
- resultsCount={serviceStores.length}
  />
 
  {/* ── 4. Lista de Prestadores & Empresas ── */}
@@ -326,7 +334,7 @@ function ServicosVerticalPage() {
  {serviceStores.map((store: any) => (
  <div
  key={store.id}
- className="group relative flex flex-col justify-between p-4.5 rounded-2xl bg-card hover:border-primary/40 hover: transition-all"
+ className="group relative flex flex-col justify-between p-4.5 rounded-2xl bg-card border border-border/60 hover:border-foreground/30 hover:shadow-xs transition-all shadow-2xs"
  >
  <div>
  <div className="flex items-start justify-between gap-3 mb-3">
@@ -358,20 +366,20 @@ function ServicosVerticalPage() {
  </div>
  </div>
 
- <div className="mt-4 pt-3 flex items-center gap-2 ">
- <Button
- onClick={() => handleOpenQuote(store)}
- size="sm"
- className="w-full bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground font-bold text-xs h-9 rounded-xl transition-all"
- >
- Pedir Orçamento
- </Button>
- <Link to="/diretorio/$id" params={{ id: store.id }}>
- <Button variant="ghost" size="sm" className="h-9 px-2.5 text-xs rounded-xl font-semibold">
- Perfil
- </Button>
- </Link>
- </div>
+ <div className="mt-4 pt-3 flex items-center gap-2">
+              <Button
+                onClick={() => handleOpenQuote(store)}
+                size="sm"
+                className="w-full bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground font-bold text-xs h-10 rounded-xl transition-all"
+              >
+                Pedir Orçamento
+              </Button>
+              <Button asChild variant="ghost" size="sm" className="h-10 px-3 text-xs rounded-xl font-semibold shrink-0">
+                <Link to="/diretorio/$id" params={{ id: store.id }}>
+                  Perfil
+                </Link>
+              </Button>
+            </div>
  </div>
  ))}
  </div>

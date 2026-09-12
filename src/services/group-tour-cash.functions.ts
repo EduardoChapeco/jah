@@ -56,10 +56,13 @@ export const listTourCashEntries = createServerFn({ method: "GET" })
  });
 
 export const createTourCashEntry = createServerFn({ method: "POST" })
- .validator((d: unknown) => CreateCashEntrySchema.parse(d))
+ .validator(CreateCashEntrySchema)
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
+ if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+ throw new Error("Acesso não autorizado para esta organização.");
+ }
 
  const db = getServerClient();
  const { data: created, error } = await db
@@ -88,6 +91,9 @@ export const deleteTourCashEntry = createServerFn({ method: "POST" })
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
+ if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+ throw new Error("Acesso não autorizado para esta organização.");
+ }
 
  const db = getServerClient();
  const { error } = await db
@@ -105,6 +111,9 @@ export const getTourCashSummary = createServerFn({ method: "GET" })
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
+ if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+ throw new Error("Acesso não autorizado para esta organização.");
+ }
 
  const db = getServerClient();
  const { data: entries, error } = await db

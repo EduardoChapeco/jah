@@ -54,7 +54,6 @@ import {
  SheetDescription,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { PageHeader } from "@/components/commerce/page-header";
 import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-canonical-toolbar";
 import { WorkspaceDashboardSheet, type MetricCardItem } from "@/components/workspace/workspace-dashboard-sheet";
 import { toast } from "sonner";
@@ -94,14 +93,14 @@ export const Route = createFileRoute("/workspace/turismo/destinos")({
  return { destinations: destinations || [], store };
    } catch (err) {
      console.error("[loader:workspace.turismo.destinos] Unhandled loader error:", err);
-     return null;
+     return { destinations: null, store: null };
    }
  },
  component: WorkspaceDestinationsPage,
 });
 
 export default function WorkspaceDestinationsPage() {
- const { destinations: initialData, store } = Route.useLoaderData();
+ const { destinations: initialData, store } = ((Route.useLoaderData?.() as any) || {});
  const queryClient = useQueryClient();
  const [search, setSearch] = useState("");
  const [filterTag, setFilterTag] = useState("all");
@@ -341,7 +340,7 @@ export default function WorkspaceDestinationsPage() {
  ];
  setReviews(sampleReviews);
 
- toast.success(`Destino "${canonical.name}" preenchido com dados canônicos e seções ricas!`);
+ toast.success(`Destino "${canonical.name}" preenchido com dados oficiais e seções ricas!`);
  };
 
  const handleOpenEdit = (dest: DestinationDTO) => {
@@ -925,7 +924,7 @@ export default function WorkspaceDestinationsPage() {
 
  {/* 2. Selecionar Destino Canônico daquele Estado */}
  <div className="space-y-1">
- <Label className="text-xs font-bold text-foreground">2. Destino Canônico Pré-Cadastrado</Label>
+ <Label className="text-xs font-bold text-foreground">2. Destino Oficial Pré-Cadastrado</Label>
  <select
  onChange={(e) => {
  const found = CANONICAL_DESTINATIONS.find((d) => d.id === e.target.value);
@@ -1352,12 +1351,14 @@ export default function WorkspaceDestinationsPage() {
  <div className="space-y-3 pt-1">
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
  <div className="space-y-1">
- <Label className="text-[11px] font-bold">URL da Imagem da Seção</Label>
- <Input
+ <Label className="text-[11px] font-bold">Foto da Seção</Label>
+ <ImageUpload
  value={section.media_urls?.[0] || ""}
- onChange={(e) => handleUpdateSection(idx, { media_urls: [e.target.value] })}
- placeholder="https://images.unsplash.com/..."
- className="h-9 text-xs rounded-xl"
+ onChange={(url) => handleUpdateSection(idx, { media_urls: [url] })}
+ onRemove={() => handleUpdateSection(idx, { media_urls: [] })}
+ bucket="destination-media"
+ aspectPreset="widescreen"
+ helperText="Upload da foto para esta seção"
  />
  </div>
  <div className="space-y-1">

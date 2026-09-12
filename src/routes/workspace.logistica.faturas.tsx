@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
  DollarSign,
@@ -122,16 +122,16 @@ function WorkspaceLogisticsInvoicesPage() {
  </p>
  </div>
  <div className="pt-2">
- <Button
- asChild
- variant="outline"
- className="rounded-xl font-bold text-xs h-9 px-4"
- >
- <a href="/workspace/pedidos/frota">
- <Truck className="size-3.5 mr-1.5" />
- <span>Gerenciar Frota & Despachos</span>
- </a>
- </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="rounded-xl font-bold text-xs h-10 sm:h-11 px-4"
+            >
+              <Link to="/workspace/pedidos/frota">
+                <Truck className="size-3.5 mr-1.5" />
+                <span>Gerenciar Frota & Despachos</span>
+              </Link>
+            </Button>
  </div>
  </div>
  ) : (

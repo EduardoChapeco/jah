@@ -83,7 +83,7 @@ export const Route = createFileRoute("/workspace/marketing/vitrine")({
  };
    } catch (err) {
      console.error("[loader:workspace.marketing.vitrine] Unhandled loader error:", err);
-     return null;
+     return { documents: null, primaryStorefrontId: null, primaryBiolinkId: null };
    }
  },
  component: WorkspaceSitesHubPage,
@@ -186,7 +186,7 @@ const TEMPLATES_GALLERY: TemplateItem[] = [
 type DocTypeFilter = "all" | "storefront" | "biolink" | "landing_page" | "campaign";
 
 function WorkspaceSitesHubPage() {
- const { documents, primaryStorefrontId, primaryBiolinkId } = Route.useLoaderData();
+ const { documents, primaryStorefrontId, primaryBiolinkId } = ((Route.useLoaderData?.() as any) || {});
  const navigate = useNavigate();
  const router = useRouter();
 
@@ -751,10 +751,9 @@ function WorkspaceSitesHubPage() {
  <Button
  onClick={() => handleApplyTemplate(tpl.id)}
  disabled={isApplyingTemplate}
- size="sm"
- className="w-full h-8 rounded-xl text-xs font-semibold gap-1.5 cursor-pointer bg-primary text-primary-foreground"
+ className="w-full h-10 rounded-xl text-xs font-semibold gap-1.5 cursor-pointer bg-primary text-primary-foreground"
  >
- <Plus className="size-3" />
+ <Plus className="size-3.5" />
  <span>Usar Este Modelo</span>
  </Button>
  </div>
@@ -766,7 +765,7 @@ function WorkspaceSitesHubPage() {
 
  {/* ── SHEET DE CRIAÇÃO DE NOVA PÁGINA (MULTI-TIPO COMPLETO) ── */}
  <Sheet open={isCreateSheetOpen} onOpenChange={setIsCreateSheetOpen}>
- <SheetContent side="right" className="sm:max-w-md flex flex-col justify-between p-6">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] flex flex-col justify-between p-6">
  <div className="space-y-6">
  <SheetHeader className="p-0 text-left space-y-1">
  <SheetTitle className="text-base font-semibold">Criar Nova Página ou Vitrine</SheetTitle>

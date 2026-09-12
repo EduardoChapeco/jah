@@ -54,7 +54,7 @@ export const Route = createFileRoute("/admin-master/faturas")({
 });
 
 function MasterFaturasPage() {
- const { invoices, stores } = Route.useLoaderData();
+ const { invoices, stores } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
 
  const [isCreating, setIsCreating] = useState(false);

@@ -59,7 +59,7 @@ export const Route = createFileRoute("/workspace/turismo/frota/$id")({
  };
    } catch (err) {
      console.error("[loader:workspace.turismo.frota.$id] Unhandled loader error:", err);
-     return null;
+     return { store: null, layout: null };
    }
  },
  component: VehicleLayoutEditorPage,
@@ -641,7 +641,11 @@ function VehicleLayoutEditorPage() {
 
  {/* ── Sheet de Detalhes da Poltrona (Shift+Clique) ── */}
  <Sheet open={!!selectedSeat} onOpenChange={(open) => !open && setSelectedSeat(null)}>
- <SheetContent side="right" className="sm:max-w-md p-6 flex flex-col justify-between overflow-y-auto">
+ <SheetContent
+   side="right"
+   size="wide"
+   className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-2xl lg:max-w-[70vw] xl:max-w-[70vw] p-6 flex flex-col justify-between overflow-y-auto"
+ >
  <div>
  <SheetHeader>
  <SheetTitle className="text-base font-bold">Configurar Poltrona</SheetTitle>
@@ -704,7 +708,7 @@ function VehicleLayoutEditorPage() {
 
  {/* ── Sheet de Presets Prontos de Ônibus ── */}
  <Sheet open={presetModalOpen} onOpenChange={setPresetModalOpen}>
- <SheetContent side="right" className="sm:max-w-lg p-6 flex flex-col justify-between overflow-y-auto">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-3xl lg:max-w-[70vw] p-6 flex flex-col justify-between overflow-y-auto">
  <div>
  <SheetHeader>
  <SheetTitle className="text-base font-bold">Modelos Prontos de Frota</SheetTitle>

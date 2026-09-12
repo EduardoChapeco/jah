@@ -12,7 +12,7 @@ import {
   Smartphone,
   Monitor,
   Share2,
-  Sparkles,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";

@@ -13,20 +13,21 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin-master/lojas")({
  head: () => ({ meta: [{ title: "Lojas & Empresas | Admin Master" }] }),
- loader: async () => {
-   try {
- const stores = await getPlatformStoresList();
- return { stores };
-   } catch (err) {
-     console.error("[loader:admin-master.lojas] Unhandled loader error:", err);
-     return null;
-   }
- },
- component: MasterLojasPage,
+  loader: async () => {
+    try {
+      const stores = await getPlatformStoresList();
+      return { stores: stores || [] };
+    } catch (err) {
+      console.error("[loader:admin-master.lojas] Unhandled loader error:", err);
+      return { stores: [] };
+    }
+  },
+  component: MasterLojasPage,
 });
 
 function MasterLojasPage() {
- const { stores } = Route.useLoaderData();
+  const loaderData = (Route.useLoaderData() as any) || {};
+  const stores = loaderData.stores || [];
  const router = useRouter();
  const [loadingId, setLoadingId] = useState<string | null>(null);
  const [searchTerm, setSearchTerm] = useState("");
@@ -100,7 +101,7 @@ function MasterLojasPage() {
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/40">
  <div>
  <div className="flex items-center gap-2">
- <h1 className="text-2xl font-bold tracking-tight text-foreground">Lojas & Empresas</h1>
+ <h1 className="text-2xl font-bold tracking-tight text-foreground">Lojas</h1>
  <Badge variant="secondary" className="text-xs font-normal">
  {stores.length} cadastradas
  </Badge>

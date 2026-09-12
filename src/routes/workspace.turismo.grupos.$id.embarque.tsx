@@ -64,7 +64,7 @@ export const Route = createFileRoute("/workspace/turismo/grupos/$id/embarque")({
  };
    } catch (err) {
      console.error("[loader:workspace.turismo.grupos.$id.embarque] Unhandled loader error:", err);
-     return null;
+     return { store: null, tour: null, initialOverview: null };
    }
  },
  component: GroupTourBoardingPage,
@@ -505,7 +505,11 @@ function GroupTourBoardingPage() {
 
  {/* ── 5. Sheet de Gerenciar Pontos de Embarque ── */}
  <Sheet open={pointModalOpen} onOpenChange={setPointModalOpen}>
-   <SheetContent side="right" className="sm:max-w-md p-6 flex flex-col justify-between overflow-y-auto">
+   <SheetContent
+     side="right"
+     size="wide"
+     className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-3xl lg:max-w-[70vw] xl:max-w-[70vw] p-6 flex flex-col justify-between overflow-y-auto"
+   >
      <div>
        <SheetHeader>
          <SheetTitle className="text-base font-bold text-foreground">

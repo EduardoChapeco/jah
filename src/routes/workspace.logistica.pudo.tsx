@@ -48,14 +48,14 @@ export const Route = createFileRoute("/workspace/logistica/pudo")({
  return { packages: safePackages, defaultLocationId: safePackages[0]?.pudo_location_id ?? null };
    } catch (err) {
      console.error("[loader:workspace.logistica.pudo] Unhandled loader error:", err);
-     return null;
+     return { packages: null, defaultLocationId: null };
    }
  },
  component: WorkspacePudoLogisticsPage,
 });
 
 function WorkspacePudoLogisticsPage() {
- const { packages: initialData, defaultLocationId } = Route.useLoaderData();
+ const { packages: initialData, defaultLocationId } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
  const [packages, setPackages] = useState<PudoPackageDTO[]>(initialData);
  const [statusTab, setStatusTab] = useState<string>("all");

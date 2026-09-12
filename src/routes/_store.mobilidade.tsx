@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, isRedirect } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
@@ -28,6 +28,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getStoredLocation } from "@/components/location/location-master-pill";
 import { Badge } from "@/components/ui/badge";
 import { formatMoney } from "@/lib/money";
 import {
@@ -63,18 +64,24 @@ export const Route = createFileRoute("/_store/mobilidade")({
     }
     return {};
     } catch (err) {
+      if (isRedirect(err)) throw err;
       console.error("[loader:_store.mobilidade] Unhandled loader error:", err);
-      return null;
+      return {} as any;
     }
   },
   component: MobilityPage,
 });
 
-const DEFAULT_ORIGIN: MapPoint = {
- lat: -27.1004,
- lng: -52.6152,
- label: "Av. Getúlio Vargas, 500 — Centro",
+const getDynamicDefaultOrigin = (): MapPoint => {
+  const stored = typeof window !== "undefined" ? getStoredLocation() : null;
+  return {
+    lat: stored?.lat || -27.1004,
+    lng: stored?.lng || -52.6152,
+    label: stored?.city ? `Centro — ${stored.city}` : "Av. Getúlio Vargas, 500 — Centro",
+  };
 };
+
+const DEFAULT_ORIGIN: MapPoint = getDynamicDefaultOrigin();
 
 interface MobilityCategoryTab {
  id: MobilityServiceType;

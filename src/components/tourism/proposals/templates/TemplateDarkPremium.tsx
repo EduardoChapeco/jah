@@ -23,14 +23,15 @@ export default function TemplateDarkPremium({ proposal: p, agency }: TemplatePro
     >
       {/* CAPA DRAMÁTICA (500px) */}
       <div className="relative w-full h-[500px] break-inside-avoid">
-        <img
-          src={
-            p.cover_image_url ||
-            "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=80"
-          }
-          crossOrigin="anonymous"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        {p.cover_image_url ? (
+          <img
+            src={p.cover_image_url}
+            crossOrigin="anonymous"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 w-full h-full bg-slate-900" />
+        )}
         {/* Degradê Escuro do Topo para Transparente */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-transparent" />
 

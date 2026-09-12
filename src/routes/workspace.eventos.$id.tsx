@@ -38,6 +38,8 @@ import { EventoSetores } from "@/components/eventos/evento-setores";
 import { EventoLineup } from "@/components/eventos/evento-lineup";
 import { EventoParceiros } from "@/components/eventos/evento-parceiros";
 import { EventoDocumentos } from "@/components/eventos/evento-documentos";
+import { EventoAuditoria } from "@/components/eventos/evento-auditoria";
+import { AlocarEquipeSheet } from "@/components/eventos/alocar-equipe-sheet";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -99,12 +101,13 @@ export const Route = createFileRoute("/workspace/eventos/$id")({
 });
 
 function SubPainelEventoPage() {
- const { event, lots: initialLots, tickets: initialTickets } = Route.useLoaderData() as any;
+ const { event, lots: initialLots, tickets: initialTickets } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
 
  const [activeTab, setActiveTab] = useState("ingressos");
  const [lots, setLots] = useState<any[]>(initialLots);
  const [tickets, setTickets] = useState<any[]>(initialTickets);
+ const [isTeamSheetOpen, setIsTeamSheetOpen] = useState(false);
 
  // Lot Creation Modal
  const [isLotModalOpen, setIsLotModalOpen] = useState(false);
@@ -269,7 +272,7 @@ function SubPainelEventoPage() {
  if (!newCostName.trim()) return;
  setCosts((prev) => [
  ...prev,
- { id: Math.random().toString(), name: newCostName, amountCents: newCostCents },
+ { id: crypto.randomUUID(), name: newCostName, amountCents: newCostCents },
  ]);
  setNewCostName("");
  setNewCostCents(50000);
@@ -300,6 +303,16 @@ function SubPainelEventoPage() {
  </div>
 
  <div className="flex items-center gap-2">
+ <Button
+ variant="outline"
+ size="sm"
+ onClick={() => setIsTeamSheetOpen(true)}
+ className="gap-1.5"
+ >
+ <Users className="size-4" />
+ Escalar Equipe
+ </Button>
+
  <Button asChild variant="outline" size="sm" className="gap-1.5">
  <Link to="/workspace/eventos/$id/checkin" params={{ id: event.id }}>
  <QrCode className="size-4" />
@@ -353,26 +366,54 @@ function SubPainelEventoPage() {
 
  {/* Abas do Sub-Painel Recursivo */}
  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
- <TabsList className="flex items-center gap-1.5 w-full overflow-x-auto no-scrollbar p-1 rounded-xl h-11 mb-6">
- <TabsTrigger value="ingressos" className="text-xs font-semibold gap-1.5">
+ <TabsList className="flex items-center gap-1.5 w-full overflow-x-auto no-scrollbar p-1.5 rounded-2xl h-auto mb-6 bg-muted/40 border border-border/40">
+ <TabsTrigger value="ingressos" className="text-xs font-semibold gap-1.5 py-2 px-3 shrink-0">
  <Ticket className="size-3.5" />
  Lotes ({lots.length})
  </TabsTrigger>
- <TabsTrigger value="participantes" className="text-xs font-semibold gap-1.5">
+ <TabsTrigger value="participantes" className="text-xs font-semibold gap-1.5 py-2 px-3 shrink-0">
  <Users className="size-3.5" />
  Inscritos ({tickets.length})
  </TabsTrigger>
- <TabsTrigger value="portaria" className="text-xs font-semibold gap-1.5">
+ <TabsTrigger value="portaria" className="text-xs font-semibold gap-1.5 py-2 px-3 shrink-0">
  <QrCode className="size-3.5" />
  Portaria
  </TabsTrigger>
- <TabsTrigger value="custos" className="text-xs font-semibold gap-1.5">
+ <TabsTrigger value="kanban" className="text-xs font-semibold gap-1.5 py-2 px-3 shrink-0">
+ <Kanban className="size-3.5" />
+ Produção
+ </TabsTrigger>
+ <TabsTrigger value="lineup" className="text-xs font-semibold gap-1.5 py-2 px-3 shrink-0">
+ <Mic2 className="size-3.5" />
+ Line-up
+ </TabsTrigger>
+ <TabsTrigger value="setores" className="text-xs font-semibold gap-1.5 py-2 px-3 shrink-0">
+ <Layers className="size-3.5" />
+ Setores & Mapa
+ </TabsTrigger>
+ <TabsTrigger value="subpaineis" className="text-xs font-semibold gap-1.5 py-2 px-3 shrink-0">
+ <Utensils className="size-3.5" />
+ Bares & PDVs
+ </TabsTrigger>
+ <TabsTrigger value="orcamentos" className="text-xs font-semibold gap-1.5 py-2 px-3 shrink-0">
+ <FileSpreadsheet className="size-3.5" />
+ Orçamentos
+ </TabsTrigger>
+ <TabsTrigger value="custos" className="text-xs font-semibold gap-1.5 py-2 px-3 shrink-0">
  <TrendingUp className="size-3.5" />
  DRE / Custos
  </TabsTrigger>
- <TabsTrigger value="patrocinadores" className="text-xs font-semibold gap-1.5">
+ <TabsTrigger value="patrocinadores" className="text-xs font-semibold gap-1.5 py-2 px-3 shrink-0">
  <Megaphone className="size-3.5" />
  Patrocínio
+ </TabsTrigger>
+ <TabsTrigger value="documentos" className="text-xs font-semibold gap-1.5 py-2 px-3 shrink-0">
+ <FileText className="size-3.5" />
+ Alvarás & Legal
+ </TabsTrigger>
+ <TabsTrigger value="auditoria" className="text-xs font-semibold gap-1.5 py-2 px-3 shrink-0">
+ <ShieldCheck className="size-3.5" />
+ Auditoria
  </TabsTrigger>
  </TabsList>
 
@@ -569,92 +610,62 @@ function SubPainelEventoPage() {
  </div>
  </TabsContent>
 
- {/* ── Aba 4: DRE / Custos de Produção ── */}
- <TabsContent value="custos" className="space-y-4 max-w-4xl">
- <div className="flex items-center justify-between">
- <div>
- <h3 className="text-sm font-bold text-foreground">DRE & Custos Operacionais do Evento</h3>
- <p className="text-xs text-muted-foreground">
- Lançamento de despesas (Estrutura, Som, Segurança, Artistas) para cálculo de lucro líquido.
- </p>
- </div>
- <span className="text-xs font-mono font-bold text-foreground">
- Total Custos: {formatMoney(totalCostsCents)}
- </span>
- </div>
+        {/* ── Aba 4: Produção & Tarefas (Kanban) ── */}
+        <TabsContent value="kanban" className="space-y-4">
+          <EventoKanban eventId={event.id} />
+        </TabsContent>
 
- <form onSubmit={handleAddCost} className="bg-card rounded-2xl p-4 border border-border/60 flex items-end gap-3">
- <div className="flex-1 space-y-1.5">
- <Label htmlFor="cost-name" className="text-xs">Descrição da Despesa</Label>
- <Input
- id="cost-name"
- required
- placeholder="Ex: Ambulância UTI ou Gerador"
- value={newCostName}
- onChange={(e) => setNewCostName(e.target.value)}
- className="text-xs"
- />
- </div>
- <div className="w-40 space-y-1.5">
- <Label htmlFor="cost-amount" className="text-xs">Valor (R$)</Label>
- <CurrencyField
- value={newCostCents}
- onChange={(val) => setNewCostCents(val || 0)}
- />
- </div>
- <Button type="submit" size="sm" className="font-bold gap-1.5 shrink-0">
- <Plus className="size-4" />
- Lançar Custo
- </Button>
- </form>
+        {/* ── Aba 5: Line-up & Atrações ── */}
+        <TabsContent value="lineup" className="space-y-4">
+          <EventoLineup eventId={event.id} />
+        </TabsContent>
 
- <div className="bg-card rounded-2xl border border-border/60 overflow-hidden">
- <Table>
- <TableHeader>
- <TableRow>
- <TableHead>Despesa / Fornecedor</TableHead>
- <TableHead className="text-right">Valor</TableHead>
- </TableRow>
- </TableHeader>
- <TableBody>
- {costs.map((c) => (
- <TableRow key={c.id}>
- <TableCell className="font-medium text-xs">{c.name}</TableCell>
- <TableCell className="text-right text-xs font-mono font-bold text-foreground">
- {formatMoney(c.amountCents)}
- </TableCell>
- </TableRow>
- ))}
- </TableBody>
- </Table>
- </div>
- </TabsContent>
+        {/* ── Aba 6: Setores & Mapa de Capacidade ── */}
+        <TabsContent value="setores" className="space-y-4">
+          <EventoSetores eventId={event.id} />
+        </TabsContent>
 
- {/* ── Aba 5: Patrocinadores ── */}
- <TabsContent value="patrocinadores" className="space-y-4">
- <div className="bg-card rounded-2xl p-6 border border-border/60 space-y-4 text-center max-w-xl mx-auto">
- <div className="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
- <Megaphone className="size-6" />
- </div>
- <div>
- <h3 className="text-base font-bold text-foreground">Marcas Patrocinadoras & Alcance</h3>
- <p className="text-xs text-muted-foreground mt-1">
- Configure os patrocinadores na vitrine do evento e acesse o relatório de visualizações e toques.
- </p>
- </div>
- <Button asChild variant="outline" className="gap-2">
- <Link to="/workspace/marketing/patrocinadores">
- <Megaphone className="size-4" />
- Gerenciar Patrocinadores
- </Link>
- </Button>
- </div>
- </TabsContent>
- </Tabs>
+        {/* ── Aba 7: Bares, Caixas & PDVs Subpainéis ── */}
+        <TabsContent value="subpaineis" className="space-y-4">
+          <EventoSubpaineis eventId={event.id} />
+        </TabsContent>
+
+        {/* ── Aba 8: Orçamentos de Fornecedores ── */}
+        <TabsContent value="orcamentos" className="space-y-4">
+          <EventoOrcamentos eventId={event.id} />
+        </TabsContent>
+
+        {/* ── Aba 9: DRE & Custos Operacionais Reais ── */}
+        <TabsContent value="custos" className="space-y-4">
+          <EventoCustos eventId={event.id} />
+        </TabsContent>
+
+        {/* ── Aba 10: Marcas Patrocinadoras & Cotas ── */}
+        <TabsContent value="patrocinadores" className="space-y-4">
+          <EventoParceiros eventId={event.id} />
+        </TabsContent>
+
+        {/* ── Aba 11: Alvarás, Licenças & Documentação Legal ── */}
+        <TabsContent value="documentos" className="space-y-4">
+          <EventoDocumentos eventId={event.id} />
+        </TabsContent>
+
+        {/* ── Aba 12: Trilha de Auditoria & Segurança ── */}
+        <TabsContent value="auditoria" className="space-y-4">
+          <EventoAuditoria eventId={event.id} />
+        </TabsContent>
+      </Tabs>
+
+      {/* Alocação de Equipe e Staff */}
+      <AlocarEquipeSheet
+        eventId={event.id}
+        open={isTeamSheetOpen}
+        onOpenChange={setIsTeamSheetOpen}
+      />
 
  {/* Modal de Criação de Lote de Ingressos */}
  <Dialog open={isLotModalOpen} onOpenChange={setIsLotModalOpen}>
- <DialogContent className="sm:max-w-md">
+ <DialogContent className="sm:max-w-xl md:max-w-2xl">
  <DialogHeader>
  <DialogTitle>Novo Lote de Ingressos</DialogTitle>
  <DialogDescription>
@@ -716,7 +727,7 @@ function SubPainelEventoPage() {
 
  {/* Modal de Emissão de Cortesia */}
  <Dialog open={isCompModalOpen} onOpenChange={setIsCompModalOpen}>
- <DialogContent className="sm:max-w-md">
+ <DialogContent className="sm:max-w-xl md:max-w-2xl">
  <DialogHeader>
  <DialogTitle>Emitir Ingresso Cortesia</DialogTitle>
  <DialogDescription>

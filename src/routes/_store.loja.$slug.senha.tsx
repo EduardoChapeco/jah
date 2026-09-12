@@ -50,7 +50,7 @@ function StorePasswordGatePage() {
             window.sessionStorage.setItem(`store_unlocked_${slug}`, res.unlockToken || "unlocked");
           }
           toast.success("Acesso autorizado!");
-          navigate({ to: "/loja/$slug", params: { slug } });
+          navigate({ to: "/c/$storeSlug", params: { storeSlug: slug } });
         }
       } catch (err: any) {
         toast.error(err.message || "Senha incorreta.");

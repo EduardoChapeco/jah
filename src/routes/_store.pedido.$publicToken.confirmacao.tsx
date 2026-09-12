@@ -27,12 +27,20 @@ export const Route = createFileRoute("/_store/pedido/$publicToken/confirmacao")(
  head: () => ({
  meta: [{ title: "Pedido Confirmado | Wider OS" }],
  }),
- loader: ({ params }) => getOrderByToken({ data: { token: params.publicToken } }),
+  loader: async ({ params }) => {
+    try {
+      const order = await getOrderByToken({ data: { token: params.publicToken } }).catch(() => null);
+      return { order: order || null };
+    } catch (err) {
+      console.error("[loader:_store.pedido.$publicToken.confirmacao] Unhandled loader error:", err);
+      return { order: null };
+    }
+  },
  component: ConfirmationPage,
 });
 
 function ConfirmationPage() {
- const initialOrder = Route.useLoaderData() as any;
+  const { order: initialOrder } = ((Route.useLoaderData() as any) || {});
  const [order, setOrder] = useState<any>(initialOrder);
  const [isAuditOpen, setIsAuditOpen] = useState(false);
 

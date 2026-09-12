@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { getCustomerCredits, requestRedemption } from "@/services/credits.functions";
 import { formatMoney } from "@/lib/money";
 import { useState } from "react";
@@ -31,8 +31,8 @@ export const Route = createFileRoute("/_store/conta/creditos")({
  );
    } catch (err) {
      console.error("[loader:_store.conta.creditos] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: Page,
 });
@@ -80,67 +80,74 @@ function Page() {
  }
  }
 
- return (
- <div className="space-y-8 w-full font-sans text-foreground">
- <div className="pb-6 mb-8 flex items-center justify-between">
- <div>
- <h1 className="text-2xl font-semibold tracking-tight text-foreground">Meus Créditos</h1>
- <p className="mt-2 text-foreground/80 font-medium">
- Acompanhe seu saldo em carteira (Store Credit) e histórico de recebimentos/estornos.
- </p>
- </div>
- <Dialog open={isOpen} onOpenChange={setIsOpen}>
- <DialogTrigger asChild>
- <Button className="rounded-xl gap-2" disabled={maxCents < 100}>
- <ArrowDownRight className="size-4" />
- Sacar
- </Button>
- </DialogTrigger>
- <DialogContent className="sm:max-w-md">
- <DialogHeader>
- <DialogTitle>Solicitar Resgate</DialogTitle>
- <DialogDescription>
- Seu saldo disponível é de <strong className="text-foreground">{formatMoney(maxCents)}</strong>.
- O valor será transferido para a chave PIX informada.
- </DialogDescription>
- </DialogHeader>
- <div className="space-y-4 py-4">
- <div className="space-y-2">
- <Label>Valor a resgatar (R$)</Label>
- <Input
- type="number"
- placeholder="0.00"
- min="1"
- step="0.01"
- value={amountStr}
- onChange={(e) => setAmountStr(e.target.value)}
- className="rounded-xl"
- />
- <p className="text-xs text-muted-foreground">Mínimo R$ 1,00</p>
- </div>
- <div className="space-y-2">
- <Label>Chave PIX</Label>
- <Input
- placeholder="E-mail, CPF, Telefone ou Aleatória"
- value={pixKey}
- onChange={(e) => setPixKey(e.target.value)}
- className="rounded-xl"
- />
- </div>
- </div>
- <DialogFooter className="gap-2 sm:gap-0">
- <DialogClose asChild>
- <Button variant="outline" className="rounded-xl">Cancelar</Button>
- </DialogClose>
- <Button onClick={handleRedeem} disabled={isSubmitting} className="rounded-xl min-w-[120px]">
- {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : "Confirmar Saque"}
- </Button>
- </DialogFooter>
- </DialogContent>
- </Dialog>
- </div>
+  return (
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Créditos
+          </h1>
+        </div>
 
- <div className=" bg-card p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 rounded-xl border border-border/40">
+        <div className="flex items-center gap-2">
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="rounded-xl h-8 px-3.5 text-xs font-semibold gap-1.5 bg-foreground text-background hover:bg-foreground/90 shrink-0 shadow-xs cursor-pointer" disabled={maxCents < 100}>
+                <ArrowDownRight className="size-3.5" />
+                <span>Sacar</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Solicitar Resgate</DialogTitle>
+                <DialogDescription>
+                  Seu saldo disponível é de <strong className="text-foreground">{formatMoney(maxCents)}</strong>.
+                  O valor será transferido para a chave PIX informada.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Valor a resgatar (R$)</Label>
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    min="1"
+                    step="0.01"
+                    value={amountStr}
+                    onChange={(e) => setAmountStr(e.target.value)}
+                    className="rounded-xl"
+                  />
+                  <p className="text-xs text-muted-foreground">Mínimo R$ 1,00</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Chave PIX</Label>
+                  <Input
+                    placeholder="E-mail, CPF, Telefone ou Aleatória"
+                    value={pixKey}
+                    onChange={(e) => setPixKey(e.target.value)}
+                    className="rounded-xl"
+                  />
+                </div>
+              </div>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <DialogClose asChild>
+                  <Button variant="outline" className="rounded-xl">Cancelar</Button>
+                </DialogClose>
+                <Button onClick={handleRedeem} disabled={isSubmitting} className="rounded-xl min-w-[120px]">
+                  {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : "Confirmar Saque"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-8 px-3.5 cursor-pointer">
+            <Link to="/mercado">Usar no Mercado</Link>
+          </Button>
+        </div>
+      </div>
+
+      <div className=" bg-card p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 rounded-xl border border-border/40">
  <div className="relative z-10">
  <p className="text-sm font-medium text-muted-foreground mb-2">Saldo Disponível</p>
  <p className="text-4xl font-semibold text-foreground">

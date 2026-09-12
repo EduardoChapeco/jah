@@ -291,7 +291,7 @@ export function DocumentsPanel({
 
  {/* Modal de Inclusão de Documento */}
  <Dialog open={modalOpen} onOpenChange={setModalOpen}>
- <DialogContent className="max-w-md rounded-2xl p-6 space-y-4">
+ <DialogContent className="max-w-lg w-full rounded-2xl p-6 space-y-4">
  <DialogHeader>
  <DialogTitle className="text-base font-bold flex items-center gap-2">
  <Plus className="size-4 text-primary" />

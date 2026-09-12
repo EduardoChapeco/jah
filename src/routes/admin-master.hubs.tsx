@@ -46,15 +46,15 @@ import type { HotpageDTO, HotpageModule } from "@/services/hotpage.functions";
 
 export const Route = createFileRoute("/admin-master/hubs")({
  head: () => ({ meta: [{ title: "Gestão de Hubs & Categorias Globais | Admin Master" }] }),
- loader: async () => {
-   try {
- const hubs = await listAllAdminHubs().catch(() => []);
- return { hubs };
-   } catch (err) {
-     console.error("[loader:admin-master.hubs] Unhandled loader error:", err);
-     return null;
-   }
- },
+  loader: async () => {
+    try {
+      const hubs = await listAllAdminHubs().catch(() => []);
+      return { hubs: hubs || [] };
+    } catch (err) {
+      console.error("[loader:admin-master.hubs] Unhandled loader error:", err);
+      return { hubs: [] };
+    }
+  },
  component: AdminMasterHubsPage,
 });
 
@@ -76,20 +76,24 @@ const MODULES: { id: HotpageModule; label: string; emoji: string }[] = [
  { id: "beleza", label: "Beleza & Estética", emoji: "✂️" },
  { id: "limpeza", label: "Limpeza & Utilidades", emoji: "🧹" },
  { id: "livros", label: "Livros & Papelaria", emoji: "📚" },
- { id: "noticias", label: "Notícias & Jornalismo", emoji: "📰" },
- { id: "agenda", label: "Agenda & Eventos", emoji: "📅" },
+ { id: "feed", label: "Feed", emoji: "📡" },
+ { id: "noticias", label: "Notícias", emoji: "📰" },
+ { id: "eventos", label: "Eventos", emoji: "🎟️" },
+ { id: "agenda", label: "Agenda", emoji: "📅" },
+ { id: "afiliados", label: "Afiliados", emoji: "🎯" },
  { id: "turismo", label: "Turismo & Hospedagem", emoji: "✈️" },
- { id: "empregos", label: "Empregos & Vagas", emoji: "💼" },
- { id: "classificados", label: "Classificados Locais", emoji: "🏷️" },
- { id: "diretorio", label: "Diretório Comercial", emoji: "🧭" },
+ { id: "empregos", label: "Empregos", emoji: "💼" },
+ { id: "classificados", label: "Classificados", emoji: "🏷️" },
+ { id: "diretorio", label: "Places (Lista Telefônica)", emoji: "🧭" },
  { id: "mobilidade", label: "Mobilidade Urbana", emoji: "🚗" },
  { id: "ofertas", label: "Ofertas & Promoções", emoji: "⚡" },
 ];
 
 function AdminMasterHubsPage() {
- const { hubs: initialHubs } = Route.useLoaderData();
- const router = useRouter();
- const [hubs, setHubs] = useState<HotpageDTO[]>(initialHubs);
+  const loaderData = (Route.useLoaderData() as any) || {};
+  const initialHubs = loaderData.hubs || [];
+  const router = useRouter();
+  const [hubs, setHubs] = useState<HotpageDTO[]>(initialHubs);
  const [selectedModule, setSelectedModule] = useState<string>("all");
  const [searchQuery, setSearchQuery] = useState("");
 

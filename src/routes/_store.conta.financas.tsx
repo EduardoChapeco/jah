@@ -38,7 +38,7 @@ import {
   Lock,
   Coins,
   Shield,
-  Sparkles,
+  Activity,
   ExternalLink,
 } from "lucide-react";
 import { getUserTokenWallet } from "@/services/tokens.functions";
@@ -118,7 +118,7 @@ export const Route = createFileRoute("/_store/conta/financas")({
     }
     } catch (err) {
       console.error("[loader:_store.conta.financas] Unhandled loader error:", err);
-      return null;
+      return { initialSummary: null, initialEntries: null, categories: null, tokenWallet: null, currentMonth: null, currentYear: null };
     }
   },
   component: PersonalFinancePage,
@@ -169,8 +169,7 @@ function getCategoryIcon(iconName: string) {
 
 function PersonalFinancePage() {
   const router = useRouter();
-  const { initialSummary, initialEntries, categories, tokenWallet, currentMonth, currentYear } =
-    Route.useLoaderData();
+  const { initialSummary, initialEntries, categories, tokenWallet, currentMonth, currentYear } = ((Route.useLoaderData?.() as any) || {});
 
   const [month, setMonth] = useState(currentMonth);
   const [year, setYear] = useState(currentYear);
@@ -344,36 +343,24 @@ function PersonalFinancePage() {
   }, [categories, entryType]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-28 font-sans">
-      <div className="max-w-4xl mx-auto px-4 py-4 sm:py-6 space-y-6">
-        {/* Top Header / Breadcrumb */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/conta"
-              className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">
-                Finanças Pessoais
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Controle simplificado de despesas e receitas
-              </p>
-            </div>
-          </div>
-
-          <Button
-            onClick={() => setIsNewEntryOpen(true)}
-            className="h-11 px-4 rounded-xl bg-primary text-primary-foreground font-medium shadow-sm hover:opacity-90 transition-opacity gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Novo Lançamento</span>
-            <span className="sm:hidden">Novo</span>
-          </Button>
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Finanças
+          </h1>
         </div>
+
+        <Button
+          size="sm"
+          onClick={() => setIsNewEntryOpen(true)}
+          className="rounded-xl h-8 px-3.5 text-xs font-semibold gap-1.5 bg-foreground text-background hover:bg-foreground/90 shrink-0 shadow-xs cursor-pointer"
+        >
+          <Plus className="size-3.5" />
+          <span>Novo Lançamento</span>
+        </Button>
+      </div>
 
         {/* Seletor de Período (Mês / Ano) */}
         <div className="flex items-center justify-between bg-card border border-border/60 rounded-2xl p-2 sm:p-3 shadow-xs">
@@ -512,14 +499,14 @@ function PersonalFinancePage() {
 
             <div className="p-3.5 rounded-xl bg-muted/30 border border-border/40 space-y-1">
               <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
-                Tokens em Vesting (Maturação Futura)
+                Tokens em Liberação (Ganhos Programados)
               </span>
               <div className="text-xl sm:text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400 font-mono">
                 {Number(tokenWallet?.balance_pending_maturity || 0).toLocaleString()}{" "}
                 <span className="text-xs font-normal text-muted-foreground">Tokens</span>
               </div>
               <p className="text-[10px] text-muted-foreground">
-                Bônus de indicação e recompensas em quarentena de validação auditável.
+                Bônus de indicação e recompensas em processo de liberação gradual.
               </p>
             </div>
           </div>
@@ -527,7 +514,7 @@ function PersonalFinancePage() {
           <div className="flex items-center gap-2 text-[11px] text-muted-foreground bg-muted/20 px-3 py-2 rounded-xl border border-border/30">
             <Lock className="h-3.5 w-3.5 shrink-0 text-primary" />
             <span>
-              <strong>Zero-Transfer Policy Ativa:</strong> Tokens são intransferíveis e protegidos contra drenagem de conta e fraudes de terceiros.
+              <strong>Proteção da Carteira:</strong> Seus tokens são vinculados com segurança jurídica ao seu CPF, garantindo rastreabilidade e proteção contra fraudes.
             </span>
           </div>
         </div>
@@ -746,7 +733,6 @@ function PersonalFinancePage() {
             })
           )}
         </div>
-      </div>
 
       {/* MODAL / DRAWER: NOVO LANÇAMENTO (3-Touch UX) */}
       {isNewEntryOpen && (
@@ -932,7 +918,7 @@ function PersonalFinancePage() {
                       className="inline-flex items-center gap-1.5 h-7 px-3 rounded-lg text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isAnalyzingOcr ? (
-                        <><Sparkles className="h-3 w-3 animate-pulse" /> Analisando...</>
+                        <><Activity className="h-3 w-3 animate-pulse" /> Analisando...</>
                       ) : (
                         <><ScanLine className="h-3 w-3" /> Analisar com IA</>
                       )}
@@ -951,7 +937,7 @@ function PersonalFinancePage() {
                 {ocrResult && (
                   <div className="mt-2 p-3 rounded-xl bg-emerald-500/8 border border-emerald-500/20 space-y-1">
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                      <Sparkles className="h-3 w-3" />
+                      <Activity className="h-3 w-3" />
                       OCR Concluído — {ocrResult.confidence === "high" ? "Alta confiança" : ocrResult.confidence === "medium" ? "Média confiança" : "Baixa confiança — revise"}
                     </div>
                     {ocrResult.establishmentName && (

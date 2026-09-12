@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { CurrencyField } from "@/components/ui/currency-field";
+import { formatMoney } from "@/lib/money";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
  Search,
@@ -40,8 +42,11 @@ import {
  HelpCircle,
  BedDouble,
  Trash2,
+ Building2,
+ Tag,
 } from "lucide-react";
 import { listCustomers, createCustomer } from "@/services/crm.functions";
+import { listHotelsBank, type HotelBankDTO } from "@/services/travel-catalog.functions";
 import {
  createTravelProposal,
  type ProposalCanvasFormat,
@@ -230,6 +235,40 @@ export function NewTravelProposalSheet({
 
  // Submissão
  const [isSubmitting, setIsSubmitting] = useState(false);
+
+ // Hotel & Resort selecionado do Banco de Hotéis
+ const [hotelSearch, setHotelSearch] = useState("");
+ const [isHotelDropdownOpen, setIsHotelDropdownOpen] = useState(false);
+ const [selectedHotel, setSelectedHotel] = useState<HotelBankDTO | null>(null);
+ const [selectedHotelRegime, setSelectedHotelRegime] = useState("All Inclusive");
+ const [selectedHotelRoomType, setSelectedHotelRoomType] = useState("");
+
+ // Busca no Banco de Hotéis em tempo real com debounce
+ const { data: hotelsBankList = [] } = useQuery({
+   queryKey: ["hotels-bank-search-proposal", hotelSearch, destinationCity],
+   queryFn: () => listHotelsBank({ data: { search: hotelSearch.trim() || destinationCity.trim() } }),
+   enabled: Boolean(hotelSearch.trim().length >= 2 || destinationCity.trim().length >= 2),
+   staleTime: 30_000,
+ });
+
+  // Tags rápidas de transfers e inclusões
+  const [selectedProposalTags, setSelectedProposalTags] = useState<string[]>([
+    "Transfer In/Out Aeroporto ↔ Hotel",
+    "Seguro Viagem Cobertura Completa",
+  ]);
+  const [customTagInput, setCustomTagInput] = useState("");
+
+  // Precificação e Condições de Pagamento Dinâmicas (Modo Personalizado)
+  const [basePriceCents, setBasePriceCents] = useState<number | undefined>(undefined);
+  const [pricingModel, setPricingModel] = useState<"total" | "per_person" | "per_room">("total");
+  const [installmentsCount, setInstallmentsCount] = useState<number>(10);
+  const [downPaymentCents, setDownPaymentCents] = useState<number | undefined>(undefined);
+
+  const toggleProposalTag = (tag: string) => {
+    setSelectedProposalTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
 
  // Busca de clientes no CRM com debounce
  const { data: crmCustomers = [], isLoading: isLoadingCustomers } = useQuery({
@@ -431,38 +470,69 @@ export function NewTravelProposalSheet({
  initialNotes: autoNotes,
  templateId: selectedTemplate?.id || undefined,
  flights: selectedTemplate?.flights || [],
- hotels: selectedTemplate?.hotels || [],
+ hotels: selectedHotel
+        ? [
+            {
+              hotel_name: selectedHotel.name,
+              room_type: selectedHotelRoomType || selectedHotel.room_categories?.[0]?.name || "Standard",
+              nights_count: nightsCount || 1,
+              board_type: selectedHotelRegime || selectedHotel.regime_options?.[0] || "All Inclusive",
+              stars: selectedHotel.stars || null,
+            },
+          ]
+        : selectedTemplate?.hotels || [],
  itinerary: selectedTemplate?.itinerary || [],
- transfers: selectedTemplate?.transfers || [],
- tours: selectedTemplate?.tours || (selectedCanonicalDest ? selectedCanonicalDest.highlights.map(h => ({ title: h, description: "Passeio recomendado no destino" })) : []),
+ transfers: selectedProposalTags
+        .filter((t) => t.toLowerCase().includes("transfer"))
+        .map((t) => ({ title: t })),
+ tours: selectedProposalTags
+        .filter((t) => !t.toLowerCase().includes("transfer"))
+        .map((t) => ({ title: t, description: "Serviço incluso na proposta" }))
+        .concat(
+          selectedTemplate?.tours ||
+            (selectedCanonicalDest
+              ? selectedCanonicalDest.highlights.map((h) => ({
+                  title: h,
+                  description: "Passeio recomendado no destino",
+                }))
+              : [])
+        ),
  includes: selectedTemplate?.includes || undefined,
  excludes: selectedTemplate?.excludes || undefined,
  };
 
- if (selectedTemplate?.suggestedPriceCents) {
- payload.pricing = {
- currency,
- base_price_cents: selectedTemplate.suggestedPriceCents,
- boarding_tax_cents: 0,
- other_taxes_cents: 0,
- discount_cents: 0,
- total_price_cents: selectedTemplate.suggestedPriceCents,
- installments_options: [
- {
- installments_count: 1,
- installment_value_cents: Math.round(selectedTemplate.suggestedPriceCents * 0.95),
- method: "pix",
- has_interest: false,
- },
- {
- installments_count: 10,
- installment_value_cents: Math.round(selectedTemplate.suggestedPriceCents / 10),
- method: "credit_card",
- has_interest: false,
- },
- ],
- };
- }
+  const finalPriceCents = basePriceCents || selectedTemplate?.suggestedPriceCents;
+  if (finalPriceCents && finalPriceCents > 0) {
+    const downPayment = downPaymentCents || 0;
+    const financedAmount = Math.max(0, finalPriceCents - downPayment);
+    const count = installmentsCount || 10;
+    const installmentValue = Math.round(financedAmount / count);
+
+    payload.pricing = {
+      currency,
+      base_price_cents: finalPriceCents,
+      boarding_tax_cents: 0,
+      other_taxes_cents: 0,
+      discount_cents: 0,
+      total_price_cents: finalPriceCents,
+      pricing_model: pricingModel,
+      down_payment_cents: downPayment,
+      installments_options: [
+        {
+          installments_count: 1,
+          installment_value_cents: Math.round(finalPriceCents * 0.95),
+          method: "pix",
+          has_interest: false,
+        },
+        {
+          installments_count: count,
+          installment_value_cents: installmentValue,
+          method: "credit_card",
+          has_interest: false,
+        },
+      ],
+    };
+  }
 
  const res = await createTravelProposal({ data: payload });
 
@@ -486,7 +556,8 @@ export function NewTravelProposalSheet({
  <Sheet open={isOpen} onOpenChange={onOpenChange}>
  <SheetContent
  side="right"
- className="w-full sm:max-w-xl md:max-w-2xl flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border shadow-2xl"
+ size="wide"
+ className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border shadow-2xl"
  >
  {/* Header Limpo, Humano e Silencioso (Anti-AI Design) */}
  <SheetHeader className="p-6 pb-4 border-b border-border/70 bg-card">
@@ -835,10 +906,10 @@ export function NewTravelProposalSheet({
  required
  />
 
- {/* Chips de Destinos Canônicos */}
+ {/* Chips de Destinos Oficiais */}
  <div className="space-y-1 pt-1">
  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
- Destinos Canônicos Mais Procurados (1 Toque):
+ Destinos Mais Procurados (1 Toque):
  </span>
  <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto no-scrollbar pr-1">
  {CANONICAL_DESTINATIONS.map((dest) => (
@@ -1098,6 +1169,322 @@ export function NewTravelProposalSheet({
  <Plus className="size-3.5" />
  <span>Adicionar Outro Quarto</span>
  </Button>
+ </div>
+
+ {/* Card 3.5: Hospedagem & Resort (Banco Oficial de Hotéis) */}
+ <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-3.5 shadow-xs">
+ <div className="flex items-center justify-between">
+ <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
+ <Building2 className="size-4 text-emerald-600 dark:text-emerald-400" />
+ <span>Hospedagem & Resort (Banco Oficial)</span>
+ </div>
+ {selectedHotel && (
+ <Badge variant="secondary" className="text-[10px] font-bold bg-emerald-500/10 text-emerald-600">
+ {selectedHotel.stars ? `${selectedHotel.stars}★ ` : ""}{selectedHotel.regime_options?.[0] || "All Inclusive"}
+ </Badge>
+ )}
+ </div>
+
+ {selectedHotel ? (
+ <div className="p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 space-y-2.5">
+ <div className="flex items-center justify-between">
+ <div>
+ <h4 className="text-xs font-bold text-foreground">{selectedHotel.name}</h4>
+ <p className="text-[10px] text-muted-foreground">
+ {selectedHotel.city}, {selectedHotel.state || selectedHotel.country}
+ </p>
+ </div>
+ <button
+ type="button"
+ onClick={() => {
+ setSelectedHotel(null);
+ setHotelSearch("");
+ }}
+ className="text-[11px] text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+ >
+ Trocar Hotel
+ </button>
+ </div>
+
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+ <div className="space-y-1">
+ <Label className="text-[10px] text-muted-foreground">Regime Alimentar</Label>
+ <select
+ value={selectedHotelRegime}
+ onChange={(e) => setSelectedHotelRegime(e.target.value)}
+ className="h-8 w-full rounded-lg border border-border/60 bg-background px-2 text-xs"
+ >
+ {(selectedHotel.regime_options || ["All Inclusive", "Café da Manhã", "Meia Pensão"]).map((reg) => (
+ <option key={reg} value={reg}>{reg}</option>
+ ))}
+ </select>
+ </div>
+
+ <div className="space-y-1">
+ <Label className="text-[10px] text-muted-foreground">Categoria de Quarto</Label>
+ <Input
+ placeholder="Ex: Suíte Luxo Vista Mar"
+ value={selectedHotelRoomType}
+ onChange={(e) => setSelectedHotelRoomType(e.target.value)}
+ className="h-8 text-xs rounded-lg"
+ />
+ </div>
+ </div>
+ </div>
+ ) : (
+ <div className="relative space-y-1.5">
+ <Label className="text-[11px] font-bold">Buscar Hotel no Banco da Agência</Label>
+ <div className="relative">
+ <Input
+ placeholder="Digite o nome do hotel, resort ou cidade..."
+ value={hotelSearch}
+ onChange={(e) => {
+ setHotelSearch(e.target.value);
+ setIsHotelDropdownOpen(true);
+ }}
+ onFocus={() => setIsHotelDropdownOpen(true)}
+ className="h-9 text-xs rounded-xl"
+ />
+ {isHotelDropdownOpen && hotelsBankList.length > 0 && (
+ <div className="absolute z-30 left-0 right-0 top-10 bg-popover border border-border rounded-xl shadow-lg max-h-48 overflow-y-auto p-1 text-xs space-y-1">
+ {hotelsBankList.slice(0, 6).map((h) => (
+ <button
+ key={h.id}
+ type="button"
+ onClick={() => {
+ setSelectedHotel(h);
+ setSelectedHotelRegime(h.regime_options?.[0] || "All Inclusive");
+ setSelectedHotelRoomType(h.room_categories?.[0]?.name || "Standard");
+ setIsHotelDropdownOpen(false);
+ setHotelSearch("");
+ toast.success(`Hotel "${h.name}" selecionado!`);
+ }}
+ className="w-full text-left p-2 rounded-lg hover:bg-muted transition-colors flex items-center justify-between cursor-pointer"
+ >
+ <div>
+ <p className="font-bold text-foreground text-xs">{h.name}</p>
+ <p className="text-[10px] text-muted-foreground">
+ {h.city}, {h.state || h.country} {h.stars ? `• ${h.stars}★` : ""}
+ </p>
+ </div>
+ <Badge variant="outline" className="text-[9px] font-mono">
+ {h.regime_options?.[0] || "All Inclusive"}
+ </Badge>
+ </button>
+ ))}
+ </div>
+ )}
+ </div>
+ <p className="text-[10px] text-muted-foreground">
+ Selecione um hotel parceiro do banco ou deixe em branco para usar acomodação avulsa.
+ </p>
+ </div>
+ )}
+ </div>
+
+ {/* Card 3.6: Transfers & Inclusões Rápidas (1 Toque) */}
+ <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-3 shadow-xs">
+ <div className="flex items-center justify-between">
+ <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
+ <Tag className="size-4 text-primary" />
+ <span>Transfers, Passeios & Atrativos Inclusos</span>
+ </div>
+ <span className="text-[10px] text-muted-foreground">
+ {selectedProposalTags.length} selecionado(s)
+ </span>
+ </div>
+
+ {/* Tags sugeridas e ativas */}
+ <div className="flex flex-wrap gap-1.5">
+ {[
+ "Transfer In/Out Aeroporto ↔ Hotel",
+ "Seguro Viagem Cobertura Completa",
+ "City Tour Histórico no Destino",
+ "Passeio Náutico / Escuna",
+ "Ingressos para Parques Temáticos",
+ "Bagagem Despachada 23kg",
+ ].map((tag) => {
+ const isSelected = selectedProposalTags.includes(tag);
+ return (
+ <button
+ key={tag}
+ type="button"
+ onClick={() => toggleProposalTag(tag)}
+ className={`text-[11px] px-2.5 py-1 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+ isSelected
+ ? "bg-primary text-primary-foreground border-primary font-bold shadow-2xs"
+ : "bg-muted/40 hover:bg-muted text-muted-foreground border-border/70"
+ }`}
+ >
+ <span>{isSelected ? "✓" : "+"}</span>
+ <span>{tag}</span>
+ </button>
+ );
+ })}
+
+ {/* Tags personalizadas adicionadas pelo agente */}
+ {selectedProposalTags
+ .filter(
+ (t) =>
+ ![
+ "Transfer In/Out Aeroporto ↔ Hotel",
+ "Seguro Viagem Cobertura Completa",
+ "City Tour Histórico no Destino",
+ "Passeio Náutico / Escuna",
+ "Ingressos para Parques Temáticos",
+ "Bagagem Despachada 23kg",
+ ].includes(t)
+ )
+ .map((customTag) => (
+ <span
+ key={customTag}
+ className="text-[11px] px-2.5 py-1 rounded-xl border bg-primary text-primary-foreground border-primary font-bold shadow-2xs flex items-center gap-1.5"
+ >
+ <span>✓</span>
+ <span>{customTag}</span>
+ <button
+ type="button"
+ onClick={() => toggleProposalTag(customTag)}
+ className="ml-1 size-3.5 rounded-full hover:bg-white/20 flex items-center justify-center text-xs"
+ title="Remover atrativo"
+ >
+ ×
+ </button>
+ </span>
+ ))}
+ </div>
+
+ {/* Input de Novo Passeio / Tag Dinâmica */}
+ <div className="pt-2 border-t border-border/40 flex gap-2">
+ <Input
+ placeholder="Adicionar atrativo (ex: Beach Park, Passeio à Praia do Francês, Buggy nas Dunas)..."
+ value={customTagInput}
+ onChange={(e) => setCustomTagInput(e.target.value)}
+ onKeyDown={(e) => {
+ if (e.key === "Enter") {
+ e.preventDefault();
+ if (customTagInput.trim()) {
+ setSelectedProposalTags((prev) =>
+ prev.includes(customTagInput.trim())
+ ? prev
+ : [...prev, customTagInput.trim()]
+ );
+ setCustomTagInput("");
+ }
+ }
+ }}
+ className="h-8 text-xs rounded-xl bg-background"
+ />
+ <Button
+ type="button"
+ variant="outline"
+ size="sm"
+ onClick={() => {
+ if (customTagInput.trim()) {
+ setSelectedProposalTags((prev) =>
+ prev.includes(customTagInput.trim())
+ ? prev
+ : [...prev, customTagInput.trim()]
+ );
+ setCustomTagInput("");
+ }
+ }}
+ className="h-8 px-3 rounded-xl text-xs shrink-0 font-medium cursor-pointer"
+ >
+ <Plus className="size-3.5 mr-1" />
+ Adicionar
+ </Button>
+ </div>
+ </div>
+
+ {/* Card 3.7: Orçamento & Condições de Pagamento (Zero Hardcoded) */}
+ <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-3.5 shadow-xs">
+ <div className="flex items-center justify-between">
+ <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
+ <DollarSign className="size-4 text-emerald-600 dark:text-emerald-400" />
+ <span>Orçamento & Parcelamento</span>
+ </div>
+ <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground">
+ Personalizado
+ </Badge>
+ </div>
+
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div className="space-y-1">
+ <Label className="text-[11px] font-bold">Valor Total do Pacote (R$)</Label>
+ <CurrencyField
+ value={basePriceCents}
+ onChange={setBasePriceCents}
+ placeholder="0,00"
+ className="h-9 text-xs rounded-xl"
+ />
+ </div>
+
+ <div className="space-y-1">
+ <Label className="text-[11px] font-bold">Modalidade de Preço</Label>
+ <select
+ value={pricingModel}
+ onChange={(e) => setPricingModel(e.target.value as any)}
+ className="h-9 w-full rounded-xl border border-input bg-background px-3 text-xs"
+ >
+ <option value="total">Pacote Total (Todos os Passageiros)</option>
+ <option value="per_person">Valor por Pessoa (Pax)</option>
+ <option value="per_room">Valor por Acomodação (Quarto)</option>
+ </select>
+ </div>
+ </div>
+
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+ <div className="space-y-1">
+ <Label className="text-[11px] font-bold">Entrada Inicial (R$, Opcional)</Label>
+ <CurrencyField
+ value={downPaymentCents}
+ onChange={setDownPaymentCents}
+ placeholder="0,00 (sem entrada)"
+ className="h-9 text-xs rounded-xl"
+ />
+ </div>
+
+ <div className="space-y-1">
+ <Label className="text-[11px] font-bold">Máximo de Parcelas no Cartão</Label>
+ <select
+ value={installmentsCount}
+ onChange={(e) => setInstallmentsCount(Number(e.target.value))}
+ className="h-9 w-full rounded-xl border border-input bg-background px-3 text-xs"
+ >
+ <option value={1}>1x (À Vista)</option>
+ <option value={3}>Até 3x sem juros</option>
+ <option value={6}>Até 6x sem juros</option>
+ <option value={10}>Até 10x sem juros (Padrão)</option>
+ <option value={12}>Até 12x sem juros</option>
+ </select>
+ </div>
+ </div>
+
+ {basePriceCents && basePriceCents > 0 && (
+ <div className="p-2.5 rounded-xl bg-muted/30 border border-border/50 text-[11px] space-y-1 text-muted-foreground">
+ <p className="font-semibold text-foreground flex items-center justify-between">
+ <span>Projeção para o Cliente:</span>
+ <span className="text-primary font-bold font-mono">
+ {formatMoney(basePriceCents)}
+ </span>
+ </p>
+ <p>
+ • À vista no PIX com 5% de desconto:{" "}
+ <strong className="text-foreground">{formatMoney(Math.round(basePriceCents * 0.95))}</strong>
+ </p>
+ <p>
+ • Cartão:{" "}
+ {downPaymentCents && downPaymentCents > 0
+ ? `Entrada de ${formatMoney(downPaymentCents)} + ${installmentsCount}x de ${formatMoney(
+ Math.round(Math.max(0, basePriceCents - downPaymentCents) / installmentsCount)
+ )} sem juros`
+ : `Em até ${installmentsCount}x de ${formatMoney(
+ Math.round(basePriceCents / installmentsCount)
+ )} sem juros`}
+ </p>
+ </div>
+ )}
  </div>
 
  {/* Card 4: Moeda, Validade & Tema */}

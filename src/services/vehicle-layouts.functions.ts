@@ -177,7 +177,7 @@ export function generateDefaultBusSeatMap(rows = 12, cols = 5, isDoubleDecker = 
 // ---------------------------------------------------------------------------
 
 export const listVehicleLayouts = createServerFn({ method: "GET" })
- .validator((d: { store_id: string }) => d)
+ .validator(z.object({ store_id: z.string().uuid() }))
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
@@ -194,7 +194,7 @@ export const listVehicleLayouts = createServerFn({ method: "GET" })
  });
 
 export const getVehicleLayout = createServerFn({ method: "GET" })
- .validator((d: { store_id: string; layout_id: string }) => d)
+ .validator(z.object({ store_id: z.string().uuid(), layout_id: z.string().uuid() }))
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
@@ -212,7 +212,7 @@ export const getVehicleLayout = createServerFn({ method: "GET" })
  });
 
 export const createVehicleLayout = createServerFn({ method: "POST" })
- .validator((d: unknown) => CreateVehicleLayoutSchema.parse(d))
+ .validator(CreateVehicleLayoutSchema)
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
@@ -248,7 +248,7 @@ export const createVehicleLayout = createServerFn({ method: "POST" })
  });
 
 export const updateVehicleLayout = createServerFn({ method: "POST" })
- .validator((d: unknown) => UpdateVehicleLayoutSchema.parse(d))
+ .validator(UpdateVehicleLayoutSchema)
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
@@ -285,7 +285,7 @@ export const updateVehicleLayout = createServerFn({ method: "POST" })
  });
 
 export const duplicateVehicleLayout = createServerFn({ method: "POST" })
- .validator((d: { store_id: string; layout_id: string; new_name: string }) => d)
+ .validator(z.object({ store_id: z.string().uuid(), layout_id: z.string().uuid(), new_name: z.string().min(1) }))
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
@@ -323,7 +323,7 @@ export const duplicateVehicleLayout = createServerFn({ method: "POST" })
  });
 
 export const deleteVehicleLayout = createServerFn({ method: "POST" })
- .validator((d: { store_id: string; layout_id: string }) => d)
+ .validator(z.object({ store_id: z.string().uuid(), layout_id: z.string().uuid() }))
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);

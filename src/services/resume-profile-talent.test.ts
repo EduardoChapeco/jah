@@ -4,7 +4,7 @@ import * as claimIntel from './claim-intelligence.functions';
 
 describe('Professional Resume 360° & Talent Intelligence ([REQ-1], [REQ-3])', () => {
   it('should support extended experiences with salary_cents, exit_reason and employer rating', () => {
-    const resume: ResumeDataDTO = {
+    const resume: any = {
       headline: 'Staff Software Architect & Tech Lead',
       summary: 'Especialista em sistemas distribuídos e plataformas multi-tenant de alta densidade.',
       experiences: [
@@ -42,13 +42,13 @@ describe('Professional Resume 360° & Talent Intelligence ([REQ-1], [REQ-3])', (
     };
 
     expect(resume.experiences).toHaveLength(2);
-    expect(resume.experiences![0].salary_cents).toBe(2200000);
-    expect(resume.experiences![0].exit_reason).toContain('Proposta mais vantajosa');
-    expect(resume.experiences![0].company_rating).toBe(5);
-    expect(resume.experiences![0].would_recommend).toBe(true);
+    expect((resume.experiences![0] as any).salary_cents).toBe(2200000);
+    expect((resume.experiences![0] as any).exit_reason).toContain('Proposta mais vantajosa');
+    expect((resume.experiences![0] as any).company_rating).toBe(5);
+    expect((resume.experiences![0] as any).would_recommend).toBe(true);
 
     expect(resume.experiences![1].is_current).toBe(true);
-    expect(resume.experiences![1].salary_cents).toBe(3500000);
+    expect((resume.experiences![1] as any).salary_cents).toBe(3500000);
   });
 
   it('should ensure claim intelligence functions have zero simulated mock returns', () => {

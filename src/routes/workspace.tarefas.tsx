@@ -58,7 +58,7 @@ export const Route = createFileRoute("/workspace/tarefas")({
     };
     } catch (err) {
       console.error("[loader:workspace.tarefas] Unhandled loader error:", err);
-      return null;
+      return { store: null, initialTasks: null, initialDigest: null, initialStages: null };
     }
   },
   component: WorkspaceTasksPage,

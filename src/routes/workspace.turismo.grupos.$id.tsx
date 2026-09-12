@@ -48,14 +48,14 @@ export const Route = createFileRoute("/workspace/turismo/grupos/$id")({
  return { tour };
    } catch (err) {
      console.error("[loader:workspace.turismo.grupos.$id] Unhandled loader error:", err);
-     return null;
+     return { tour: null };
    }
  },
  component: WorkspaceGroupTourDetailPage,
 });
 
 function WorkspaceGroupTourDetailPage() {
- const { tour: initialTour } = Route.useLoaderData();
+ const { tour: initialTour } = ((Route.useLoaderData?.() as any) || {});
  const [tour, setTour] = useState<GroupTourDTO | null>(initialTour);
  const [isSaving, setIsSaving] = useState(false);
  const [isExportingManifest, setIsExportingManifest] = useState(false);

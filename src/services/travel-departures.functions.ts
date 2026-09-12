@@ -127,11 +127,14 @@ export const AIRLINE_CHECKIN_LINKS: Record<string, string> = {
 // ---------------------------------------------------------------------------
 
 export const listDepartureCards = createServerFn({ method: 'GET' })
-  .validator((d: { store_id?: string }) => d)
+  .validator(z.object({ store_id: z.string().uuid().optional() }).optional())
   .handler(async ({ data }) => {
     const identity = await getServerIdentity();
-    const storeId = data.store_id || identity.store_id;
     assertStoreAccess(identity);
+    const storeId = data?.store_id || identity.storeId;
+    if (storeId !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error('Acesso não autorizado para esta organização.');
+    }
 
     const db = getServerClient();
     const { data: rows, error } = await db

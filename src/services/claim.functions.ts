@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
 import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
+import { generateClaimToken } from "@/lib/tokens";
 import type { 
  StoreReputationClaim, 
  StoreReputationMessage, 
@@ -67,7 +68,7 @@ export const createPublicClaim = createServerFn({ method: "POST" })
  )
  .handler(async ({ data }) => {
  const supabase = getServerClient();
- const publicToken = "CLM-" + Math.random().toString(36).substring(2, 9).toUpperCase();
+ const publicToken = generateClaimToken();
 
  const { data: claim, error } = await supabase
  .from("store_reputation_claims")

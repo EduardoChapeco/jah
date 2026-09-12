@@ -45,7 +45,7 @@ export const Route = createFileRoute("/_store/buscar")({
  }
    } catch (err) {
      console.error("[loader:_store.buscar] Unhandled loader error:", err);
-     return null;
+     return { result: null, query: "" };
    }
  },
  pendingComponent: PageSkeleton,
@@ -214,9 +214,6 @@ function ResultSection({
  <div className="flex items-center gap-2">
  <Icon className="size-4 text-primary" />
  <h2 className="text-sm font-bold text-foreground">{title}</h2>
- <Badge variant="secondary" className="text-[10px] font-mono">
- {count}
- </Badge>
  </div>
  <div className="space-y-2">{children}</div>
  </section>
@@ -226,10 +223,7 @@ function ResultSection({
 // ── Componente Principal ───────────────────────────────────────────────────
 
 function SearchPage() {
- const { result: initialResult, query: initialQuery } = Route.useLoaderData() as {
- result: FederatedSearchResponse | null;
- query: string;
- };
+  const { result: initialResult = null, query: initialQuery = "" } = ((Route.useLoaderData() as any) || {});
  const navigate = useNavigate();
  const [input, setInput] = useState(initialQuery ?? "");
  const [result, setResult] = useState<FederatedSearchResponse | null>(initialResult);

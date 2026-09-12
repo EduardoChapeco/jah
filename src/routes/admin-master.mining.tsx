@@ -90,7 +90,7 @@ export const Route = createFileRoute("/admin-master/mining")({
 type Tab = "mined" | "queue" | "feeds" | "scrapers" | "import";
 
 function AdminMiningHubPage() {
- const { stats, queue: initialQueue, feeds: initialFeeds, mined: initialMined, scrapers: initialScrapers } = Route.useLoaderData();
+ const { stats, queue: initialQueue, feeds: initialFeeds, mined: initialMined, scrapers: initialScrapers } = ((Route.useLoaderData?.() as any) || {});
  const [activeTab, setActiveTab] = useState<Tab>("mined");
  const [isPending, startTransition] = useTransition();
 

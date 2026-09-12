@@ -46,14 +46,14 @@ export const Route = createFileRoute("/workspace/turismo/contratos/")({
     return { contracts: contracts || [], store };
     } catch (err) {
       console.error("[loader:workspace.turismo.contratos.index] Unhandled error:", err);
-      return null;
+      return { contracts: null, store: null };
     }
   },
   component: WorkspaceContractsIndexPage,
 });
 
 export default function WorkspaceContractsIndexPage() {
-  const { contracts: initialContracts, store } = Route.useLoaderData();
+  const { contracts: initialContracts, store } = ((Route.useLoaderData?.() as any) || {});
   const queryClient = useQueryClient();
 
   const [search, setSearch] = useState("");

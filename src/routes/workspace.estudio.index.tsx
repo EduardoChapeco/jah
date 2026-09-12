@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, isRedirect } from "@tanstack/react-router";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -78,9 +78,10 @@ export const Route = createFileRoute("/workspace/estudio/")({
     }
     return {};
    } catch (err) {
+      if (isRedirect(err)) throw err;
      console.error("[loader:workspace.estudio.index] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
   },
  component: StudioWorkspacePage,
 });
@@ -257,6 +258,7 @@ function StudioWorkspacePage() {
  await exportElementAsImage("studio-canvas-stage", `${safeTitle || "arte_studio"}.png`);
  toast.success("Arte exportada com sucesso em PNG de alta definição!");
  } catch (err: any) {
+      if (isRedirect(err)) throw err;
  toast.error(err?.message || "Erro ao exportar arte.");
  } finally {
  setIsExporting(false);

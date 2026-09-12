@@ -90,12 +90,24 @@ export const AddCommentSchema = z.object({
  comment_text: z.string().min(1, "Comentário não pode ser vazio"),
 });
 
+export const ListWorkspaceTasksSchema = z.object({
+ store_id: z.string().uuid(),
+ view: z.string().optional(),
+ search: z.string().optional(),
+ tag: z.string().optional(),
+});
+
+export const GetTaskDetailsSchema = z.object({
+ store_id: z.string().uuid(),
+ task_id: z.string().uuid(),
+});
+
 // ---------------------------------------------------------------------------
 // Server Functions
 // ---------------------------------------------------------------------------
 
 export const listWorkspaceTasks = createServerFn({ method: "GET" })
- .validator((d: { store_id: string; view?: string; search?: string; tag?: string }) => d)
+ .validator(ListWorkspaceTasksSchema)
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
@@ -134,7 +146,7 @@ export const listWorkspaceTasks = createServerFn({ method: "GET" })
  });
 
 export const getTaskDetails = createServerFn({ method: "GET" })
- .validator((d: { store_id: string; task_id: string }) => d)
+ .validator(GetTaskDetailsSchema)
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
@@ -156,7 +168,7 @@ export const getTaskDetails = createServerFn({ method: "GET" })
  });
 
 export const createWorkspaceTask = createServerFn({ method: "POST" })
- .validator((d: unknown) => CreateTaskInputSchema.parse(d))
+ .validator(CreateTaskInputSchema)
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
@@ -210,7 +222,7 @@ export const createWorkspaceTask = createServerFn({ method: "POST" })
  });
 
 export const updateTaskStatus = createServerFn({ method: "POST" })
- .validator((d: unknown) => UpdateTaskStatusSchema.parse(d))
+ .validator(UpdateTaskStatusSchema)
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
@@ -236,7 +248,7 @@ export const updateTaskStatus = createServerFn({ method: "POST" })
  });
 
 export const toggleTaskMyDay = createServerFn({ method: "POST" })
- .validator((d: unknown) => ToggleMyDaySchema.parse(d))
+ .validator(ToggleMyDaySchema)
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
@@ -258,7 +270,7 @@ export const toggleTaskMyDay = createServerFn({ method: "POST" })
  });
 
 export const updateWorkspaceTask = createServerFn({ method: "POST" })
- .validator((d: unknown) => UpdateTaskInputSchema.parse(d))
+ .validator(UpdateTaskInputSchema)
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
@@ -301,7 +313,7 @@ export const updateWorkspaceTask = createServerFn({ method: "POST" })
  });
 
 export const deleteWorkspaceTask = createServerFn({ method: "POST" })
- .validator((d: { store_id: string; task_id: string }) => d)
+ .validator(GetTaskDetailsSchema)
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
@@ -318,7 +330,7 @@ export const deleteWorkspaceTask = createServerFn({ method: "POST" })
  });
 
 export const toggleChecklistItem = createServerFn({ method: "POST" })
- .validator((d: unknown) => ChecklistActionSchema.parse(d))
+ .validator(ChecklistActionSchema)
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
@@ -341,7 +353,7 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
  });
 
 export const addChecklistItem = createServerFn({ method: "POST" })
- .validator((d: unknown) => ChecklistActionSchema.parse(d))
+ .validator(ChecklistActionSchema)
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
@@ -365,7 +377,7 @@ export const addChecklistItem = createServerFn({ method: "POST" })
  });
 
 export const addTaskComment = createServerFn({ method: "POST" })
- .validator((d: unknown) => AddCommentSchema.parse(d))
+ .validator(AddCommentSchema)
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
@@ -386,7 +398,7 @@ export const addTaskComment = createServerFn({ method: "POST" })
  });
 
 export const getDailyTaskDigest = createServerFn({ method: "GET" })
- .validator((d: { store_id: string }) => d)
+ .validator(z.object({ store_id: z.string().uuid() }))
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);
@@ -524,7 +536,7 @@ export const resetTaskTimer = createServerFn({ method: "POST" })
 // ---------------------------------------------------------------------------
 
 export const listTaskColumns = createServerFn({ method: "GET" })
- .validator((d: { store_id: string }) => d)
+ .validator(z.object({ store_id: z.string().uuid() }))
  .handler(async ({ data }) => {
  const identity = await getServerIdentity();
  assertStoreAccess(identity);

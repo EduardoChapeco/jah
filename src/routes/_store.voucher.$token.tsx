@@ -32,14 +32,14 @@ export const Route = createFileRoute("/_store/voucher/$token")({
  return { data };
    } catch (err) {
      console.error("[loader:_store.voucher.$token] Unhandled loader error:", err);
-     return null;
+     return { data: null };
    }
  },
  component: PublicTravelVoucherPage,
 });
 
 function PublicTravelVoucherPage() {
- const { data } = Route.useLoaderData();
+ const { data } = ((Route.useLoaderData?.() as any) || {});
  const [isExportingPdf, setIsExportingPdf] = useState(false);
  const [isCopied, setIsCopied] = useState(false);
 

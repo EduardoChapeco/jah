@@ -24,8 +24,8 @@ export const Route = createFileRoute("/workspace/financeiro/caixa/turnos")({
  return await listRegisterHistory();
    } catch (err) {
      console.error("[loader:workspace.financeiro.caixa.turnos] Unhandled error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: ShiftsPage,
 });

@@ -74,11 +74,18 @@ function resolveCreateContext(pathname: string): CreateContext {
       navigateTo: "/workspace/turismo/viagens",
     };
   }
-  if (path.startsWith("/agenda") || path.startsWith("/evento")) {
+  if (path.startsWith("/eventos") || path.startsWith("/evento")) {
     return {
       label: "Criar evento",
       disabled: false,
       navigateTo: "/workspace/eventos",
+    };
+  }
+  if (path.startsWith("/agenda")) {
+    return {
+      label: "Novo agendamento",
+      disabled: false,
+      navigateTo: "/workspace/agenda",
     };
   }
   if (path.startsWith("/noticias")) {
@@ -319,16 +326,16 @@ export function MobileNav({ session }: MobileNavProps) {
       pinned: hasCartItems,
     },
     {
-      id: "mural",
-      to: "/mural",
-      label: "Mural",
+      id: "feed",
+      to: "/feed",
+      label: "Feed",
       icon: MessageSquare,
       pinned: false,
     },
     {
-      id: "criadores",
+      id: "afiliados",
       to: "/afiliados",
-      label: "Criadores",
+      label: "Afiliados",
       icon: Coins,
       pinned: false,
     },

@@ -68,7 +68,7 @@ export function ManagerOverrideDialog({
 
  return (
  <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
- <SheetContent className="sm:max-w-md">
+ <SheetContent size="wide" className="sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw]">
  <SheetHeader>
  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-warning mb-4">
  <Lock className="h-6 w-6 text-warning" />

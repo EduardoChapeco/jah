@@ -44,14 +44,14 @@ export const Route = createFileRoute("/_store/contrato/$token")({
  return { contract };
    } catch (err) {
      console.error("[loader:_store.contrato.$token] Unhandled loader error:", err);
-     return null;
+     return { contract: null };
    }
  },
  component: PublicTravelContractSignaturePage,
 });
 
 function PublicTravelContractSignaturePage() {
- const { contract } = Route.useLoaderData();
+ const { contract } = ((Route.useLoaderData?.() as any) || {});
  const [signerName, setSignerName] = useState(contract?.client_name || "");
  const [signerDoc, setSignerDoc] = useState(contract?.client_document || "");
  const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);

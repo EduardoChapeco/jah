@@ -27,7 +27,7 @@ export const Route = createFileRoute("/workspace/contratos/$id/editor")({
       return await getContractById({ data: params.id });
     } catch (err) {
       console.error("[loader:workspace.contratos.$id.editor] Unhandled error:", err);
-      return null;
+      return {} as any;
     }
   },
  component: ContractEditorPage,

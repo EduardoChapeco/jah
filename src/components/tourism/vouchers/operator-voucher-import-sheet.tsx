@@ -225,7 +225,8 @@ export function OperatorVoucherImportSheet({
     >
       <SheetContent
         side="right"
-        className="w-full sm:max-w-3xl p-0 flex flex-col justify-between bg-background text-foreground overflow-hidden border-l border-border"
+        size="wide"
+        className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-0 flex flex-col justify-between bg-background text-foreground overflow-hidden border-l border-border"
       >
         {/* ── HEADER ── */}
         <div className="p-5 border-b border-border bg-muted/20">

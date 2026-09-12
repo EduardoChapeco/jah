@@ -59,14 +59,14 @@ export const Route = createFileRoute("/admin-master/termos")({
  return { documents, logs: logsRes.logs, totalLogs: logsRes.total, stats };
    } catch (err) {
      console.error("[loader:admin-master.termos] Unhandled loader error:", err);
-     return null;
+     return { documents: null, logs: null, totalLogs: null, stats: null };
    }
  },
  component: AdminMasterTermosPage,
 });
 
 function AdminMasterTermosPage() {
- const { documents: initialDocs, logs: initialLogs, totalLogs, stats } = Route.useLoaderData();
+ const { documents: initialDocs, logs: initialLogs, totalLogs, stats } = ((Route.useLoaderData?.() as any) || {});
 
  const [documents, setDocuments] = useState(initialDocs);
  const [logs, setLogs] = useState(initialLogs);
@@ -445,7 +445,7 @@ function AdminMasterTermosPage() {
 
  {/* Sheet para Edição de Documento Legal */}
  <Sheet open={isEditingDoc} onOpenChange={setIsEditingDoc}>
- <SheetContent className="w-full sm:max-w-2xl overflow-y-auto no-scrollbar">
+ <SheetContent size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] overflow-y-auto no-scrollbar">
  <SheetHeader>
  <SheetTitle>Editar Documento Legal</SheetTitle>
  <SheetDescription>

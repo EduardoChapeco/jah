@@ -2,11 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { Input } from "./input";
 import { Button } from "./button";
 import { Badge } from "./badge";
-import { MapPin, Search, Loader2, Sparkles, Navigation, CheckCircle2 } from "lucide-react";
+import { MapPin, Search, Loader2, Zap, Navigation, CheckCircle2 } from "lucide-react";
 import type { Map, Marker } from "maplibre-gl";
 import { getCanonicalMapStyle, setupMapResizeObserver } from "@/lib/map-styles";
 import { lookupCep, parseAddressWithAI, reverseGeocode } from "@/services/public-apis.functions";
 import { formatCep } from "@/lib/document-validator";
+import { getStoredLocation } from "@/components/location/location-master-pill";
 import { toast } from "sonner";
 
 export interface AddressData {
@@ -50,8 +51,9 @@ export const AddressField: React.FC<AddressFieldProps> = ({ value, onChange, cla
       if (!isMounted || !mapContainer.current || map.current) return;
       const maplibregl = maplibreglModule.default || maplibreglModule;
 
-      const initialLat = value?.lat || -27.1004; // Chapecó / SC default
-      const initialLng = value?.lng || -52.6152;
+      const stored = typeof window !== "undefined" ? getStoredLocation() : null;
+      const initialLat = value?.lat || stored?.lat || -27.1004;
+      const initialLng = value?.lng || stored?.lng || -52.6152;
 
       map.current = new maplibregl.Map({
         container: mapContainer.current,
@@ -272,7 +274,7 @@ export const AddressField: React.FC<AddressFieldProps> = ({ value, onChange, cla
           onClick={() => setShowAiPaste(!showAiPaste)}
           className="h-10 rounded-xl text-xs font-bold gap-1.5 text-muted-foreground hover:text-foreground shrink-0"
         >
-          <Sparkles className="size-3.5 text-amber-500" />
+          <Zap className="size-3.5 text-amber-500" />
           <span>Colar com IA</span>
         </Button>
       </div>
@@ -281,7 +283,7 @@ export const AddressField: React.FC<AddressFieldProps> = ({ value, onChange, cla
       {showAiPaste && (
         <div className="p-3.5 rounded-2xl bg-primary/5 border border-primary/20 space-y-2.5 animate-in fade-in slide-in-from-top-2">
           <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-            <Sparkles className="size-3.5 text-primary" />
+            <Zap className="size-3.5 text-primary" />
             Autopreenchimento Cirúrgico por IA (Cole o endereço completo)
           </span>
           <div className="flex gap-2">

@@ -36,7 +36,7 @@ export const Route = createFileRoute("/workspace/marketing/canvas-pecados")({
     return { store };
     } catch (err) {
       console.error("[loader:workspace.marketing.canvas-pecados] Unhandled loader error:", err);
-      return null;
+      return { store: null };
     }
   },
   component: SevenSinsCanvasPage,

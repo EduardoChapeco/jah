@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
 import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
 import { eventSchema, ticketLotSchema } from "@/types/community";
+import { generateTicketQRHash } from "@/lib/tokens";
 import { logAuditAction } from "./audit.functions";
 
 // ---------------------------------------------------------------------------
@@ -97,24 +98,32 @@ async function _upsertEvent(data: any) {
 }
 
 export const upsertEvent = createServerFn({ method: "POST" })
- .validator(
- z.object({
- id: z.string().uuid().optional(),
- title: z.string().min(1, "O título é obrigatório"),
- description: z.string().optional().nullable(),
- event_date: z.string().min(1, "Data do evento é obrigatória"),
- end_date: z.string().optional().nullable(),
- location: z.string().optional().nullable(),
- address: z.string().optional().nullable(),
- cover_image: z.string().optional().nullable(),
- category: z.string().default("shows"),
- status: z.enum(["draft", "published", "cancelled"]).default("published"),
- is_free: z.boolean().default(false),
- capacity: z.number().int().min(0).optional().nullable(),
- organizer_name: z.string().optional().nullable(),
- })
- )
- .handler(async ({ data }) => _upsertEvent(data));
+  .validator(
+  z.object({
+  id: z.string().uuid().optional(),
+  title: z.string().min(1, "O título é obrigatório"),
+  description: z.string().optional().nullable(),
+  event_date: z.string().min(1, "Data do evento é obrigatória"),
+  end_date: z.string().optional().nullable(),
+  location: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
+  state: z.string().optional().nullable(),
+  cover_image: z.string().optional().nullable(),
+  category: z.string().default("shows"),
+  status: z.enum(["draft", "published", "cancelled"]).default("published"),
+  is_free: z.boolean().default(false),
+  is_external_ticket: z.boolean().default(false),
+  external_ticket_url: z.string().url().optional().nullable(),
+  capacity: z.number().int().min(0).optional().nullable(),
+  organizer_name: z.string().optional().nullable(),
+  organizer_phone: z.string().optional().nullable(),
+  age_rating: z.string().optional().nullable(),
+  tags: z.array(z.string()).optional().nullable(),
+  featured_until: z.string().optional().nullable(),
+  })
+  )
+  .handler(async ({ data }) => _upsertEvent(data));
 
 // ---------------------------------------------------------------------------
 // TICKET LOTS
@@ -274,7 +283,7 @@ async function _issueComplimentaryTicket(params: {
  .single();
  if (!evt) throw new Error("Acesso negado");
 
- const qrHash = `TKT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+ const qrHash = generateTicketQRHash();
 
  const { data: ticket, error } = await supabase
  .from("tickets")
@@ -432,46 +441,82 @@ export const getEventWithLots = createServerFn({ method: "GET" })
 // PUBLIC EVENTS LISTING (no auth required) — 100% Real no Supabase
 // ---------------------------------------------------------------------------
 
-async function _getPublicEvents(opts: { limit?: number; category?: string } = {}) {
- const supabase = getServerClient();
- const limit = opts.limit ?? 50;
+async function _getPublicEvents(opts: {
+  limit?: number;
+  category?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  city?: string;
+  state?: string;
+  searchQuery?: string;
+} = {}) {
+  const supabase = getServerClient();
+  const limit = opts.limit ?? 50;
 
- try {
- let query = supabase
- .from("events")
- .select(
- "id, store_id, title, description, event_date, location, cover_image, status, created_at",
- )
- .eq("status", "published")
- .order("event_date", { ascending: true })
- .limit(limit);
+  try {
+    let query = supabase
+      .from("events")
+      .select(
+        "id, store_id, title, description, event_date, end_date, location, city, state, cover_image, status, category, is_free, is_external_ticket, external_ticket_url, organizer_name, created_at",
+      )
+      .eq("status", "published")
+      .gte("event_date", new Date().toISOString()) // só eventos futuros
+      .order("event_date", { ascending: true })
+      .limit(limit);
 
- if (opts.category && opts.category !== "todos") {
- query = query.eq("category", opts.category);
- }
+    if (opts.category && opts.category !== "todos") {
+      query = query.eq("category", opts.category);
+    }
 
- const { data: events, error } = await query;
+    if (opts.dateFrom) {
+      query = query.gte("event_date", opts.dateFrom + "T00:00:00");
+    }
 
- if (!error && events) {
- return events;
- }
- } catch (err) {
- console.warn("[events] Erro ao listar eventos:", err);
- }
+    if (opts.dateTo) {
+      query = query.lte("event_date", opts.dateTo + "T23:59:59");
+    }
 
- return [];
+    if (opts.city) {
+      query = query.ilike("city", `%${opts.city}%`);
+    }
+
+    if (opts.state) {
+      query = query.eq("state", opts.state);
+    }
+
+    if (opts.searchQuery) {
+      query = query.or(
+        `title.ilike.%${opts.searchQuery}%,description.ilike.%${opts.searchQuery}%,location.ilike.%${opts.searchQuery}%,organizer_name.ilike.%${opts.searchQuery}%`,
+      );
+    }
+
+    const { data: events, error } = await query;
+
+    if (!error && events) {
+      return events;
+    }
+  } catch (err) {
+    console.warn("[events] Erro ao listar eventos:", err);
+  }
+
+  return [];
 }
 
 export const getPublicEvents = createServerFn({ method: "GET" })
- .validator(
- z
- .object({
- limit: z.number().int().min(1).max(100).optional(),
- category: z.string().optional(),
- })
- .optional(),
- )
- .handler(async ({ data }) => _getPublicEvents(data || {}));
+  .validator(
+    z
+      .object({
+        limit: z.number().int().min(1).max(200).optional(),
+        category: z.string().optional(),
+        dateFrom: z.string().optional(),
+        dateTo: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        searchQuery: z.string().optional(),
+      })
+      .optional(),
+  )
+  .handler(async ({ data }) => _getPublicEvents(data || {}));
 
 // ---------------------------------------------------------------------------
 // SUBPAINÉIS DE EVENTOS & LOGÍSTICA RECURSIVA (PERSONA NEXUS TRANSFUSION)

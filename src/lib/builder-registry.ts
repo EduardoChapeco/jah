@@ -2191,7 +2191,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
  title: "Sua Próxima Viagem Inesquecível Começa Aqui",
  subtitle: "Roteiros exclusivos, cruzeiros, passagens aéreas e pacotes completos com assessoria VIP.",
  badge: "✈️ Agência Boutique de Turismo",
- bgImageUrl: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1920&auto=format&fit=crop&q=80",
+ bgImageUrl: "",
  whatsappPhone: "",
  },
  },

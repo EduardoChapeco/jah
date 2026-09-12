@@ -79,58 +79,67 @@ export const listTenantAiProviders = createServerFn({ method: "GET" })
  });
 
 export const saveTenantAiProvider = createServerFn({ method: "POST" })
- .validator((d: unknown) => SaveAiProviderSchema.parse(d))
- .handler(async ({ data }) => {
- const identity = await getServerIdentity();
- assertStoreAccess(identity);
+  .validator(SaveAiProviderSchema)
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+    if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error("Acesso não autorizado para esta organização.");
+    }
 
- const db = getServerClient();
- const { data: saved, error } = await db
- .from("tenant_ai_providers")
- .upsert(
- {
- store_id: data.store_id,
- provider: data.provider,
- model_name: data.model_name.trim(),
- api_key: data.api_key.trim(),
- is_active: data.is_active,
- monthly_token_limit: data.monthly_token_limit || null,
- status: "untested",
- updated_at: new Date().toISOString(),
- },
- { onConflict: "store_id,provider" }
- )
- .select()
- .single();
+    const db = getServerClient();
+    const { data: saved, error } = await db
+      .from("tenant_ai_providers")
+      .upsert(
+        {
+          store_id: data.store_id,
+          provider: data.provider,
+          model_name: data.model_name.trim(),
+          api_key: data.api_key.trim(),
+          is_active: data.is_active,
+          monthly_token_limit: data.monthly_token_limit || null,
+          status: "untested",
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "store_id,provider" }
+      )
+      .select()
+      .single();
 
- if (error) throw error;
- return saved;
- });
+    if (error) throw error;
+    return saved;
+  });
 
 export const deleteTenantAiProvider = createServerFn({ method: "POST" })
- .validator(z.object({ store_id: z.string().uuid(), provider: z.string() }))
- .handler(async ({ data }) => {
- const identity = await getServerIdentity();
- assertStoreAccess(identity);
+  .validator(z.object({ store_id: z.string().uuid(), provider: z.string() }))
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+    if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error("Acesso não autorizado para esta organização.");
+    }
 
- const db = getServerClient();
- const { error } = await db
- .from("tenant_ai_providers")
- .delete()
- .eq("store_id", data.store_id)
- .eq("provider", data.provider);
+    const db = getServerClient();
+    const { error } = await db
+      .from("tenant_ai_providers")
+      .delete()
+      .eq("store_id", data.store_id)
+      .eq("provider", data.provider);
 
- if (error) throw error;
- return { success: true };
- });
+    if (error) throw error;
+    return { success: true };
+  });
 
 export const testAiProviderConnection = createServerFn({ method: "POST" })
- .validator((d: unknown) => TestAiProviderSchema.parse(d))
- .handler(async ({ data }) => {
- const identity = await getServerIdentity();
- assertStoreAccess(identity);
+  .validator(TestAiProviderSchema)
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+    if (data.store_id !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error("Acesso não autorizado para esta organização.");
+    }
 
- const db = getServerClient();
+    const db = getServerClient();
  const { data: row, error: fetchErr } = await db
  .from("tenant_ai_providers")
  .select("*")

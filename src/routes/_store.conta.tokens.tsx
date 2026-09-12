@@ -33,14 +33,14 @@ export const Route = createFileRoute("/_store/conta/tokens")({
  return { wallet, session };
    } catch (err) {
      console.error("[loader:_store.conta.tokens] Unhandled loader error:", err);
-     return null;
+     return { wallet: null, session: null };
    }
  },
  component: UserTokensPage,
 });
 
 function UserTokensPage() {
- const { wallet } = Route.useLoaderData();
+ const { wallet } = ((Route.useLoaderData?.() as any) || {});
  
  const [transactions, setTransactions] = useState(wallet.transactions || []);
  const [hasMore, setHasMore] = useState(wallet.hasMore);
@@ -64,22 +64,20 @@ function UserTokensPage() {
  };
 
  return (
- <div className="min-h-screen bg-background text-foreground pb-16">
- {/* Header Silencioso */}
- <div className="border-b border-border/40 bg-card/60 backdrop-blur-md sticky top-0 z-10">
- <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
- <div className="flex items-center gap-3">
- <Link to="/conta">
- <Button variant="ghost" size="icon" className="size-8 rounded-full">
- <ArrowLeft className="size-4" />
- </Button>
- </Link>
- <h1 className="text-base font-semibold tracking-tight">Tokens de Fidelidade</h1>
- </div>
- </div>
- </div>
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Tokens
+          </h1>
+        </div>
 
- <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+        <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-8 px-3.5 cursor-pointer">
+          <Link to="/mercado">Explorar Lojas</Link>
+        </Button>
+      </div>
+
  {/* Card de Saldo Limpo */}
  <div className="p-5 rounded-2xl border border-border/60 bg-card space-y-1">
  <span className="text-xs text-muted-foreground font-medium block">Saldo Acumulado</span>
@@ -144,7 +142,6 @@ function UserTokensPage() {
  )}
  </div>
  </div>
- </div>
- </div>
+    </div>
  );
 }

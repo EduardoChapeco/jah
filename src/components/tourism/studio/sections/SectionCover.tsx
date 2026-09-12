@@ -1,7 +1,8 @@
 import { TextField, Accordion } from "@/components/proposals/ProposalFormFields";
 import { type Proposal } from "@/services/proposals";
-import { Image, User, Search, Sparkles, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Image, User, Search, Zap, Loader2 } from "lucide-react";
+import { uploadMediaUniversal } from "@/services/storage.functions";
+import { generateProposalCoverAI } from "@/services/travel-proposal.functions";
 import { toast } from "sonner";
 import { useState } from "react";
 import { StudioUnsplashPicker } from "@/components/studio/StudioUnsplashPicker";
@@ -28,23 +29,31 @@ export function SectionCover({ draft, save }: SectionCoverProps) {
     else setUploadingAgent(true);
 
     try {
-      const uidVal = crypto.randomUUID();
-      const fileExt = file.name.split(".").pop();
-      const path = `${draft.agency_id}/studio/${draft.id}/${type}-${uidVal}.${fileExt}`;
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
-      const { error: uploadError } = await supabase.storage.from("agency-media").upload(path, file);
+      const res = await uploadMediaUniversal({
+        data: {
+          fileName: file.name,
+          fileType: file.type || "image/jpeg",
+          base64Data,
+          bucket: "public_media",
+          folder: `proposals/${draft.agency_id || "general"}/${draft.id || "covers"}`,
+        },
+      });
 
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage.from("agency-media").getPublicUrl(path);
-      const publicUrl = data.publicUrl;
-
-      if (isCover) {
-        save({ cover_image_url: publicUrl });
-        toast.success("Imagem de capa enviada!");
-      } else {
-        save({ agent_photo_url: publicUrl });
-        toast.success("Foto do consultor enviada!");
+      if (res?.url) {
+        if (isCover) {
+          save({ cover_image_url: res.url });
+          toast.success("Imagem de capa enviada!");
+        } else {
+          save({ agent_photo_url: res.url });
+          toast.success("Foto do consultor enviada!");
+        }
       }
     } catch (error: any) {
       toast.error(`Erro no upload: ${error.message}`);
@@ -118,7 +127,7 @@ export function SectionCover({ draft, save }: SectionCoverProps) {
                 }}
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl border border-brand/40 bg-brand/5 text-brand text-xs hover:bg-brand/10 transition-colors"
               >
-                <Sparkles className="h-3.5 w-3.5" />
+                <Zap className="h-3.5 w-3.5" />
               </Button>
             </div>
 
@@ -126,7 +135,7 @@ export function SectionCover({ draft, save }: SectionCoverProps) {
               <div className="mt-2 rounded-2xl border border-brand/20 bg-brand/5 p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="ds-meta uppercase tracking-wide font-bold text-brand flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" /> Gerar Capa com IA
+                    <Zap className="w-3 h-3" /> Gerar Capa com IA
                   </span>
                   <Button
                     type="button"
@@ -149,19 +158,16 @@ export function SectionCover({ draft, save }: SectionCoverProps) {
                   onClick={async () => {
                     setGeneratingCover(true);
                     const toastId = "ai-image-gen";
-                    toast.loading("IA gerando sua imagem de capa…", { id: toastId });
+                    toast.loading("IA selecionando sua imagem de capa…", { id: toastId });
                     try {
-                      const { data, error } = await supabase.functions.invoke("ai-orchestrator", {
-                        body: {
-                          action: "generate-image",
+                      const res = await generateProposalCoverAI({
+                        data: {
                           prompt: aiPrompt,
-                          agency_id: draft.agency_id,
-                          proposal_id: draft.id,
+                          proposalId: draft.id,
                         },
                       });
-                      if (error) throw error;
-                      if (data?.url) {
-                        save({ cover_image_url: data.url, cover_prompt: aiPrompt });
+                      if (res?.url) {
+                        save({ cover_image_url: res.url, cover_prompt: aiPrompt });
                         toast.success("Capa gerada e aplicada com sucesso!", { id: toastId });
                         setShowAiPrompt(false);
                       } else {
@@ -179,7 +185,7 @@ export function SectionCover({ draft, save }: SectionCoverProps) {
                   {generatingCover ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <Zap className="w-3.5 h-3.5" />
                   )}
                   {generatingCover ? "Gerando..." : "Gerar Imagem"}
                 </Button>

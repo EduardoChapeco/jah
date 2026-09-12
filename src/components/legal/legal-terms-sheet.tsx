@@ -78,7 +78,7 @@ export function LegalTermsSheet({
 
  return (
  <Sheet open={isOpen} onOpenChange={onOpenChange}>
- <SheetContent side="right" className="w-full sm:max-w-2xl flex flex-col justify-between overflow-hidden p-0">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] flex flex-col justify-between overflow-hidden p-0">
  {/* Header Fixo */}
  <div className="p-5 pb-3 border-b border-border/40 space-y-3 bg-card">
  <div className="flex items-center justify-between">

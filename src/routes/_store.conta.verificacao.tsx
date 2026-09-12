@@ -18,6 +18,7 @@ import {
 } from "@phosphor-icons/react";
 import { getMyKycStatus, submitKycVerification } from "@/services/kyc.functions";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/verificacao")({
@@ -34,7 +35,7 @@ export const Route = createFileRoute("/_store/conta/verificacao")({
 });
 
 function KycVerificationPage() {
- const { kyc } = Route.useLoaderData();
+ const { kyc } = ((Route.useLoaderData?.() as any) || {});
  const [isPending, startTransition] = useTransition();
 
  const [entityType, setEntityType] = useState<"individual" | "lawyer" | "accountant" | "doctor" | "driver" | "company">(
@@ -77,18 +78,19 @@ function KycVerificationPage() {
  };
 
  return (
- <div className="min-h-screen bg-background pb-20 pt-6">
- <div className="mx-auto max-w-3xl px-4 sm:px-6">
- {/* Header */}
- <div className="mb-6">
- <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground mb-1">
- <Link to="/conta" className="hover:text-foreground">Minha Conta</Link>
- <span>/</span>
- <span className="text-foreground">Verificação</span>
- </div>
- <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
- Verificação de Perfil
+ <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+ {/* ── 1. Clean Minimalist Header ── */}
+ <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+ <div className="flex items-center gap-3">
+ <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+ Verificação
  </h1>
+ {kyc?.status === "verified" && (
+ <Badge variant="secondary" className="text-xs font-mono font-bold px-2 py-0.5 rounded-full text-emerald-600 bg-emerald-500/10">
+ Verificado
+ </Badge>
+ )}
+ </div>
  </div>
 
  {/* Status Banner */}
@@ -225,7 +227,6 @@ function KycVerificationPage() {
  </button>
  </div>
  </form>
- </div>
  </div>
  </div>
  );

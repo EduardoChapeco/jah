@@ -26,7 +26,6 @@ import {
 } from "lucide-react";
 
 import { listOrders, updateOrderStatus } from "@/services/order.functions";
-import { getBrowserClient } from "@/lib/supabase";
 import { formatMoney } from "@/lib/money";
 import { formatDateTime } from "@/lib/datetime";
 import { Button } from "@/components/ui/button";
@@ -67,12 +66,12 @@ export const Route = createFileRoute("/workspace/pedidos/gestor")({
  // Filter only orders that make sense for the kitchen/fulfillment display
  const initialOrders = (res || []).filter((o: any) => !["draft", "cancelled", "refunded"].includes(o.status));
  
- return { initialOrders, storeId, store };
-   } catch (err) {
-     console.error("[loader:workspace.pedidos.gestor] Unhandled loader error:", err);
-     return null;
-   }
- },
+  return { initialOrders: initialOrders || [], storeId: storeId || null, store: store || null };
+    } catch (err) {
+      console.error("[loader:workspace.pedidos.gestor] Unhandled loader error:", err);
+      return { initialOrders: [], storeId: null, store: null };
+    }
+  },
  component: KDSPage,
 });
 
@@ -96,9 +95,12 @@ function playOrderChime() {
 }
 
 function KDSPage() {
- const router = useRouter();
- const { initialOrders, storeId, store } = Route.useLoaderData() as any;
- const [orders, setOrders] = useState<any[]>(initialOrders);
+  const router = useRouter();
+  const loaderData = (Route.useLoaderData() as any) || {};
+  const initialOrders = loaderData.initialOrders || [];
+  const storeId = loaderData.storeId || null;
+  const store = loaderData.store || null;
+  const [orders, setOrders] = useState<any[]>(initialOrders);
  const [viewMode, setViewMode] = useState<"kanban" | "live_dashboard">("kanban");
  const [alertModalOpen, setAlertModalOpen] = useState(false);
  const [isFullscreen, setIsFullscreen] = useState(false);

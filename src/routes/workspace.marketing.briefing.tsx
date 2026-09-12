@@ -52,7 +52,7 @@ export const Route = createFileRoute("/workspace/marketing/briefing")({
     return { store, briefing };
     } catch (err) {
       console.error("[loader:workspace.marketing.briefing] Unhandled loader error:", err);
-      return null;
+      return { store: null, briefing: null };
     }
   },
   component: BrandBriefingPage,
@@ -244,7 +244,7 @@ function SectionCard({
 
 // ── Componente principal ──────────────────────────────────────────────────────
 export function BrandBriefingPage() {
-  const { briefing: initialBriefing } = Route.useLoaderData() as any;
+  const { briefing: initialBriefing } = ((Route.useLoaderData?.() as any) || {});
 
   const [form, setForm] = useState<BriefingForm>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);

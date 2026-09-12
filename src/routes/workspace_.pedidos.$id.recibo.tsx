@@ -11,8 +11,8 @@ export const Route = createFileRoute("/workspace_/pedidos/$id/recibo")({
  return await getOrderForReceipt({ data: { id: params.id } });
    } catch (err) {
      console.error("[loader:workspace_.pedidos.$id.recibo] Unhandled error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: ReceiptPrintPage,
 });

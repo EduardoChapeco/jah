@@ -3,7 +3,7 @@ import {
   Boxes,
   Plus,
   Trash2,
-  Sparkles,
+  Zap,
   Bot,
   ArrowRight,
   ShieldCheck,
@@ -140,8 +140,7 @@ export function SquadArchitectSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
-        side="right"
-        className="w-full sm:max-w-xl p-0 flex flex-col justify-between overflow-y-auto"
+        side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-0 flex flex-col justify-between overflow-y-auto"
       >
         <div className="p-6 space-y-6">
           <SheetHeader className="text-left space-y-1 border-b border-border/60 pb-4">
@@ -303,7 +302,7 @@ export function SquadArchitectSheet({
               </>
             ) : (
               <>
-                <Sparkles className="size-4" />
+                <Zap className="size-4" />
                 Instanciar Squad
               </>
             )}

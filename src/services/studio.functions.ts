@@ -971,3 +971,125 @@ export const generateBrandBriefingWithAI = createServerFn({ method: "POST" })
     if (error) throw new Error("Erro na geração de briefing com IA: " + error.message);
     return result?.data ?? result ?? null;
   });
+
+export interface SocialCardResultDTO {
+  format: "story_9_16" | "feed_1_1" | "banner_16_9";
+  dimensions: { width: number; height: number };
+  svgMarkup: string;
+  shareUrl: string;
+  whatsappShareText: string;
+}
+
+/**
+ * generateSocialStoryCard — Gera dinamicamente artes no formato Stories (9:16) e Feed (1:1)
+ * com fotografia, preço, branding da loja e QR Code para postagem direta em redes sociais.
+ */
+export const generateSocialStoryCard = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      title: z.string().min(1),
+      subtitle: z.string().optional(),
+      priceCents: z.number().int().optional(),
+      imageUrl: z.string().url().optional().nullable(),
+      storeName: z.string().min(1),
+      targetUrl: z.string().url(),
+      format: z.enum(["story_9_16", "feed_1_1", "banner_16_9"]).default("story_9_16"),
+      theme: z.enum(["dark", "light", "brand"]).default("dark"),
+    })
+  )
+  .handler(async ({ data }): Promise<SocialCardResultDTO> => {
+    const isStory = data.format === "story_9_16";
+    const isBanner = data.format === "banner_16_9";
+    const width = isStory ? 1080 : isBanner ? 1200 : 1080;
+    const height = isStory ? 1920 : isBanner ? 630 : 1080;
+
+    const formattedPrice = data.priceCents
+      ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(data.priceCents / 100)
+      : null;
+
+    const bgColor = data.theme === "light" ? "#f8fafc" : "#09090b";
+    const textColor = data.theme === "light" ? "#0f172a" : "#fafafa";
+    const mutedColor = data.theme === "light" ? "#64748b" : "#a1a1aa";
+    const cardBg = data.theme === "light" ? "rgba(255,255,255,0.9)" : "rgba(24,24,27,0.85)";
+    const accentColor = "#f59e0b";
+
+    // Gera SVG responsivo vetorial
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
+      <defs>
+        <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="${bgColor}"/>
+          <stop offset="100%" stop-color="${data.theme === "light" ? "#e2e8f0" : "#18181b"}"/>
+        </linearGradient>
+        <clipPath id="imgClip">
+          <rect x="80" y="${isStory ? 280 : 160}" width="${width - 160}" height="${isStory ? 900 : height - 440}" rx="32" ry="32" />
+        </clipPath>
+      </defs>
+
+      <!-- Fundo -->
+      <rect width="${width}" height="${height}" fill="url(#bgGrad)" />
+
+      <!-- Cabeçalho / Loja -->
+      <g transform="translate(80, ${isStory ? 140 : 80})">
+        <rect width="48" height="48" rx="14" fill="${accentColor}" />
+        <text x="24" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="22" font-weight="900" fill="#000" text-anchor="middle">W</text>
+        <text x="64" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="28" font-weight="800" fill="${textColor}">${data.storeName}</text>
+      </g>
+
+      <!-- Imagem do Produto/Passeio (se houver) -->
+      ${
+        data.imageUrl
+          ? `<image href="${data.imageUrl}" x="80" y="${isStory ? 280 : 160}" width="${width - 160}" height="${isStory ? 900 : height - 440}" preserveAspectRatio="xMidYMid slice" clip-path="url(#imgClip)" />`
+          : `<rect x="80" y="${isStory ? 280 : 160}" width="${width - 160}" height="${isStory ? 900 : height - 440}" rx="32" fill="${cardBg}" />`
+      }
+
+      <!-- Card Inferior de Preço e Título -->
+      <g transform="translate(80, ${isStory ? 1240 : height - 240})">
+        <rect width="${width - 160}" height="${isStory ? 560 : 180}" rx="32" fill="${cardBg}" stroke="${data.theme === "light" ? "#e2e8f0" : "#27272a"}" stroke-width="2" />
+        
+        <!-- Preço Destaque -->
+        ${
+          formattedPrice
+            ? `<g transform="translate(48, 70)">
+                <rect width="260" height="60" rx="16" fill="${accentColor}" />
+                <text x="130" y="40" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="30" font-weight="900" fill="#000" text-anchor="middle">${formattedPrice}</text>
+              </g>`
+            : ""
+        }
+
+        <!-- Título -->
+        <text x="48" y="${formattedPrice ? (isStory ? 200 : 120) : 100}" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="${isStory ? 44 : 34}" font-weight="900" fill="${textColor}">
+          ${data.title.slice(0, 45)}
+        </text>
+
+        <!-- Subtítulo / Chamada -->
+        <text x="48" y="${formattedPrice ? (isStory ? 260 : 155) : 140}" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="24" font-weight="500" fill="${mutedColor}">
+          ${(data.subtitle || "Escaneie o QR Code ou acesse o link para comprar").slice(0, 60)}
+        </text>
+
+        <!-- Rodapé do Card: Call To Action -->
+        ${
+          isStory
+            ? `<g transform="translate(48, 420)">
+                <rect width="${width - 256}" height="80" rx="24" fill="${textColor}" />
+                <text x="${(width - 256) / 2}" y="50" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="28" font-weight="800" fill="${bgColor}" text-anchor="middle">
+                  Comprar Online no Wider
+                </text>
+              </g>`
+            : ""
+        }
+      </g>
+    </svg>`;
+
+    const whatsappShareText = formattedPrice
+      ? `Confira "${data.title}" por ${formattedPrice} na loja ${data.storeName}: ${data.targetUrl}`
+      : `Confira "${data.title}" na loja ${data.storeName}: ${data.targetUrl}`;
+
+    return {
+      format: data.format,
+      dimensions: { width, height },
+      svgMarkup: svg,
+      shareUrl: data.targetUrl,
+      whatsappShareText,
+    };
+  });
+

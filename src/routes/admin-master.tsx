@@ -1,18 +1,19 @@
 import { createFileRoute, Outlet, redirect, Link, isRedirect } from "@tanstack/react-router";
 import { getProfile, getUserSession } from "@/services/auth.functions";
-import { Shield, ShieldAlert, ShieldCheck, LayoutDashboard, DollarSign, Store, AlertTriangle, Users, UserCheck, Scale, Image as ImageIcon, Palette, Plug, Layers, ArrowUpRight, ExternalLink, Menu, X, Truck, Server, Eye, Coins, Sliders, Globe, Cpu, FlaskConical, Layout, Fingerprint, Radio, Gift, Receipt, Flame } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, LayoutDashboard, DollarSign, Store, AlertTriangle, Users, UserCheck, Scale, Image as ImageIcon, Palette, Plug, Layers, ArrowUpRight, ExternalLink, Menu, X, Truck, Server, Eye, Coins, Sliders, Globe, Cpu, FlaskConical, Layout, Fingerprint, Radio, Gift, Receipt, Flame, Building2, Newspaper } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 export const Route = createFileRoute("/admin-master")({
- beforeLoad: async () => {
- try {
- const session = await getUserSession();
- const role = session?.role || session?.user?.user_metadata?.role;
- if (role !== "platform_admin" && role !== "master") {
- throw redirect({ to: "/entrar", search: { returnUrl: "/admin-master" } });
- }
- } catch (e: any) {
+  beforeLoad: async () => {
+    try {
+      const session = await getUserSession();
+      const role = session?.role || session?.user?.user_metadata?.role || session?.user?.role;
+      const isMasterFlag = session?.user?.user_metadata?.is_admin_master || session?.user?.user_metadata?.is_superadmin;
+      if (role !== "platform_admin" && role !== "master" && role !== "admin_master" && !isMasterFlag) {
+        throw redirect({ to: "/entrar", search: { returnUrl: "/admin-master" } });
+      }
+    } catch (e: any) {
  if (isRedirect(e)) throw e;
  throw redirect({ to: "/entrar", search: { returnUrl: "/admin-master" } });
  }
@@ -21,54 +22,56 @@ export const Route = createFileRoute("/admin-master")({
 });
 
 const NAV_SECTIONS = [
- {
- title: "Governança & Motor",
- items: [
- { to: "/admin-master", label: "Dashboard Global", icon: LayoutDashboard, exact: true },
- { to: "/admin-master/modulos", label: "Módulos da Plataforma", icon: Layers },
- { to: "/admin-master/algoritmo", label: "Motor Algorítmico", icon: Sliders },
- { to: "/admin-master/curadoria", label: "Curadoria & Auditoria", icon: Eye },
- { to: "/admin-master/hubs", label: "Hubs & Cidades", icon: Globe },
- ],
- },
- {
- title: "Vitrines & Marketing",
- items: [
- { to: "/admin-master/vitrines", label: "Vitrines & Seções (CMS)", icon: Layout },
- { to: "/admin-master/banners", label: "Banners & Vitrines", icon: ImageIcon },
- { to: "/admin-master/botoes", label: "Hotpages & Capas 16:9", icon: Layers },
- { to: "/admin-master/convite", label: "Convites & Sorteios", icon: Gift },
- { to: "/admin-master/marca", label: "Identidade & Marca", icon: Palette },
- { to: "/admin-master/tokens", label: "Economia de Tokens", icon: Coins },
- ],
- },
- {
- title: "Operação & Ecossistema",
- items: [
- { to: "/admin-master/lojas", label: "Lojas & Empresas", icon: Store },
- { to: "/admin-master/carnes", label: "Carnês & Inadimplência", icon: Receipt },
- { to: "/admin-master/usuarios", label: "Usuários & Perfis", icon: Users },
- { to: "/admin-master/logistica", label: "Logística & MotoLink", icon: Truck },
- { to: "/admin-master/entregadores/auditoria", label: "Auditoria Entregadores", icon: ShieldCheck },
- { to: "/admin-master/boost-payments", label: "Boost Classificados", icon: Flame },
- { to: "/admin-master/mining", label: "Mineração & Scrapers", icon: Cpu },
- { to: "/admin-master/simlabs", label: "SimLabs & Cenários", icon: FlaskConical },
- ],
- },
- {
- title: "Segurança & Compliance",
- items: [
- { to: "/admin-master/seguranca", label: "Segurança & Forense", icon: ShieldAlert },
- { to: "/admin-master/seguranca/certificados", label: "Certificados MCTU", icon: Fingerprint },
- { to: "/admin-master/seguranca/telemetria", label: "Telemetria Live", icon: Radio },
- { to: "/admin-master/kyc", label: "Verificação KYC", icon: UserCheck },
- { to: "/admin-master/denuncias", label: "Denúncias & Moderação", icon: AlertTriangle },
- { to: "/admin-master/logs", label: "Logs de Sistema", icon: Server },
- { to: "/admin-master/faturas", label: "Faturas & Planos", icon: DollarSign },
- { to: "/admin-master/termos", label: "Termos & LGPD", icon: Scale },
- { to: "/admin-master/integracoes", label: "API & Conectores", icon: Plug },
- ],
- },
+  {
+    title: "Governança & Motor",
+    items: [
+      { to: "/admin-master", label: "Dashboard", icon: LayoutDashboard, exact: true },
+      { to: "/admin-master/modulos", label: "Módulos", icon: Layers },
+      { to: "/admin-master/algoritmo", label: "Algoritmo", icon: Sliders },
+      { to: "/admin-master/curadoria", label: "Curadoria", icon: Eye },
+      { to: "/admin-master/imprensa", label: "Imprensa", icon: Newspaper },
+      { to: "/admin-master/hubs", label: "Hubs & Cidades", icon: Globe },
+    ],
+  },
+  {
+    title: "Vitrines & Marketing",
+    items: [
+      { to: "/admin-master/portal-completo", label: "Portal Completo", icon: Building2 },
+      { to: "/admin-master/vitrines", label: "Vitrines (CMS)", icon: Layout },
+      { to: "/admin-master/banners", label: "Banners Globais", icon: ImageIcon },
+      { to: "/admin-master/botoes", label: "Hotpages Globais", icon: Layers },
+      { to: "/admin-master/convite", label: "Sorteios & Prêmios", icon: Gift },
+      { to: "/admin-master/marca", label: "Identidade & Marca", icon: Palette },
+      { to: "/admin-master/tokens", label: "Tokens", icon: Coins },
+    ],
+  },
+  {
+    title: "Operação & Ecossistema",
+    items: [
+      { to: "/admin-master/lojas", label: "Lojas", icon: Store },
+      { to: "/admin-master/carnes", label: "Carnês Globais", icon: Receipt },
+      { to: "/admin-master/usuarios", label: "Usuários", icon: Users },
+      { to: "/admin-master/logistica", label: "Logística", icon: Truck },
+      { to: "/admin-master/entregadores/auditoria", label: "Auditoria Entregadores", icon: ShieldCheck },
+      { to: "/admin-master/boost-payments", label: "Boost Classificados", icon: Flame },
+      { to: "/admin-master/mining", label: "Mineração", icon: Cpu },
+      { to: "/admin-master/simlabs", label: "SimLabs", icon: FlaskConical },
+    ],
+  },
+  {
+    title: "Segurança & Compliance",
+    items: [
+      { to: "/admin-master/seguranca", label: "Segurança Forense", icon: ShieldAlert },
+      { to: "/admin-master/seguranca/certificados", label: "Certificados MCTU", icon: Fingerprint },
+      { to: "/admin-master/seguranca/telemetria", label: "Telemetria Live", icon: Radio },
+      { to: "/admin-master/kyc", label: "Verificação KYC", icon: UserCheck },
+      { to: "/admin-master/denuncias", label: "Denúncias", icon: AlertTriangle },
+      { to: "/admin-master/logs", label: "Logs de Sistema", icon: Server },
+      { to: "/admin-master/faturas", label: "Faturas", icon: DollarSign },
+      { to: "/admin-master/termos", label: "Termos & Legal", icon: Scale },
+      { to: "/admin-master/integracoes", label: "Integrações", icon: Plug },
+    ],
+  },
 ];
 
 function AdminMasterLayout() {

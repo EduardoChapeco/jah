@@ -1,4 +1,6 @@
-import { supabase } from "@/integrations/supabase/client";
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { getServerClient } from "@/lib/supabase";
 import { type Hotel, type Flight } from "@/services/proposals";
 import {
   mapApiHotelToCanonical,
@@ -26,6 +28,34 @@ export class InfotravelNotConfiguredError extends Error {
 }
 
 /**
+ * BFF Server Function para despachar chamadas com segurança ao Edge Function ou conector GDS
+ */
+export const invokeInfotravelConnector = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      action: z.string(),
+      agencyId: z.string(),
+      params: z.record(z.any()).optional(),
+    })
+  )
+  .handler(async ({ data: { action, agencyId, params } }) => {
+    try {
+      const supabase = getServerClient();
+      const { data, error } = await supabase.functions.invoke("infotravel-connector", {
+        body: { action, agencyId, params: params || {} },
+      });
+
+      if (error) {
+        return { error_code: "CREDENTIALS_NOT_CONFIGURED", error: error.message };
+      }
+
+      return data;
+    } catch (e: any) {
+      return { error_code: "CREDENTIALS_NOT_CONFIGURED", error: e?.message || "Falha no conector GDS" };
+    }
+  });
+
+/**
  * Despacha uma chamada ao conector e trata o retorno estruturado.
  * Lança InfotravelNotConfiguredError quando credenciais estão ausentes
  * e um Error padrão para erros de API reais.
@@ -35,16 +65,11 @@ async function invokeConnector<T = any>(
   agencyId: string,
   params?: Record<string, any>,
 ): Promise<T> {
-  const { data, error } = await supabase.functions.invoke("infotravel-connector", {
-    body: { action, agencyId, params: params || {} },
+  const data = await invokeInfotravelConnector({
+    data: { action, agencyId, params: params || {} },
   });
 
-  // Erro de rede / Edge Function inacessível
-  if (error) {
-    throw new Error(error.message || "Não foi possível contactar o conector InfoTravel.");
-  }
-
-  // Credenciais não configuradas — retorno estruturado com HTTP 200
+  // Credenciais não configuradas — retorno estruturado
   if (data?.error_code === "CREDENTIALS_NOT_CONFIGURED") {
     throw new InfotravelNotConfiguredError();
   }

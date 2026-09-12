@@ -1,5 +1,7 @@
 import { createFileRoute, Outlet, isRedirect, redirect, Link, useRouterState } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { getUserSession } from "@/services/auth.functions";
+import { logSystemError } from "@/services/telemetry.functions";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import { Button } from "@/components/ui/button";
 import { Store, AlertTriangle, ArrowLeft, RefreshCw, LogIn } from "lucide-react";
@@ -64,7 +66,7 @@ export const Route = createFileRoute("/workspace")({
  return { session };
    } catch (err) {
      console.error("[loader:workspace] Unhandled loader error:", err);
-     return null;
+     return { session: null };
    }
  },
  component: WorkspaceLayout,
@@ -75,6 +77,20 @@ function WorkspaceErrorComponent({ error, reset }: { error: Error; reset: () => 
  if (isRedirect(error)) {
  throw error;
  }
+
+ useEffect(() => {
+ if (error && !isRedirect(error)) {
+ logSystemError({
+ data: {
+ severity: "ERROR",
+ subsystem: "workspace_layout",
+ route: typeof window !== "undefined" ? window.location.pathname : "/workspace",
+ message: error.message || "Unknown workspace error",
+ error_payload: { stack: error.stack },
+ },
+ }).catch(() => {});
+ }
+ }, [error]);
 
  return (
  <div className="min-h-screen flex items-center justify-center bg-background p-4 text-center">

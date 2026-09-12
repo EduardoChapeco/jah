@@ -23,14 +23,14 @@ export const Route = createFileRoute("/_store/motorista/$slug")({
  return { courier, slug: params.slug };
    } catch (err) {
      console.error("[loader:_store.motorista.$slug] Unhandled error:", err);
-     return null;
+     return { courier: null, slug: null };
    }
  },
  component: DriverDirectPage,
 });
 
 function DriverDirectPage() {
- const { courier } = Route.useLoaderData() as any;
+ const { courier } = ((Route.useLoaderData?.() as any) || {});
 
  if (!courier) {
  return (

@@ -35,7 +35,7 @@ export const Route = createFileRoute("/workspace/eventos/$id/checkin")({
 });
 
 function EventCheckinPage() {
- const { event } = Route.useLoaderData() as any;
+ const { event } = ((Route.useLoaderData?.() as any) || {});
  const [ticketCode, setTicketCode] = useState("");
  const [isValidating, setIsValidating] = useState(false);
  const [isCameraActive, setIsCameraActive] = useState(false);

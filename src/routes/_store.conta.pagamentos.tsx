@@ -57,7 +57,7 @@ export const Route = createFileRoute("/_store/conta/pagamentos")({
  return { plans, orders, receivables };
    } catch (err) {
      console.error("[loader:_store.conta.pagamentos] Unhandled error:", err);
-     return null;
+     return { plans: null, orders: null, receivables: null };
    }
  },
  component: CustomerInstallmentsPage,
@@ -96,7 +96,7 @@ function translatePaymentMethod(method?: string) {
 }
 
 function CustomerInstallmentsPage() {
- const { plans, orders, receivables } = Route.useLoaderData();
+ const { plans, orders, receivables } = ((Route.useLoaderData?.() as any) || {});
  const queryClient = useQueryClient();
  const router = useRouter();
 

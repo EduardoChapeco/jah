@@ -234,7 +234,10 @@ export function NewClientWizard({
 
  return (
  <Sheet open={isOpen} onOpenChange={onClose}>
- <SheetContent className="max-w-2xl w-full p-0 flex flex-col h-full bg-background">
+ <SheetContent
+  size="wide"
+  className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-0 flex flex-col h-full bg-background"
+ >
  {/* Header com Stepper */}
  <SheetHeader className="p-6 pb-4 border-b border-border">
  <div className="flex items-center justify-between">

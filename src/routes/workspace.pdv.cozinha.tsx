@@ -139,7 +139,7 @@ export const Route = createFileRoute("/workspace/pdv/cozinha")({
 });
 
 function KDSDashboard() {
- const { store } = Route.useLoaderData() as any;
+ const { store } = ((Route.useLoaderData?.() as any) || {});
  const queryClient = useQueryClient();
  const [previousPendingCount, setPreviousPendingCount] = useState<number | null>(null);
  const [isFullscreen, setIsFullscreen] = useState(false);
@@ -346,7 +346,7 @@ function KDSDashboard() {
  </div>
  <div>
  <div className="flex items-center gap-2">
- <h1 className="font-black text-xl tracking-tight leading-none">KDS • Cozinha & Preparo</h1>
+ <h1 className="font-black text-xl tracking-tight leading-none">Cozinha (KDS)</h1>
  <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 text-[10px] font-mono uppercase">
  Estação de Produção
  </Badge>
@@ -515,7 +515,7 @@ function KDSDashboard() {
 
  {/* ── SHEET: SUMÁRIO DE ITENS POR LOTE ── */}
  <Sheet open={itemsSummaryOpen} onOpenChange={setItemsSummaryOpen}>
- <SheetContent className="sm:max-w-md flex flex-col">
+ <SheetContent size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] flex flex-col">
  <SheetHeader className="pb-3 border-b border-border/70">
  <SheetTitle className="text-lg font-bold flex items-center gap-2">
  <Layers className="size-5 text-primary" />

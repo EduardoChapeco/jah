@@ -11,7 +11,7 @@ import {
   Pause,
   MapPin,
   Percent,
-  Sparkles,
+  Zap,
   ExternalLink,
   MessageCircle,
   ShoppingBag,
@@ -90,7 +90,7 @@ const QUICK_FORMATS = [
 
 function AnunciosWorkspacePage() {
   const router = useRouter();
-  const { campaigns: initialCampaigns, storeTargets } = Route.useLoaderData();
+  const { campaigns: initialCampaigns, storeTargets } = ((Route.useLoaderData?.() as any) || {});
   const [campaigns, setCampaigns] = useState<AdCampaign[]>(initialCampaigns);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -258,11 +258,26 @@ function AnunciosWorkspacePage() {
               </h2>
             </div>
             <div className="flex items-center gap-2">
+              <Button asChild variant="outline" size="sm" className="h-8 px-2.5 text-xs font-medium">
+                <Link to="/workspace/marketing/pixels">
+                  Pixels CAPI
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm" className="h-8 px-2.5 text-xs font-medium">
+                <Link to="/workspace/integracoes/marketplaces">
+                  Marketplaces
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm" className="h-8 px-2.5 text-xs font-medium">
+                <Link to="/workspace/marketing/afiliados">
+                  Afiliados & Saques
+                </Link>
+              </Button>
               <Button
                 asChild
                 variant="ghost"
                 size="sm"
-                className="h-9 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                className="h-8 text-xs font-semibold text-muted-foreground hover:text-foreground"
               >
                 <Link to="/workspace/marketing/anuncios/novo">
                   <Sliders className="size-3.5 mr-1" />
@@ -380,11 +395,11 @@ function AnunciosWorkspacePage() {
 
         {/* ── SHEET LATERAL DE CRIAÇÃO RÁPIDA (EDIÇÃO EM PROFUNDIDADE 3) ── */}
         <Sheet open={quickCreateOpen} onOpenChange={setQuickCreateOpen}>
-          <SheetContent className="w-full sm:max-w-xl overflow-y-auto p-6 space-y-6">
+          <SheetContent size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] overflow-y-auto p-6 space-y-6">
             <SheetHeader className="space-y-1 text-left">
               <div className="flex items-center gap-2">
                 <span className="p-2 rounded-xl bg-primary/10 text-primary">
-                  <Sparkles className="size-4" />
+                  <Zap className="size-4" />
                 </span>
                 <SheetTitle className="text-base font-bold">Lançar Anúncio em 3 Toques</SheetTitle>
               </div>

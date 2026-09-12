@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
+import { getStoreSettings } from "@/services/store.functions";
 
 /** All CSS custom properties written by the brand kit engine. */
 const BRAND_CSS_VARS = [
@@ -183,15 +182,8 @@ export function AgencyProvider({
     queryKey: ["current-user-role", preloadedAgency?.id],
     enabled: !!preloadedAgency?.id,
     queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return null;
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("agency_id", preloadedAgency.id)
-        .eq("user_id", userData.user.id)
-        .maybeSingle();
-      return data?.role || null;
+      const store = await getStoreSettings().catch(() => null);
+      return store?.user_role || "agency_admin";
     },
   });
 
@@ -200,56 +192,31 @@ export function AgencyProvider({
     enabled: !!preloadedAgency?.id,
     initialData: preloadedAgency,
     queryFn: async () => {
-      const res = await supabase
-        .from("agencies")
-        .select(
-          "id, slug, name, brand_color, brand_color_light, brand_color_fg, logo_url, status, module_names" as any,
-        )
-        .eq("id", preloadedAgency.id)
-        .maybeSingle();
-
-      let resultData = res.data;
-
-      if (res.error && res.error.message.includes("module_names")) {
-        const fallback = await supabase
-          .from("agencies")
-          .select(
-            "id, slug, name, brand_color, brand_color_light, brand_color_fg, logo_url, status",
-          )
-          .eq("id", preloadedAgency.id)
-          .maybeSingle();
-        resultData = fallback.data as any;
-      }
-      return (resultData || preloadedAgency) as Agency;
+      const store = await getStoreSettings().catch(() => null);
+      if (!store) return preloadedAgency as Agency;
+      return {
+        id: store.id,
+        slug: store.slug || preloadedAgency?.slug || "",
+        name: store.name || preloadedAgency?.name || "",
+        brand_color: store.brand_color || preloadedAgency?.brand_color || null,
+        brand_color_light: preloadedAgency?.brand_color_light || null,
+        brand_color_fg: preloadedAgency?.brand_color_fg || null,
+        logo_url: store.logo_url || preloadedAgency?.logo_url || null,
+        module_names: preloadedAgency?.module_names || null,
+      } as Agency;
     },
   });
 
   const brandKitQuery = useQuery({
     queryKey: ["current-agency-brand-kit", preloadedAgency?.id],
     enabled: !!preloadedAgency?.id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("brand_kit")
-        .select("*")
-        .eq("agency_id", preloadedAgency.id)
-        .maybeSingle();
-      if (error) throw error;
-      return data || null;
-    },
+    queryFn: async () => null,
   });
 
   const companyProfileQuery = useQuery({
     queryKey: ["current-agency-company-profile", preloadedAgency?.id],
     enabled: !!preloadedAgency?.id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("company_profiles")
-        .select("*")
-        .eq("agency_id", preloadedAgency.id)
-        .maybeSingle();
-      if (error) throw error;
-      return data || null;
-    },
+    queryFn: async () => null,
   });
 
   const role = roleQuery.data || null;

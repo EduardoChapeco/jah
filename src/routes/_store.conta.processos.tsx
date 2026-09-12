@@ -22,6 +22,8 @@ import { listMyLawsuits, createJusDemand, getMyDemands } from "@/services/jus.fu
 import { useMasterLocation } from "@/components/location/location-master-pill";
 import { LawsuitDetailsSheet } from "@/components/jus/lawsuit-details-sheet";
 import { MediaUploader } from "@/components/ui/media-uploader";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/processos")({
@@ -86,50 +88,56 @@ function UserLawsuitsPage() {
  });
  };
 
- return (
- <div className="min-h-screen bg-background pb-20 pt-6">
- <div className="mx-auto max-w-5xl px-4 sm:px-6">
- {/* Header com Navegação */}
- <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
- <div>
- <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
- <Link to="/conta" className="hover:text-foreground">Minha Conta</Link>
- <span>/</span>
- <span className="text-primary">Módulo Jus</span>
- </div>
- <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
- Processos
- </h1>
- <p className="text-sm text-muted-foreground">
- Acompanhe suas intimações, processos vinculados ao seu CPF e solicite suporte de advogados verificados.
- </p>
- </div>
+  return (
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Processos
+          </h1>
+          {lawsuits && lawsuits.length > 0 && (
+            <Badge variant="secondary" className="text-xs font-mono font-bold px-2 py-0.5 rounded-full">
+              {lawsuits.length}
+            </Badge>
+          )}
+        </div>
 
- <div className="flex items-center gap-2">
- <button
- onClick={() => setActiveTab("lawsuits")}
- className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
- activeTab === "lawsuits"
- ? "bg-primary text-primary-foreground"
- : "bg-surface-paper text-muted-foreground hover:text-foreground"
- }`}
- >
- <Scales className="h-4 w-4" />
- Meus Processos ({lawsuits?.length || 0})
- </button>
- <button
- onClick={() => setActiveTab("new_demand")}
- className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
- activeTab === "new_demand"
- ? "bg-primary text-primary-foreground"
- : "bg-surface-paper text-muted-foreground hover:text-foreground"
- }`}
- >
- <Plus className="h-4 w-4" />
- Solicitar Advogado
- </button>
- </div>
- </div>
+        <Button
+          size="sm"
+          onClick={() => setActiveTab(activeTab === "new_demand" ? "lawsuits" : "new_demand")}
+          className="rounded-xl h-8 px-3.5 text-xs font-semibold gap-1.5 bg-foreground text-background hover:bg-foreground/90 shrink-0 shadow-xs cursor-pointer"
+        >
+          <Plus className="size-3.5" />
+          <span>{activeTab === "new_demand" ? "Ver Processos" : "Solicitar Advogado"}</span>
+        </Button>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+        <button
+          onClick={() => setActiveTab("lawsuits")}
+          className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+            activeTab === "lawsuits"
+              ? "bg-foreground text-background font-bold shadow-xs"
+              : "bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Scales className="size-3.5" />
+          <span>Meus Processos ({lawsuits?.length || 0})</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("demands")}
+          className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+            activeTab === "demands"
+              ? "bg-foreground text-background font-bold shadow-xs"
+              : "bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <FileText className="size-3.5" />
+          <span>Demandas Publicadas ({demands?.length || 0})</span>
+        </button>
+      </div>
 
  {/* Tab 1: Lista de Processos Sincronizados */}
  {activeTab === "lawsuits" && (
@@ -346,7 +354,6 @@ function UserLawsuitsPage() {
  onOpenChange={(open) => !open && setSelectedLawsuit(null)}
  lawsuit={selectedLawsuit}
  />
- </div>
  </div>
  );
 }

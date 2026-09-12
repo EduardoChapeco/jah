@@ -85,7 +85,7 @@ export const Route = createFileRoute("/_store/pet")({
  };
    } catch (err) {
      console.error("[loader:_store.pet] Unhandled error:", err);
-     return null;
+     return { banners: null, hotpages: null, marketplaceFeed: null, catalogProducts: null };
    }
  },
  component: PetVerticalPage,
@@ -93,7 +93,7 @@ export const Route = createFileRoute("/_store/pet")({
 });
 
 function PetVerticalPage() {
- const { banners, hotpages, marketplaceFeed, catalogProducts } = Route.useLoaderData();
+ const { banners, hotpages, marketplaceFeed, catalogProducts } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch();
  const navigate = useNavigate({ from: Route.fullPath });
 
@@ -206,7 +206,6 @@ function PetVerticalPage() {
  onSelectCategory={handleDepartmentChange}
  viewMode={viewMode}
  onViewModeChange={handleViewModeChange}
- resultsCount={filteredProducts.length}
  />
 
  {/* ── 4. Renderização do Feed Modular ou Grade Filtrada ── */}

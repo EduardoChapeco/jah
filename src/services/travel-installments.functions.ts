@@ -1,7 +1,8 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { getServerClient } from '@/lib/supabase';
-import type { TravelBookingInstallment, InstallmentStatus } from '@/types/travel-installments';
+import { getServerIdentity, assertStoreAccess } from '@/lib/server-access';
+import type { TravelBookingInstallment } from '@/types/travel-installments';
 
 export function calculateInstallmentPlan(
   totalAmount: number,
@@ -30,16 +31,27 @@ export function calculateInstallmentPlan(
 }
 
 export const listBookingInstallments = createServerFn({ method: 'GET' })
-  .validator((data: { storeId: string; tripId?: string }) => data)
+  .validator(
+    z.object({
+      storeId: z.string().uuid().optional(),
+      tripId: z.string().uuid().optional(),
+    }).optional()
+  )
   .handler(async ({ data }): Promise<TravelBookingInstallment[]> => {
+    const identity = await getServerIdentity();
+    const effectiveStoreId = data?.storeId || identity.store_id;
+    if (!effectiveStoreId) {
+      throw new Error("Identificador da loja não fornecido.");
+    }
+
     const db = getServerClient();
     let query = db
       .from('travel_booking_installments')
       .select('*')
-      .eq('store_id', data.storeId)
+      .eq('store_id', effectiveStoreId)
       .order('due_date', { ascending: true });
 
-    if (data.tripId) {
+    if (data?.tripId) {
       query = query.eq('trip_id', data.tripId);
     }
 
@@ -57,7 +69,26 @@ export const markInstallmentPaid = createServerFn({ method: 'POST' })
     })
   )
   .handler(async ({ data }): Promise<{ success: boolean }> => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ['owner', 'admin', 'manager', 'seller']);
+
     const db = getServerClient();
+
+    // 1. Busca parcela para garantir que pertence à loja sob gestão
+    const { data: installment, error: fetchErr } = await db
+      .from('travel_booking_installments')
+      .select('id, store_id')
+      .eq('id', data.id)
+      .single();
+
+    if (fetchErr || !installment) {
+      throw new Error("Parcela não encontrada.");
+    }
+
+    if (installment.store_id !== identity.store_id && !identity.is_super_admin) {
+      throw new Error("Acesso não autorizado para esta loja.");
+    }
+
     const { error } = await db
       .from('travel_booking_installments')
       .update({

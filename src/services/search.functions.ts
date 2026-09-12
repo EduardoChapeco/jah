@@ -367,7 +367,7 @@ export const instantTypeaheadSearch = createServerFn({ method: "GET" })
  // Fallback gracioso com queries padrão
  const [storesRes, productsRes] = await Promise.all([
  db.from("stores").select("id, name, slug, settings").ilike("name", `%${q}%`).limit(4),
- db.from("products").select("id, title, slug, price_cents, cover_url, store_id").ilike("title", `%${q}%`).eq("status", "active").limit(4),
+ db.from("products").select("id, title, slug, price_cents, cover_url, store_id").ilike("title", `%${q}%`).in("status", ["published", "active"]).limit(4),
  ]);
 
  return {

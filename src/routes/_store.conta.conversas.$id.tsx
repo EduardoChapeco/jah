@@ -20,8 +20,8 @@ export const Route = createFileRoute("/_store/conta/conversas/$id")({
  return res;
    } catch (err) {
      console.error("[loader:_store.conta.conversas.$id] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: CustomerChatPage,
 });
@@ -34,7 +34,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 function CustomerChatPage() {
- const { thread, messages: initialMessages, tickets: initialTickets } = Route.useLoaderData();
+ const { thread, messages: initialMessages, tickets: initialTickets } = ((Route.useLoaderData?.() as any) || {});
  const { id } = Route.useParams();
  const [messages, setMessages] = useState<any[]>(initialMessages);
  const [text, setText] = useState("");

@@ -171,8 +171,7 @@ export function QuickCreateModal({
  </SheetTrigger>
 
  <SheetContent
- side="right"
- className="w-full sm:max-w-md md:sm:max-w-lg flex flex-col p-0 bg-background max-sm:!inset-0 max-sm:!h-[100dvh] max-sm:!w-full max-sm:rounded-none max-sm:border-none overflow-hidden"
+ side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] flex flex-col p-0 bg-background max-sm:!inset-0 max-sm:!h-[100dvh] max-sm:!w-full max-sm:rounded-none max-sm:border-none overflow-hidden"
  >
  <SheetHeader className="p-4 flex items-center justify-between shrink-0 bg-background/95 backdrop-blur-md">
  <div className="flex items-center gap-3">

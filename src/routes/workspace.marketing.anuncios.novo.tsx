@@ -112,7 +112,7 @@ const AD_OBJECTIVES = [
 
 function NovoAnuncioPage() {
  const navigate = useNavigate();
- const { products, storePhone, storeSlug } = Route.useLoaderData();
+ const { products, storePhone, storeSlug } = ((Route.useLoaderData?.() as any) || {});
 
  const [title, setTitle] = useState("");
  const [headline, setHeadline] = useState("");

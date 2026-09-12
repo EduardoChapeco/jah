@@ -1,0 +1,12 @@
+[
+  {
+    "file": "src\\routes\\workspace.catalogo.categorias.$id.tsx",
+    "line": 194,
+    "snippet": "<ImageUpload onChange={setCoverUrl} value={coverUrl} bucket=\"product-media\" />"
+  },
+  {
+    "file": "src\\routes\\workspace.catalogo.categorias.novo.tsx",
+    "line": 164,
+    "snippet": "<ImageUpload onChange={setCoverUrl} value={coverUrl} bucket=\"product-media\" />"
+  }
+]

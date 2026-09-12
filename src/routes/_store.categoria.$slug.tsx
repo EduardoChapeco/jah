@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_store/categoria/$slug")({
  return { productsResult, categoriesResult, slug: params.slug };
    } catch (err) {
      console.error("[loader:_store.categoria.$slug] Unhandled error:", err);
-     return null;
+     return { productsResult: null, categoriesResult: null, slug: null };
    }
  },
  head: ({ loaderData }) => {
@@ -74,7 +74,7 @@ export const Route = createFileRoute("/_store/categoria/$slug")({
 });
 
 function CategoryPage() {
- const { productsResult, categoriesResult, slug } = Route.useLoaderData();
+ const { productsResult, categoriesResult, slug } = ((Route.useLoaderData?.() as any) || {});
 
  const category: CategoryDTO | undefined = Array.isArray(categoriesResult)
  ? categoriesResult.find((c: CategoryDTO) => c.slug === slug)

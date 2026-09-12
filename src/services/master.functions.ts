@@ -854,6 +854,19 @@ export interface PlatformApiIntegrationsDTO {
  google_maps_api_key?: string;
  openai_api_key?: string;
  webhook_secret?: string;
+ // Master Marketplaces & Fiscal
+ mercadolivre_app_id?: string;
+ mercadolivre_client_secret?: string;
+ ifood_client_id?: string;
+ ifood_client_secret?: string;
+ shopee_partner_id?: string;
+ shopee_partner_key?: string;
+ focus_nfe_master_token?: string;
+ nuvem_fiscal_master_token?: string;
+ meta_app_id?: string;
+ meta_app_secret?: string;
+ google_client_id?: string;
+ google_client_secret?: string;
  active_services?: Record<string, "active" | "testing" | "unconfigured" | "error">;
 }
 
@@ -891,6 +904,18 @@ export const getPlatformApiIntegrations = createServerFn({ method: "GET" }).hand
  google_maps_api_key: integrations.google_maps_api_key || "",
  openai_api_key: integrations.openai_api_key ? "••••••••••••••••" : "",
  webhook_secret: integrations.webhook_secret || "",
+ mercadolivre_app_id: integrations.mercadolivre_app_id || "",
+ mercadolivre_client_secret: integrations.mercadolivre_client_secret ? "••••••••••••••••" : "",
+ ifood_client_id: integrations.ifood_client_id || "",
+ ifood_client_secret: integrations.ifood_client_secret ? "••••••••••••••••" : "",
+ shopee_partner_id: integrations.shopee_partner_id || "",
+ shopee_partner_key: integrations.shopee_partner_key ? "••••••••••••••••" : "",
+ focus_nfe_master_token: integrations.focus_nfe_master_token ? "••••••••••••••••" : "",
+ nuvem_fiscal_master_token: integrations.nuvem_fiscal_master_token ? "••••••••••••••••" : "",
+ meta_app_id: integrations.meta_app_id || "",
+ meta_app_secret: integrations.meta_app_secret ? "••••••••••••••••" : "",
+ google_client_id: integrations.google_client_id || "",
+ google_client_secret: integrations.google_client_secret ? "••••••••••••••••" : "",
  active_services: integrations.active_services || {
  maps: integrations.mapbox_token ? "active" : "unconfigured",
  payments: integrations.stripe_public_key ? "active" : "unconfigured",
@@ -921,6 +946,18 @@ export const updatePlatformApiIntegrations = createServerFn({ method: "POST" })
  google_maps_api_key: z.string().optional(),
  openai_api_key: z.string().optional(),
  webhook_secret: z.string().optional(),
+ mercadolivre_app_id: z.string().optional(),
+ mercadolivre_client_secret: z.string().optional(),
+ ifood_client_id: z.string().optional(),
+ ifood_client_secret: z.string().optional(),
+ shopee_partner_id: z.string().optional(),
+ shopee_partner_key: z.string().optional(),
+ focus_nfe_master_token: z.string().optional(),
+ nuvem_fiscal_master_token: z.string().optional(),
+ meta_app_id: z.string().optional(),
+ meta_app_secret: z.string().optional(),
+ google_client_id: z.string().optional(),
+ google_client_secret: z.string().optional(),
  }),
  )
  .handler(async ({ data: input }) => {
@@ -959,6 +996,18 @@ export const updatePlatformApiIntegrations = createServerFn({ method: "POST" })
  google_maps_api_key: cleanValue(input.google_maps_api_key, existingIntegrations.google_maps_api_key),
  openai_api_key: cleanValue(input.openai_api_key, existingIntegrations.openai_api_key),
  webhook_secret: cleanValue(input.webhook_secret, existingIntegrations.webhook_secret),
+ mercadolivre_app_id: cleanValue(input.mercadolivre_app_id, existingIntegrations.mercadolivre_app_id),
+ mercadolivre_client_secret: cleanValue(input.mercadolivre_client_secret, existingIntegrations.mercadolivre_client_secret),
+ ifood_client_id: cleanValue(input.ifood_client_id, existingIntegrations.ifood_client_id),
+ ifood_client_secret: cleanValue(input.ifood_client_secret, existingIntegrations.ifood_client_secret),
+ shopee_partner_id: cleanValue(input.shopee_partner_id, existingIntegrations.shopee_partner_id),
+ shopee_partner_key: cleanValue(input.shopee_partner_key, existingIntegrations.shopee_partner_key),
+ focus_nfe_master_token: cleanValue(input.focus_nfe_master_token, existingIntegrations.focus_nfe_master_token),
+ nuvem_fiscal_master_token: cleanValue(input.nuvem_fiscal_master_token, existingIntegrations.nuvem_fiscal_master_token),
+ meta_app_id: cleanValue(input.meta_app_id, existingIntegrations.meta_app_id),
+ meta_app_secret: cleanValue(input.meta_app_secret, existingIntegrations.meta_app_secret),
+ google_client_id: cleanValue(input.google_client_id, existingIntegrations.google_client_id),
+ google_client_secret: cleanValue(input.google_client_secret, existingIntegrations.google_client_secret),
  active_services: {
  maps: input.mapbox_token || existingIntegrations.mapbox_token ? "active" : "unconfigured",
  payments: input.stripe_public_key || existingIntegrations.stripe_public_key ? "active" : "unconfigured",

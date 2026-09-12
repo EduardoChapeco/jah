@@ -24,15 +24,20 @@ export const Route = createFileRoute("/_store/conta/agendamentos")({
  head: () => ({
  meta: [{ title: "Minha Agenda | Wider OS" }],
  }),
- loader: async () => {
- const session = await getUserSession().catch(() => null);
+  loader: async () => {
+    try {
+      const session = await getUserSession().catch(() => null);
 
- const initialAppointments = await listCustomerAppointments({
- data: { status: "all" },
- }).catch(() => []);
+      const initialAppointments = await listCustomerAppointments({
+        data: { status: "all" },
+      }).catch(() => []);
 
- return { initialAppointments, session };
- },
+      return { initialAppointments, session };
+    } catch (err) {
+      console.error("[loader:_store.conta.agendamentos] Unhandled loader error:", err);
+      return { initialAppointments: [], session: null };
+    }
+  },
  component: CustomerAgendaPage,
 });
 
@@ -72,7 +77,7 @@ function getStatusBadge(status: string) {
 }
 
 function CustomerAgendaPage() {
- const { initialAppointments } = Route.useLoaderData();
+ const { initialAppointments } = ((Route.useLoaderData?.() as any) || {});
  const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
  const [cancellingAppt, setCancellingAppt] = useState<any | null>(null);
  const [cancelReason, setCancelReason] = useState("");

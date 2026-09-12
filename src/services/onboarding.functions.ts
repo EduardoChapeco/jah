@@ -134,7 +134,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Perfil e Dados da Loja",
  description: "Nome, telefone e e-mail de contato comercial da empresa.",
  status: "technical_error",
- targetRoute: "/admin/configuracoes/loja",
+ targetRoute: "/workspace/configuracoes",
  details: storeRes.error,
  });
  } else {
@@ -152,7 +152,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Perfil e Dados da Loja",
  description: "Nome, telefone e e-mail de contato comercial da empresa.",
  status,
- targetRoute: "/admin/configuracoes/loja",
+ targetRoute: "/workspace/configuracoes",
  details: status === "completed" ? "Perfil completo" : "Pendente complemento de dados",
  });
  }
@@ -165,7 +165,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Logotipo da Loja",
  description: "Identidade visual da marca para o cabeçalho e recibos.",
  status: "technical_error",
- targetRoute: "/admin/configuracoes/loja",
+ targetRoute: "/workspace/configuracoes",
  });
  } else {
  const s = storeRes.data;
@@ -183,7 +183,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Logotipo da Loja",
  description: "Identidade visual da marca para o cabeçalho e recibos.",
  status: hasLogo ? "completed" : "unconfigured",
- targetRoute: "/admin/configuracoes/loja",
+ targetRoute: "/workspace/configuracoes",
  details: hasLogo ? "Logotipo ou ícone cadastrados" : "Envie a imagem da sua marca",
  });
  }
@@ -196,7 +196,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Endereço Físico ou Sede",
  description: "Endereço de saída dos fretes e atendimento.",
  status: "technical_error",
- targetRoute: "/admin/configuracoes/loja",
+ targetRoute: "/workspace/configuracoes",
  });
  } else {
  const s = storeRes.data;
@@ -213,7 +213,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Endereço Físico ou Sede",
  description: "Endereço de saída dos fretes e atendimento.",
  status,
- targetRoute: "/admin/configuracoes/loja",
+ targetRoute: "/workspace/configuracoes",
  details: status === "completed" ? "Endereço completo" : "Informe o endereço da loja",
  });
  }
@@ -226,7 +226,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Formas de Pagamento",
  description: "Configuração de chave Pix manual e métodos de cobrança.",
  status: "technical_error",
- targetRoute: "/admin/configuracoes/pagamentos",
+ targetRoute: "/workspace/configuracoes",
  });
  } else {
  const isPixEnabled = Boolean(storeRes.data?.pix_key);
@@ -236,7 +236,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Formas de Pagamento",
  description: "Configuração de chave Pix manual e métodos de cobrança.",
  status: isPixEnabled ? "completed" : "unconfigured",
- targetRoute: "/admin/configuracoes/pagamentos",
+ targetRoute: "/workspace/configuracoes",
  details: isPixEnabled ? "Pix ativado" : "Ative o Pix para receber pagamentos",
  });
  }
@@ -249,7 +249,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Tabelas de Frete e Entrega",
  description: "Opções de envio por região ou retirada presencial.",
  status: "technical_error",
- targetRoute: "/admin/fretes/tabelas",
+ targetRoute: "/workspace/logistica/tabelas",
  });
  } else {
  const count = shippingRes.count;
@@ -259,7 +259,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Tabelas de Frete e Entrega",
  description: "Opções de envio por região ou retirada presencial.",
  status: count > 0 ? "completed" : "unconfigured",
- targetRoute: "/admin/fretes/tabelas",
+ targetRoute: "/workspace/logistica/tabelas",
  details: count > 0 ? `${count} tabela(s) ativa(s)` : "Cadastre uma taxa de entrega",
  });
  }
@@ -272,7 +272,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Categorias de Produtos",
  description: "Organização do catálogo por seções e departamentos.",
  status: "technical_error",
- targetRoute: "/admin/catalogo/categorias",
+ targetRoute: "/workspace/catalogo/categorias",
  });
  } else {
  const count = categoriesRes.count;
@@ -282,7 +282,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Categorias de Produtos",
  description: "Organização do catálogo por seções e departamentos.",
  status: count > 0 ? "completed" : "unconfigured",
- targetRoute: "/admin/catalogo/categorias",
+ targetRoute: "/workspace/catalogo/categorias",
  details: count > 0 ? `${count} categoria(s) cadastrada(s)` : "Crie a primeira categoria",
  });
  }
@@ -295,7 +295,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Cadastro do Primeiro Produto",
  description: "Inclusão de produto com título, preço e fotos na vitrine.",
  status: "technical_error",
- targetRoute: "/admin/catalogo/produtos/novo",
+ targetRoute: "/workspace/catalogo/produtos/novo",
  });
  } else {
  const count = productsRes.count;
@@ -305,7 +305,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Cadastro do Primeiro Produto",
  description: "Inclusão de produto com título, preço e fotos na vitrine.",
  status: count > 0 ? "completed" : "unconfigured",
- targetRoute: "/admin/catalogo/produtos/novo",
+ targetRoute: "/workspace/catalogo/produtos/novo",
  details: count > 0 ? `${count} produto(s) no catálogo` : "Adicione seu primeiro produto",
  });
  }
@@ -318,7 +318,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Estoque Inicial por Variação",
  description: "Disponibilização de saldo para venda por tamanho/cor.",
  status: "technical_error",
- targetRoute: "/admin/estoque",
+ targetRoute: "/workspace/estoque",
  });
  } else {
  const count = stockRes.count;
@@ -333,7 +333,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Estoque Inicial por Variação",
  description: "Disponibilização de saldo para venda por tamanho/cor.",
  status,
- targetRoute: "/admin/estoque",
+ targetRoute: "/workspace/estoque",
  details:
  status === "locked"
  ? "Cadastre um produto antes"
@@ -351,7 +351,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Políticas da Loja",
  description: "Termos de trocas, devoluções e privacidade.",
  status: "technical_error",
- targetRoute: "/admin/configuracoes/politicas",
+ targetRoute: "/workspace/configuracoes/privacidade-loja",
  });
  } else {
  const p = storeRes.data?.policies as any;
@@ -363,7 +363,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Políticas da Loja",
  description: "Termos de trocas, devoluções e privacidade.",
  status: hasReturns ? "completed" : "unconfigured",
- targetRoute: "/admin/configuracoes/politicas",
+ targetRoute: "/workspace/configuracoes/privacidade-loja",
  details: hasReturns ? "Políticas configuradas" : "Defina as regras de troca",
  });
  }
@@ -376,7 +376,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "SEO e Indexação no Google",
  description: "Título e descrição para compartilhamento social e buscadores.",
  status: "technical_error",
- targetRoute: "/admin/configuracoes/seo",
+ targetRoute: "/workspace/configuracoes",
  });
  } else {
  const s = storeRes.data;
@@ -393,7 +393,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "SEO e Indexação no Google",
  description: "Título e descrição para compartilhamento social e buscadores.",
  status,
- targetRoute: "/admin/configuracoes/seo",
+ targetRoute: "/workspace/configuracoes",
  details: status === "completed" ? "Metadados configurados" : "Configure as tags SEO",
  });
  }
@@ -406,7 +406,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Primeiro Pedido Realizado",
  description: "Primeira venda efetuada no e-commerce ou no PDV.",
  status: "technical_error",
- targetRoute: "/admin/pedidos",
+ targetRoute: "/workspace/pedidos",
  });
  } else {
  const count = ordersRes.count;
@@ -426,7 +426,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Primeiro Pedido Realizado",
  description: "Primeira venda efetuada no e-commerce ou no PDV.",
  status,
- targetRoute: "/admin/pedidos",
+ targetRoute: "/workspace/pedidos",
  details:
  status === "locked"
  ? "Configure produto e pagamento antes"
@@ -444,7 +444,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Cupom de Desconto Inicial",
  description: "Criação de cupom para atrair as primeiras clientes.",
  status: "technical_error",
- targetRoute: "/admin/marketing/cupons",
+ targetRoute: "/workspace/marketing/promocoes",
  });
  } else {
  const count = couponsRes.count;
@@ -454,7 +454,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
  label: "Cupom de Desconto Inicial",
  description: "Criação de cupom para atrair as primeiras clientes.",
  status: count > 0 ? "completed" : "unconfigured",
- targetRoute: "/admin/marketing/cupons",
+ targetRoute: "/workspace/marketing/promocoes",
  details: count > 0 ? `${count} cupom(ns) ativo(s)` : "Crie um cupom de boas-vindas",
  });
  }

@@ -216,7 +216,7 @@ function ChannelBar({
 
 // ─── Página Principal ───────────────────────────────────────────────────
 function GastronomyReportsPage() {
- const { reports: loaderData, store } = Route.useLoaderData() as any;
+ const { reports: loaderData, store } = ((Route.useLoaderData?.() as any) || {});
 
  const { data: reports, isLoading } = useQuery({
  queryKey: ["gastronomy-reports"],

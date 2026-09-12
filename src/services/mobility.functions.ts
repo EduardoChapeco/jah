@@ -818,6 +818,27 @@ export const saveLogisticsPriceTable = createServerFn({ method: "POST" })
  return updated;
  }
 
+    // Se não veio ID, verifica atomicamente se a loja já possui uma tabela dessa modalidade para evitar duplicatas
+    const { data: existing } = await supabase
+      .from("logistics_price_tables")
+      .select("id")
+      .eq("store_id", identity.store_id)
+      .eq("service_type", data.service_type)
+      .maybeSingle();
+
+    if (existing?.id) {
+      const { data: updated, error } = await supabase
+        .from("logistics_price_tables")
+        .update(payload)
+        .eq("id", existing.id)
+        .eq("store_id", identity.store_id)
+        .select()
+        .single();
+
+      if (error) throw new Error(`Erro ao atualizar tabela de preço: ${error.message}`);
+      return updated;
+    }
+
  const { data: created, error } = await supabase
  .from("logistics_price_tables")
  .insert({ ...payload, created_at: new Date().toISOString() })

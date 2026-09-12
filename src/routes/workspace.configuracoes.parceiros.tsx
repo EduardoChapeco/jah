@@ -15,14 +15,14 @@ export const Route = createFileRoute("/workspace/configuracoes/parceiros")({
  return { initialProfile: profile };
    } catch (err) {
      console.error("[loader:workspace.configuracoes.parceiros] Unhandled error:", err);
-     return null;
+     return { initialProfile: null };
    }
  },
  component: ConfigParceirosPage,
 });
 
 function ConfigParceirosPage() {
- const { initialProfile } = Route.useLoaderData();
+ const { initialProfile } = ((Route.useLoaderData?.() as any) || {});
  const [baseUrl] = useState(() => window.location.origin);
  const queryClient = useQueryClient();
 

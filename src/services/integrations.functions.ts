@@ -48,25 +48,72 @@ export const listIntegrationSettings = createServerFn({ method: "GET" }).handler
  * Returns active public pixels/analytics IDs without exposing secret tokens.
  */
 export const getPublicPixels = createServerFn({ method: "GET" }).handler(async () => {
- const { resolveTenantStoreId } = await import("@/lib/tenant.server");
- const storeId = await resolveTenantStoreId();
- if (!storeId) return [];
+  const { resolveTenantStoreId } = await import("@/lib/tenant.server");
+  const storeId = await resolveTenantStoreId();
+  if (!storeId) return [];
 
- const supabase = getServerClient();
- const { data: credentials, error } = await supabase
- .from("integration_credentials")
- .select("provider, token_payload")
- .eq("store_id", storeId)
- .eq("is_active", true)
- .in("provider", ["meta_pixel", "google_analytics"]);
+  const supabase = getServerClient();
 
- if (error || !credentials) return [];
+  // 1. Prioridade: Tabela moderna e centralizada store_pixel_configs
+  const { data: pixelConfig } = await supabase
+    .from("store_pixel_configs")
+    .select("*")
+    .eq("store_id", storeId)
+    .maybeSingle();
 
- return credentials.map((c) => ({
- provider: c.provider,
- pixelId: c.provider === "meta_pixel" ? c.token_payload?.pixel_id : null,
- measurementId: c.provider === "google_analytics" ? c.token_payload?.measurement_id : null,
- }));
+  const results: Array<{
+    provider: "meta_pixel" | "google_analytics" | "google_ads" | "tiktok_pixel";
+    pixelId?: string | null;
+    measurementId?: string | null;
+    conversionId?: string | null;
+  }> = [];
+
+  if (pixelConfig) {
+    if (pixelConfig.meta_pixel_id) {
+      results.push({
+        provider: "meta_pixel",
+        pixelId: pixelConfig.meta_pixel_id,
+      });
+    }
+    if (pixelConfig.google_analytics_id) {
+      results.push({
+        provider: "google_analytics",
+        measurementId: pixelConfig.google_analytics_id,
+      });
+    }
+    if (pixelConfig.google_ads_id) {
+      results.push({
+        provider: "google_ads",
+        conversionId: pixelConfig.google_ads_id,
+      });
+    }
+    if (pixelConfig.tiktok_pixel_id) {
+      results.push({
+        provider: "tiktok_pixel",
+        pixelId: pixelConfig.tiktok_pixel_id,
+      });
+    }
+
+    if (results.length > 0) {
+      return results;
+    }
+  }
+
+  // 2. Fallback de compatibilidade legada: integration_credentials
+  const { data: credentials, error } = await supabase
+    .from("integration_credentials")
+    .select("provider, token_payload")
+    .eq("store_id", storeId)
+    .eq("is_active", true)
+    .in("provider", ["meta_pixel", "google_analytics"]);
+
+  if (error || !credentials) return [];
+
+  return credentials.map((c) => ({
+    provider: c.provider as any,
+    pixelId: c.provider === "meta_pixel" ? c.token_payload?.pixel_id : null,
+    measurementId: c.provider === "google_analytics" ? c.token_payload?.measurement_id : null,
+  }));
 });
 
 /**

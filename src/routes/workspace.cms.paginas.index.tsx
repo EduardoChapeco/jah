@@ -68,8 +68,8 @@ export const Route = createFileRoute("/workspace/cms/paginas/")({
  return res || [];
    } catch (err) {
      console.error("[loader:workspace.cms.paginas.index] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: CmsPagesPage,
 });
@@ -210,7 +210,7 @@ function CmsPagesPage() {
  <span>Nova Página</span>
  </Button>
  </SheetTrigger>
- <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+ <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] md:max-w-3xl lg:max-w-[70vw] flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
  <SheetHeader className="p-6 pb-4 border-b border-border/60 bg-card">
  <SheetTitle className="text-base font-bold text-foreground">Nova Página</SheetTitle>
  </SheetHeader>

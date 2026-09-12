@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { listVehicleLayouts } from "@/services/vehicle-layouts.functions";
+import { createGroupTour } from "@/services/group-tours.functions";
+import { uploadMediaUniversal } from "@/services/storage.functions";
 import {
   X,
   Check,
@@ -233,12 +235,11 @@ export function NewGroupTourWizard({
   const busesQ = useQuery({
     queryKey: ["bus-layouts", agencyId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("bus_layouts")
-        .select("id, name")
-        .eq("agency_id", agencyId);
+      if (!agencyId) return [];
+      const data = await listVehicleLayouts({ data: { store_id: agencyId } });
       return data ?? [];
     },
+    enabled: Boolean(agencyId),
   });
 
   const generateSlug = () => {
@@ -287,23 +288,35 @@ export function NewGroupTourWizard({
 
     try {
       setUploading(true);
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `${agencyId}/tours/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("agency-media")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage.from("agency-media").getPublicUrl(filePath);
-      setValue("coverUrl", data.publicUrl, { shouldValidate: true });
-      toast.success("Imagem carregada com sucesso!");
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const base64Data = reader.result as string;
+          const res = await uploadMediaUniversal({
+            data: {
+              fileName: file.name,
+              fileType: file.type,
+              base64Data,
+              bucket: "post-media",
+              folder: `${agencyId || "tours"}/tours`,
+            },
+          });
+          setValue("coverUrl", res.url, { shouldValidate: true });
+          toast.success("Imagem carregada com sucesso!");
+        } catch (uploadErr: any) {
+          toast.error(uploadErr?.message || "Erro ao fazer upload da imagem.");
+        } finally {
+          setUploading(false);
+        }
+      };
+      reader.onerror = () => {
+        toast.error("Erro ao ler arquivo local.");
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
     } catch (error: any) {
-      toast.error("Erro ao fazer upload da imagem.");
+      toast.error("Erro ao processar upload da imagem.");
       console.error(error);
-    } finally {
       setUploading(false);
     }
   }
@@ -311,49 +324,47 @@ export function NewGroupTourWizard({
   async function onSubmit(data: TourWizardFormData) {
     setSubmitting(true);
     try {
-      const payload = {
-        agency_id: agencyId,
-        title: data.title,
-        slug: data.slug || slugify(data.title) + "-" + crypto.randomUUID(),
-        destination: data.destination || null,
-        transport_type: data.transportType,
-        departure_date: data.departure || null,
-        return_date: data.ret || null,
-        registration_deadline: data.regDeadline || null,
-        total_seats: data.seats,
-        base_price: data.price,
-        includes: data.includes,
-        excludes: data.excludes,
-        itinerary: data.itinerary.map((item) => ({
-          ...item,
-          description_md: item.description,
-          description: item.description,
-        })),
-        cover_image_url: data.coverUrl || null,
-        is_public: data.isPublic,
-        status: data.status,
-        bus_layout_id: data.busLayout || null,
-        // Premium Fields Mapping
-        hotel_details: {
-          name: data.hotelName || "",
-          stars: Number(data.hotelStars),
-          check_in: data.hotelCheckIn || "14:00",
-          check_out: data.hotelCheckOut || "12:00",
-          amenities: data.hotelAmenities || [],
-          description: data.hotelDescription || "",
-          gallery: data.hotelGallery || [],
+      await createGroupTour({
+        data: {
+          title: data.title,
+          slug: data.slug || slugify(data.title) + "-" + crypto.randomUUID(),
+          destination: data.destination || "Destino",
+          departureCity: "São Miguel do Oeste",
+          departureDate: data.departure || new Date().toISOString(),
+          departureTime: "06:00",
+          returnDate: data.ret || new Date().toISOString(),
+          returnTime: "20:00",
+          totalSeats: data.seats || 46,
+          priceCents: Math.round((data.price || 0) * 100),
+          includedItems: data.includes || [],
+          excludedItems: data.excludes || [],
+          notes: data.hotelDescription || undefined,
+          coverImageUrl: data.coverUrl || undefined,
+          vehicleLayoutId: data.busLayout || undefined,
+          vehicleLayoutName: busesQ.data?.find((b: any) => b.id === data.busLayout)?.name || undefined,
+          hotelDetails: {
+            name: data.hotelName || "",
+            stars: Number(data.hotelStars),
+            check_in: data.hotelCheckIn || "14:00",
+            check_out: data.hotelCheckOut || "12:00",
+            amenities: data.hotelAmenities || [],
+            description: data.hotelDescription || "",
+            gallery: data.hotelGallery || [],
+          },
+          promoMedia: {
+            youtube_url: data.youtubeUrl || "",
+          },
+          pricingTiers: data.pricingTiers || [],
+          extraOptions: data.extraOptions || [],
+          itinerary: data.itinerary.map((item) => ({
+            ...item,
+            description_md: item.description,
+            description: item.description,
+          })),
+          isPublic: data.isPublic,
+          status: data.status as any,
         },
-        promo_media: {
-          youtube_url: data.youtubeUrl || "",
-        },
-        pricing_tiers: data.pricingTiers || [],
-        extra_options: data.extraOptions || [],
-      };
-
-      const { error } = await supabase.from("group_tours").insert(payload);
-      if (error) {
-        throw error;
-      }
+      });
       toast.success("Excursão criada com sucesso!");
       onCreated();
     } catch (err: any) {

@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_store/conta/mobilidade")({
  return { requests, courierApp };
    } catch (err) {
      console.error("[loader:_store.conta.mobilidade] Unhandled error:", err);
-     return null;
+     return { requests: null, courierApp: null };
    }
  },
  component: CustomerMobilityHistoryPage,
@@ -52,7 +52,7 @@ const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secon
 };
 
 function CustomerMobilityHistoryPage() {
- const { requests: initialRequests, courierApp: initialCourierApp } = Route.useLoaderData();
+ const { requests: initialRequests, courierApp: initialCourierApp } = ((Route.useLoaderData?.() as any) || {});
  const { data: requests, isLoading } = useQuery({
  queryKey: ["customer-mobility-history"],
  queryFn: () => listCustomerMobilityRequests(),

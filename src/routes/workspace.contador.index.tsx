@@ -32,7 +32,7 @@ export const Route = createFileRoute("/workspace/contador/")({
 });
 
 function WorkspaceContadorPage() {
- const { summary } = Route.useLoaderData();
+ const { summary } = ((Route.useLoaderData?.() as any) || {});
  const [selectedMonth, setSelectedMonth] = useState("08/2026");
 
  const grossRevenue = (summary?.gross_revenue_cents || 4859000) / 100;

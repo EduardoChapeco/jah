@@ -34,18 +34,22 @@ export interface NewsArticleDTO {
 }
 
 export interface SponsorDTO {
- id: string;
- store_id: string;
- name: string;
- logo_url?: string | null;
- banner_url?: string | null;
- video_url?: string | null;
- website_url?: string | null;
- cta_label?: string | null;
- description?: string | null;
- tier: "gold" | "silver" | "standard" | "supporter";
- active: boolean;
- created_at: string;
+  id: string;
+  store_id: string;
+  name: string;
+  logo_url?: string | null;
+  banner_url?: string | null;
+  video_url?: string | null;
+  website_url?: string | null;
+  cta_label?: string | null;
+  description?: string | null;
+  tier: "gold" | "silver" | "standard" | "supporter";
+  active: boolean;
+  created_at: string;
+  magic_token?: string;
+  sponsor_store_id?: string | null;
+  views_count?: number;
+  clicks_count?: number;
 }
 
 export interface NewsCommentDTO {
@@ -240,9 +244,28 @@ export const createArticle = createServerFn({ method: "POST" })
  }),
  )
  .handler(async ({ data: input }) => {
- const supabase = getServerClient();
- const identity = await getServerIdentity();
- if (!identity.store_id) throw new Error("Nenhum espaço de trabalho ativo.");
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity.store_id) throw new Error("Nenhum espaço de trabalho ativo.");
+
+    // Gatekeeping: Apenas veículos credenciados no Consórcio de Imprensa podem publicar
+    const { data: storeInfo } = await supabase
+      .from("stores")
+      .select("is_press_consortium, press_accreditation_status, is_platform_root")
+      .eq("id", identity.store_id)
+      .single();
+
+    const isAuthorized =
+      storeInfo?.is_platform_root ||
+      storeInfo?.is_press_consortium ||
+      storeInfo?.press_accreditation_status === "approved" ||
+      identity.role === "admin";
+
+    if (!isAuthorized) {
+      throw new Error(
+        "Apenas veículos e jornais credenciados no Consórcio de Imprensa podem publicar notícias. Solicite seu credenciamento junto à administração.",
+      );
+    }
 
  const { data: created, error } = await supabase
  .from("news_articles")
@@ -352,43 +375,45 @@ export const listWorkspaceSponsors = createServerFn({ method: "GET" }).handler(
 );
 
 export const createSponsor = createServerFn({ method: "POST" })
- .validator(
- z.object({
- name: z.string().min(2),
- logo_url: z.string().url().optional(),
- banner_url: z.string().url().optional(),
- video_url: z.string().url().optional(),
- website_url: z.string().url().optional(),
- cta_label: z.string().default("Saiba Mais"),
- description: z.string().optional(),
- tier: z.enum(["gold", "silver", "standard", "supporter"]).default("standard"),
- }),
- )
- .handler(async ({ data: input }) => {
- const supabase = getServerClient();
- const identity = await getServerIdentity();
- if (!identity.store_id) throw new Error("Acesso negado.");
+  .validator(
+    z.object({
+      name: z.string().min(2),
+      logo_url: z.string().url().optional(),
+      banner_url: z.string().url().optional(),
+      video_url: z.string().url().optional(),
+      website_url: z.string().url().optional(),
+      cta_label: z.string().default("Saiba Mais"),
+      description: z.string().optional(),
+      tier: z.enum(["gold", "silver", "standard", "supporter"]).default("standard"),
+      sponsor_store_id: z.string().uuid().nullable().optional(),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity.store_id) throw new Error("Acesso negado.");
 
- const { data, error } = await supabase
- .from("sponsors")
- .insert({
- store_id: identity.store_id,
- name: input.name,
- logo_url: input.logo_url || null,
- banner_url: input.banner_url || null,
- video_url: input.video_url || null,
- website_url: input.website_url || null,
- cta_label: input.cta_label,
- description: input.description || null,
- tier: input.tier,
- active: true,
- })
- .select()
- .single();
+    const { data, error } = await supabase
+      .from("sponsors")
+      .insert({
+        store_id: identity.store_id,
+        name: input.name,
+        logo_url: input.logo_url || null,
+        banner_url: input.banner_url || null,
+        video_url: input.video_url || null,
+        website_url: input.website_url || null,
+        cta_label: input.cta_label,
+        description: input.description || null,
+        tier: input.tier,
+        sponsor_store_id: input.sponsor_store_id || null,
+        active: true,
+      })
+      .select()
+      .single();
 
- if (error) throw new Error(error.message);
- return data as SponsorDTO;
- });
+    if (error) throw new Error(error.message);
+    return data as SponsorDTO;
+  });
 
 export const updateSponsor = createServerFn({ method: "POST" })
  .validator(
@@ -402,6 +427,7 @@ export const updateSponsor = createServerFn({ method: "POST" })
  cta_label: z.string().optional(),
  description: z.string().nullable().optional(),
  tier: z.enum(["gold", "silver", "standard", "supporter"]).optional(),
+ sponsor_store_id: z.string().uuid().nullable().optional(),
  active: z.boolean().optional(),
  }),
  )
@@ -1019,3 +1045,184 @@ export const listStorePublicSponsors = createServerFn({ method: "GET" })
       return [];
     }
   });
+
+/**
+ * Retorna patrocinadores ativos da Rede Display para rotação pública no portal de notícias
+ */
+export const listPublicNewsSponsors = createServerFn({ method: "GET" })
+  .validator(z.object({ limit: z.number().optional() }).optional())
+  .handler(async ({ data }): Promise<SponsorDTO[]> => {
+    try {
+      const supabase = getServerClient();
+      const limit = data?.limit || 12;
+      const { data: sponsors, error } = await supabase
+        .from("sponsors")
+        .select("*")
+        .eq("active", true)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+      if (error) return [];
+      return (sponsors || []) as SponsorDTO[];
+    } catch {
+      return [];
+    }
+  });
+
+// ── 4. Relatório Público via Link Mágico & Consórcio de Imprensa ──────────────
+
+export interface PublicSponsorReportDTO {
+  sponsor: SponsorDTO;
+  newspaperName: string;
+  newspaperLogo?: string | null;
+  newspaperCity?: string | null;
+  metrics: {
+    totalImpressions: number;
+    totalClicks: number;
+    ctrPercent: number;
+    totalDurationSeconds: number;
+  };
+  dailyPoints: { date: string; impressions: number; clicks: number }[];
+}
+
+export const getPublicSponsorReport = createServerFn({ method: "GET" })
+  .validator(z.object({ magicToken: z.string().uuid() }))
+  .handler(async ({ data: { magicToken } }): Promise<PublicSponsorReportDTO | null> => {
+    try {
+      const supabase = getServerClient();
+      const { data: sponsor, error } = await supabase
+        .from("sponsors")
+        .select("*, stores(name, logo_url, city, state)")
+        .eq("magic_token", magicToken)
+        .single();
+
+      if (error || !sponsor) return null;
+
+      // Busca telemetria de ad_telemetry_events
+      const { data: events } = await supabase
+        .from("ad_telemetry_events")
+        .select("event_type, duration_seconds, created_at")
+        .eq("sponsor_id", sponsor.id)
+        .order("created_at", { ascending: true });
+
+      let recordedImpressions = sponsor.views_count || 0;
+      let recordedClicks = sponsor.clicks_count || 0;
+      let totalDurationSeconds = 0;
+
+      const dailyMap = new Map<string, { impressions: number; clicks: number }>();
+
+      (events || []).forEach((ev: any) => {
+        const date = new Date(ev.created_at).toISOString().split("T")[0];
+        if (!dailyMap.has(date)) {
+          dailyMap.set(date, { impressions: 0, clicks: 0 });
+        }
+        const entry = dailyMap.get(date)!;
+
+        if (ev.event_type === "view_impression") {
+          entry.impressions += 1;
+        } else if (ev.event_type === "click") {
+          entry.clicks += 1;
+        } else if (ev.event_type === "view_duration") {
+          totalDurationSeconds += (ev.duration_seconds || 0);
+        }
+      });
+
+      const eventImpressionsSum = Array.from(dailyMap.values()).reduce((acc, d) => acc + d.impressions, 0);
+      const eventClicksSum = Array.from(dailyMap.values()).reduce((acc, d) => acc + d.clicks, 0);
+
+      const totalImpressions = Math.max(recordedImpressions, eventImpressionsSum);
+      const totalClicks = Math.max(recordedClicks, eventClicksSum);
+      const ctrPercent = totalImpressions > 0 ? Number(((totalClicks / totalImpressions) * 100).toFixed(2)) : 0;
+
+      const dailyPoints = Array.from(dailyMap.entries()).map(([date, counts]) => ({
+        date,
+        impressions: counts.impressions,
+        clicks: counts.clicks,
+      }));
+
+      const newspaper = sponsor.stores as any;
+
+      return {
+        sponsor: sponsor as SponsorDTO,
+        newspaperName: newspaper?.name || "Veículo de Imprensa Local",
+        newspaperLogo: newspaper?.logo_url || null,
+        newspaperCity: newspaper?.city ? `${newspaper.city}/${newspaper.state || ""}` : null,
+        metrics: {
+          totalImpressions,
+          totalClicks,
+          ctrPercent,
+          totalDurationSeconds,
+        },
+        dailyPoints,
+      };
+    } catch (err) {
+      console.error("[getPublicSponsorReport] error:", err);
+      return null;
+    }
+  });
+
+/**
+ * Retorna as campanhas publicitárias em que a loja logada é o patrocinador
+ */
+export const listStoreSponsoredCampaigns = createServerFn({ method: "GET" })
+  .handler(async (): Promise<SponsorDTO[]> => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity.store_id) return [];
+
+    const { data } = await supabase
+      .from("sponsors")
+      .select("*, stores(name, logo_url)")
+      .eq("sponsor_store_id", identity.store_id)
+      .order("created_at", { ascending: false });
+
+    return (data || []) as SponsorDTO[];
+  });
+
+/**
+ * Gestão do Consórcio de Imprensa para Admin Master
+ */
+export const listPressConsortiumStores = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (identity.role !== "admin") throw new Error("Acesso restrito à administração.");
+
+    const { data, error } = await supabase
+      .from("stores")
+      .select("id, name, slug, logo_url, city, state, is_press_consortium, press_accreditation_status, press_approved_at, created_at")
+      .order("created_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data || [];
+  });
+
+export const reviewPressAccreditation = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      storeId: z.string().uuid(),
+      status: z.enum(["approved", "pending", "revoked", "unaccredited"]),
+    }),
+  )
+  .handler(async ({ data: { storeId, status } }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (identity.role !== "admin") throw new Error("Acesso restrito à administração.");
+
+    const isApproved = status === "approved";
+    const { data, error } = await supabase
+      .from("stores")
+      .update({
+        press_accreditation_status: status,
+        is_press_consortium: isApproved,
+        press_approved_at: isApproved ? new Date().toISOString() : null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", storeId)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  });
+

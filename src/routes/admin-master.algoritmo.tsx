@@ -25,7 +25,7 @@ export const Route = createFileRoute("/admin-master/algoritmo")({
  return {
  params: {
  id: "00000000-0000-0000-0000-000000000001",
- name: "Algoritmo Canônico Wider Pulse v1",
+ name: "Algoritmo Oficial Wider Pulse v1",
  weight_geo: 0.25,
  weight_open_status: 0.20,
  weight_user_affinity: 0.20,
@@ -43,7 +43,7 @@ export const Route = createFileRoute("/admin-master/algoritmo")({
 });
 
 export default function AdminAlgorithmSettingsPage() {
- const { params: initialParams } = Route.useLoaderData();
+ const { params: initialParams } = ((Route.useLoaderData?.() as any) || {});
  const [params, setParams] = useState(initialParams);
  const [isSaving, setIsSaving] = useState(false);
 

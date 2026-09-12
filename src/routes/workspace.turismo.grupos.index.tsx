@@ -48,7 +48,7 @@ export const Route = createFileRoute("/workspace/turismo/grupos/")({
     return { tours: tours || [], layouts: layouts || [], store };
     } catch (err) {
       console.error("[loader:workspace.turismo.grupos.index] Unhandled error:", err);
-      return null;
+      return { tours: null, layouts: null, store: null };
     }
   },
   component: WorkspaceGroupToursIndexPage,

@@ -42,8 +42,8 @@ export const Route = createFileRoute("/workspace/cms/calendario")({
  return await listScheduledPosts();
    } catch (err) {
      console.error("[loader:workspace.cms.calendario] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: CalendarioEditorialPage,
 });

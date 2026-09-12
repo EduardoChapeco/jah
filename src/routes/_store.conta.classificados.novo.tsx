@@ -65,7 +65,10 @@ import { ChevronDown, ChevronUp, CheckCircle, GraduationCap, Award, SlidersHoriz
 import { z } from "zod";
 
 const ClassifiedSearchSchema = z.object({
- tipo: z.string().optional(),
+  tipo: z.string().optional(),
+  sub: z.string().optional(),
+  editId: z.string().optional(),
+  storeId: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_store/conta/classificados/novo")({
@@ -74,60 +77,93 @@ export const Route = createFileRoute("/_store/conta/classificados/novo")({
  component: NovoClassificadoPage,
 });
 
-// ─── 1. Taxonomia Canônica de Tipos ──────────────────────────────────────────
+// ─── 1. Taxonomia Canônica de Tipos ────────────
 export type ClassifiedNicheType =
- | "hospedagem"
- | "imovel"
- | "desapego"
- | "digital"
- | "veiculo"
- | "servico"
- | "vaga";
+  | "viagem"
+  | "equipamento"
+  | "doacao"
+  | "hospedagem"
+  | "imovel"
+  | "desapego"
+  | "digital"
+  | "veiculo"
+  | "servico"
+  | "vaga";
 
 interface NicheDefinition {
- id: ClassifiedNicheType;
- canonicalCategory: "sale" | "vehicle" | "real_estate" | "service" | "job";
- title: string;
- subtitle: string;
- description: string;
- icon: any;
- badge: string;
- gradient: string;
+  id: ClassifiedNicheType;
+  canonicalCategory: "sale" | "vehicle" | "real_estate" | "service" | "job" | "travel" | "equipment" | "donation";
+  title: string;
+  subtitle: string;
+  description: string;
+  icon: any;
+  badge: string;
+  gradient: string;
 }
 
 const NICHE_CARDS: NicheDefinition[] = [
- {
- id: "hospedagem",
- canonicalCategory: "real_estate",
- title: "Hospedagem & Temporada",
- subtitle: "Chalés, Cabanas, Pousadas & Airbnb",
- description:
- "Aluguel por diária, chalés com hidro, cabanas na serra, casas de campo, pousadas e suítes com check-in.",
- icon: Key,
- badge: "Diárias / Airbnb",
- gradient: "from-amber-500/10 via-rose-500/5 to-transparent",
- },
- {
- id: "imovel",
- canonicalCategory: "real_estate",
- title: "Imóvel (Venda & Aluguel)",
- subtitle: "Habitação, Locação Mensal & Comercial",
- description:
- "Casas, apartamentos, salas comerciais, galpões, terrenos e locação residencial ou comercial.",
- icon: HomeIcon,
- badge: "Alta Procura",
- gradient: "from-blue-500/10 via-indigo-500/5 to-transparent",
- },
- {
- id: "desapego",
- canonicalCategory: "sale",
- title: "Desapego & Bens Físicos",
- subtitle: "Eletrônicos, Móveis & Usados",
- description: "Eletrônicos, celulares, computadores, instrumentos musicais, moda, móveis e itens com envio.",
- icon: Tag,
- badge: "Envio & Retirada",
- gradient: "from-emerald-500/10 via-teal-500/5 to-transparent",
- },
+  {
+    id: "viagem",
+    canonicalCategory: "travel",
+    title: "Viagens, Turismo & Resorts",
+    subtitle: "Pacotes, Roteiros & Destinos",
+    description: "Pacotes turísticos completos com voos, All Inclusive, timeline de itinerário e template visual Modo Instagram.",
+    icon: Key,
+    badge: "Modo Instagram",
+    gradient: "from-amber-500/15 via-rose-500/10 to-purple-600/10",
+  },
+  {
+    id: "equipamento",
+    canonicalCategory: "equipment",
+    title: "Aluguel de Equipamentos",
+    subtitle: "Eventos, Som, Luz & Máquinas",
+    description: "Locação de caixas de som, iluminação, tendas, mesas, ferramentas e equipamentos para festas e obras.",
+    icon: Wrench,
+    badge: "Locação / Diária",
+    gradient: "from-blue-500/10 via-cyan-500/5 to-transparent",
+  },
+  {
+    id: "doacao",
+    canonicalCategory: "donation",
+    title: "Doação / Gratuito (R$ 0)",
+    subtitle: "Solidariedade & Desapego Livre",
+    description: "Doe móveis, roupas, livros, eletrônicos ou alimentos gratuitamente para a comunidade local.",
+    icon: Tag,
+    badge: "Gratuito R$ 0",
+    gradient: "from-emerald-500/10 via-teal-500/5 to-transparent",
+  },
+  {
+    id: "hospedagem",
+    canonicalCategory: "real_estate",
+    title: "Hospedagem & Temporada",
+    subtitle: "Chalés, Cabanas, Pousadas & Airbnb",
+    description:
+      "Aluguel por diária, chalés com hidro, cabanas na serra, casas de campo, pousadas e suítes com check-in.",
+    icon: Key,
+    badge: "Diárias / Airbnb",
+    gradient: "from-amber-500/10 via-rose-500/5 to-transparent",
+  },
+  {
+    id: "imovel",
+    canonicalCategory: "real_estate",
+    title: "Imóvel (Venda & Aluguel)",
+    subtitle: "Habitação, Locação Mensal & Comercial",
+    description:
+      "Casas, apartamentos, salas comerciais, galpões, terrenos e locação residencial ou comercial.",
+    icon: HomeIcon,
+    badge: "Alta Procura",
+    gradient: "from-blue-500/10 via-indigo-500/5 to-transparent",
+  },
+  {
+    id: "desapego",
+    canonicalCategory: "sale",
+    title: "Desapego & Bens Físicos",
+    subtitle: "Eletrônicos, Móveis & Usados",
+    description: "Eletrônicos, celulares, computadores, instrumentos musicais, moda, móveis e itens com envio.",
+    icon: Tag,
+    badge: "Envio & Retirada",
+    gradient: "from-emerald-500/10 via-teal-500/5 to-transparent",
+  },
  {
  id: "digital",
  canonicalCategory: "sale",
@@ -194,6 +230,7 @@ function NovoClassificadoPage() {
   const search = Route.useSearch();
   const selectedType = search?.tipo as ClassifiedNicheType | undefined;
   const editId = search?.editId as string | undefined;
+  const storeId = search?.storeId as string | undefined;
 
   const [initialData, setInitialData] = useState<any>(null);
   const [isLoadingEdit, setIsLoadingEdit] = useState<boolean>(!!editId);
@@ -276,7 +313,7 @@ function NovoClassificadoPage() {
         onSelect={(typeId, sub) =>
           navigate({
             to: "/conta/classificados/novo",
-            search: { tipo: typeId, sub: sub || undefined, editId: editId || undefined },
+            search: { tipo: typeId, sub: sub || undefined, editId: editId || undefined, storeId: storeId || undefined },
           })
         }
       />
@@ -288,9 +325,10 @@ function NovoClassificadoPage() {
       niche={activeNiche}
       initialData={initialData}
       editId={editId}
+      storeId={storeId}
       initialSubcategory={search?.sub}
       onBack={() =>
-        navigate({ to: "/conta/classificados/novo", search: { editId: editId || undefined } })
+        navigate({ to: "/conta/classificados/novo", search: { editId: editId || undefined, storeId: storeId || undefined } })
       }
     />
   );
@@ -328,14 +366,15 @@ function CreateTypePicker({
   }, [searchFilter]);
 
   return (
-    <div className="max-w-3xl mx-auto py-4 md:py-8 space-y-6">
-      <div className="space-y-1.5 text-center md:text-left">
-        <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
-          O que você quer anunciar?
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+          Criar Anúncio
         </h1>
-        <p className="text-xs md:text-sm text-muted-foreground">
-          Selecione o formato ideal ou busque o item específico para abrir o formulário dedicado.
-        </p>
+        <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-8 px-3.5 cursor-pointer">
+          <Link to="/conta/classificados">Meus Anúncios</Link>
+        </Button>
       </div>
 
       <div className="relative">
@@ -454,12 +493,14 @@ function SpecializedClassifiedEditor({
   onBack,
   initialData,
   editId,
+  storeId,
   initialSubcategory,
 }: {
   niche: NicheDefinition;
   onBack: () => void;
   initialData?: any;
   editId?: string;
+  storeId?: string;
   initialSubcategory?: string;
 }) {
  const navigate = useNavigate();
@@ -485,6 +526,51 @@ function SpecializedClassifiedEditor({
  const [whatsapp, setWhatsapp] = useState("");
  const [images, setImages] = useState<string[]>([]);
  const [activePreviewImage, setActivePreviewImage] = useState(0);
+
+  // Template de Exibição (Padrão Comercial vs Modo Instagram / Glamour)
+  const [templateStyle, setTemplateStyle] = useState<"standard" | "instagram">(
+    initialData?.attributes?.template_style || (niche.id === "viagem" ? "instagram" : "standard")
+  );
+
+  // Specialized: Viagens, Turismo & Resorts
+  const [travelDuration, setTravelDuration] = useState(
+    initialData?.attributes?.duration_text || "5D / 4N"
+  );
+  const [travelMealPlan, setTravelMealPlan] = useState(
+    initialData?.attributes?.meal_plan || "All Inclusive"
+  );
+  const [travelGuests, setTravelGuests] = useState(
+    initialData?.attributes?.guests_text || "2 Adultos"
+  );
+  const [travelDates, setTravelDates] = useState(
+    initialData?.attributes?.dates_text || ""
+  );
+  const [travelFlightPrice, setTravelFlightPrice] = useState(
+    initialData?.attributes?.flight_details?.price_text || "R$ 1.139+"
+  );
+  const [travelFlightDuration, setTravelFlightDuration] = useState(
+    initialData?.attributes?.flight_details?.duration_text || "7h 30min"
+  );
+  const [travelBioBullet1, setTravelBioBullet1] = useState(
+    initialData?.attributes?.bio_bullets?.[0] || "🌴 All Inclusive: refeições, snacks e bebidas liberadas"
+  );
+  const [travelBioBullet2, setTravelBioBullet2] = useState(
+    initialData?.attributes?.bio_bullets?.[1] || "✈️ Voo ida e volta com transfer in/out já inclusos"
+  );
+  const [travelBioBullet3, setTravelBioBullet3] = useState(
+    initialData?.attributes?.bio_bullets?.[2] || "🏖️ Acesso direto à praia, piscina natural e lago ecológico"
+  );
+  const [travelBioBullet4, setTravelBioBullet4] = useState(
+    initialData?.attributes?.bio_bullets?.[3] || "⭐ Acomodação Deluxe climatizada com varanda arejada"
+  );
+
+  // Specialized: Aluguel de Equipamentos
+  const [equipmentPeriod, setEquipmentPeriod] = useState<"diaria" | "evento" | "semanal">(
+    initialData?.attributes?.equipment_period || "diaria"
+  );
+  const [equipmentDepositCents, setEquipmentDepositCents] = useState<number | undefined>(
+    initialData?.attributes?.deposit_cents || undefined
+  );
 
  // Specialized: Hospedagem & Temporada
  const [hospPropertyType, setHospPropertyType] = useState("Chalé / Cabana");
@@ -766,9 +852,35 @@ function SpecializedClassifiedEditor({
         accepts_card: acceptsCard,
         accepts_cash: niche.id === "digital" ? false : acceptsCash,
         accepts_trade: niche.id === "digital" ? false : acceptsTrade,
+        accepted_payment_methods: [
+          ...(acceptsPix ? ["pix"] : []),
+          ...(acceptsCard ? ["cartao_credito"] : []),
+          ...(acceptsCash ? ["dinheiro"] : []),
+        ],
+        installments_available: acceptsCard,
+        cancellation_policy: cancellationPolicy,
         max_installments: acceptsCard ? parseInt(maxInstallments) || 12 : 1,
         free_shipping_local: niche.id === "desapego" ? freeShippingLocal : false,
+        template_style: templateStyle,
       };
+
+      if (niche.id === "viagem") {
+        attributes.duration_text = travelDuration;
+        attributes.meal_plan = travelMealPlan;
+        attributes.guests_text = travelGuests;
+        attributes.dates_text = travelDates;
+        attributes.bio_bullets = [travelBioBullet1, travelBioBullet2, travelBioBullet3, travelBioBullet4].filter(Boolean);
+        attributes.flight_details = {
+          price_text: travelFlightPrice,
+          duration_text: travelFlightDuration,
+          origin_text: "Consulte opções saindo da sua cidade",
+        };
+      } else if (niche.id === "equipamento") {
+        attributes.equipment_period = equipmentPeriod;
+        attributes.deposit_cents = equipmentDepositCents || 0;
+      } else if (niche.id === "doacao") {
+        attributes.is_donation = true;
+      }
 
       if (niche.id === "hospedagem") {
         attributes.deal_type = "temporada";
@@ -872,10 +984,15 @@ function SpecializedClassifiedEditor({
         attributes.skills = jobSkills;
       }
 
+      let resolvedCategory = niche.canonicalCategory;
+      if (niche.id === "viagem") resolvedCategory = "travel";
+      if (niche.id === "equipamento") resolvedCategory = "equipment";
+      if (niche.id === "doacao") resolvedCategory = "donation";
+
       const res = await upsertClassified({
         data: {
           id: editId || undefined,
-          category: niche.canonicalCategory,
+          category: resolvedCategory as any,
           title: title.trim(),
           pricing_model: niche.id === "assinatura" ? "recurring" : pricingModel,
           billing_cycle: niche.id === "assinatura" ? billingCycle : undefined,
@@ -883,11 +1000,19 @@ function SpecializedClassifiedEditor({
           trial_days: trialDays ?? undefined,
           recurring_features: recurringFeatures.length > 0 ? recurringFeatures : undefined,
           accepts_card: acceptsCard,
-          max_installments: acceptsCard ? maxInstallments : undefined,
+          max_installments: acceptsCard ? parseInt(String(maxInstallments)) || 1 : undefined,
           accepts_trade: acceptsTrade,
+          accepted_payment_methods: [
+            ...(acceptsPix ? ["pix"] : []),
+            ...(acceptsCard ? ["cartao_credito"] : []),
+            ...(acceptsCash ? ["dinheiro"] : []),
+          ],
+          installments_available: acceptsCard,
+          cancellation_policy: cancellationPolicy,
+          store_id: storeId || initialData?.store_id || undefined,
           sub_category: niche.id === "desapego" ? desapegoCategory : undefined,
           content: description.trim(),
-          price_cents: priceCents ?? null,
+          price_cents: niche.id === "doacao" ? 0 : (priceCents ?? null),
           deal_type:
             niche.id === "hospedagem"
               ? "temporada"
@@ -1051,15 +1176,60 @@ function SpecializedClassifiedEditor({
  <aside
  className={`md:col-span-5 space-y-6 ${mobileTab === "edit" ? "block" : "hidden md:block"} `}
  >
+          <div className="space-y-6">
  {/* Section 1: Informações Fundamentais */}
  {/* Section 1: Informações Fundamentais */}
           <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
             <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground pb-2.5 border-b border-border/40">
               <FileText className="size-4 text-primary shrink-0" />
- <span>1. Informações Básicas do Anúncio</span>
- </div>
+              <span>1. Informações Básicas do Anúncio</span>
+            </div>
 
- <div className="space-y-1.5">
+            {/* Seletor de Template Visual (Padrão vs Modo Instagram) */}
+            <div className="space-y-1.5 pb-1">
+              <Label className="text-xs text-foreground font-semibold flex items-center justify-between">
+                <span>Estilo Visual da Página</span>
+                <span className="text-[11px] text-muted-foreground font-normal">
+                  {templateStyle === "instagram" ? "✨ Modo Instagram / Editorial" : "🏷️ Padrão Comercial"}
+                </span>
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTemplateStyle("standard")}
+                  className={`p-2.5 rounded-xl border text-left transition-all ${
+                    templateStyle === "standard"
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
+                      : "border-border/60 hover:bg-muted/40"
+                  }`}
+                >
+                  <p className="text-xs font-bold text-foreground">Padrão Comercial</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    Visual limpo com compra direta
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTemplateStyle("instagram")}
+                  className={`p-2.5 rounded-xl border text-left transition-all ${
+                    templateStyle === "instagram"
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
+                      : "border-border/60 hover:bg-muted/40"
+                  }`}
+                >
+                  <p className="text-xs font-bold text-foreground flex items-center gap-1">
+                    <span>Modo Instagram</span>
+                    <span className="size-1.5 rounded-full bg-rose-500 animate-pulse" />
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    Stories, 4 abas, voos e roteiro
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
  <Label className="text-xs text-foreground font-medium">Título do Anúncio *</Label>
  <Input
  value={title}
@@ -1095,27 +1265,30 @@ function SpecializedClassifiedEditor({
  className="rounded-xl text-xs bg-background resize-none leading-relaxed"
  />
  </div>
-
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
- <div className="space-y-1.5">
- <Label className="text-xs text-foreground font-medium">
- {niche.id === "hospedagem"
- ? "Valor da Diária (R$)"
- : niche.id === "imovel" && reDealType === "aluguel"
- ? "Aluguel Mensal (R$)"
- : niche.id === "servico"
- ? "Valor Base / Orçamento (R$)"
- : niche.id === "vaga"
- ? "Remuneração / Salário (R$)"
- : "Valor (R$)"}
- </Label>
- <CurrencyField
- value={priceCents}
- onChange={setPriceCents}
- placeholder="0,00"
- className="h-11 rounded-xl text-xs bg-background"
- />
- </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-foreground font-medium">
+                  {niche.id === "doacao"
+                    ? "Item para Doação (Gratuito)"
+                    : niche.id === "servico"
+                    ? "Valor Base / Orçamento (R$)"
+                    : niche.id === "vaga"
+                    ? "Remuneração / Salário (R$)"
+                    : "Valor (R$)"}
+                </Label>
+                {niche.id === "doacao" ? (
+                  <div className="h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-3 flex items-center text-xs font-semibold text-emerald-600">
+                    Gratuito (Doação sem custo)
+                  </div>
+                ) : (
+                  <CurrencyField
+                    value={priceCents}
+                    onChange={setPriceCents}
+                    placeholder="0,00"
+                    className="h-11 rounded-xl text-xs bg-background"
+                  />
+                )}
+              </div>
 
  <div className="space-y-1.5">
  <Label className="text-xs text-muted-foreground font-medium block">&nbsp;</Label>
@@ -1140,10 +1313,154 @@ function SpecializedClassifiedEditor({
  </div>
 
  {/* Seção 2: Especificações Técnicas do Anúncio */}
-          <div className="space-y-6">
-            
- {/* Hospedagem & Temporada */}
- {niche.id === "hospedagem" && (
+            {/* Viagens, Turismo & Resorts (Modo Instagram) */}
+            {(niche.id === "viagem" || templateStyle === "instagram") && (
+              <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+                <div className="flex items-center justify-between pb-2.5 border-b border-border/40">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground">
+                    <Key className="size-4 text-primary shrink-0" />
+                    <span>2. Dossiê de Viagem & Resort (Modo Instagram)</span>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground">
+                    4 Abas + Stories
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-foreground font-medium">Duração (Ex: 5D / 4N)</Label>
+                    <Input
+                      value={travelDuration}
+                      onChange={(e) => setTravelDuration(e.target.value)}
+                      placeholder="5D / 4N"
+                      className="h-11 rounded-xl text-xs bg-background font-medium"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-foreground font-medium">Regime</Label>
+                    <Select value={travelMealPlan} onValueChange={setTravelMealPlan}>
+                      <SelectTrigger className="h-11 rounded-xl text-xs bg-background font-medium">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="All Inclusive">All Inclusive (Tudo Incluso)</SelectItem>
+                        <SelectItem value="Pensão Completa">Pensão Completa (Café, Almoço, Jantar)</SelectItem>
+                        <SelectItem value="Meia Pensão">Meia Pensão (Café e Jantar)</SelectItem>
+                        <SelectItem value="Café da Manhã">Café da Manhã Incluso</SelectItem>
+                        <SelectItem value="Só Hospedagem">Só Hospedagem</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-foreground font-medium">Hóspedes Indicados</Label>
+                    <Input
+                      value={travelGuests}
+                      onChange={(e) => setTravelGuests(e.target.value)}
+                      placeholder="Ex: 2 Adultos"
+                      className="h-11 rounded-xl text-xs bg-background font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-foreground font-medium">Datas da Viagem</Label>
+                    <Input
+                      value={travelDates}
+                      onChange={(e) => setTravelDates(e.target.value)}
+                      placeholder="Ex: 23/10 a 27/10/2026"
+                      className="h-11 rounded-xl text-xs bg-background font-medium"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-foreground font-medium">Estimativa do Voo</Label>
+                    <Input
+                      value={travelFlightPrice}
+                      onChange={(e) => setTravelFlightPrice(e.target.value)}
+                      placeholder="Ex: R$ 1.139+"
+                      className="h-11 rounded-xl text-xs bg-background font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-1">
+                  <Label className="text-xs text-foreground font-medium block">
+                    Diferenciais do Pacote (Bullets de Bio com Emoji)
+                  </Label>
+                  <Input
+                    value={travelBioBullet1}
+                    onChange={(e) => setTravelBioBullet1(e.target.value)}
+                    placeholder="🌴 All Inclusive: refeições, snacks e bebidas liberadas"
+                    className="h-9 rounded-xl text-xs bg-background"
+                  />
+                  <Input
+                    value={travelBioBullet2}
+                    onChange={(e) => setTravelBioBullet2(e.target.value)}
+                    placeholder="✈️ Voo ida e volta com transfer in/out já inclusos"
+                    className="h-9 rounded-xl text-xs bg-background"
+                  />
+                  <Input
+                    value={travelBioBullet3}
+                    onChange={(e) => setTravelBioBullet3(e.target.value)}
+                    placeholder="🏖️ Acesso direto à praia, piscina natural e lago ecológico"
+                    className="h-9 rounded-xl text-xs bg-background"
+                  />
+                  <Input
+                    value={travelBioBullet4}
+                    onChange={(e) => setTravelBioBullet4(e.target.value)}
+                    placeholder="⭐ Apartamento Deluxe climatizada com varanda arejada"
+                    className="h-9 rounded-xl text-xs bg-background"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Aluguel de Equipamentos */}
+            {niche.id === "equipamento" && (
+              <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+                <div className="flex items-center justify-between pb-2.5 border-b border-border/40">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground">
+                    <Wrench className="size-4 text-primary shrink-0" />
+                    <span>2. Condições de Locação de Equipamentos</span>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground">
+                    Aluguel / Eventos
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-foreground font-medium">Período Base</Label>
+                    <Select value={equipmentPeriod} onValueChange={(v: any) => setEquipmentPeriod(v)}>
+                      <SelectTrigger className="h-11 rounded-xl text-xs bg-background font-medium">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="diaria">Por Diária (24h)</SelectItem>
+                        <SelectItem value="evento">Por Evento (Fim de Semana)</SelectItem>
+                        <SelectItem value="semanal">Semanal (7 Dias)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-foreground font-medium">Valor do Caução / Garantia (R$)</Label>
+                    <CurrencyField
+                      value={equipmentDepositCents}
+                      onChange={setEquipmentDepositCents}
+                      placeholder="0,00"
+                      className="h-11 rounded-xl text-xs bg-background"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Hospedagem & Temporada */}
+            {niche.id === "hospedagem" && (
               <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
                 <div className="flex items-center justify-between pb-2.5 border-b border-border/40">
                   <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground">
@@ -2525,11 +2842,11 @@ function SpecializedClassifiedEditor({
                 {acceptsCard && (
                   <div className="space-y-1.5 pt-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs text-foreground font-medium">Parcelamento Máximo no Cartão</Label>
+                      <Label htmlFor="max-installments" className="text-xs text-foreground font-medium">Parcelamento Máximo no Cartão</Label>
                       <span className="text-[11px] text-muted-foreground font-mono">Em até {maxInstallments}x</span>
                     </div>
                     <Select value={String(maxInstallments)} onValueChange={(v) => setMaxInstallments(v)}>
-                      <SelectTrigger className="h-11 rounded-xl text-xs bg-background font-medium">
+                      <SelectTrigger id="max-installments" className="h-11 rounded-xl text-xs bg-background font-medium">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>

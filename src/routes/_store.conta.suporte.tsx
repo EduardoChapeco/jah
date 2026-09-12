@@ -21,8 +21,8 @@ export const Route = createFileRoute("/_store/conta/suporte")({
  return (await listCustomerTickets().catch(() => [])) || [];
    } catch (err) {
      console.error("[loader:_store.conta.suporte] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: CustomerSupportPage,
 });

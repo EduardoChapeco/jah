@@ -50,14 +50,14 @@ export const Route = createFileRoute("/workspace/marketing/hotpages")({
  return { hotpages, session, store, initialModule };
    } catch (err) {
      console.error("[loader:workspace.marketing.hotpages] Unhandled loader error:", err);
-     return null;
+     return { hotpages: null, session: null, store: null, initialModule: null };
    }
  },
  component: WorkspaceStoreHotpagesPage,
 });
 
 function WorkspaceStoreHotpagesPage() {
- const { hotpages: initialHotpages, session, store, initialModule } = Route.useLoaderData();
+ const { hotpages: initialHotpages, session, store, initialModule } = ((Route.useLoaderData?.() as any) || {});
  const [hotpages, setHotpages] = useState<HotpageDTO[]>(initialHotpages || []);
  const [selectedModuleFilter, setSelectedModuleFilter] = useState<HotpageModule>(initialModule || "home");
  const [isModalOpen, setIsModalOpen] = useState(false);

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import {
@@ -87,7 +87,8 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function CouriersListPage() {
-  const { initialData } = Route.useLoaderData();
+  const { initialData } = ((Route.useLoaderData?.() as any) || {});
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<string>("all");
@@ -219,7 +220,7 @@ function CouriersListPage() {
             label: "Novo Entregador",
             icon: Plus,
             onClick: () => {
-              window.location.href = "/workspace/pedidos/entregadores/novo";
+              router.navigate({ to: "/workspace/pedidos/entregadores/novo" });
             },
           }}
         />
@@ -365,7 +366,7 @@ function CouriersListPage() {
 
         {/* ── SHEET LATERAL DE DETALHES RÁPIDOS (EDIÇÃO EM PROFUNDIDADE 3) ── */}
         <Sheet open={!!selectedCourier} onOpenChange={(open) => !open && setSelectedCourier(null)}>
-          <SheetContent className="w-full sm:max-w-md p-6 space-y-6 overflow-y-auto">
+          <SheetContent size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-6 space-y-6 overflow-y-auto">
             {selectedCourier && (
               <>
                 <SheetHeader className="space-y-1 text-left">

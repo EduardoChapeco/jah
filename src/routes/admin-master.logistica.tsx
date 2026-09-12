@@ -62,7 +62,7 @@ export const Route = createFileRoute("/admin-master/logistica")({
 });
 
 function AdminMasterLogisticaPage() {
- const { settings: initialSettings } = Route.useLoaderData();
+ const { settings: initialSettings } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
 
  const [title, setTitle] = useState(initialSettings.title || "Logística Integrada & MotoLink");

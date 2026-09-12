@@ -53,6 +53,18 @@ import { CANONICAL_CITIES } from "@/lib/constants/cities";
 import { resolveClassifiedNiche } from "@/lib/classifieds/semantics";
 import { trackAndOpenWhatsApp } from "@/lib/whatsapp";
 
+function getClassifiedCover(item: any): string | null {
+  if (!item) return null;
+  return (
+    (item.images && item.images[0]) ||
+    (item.photos && item.photos[0]) ||
+    item.image_url ||
+    item.media?.[0] ||
+    item.cover_image ||
+    null
+  );
+}
+
 function isVideoUrl(url?: string | null): boolean {
   if (!url) return false;
   return /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(url);
@@ -331,287 +343,7 @@ function ClassifiedsMasterPage() {
   });
 
   return (
-    <div className="w-full flex flex-col lg:flex-row items-start gap-6 xl:gap-8 pb-20">
-      {/* ── COLUNA ESQUERDA (DESKTOP STICKY SIDEBAR DEDICADA AO LADO DA SIDEBAR GLOBAL) ── */}
-      <aside className="hidden lg:flex flex-col w-72 shrink-0 space-y-4 sticky top-4 self-start">
-        {/* CTA Publicar Anúncio */}
-        <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
-          <Link
-            to="/conta/classificados/novo"
-            className="w-full h-11 rounded-xl bg-foreground text-background font-bold text-sm flex items-center justify-center gap-2 hover:bg-foreground/90 transition-all cursor-pointer shadow-sm"
-          >
-            <Plus size={18} weight="bold" />
-            <span>Publicar Anúncio</span>
-          </Link>
-
-          <Link
-            to="/conta/classificados"
-            className="text-xs text-center text-muted-foreground hover:text-foreground font-mono block transition-colors"
-          >
-            Gerenciar Meus Anúncios →
-          </Link>
-        </div>
-
-        {/* Categorias Principais */}
-        <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2">
-          <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
-            Categorias
-          </span>
-          <div className="flex flex-col space-y-1">
-            {CLASSIFIED_CHIPS.map((chip) => {
-              const Icon = chip.icon;
-              const isSelected = selectedCategory === chip.id;
-              const count = chip.id === "todos" 
-                ? (classifieds || []).length 
-                : (classifieds || []).filter((c: any) => c.category === chip.id).length;
-
-              return (
-                <button
-                  key={chip.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedCategory(chip.id);
-                    if (chip.id !== "real_estate") setSelectedDealType("todos");
-                  }}
-                  className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all text-left cursor-pointer ${
-                    isSelected
-                      ? "bg-foreground text-background font-bold shadow-sm"
-                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Icon className="size-4 shrink-0" />
-                    <span>{chip.label}</span>
-                  </div>
-                  <span className="font-mono text-[10px] opacity-70">
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Subfiltro de Imóveis & Facetas de Comodidades (quando ativo) */}
-        {selectedCategory === "real_estate" && (
-          <>
-            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2">
-              <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
-                Finalidade
-              </span>
-              <div className="flex flex-col space-y-1">
-                {REAL_ESTATE_DEAL_TYPES.map((dt) => {
-                  const isSelected = selectedDealType === dt.id;
-                  return (
-                    <button
-                      key={dt.id}
-                      type="button"
-                      onClick={() => setSelectedDealType(dt.id)}
-                      className={`px-3 py-2 rounded-lg text-xs font-mono text-left transition-all cursor-pointer ${
-                        isSelected
-                          ? "bg-foreground text-background font-bold"
-                          : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-                      }`}
-                    >
-                      {dt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Facetas de Imóveis */}
-            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2.5">
-              <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
-                Facilidades do Imóvel
-              </span>
-              <div className="grid grid-cols-1 gap-1.5">
-                {REAL_ESTATE_FACETS.map((facet) => {
-                  const isChecked = selectedAmenities.includes(facet.id);
-                  return (
-                    <button
-                      key={facet.id}
-                      type="button"
-                      onClick={() => toggleAmenity(facet.id)}
-                      className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all text-left cursor-pointer ${
-                        isChecked
-                          ? "bg-primary/10 text-primary font-bold border border-primary/30"
-                          : "bg-muted/30 text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent"
-                      }`}
-                    >
-                      <span>{facet.label}</span>
-                      {isChecked && <Check className="size-3.5" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Facetas de Veículos & Autos (quando ativo) */}
-        {selectedCategory === "vehicle" && (
-          <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
-            <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
-              Especificações do Veículo
-            </span>
-
-            {/* Câmbio */}
-            <div className="space-y-1">
-              <span className="text-[10px] text-muted-foreground">Câmbio</span>
-              <div className="flex flex-wrap gap-1">
-                {VEHICLE_GEARBOX_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setVehicleGearbox(opt.id)}
-                    className={`px-2 py-1 rounded-md text-[11px] font-mono transition-all cursor-pointer ${
-                      vehicleGearbox === opt.id
-                        ? "bg-foreground text-background font-bold"
-                        : "bg-muted/40 text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Combustível */}
-            <div className="space-y-1 pt-1">
-              <span className="text-[10px] text-muted-foreground">Combustível</span>
-              <div className="flex flex-wrap gap-1">
-                {VEHICLE_FUEL_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setVehicleFuel(opt.id)}
-                    className={`px-2 py-1 rounded-md text-[11px] font-mono transition-all cursor-pointer ${
-                      vehicleFuel === opt.id
-                        ? "bg-foreground text-background font-bold"
-                        : "bg-muted/40 text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Único Dono */}
-            <div className="flex items-center justify-between pt-1">
-              <Label htmlFor="single-owner" className="text-xs text-foreground cursor-pointer">
-                Apenas Único Dono
-              </Label>
-              <Switch
-                id="single-owner"
-                checked={onlySingleOwner}
-                onCheckedChange={setOnlySingleOwner}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Facetas de Produtos Digitais (quando ativo) */}
-        {selectedCategory === "digital" && (
-          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-3">
-            <span className="text-[11px] font-bold font-mono uppercase text-primary tracking-wider block">
-              Entrega Instantânea
-            </span>
-            <p className="text-xs text-foreground/80 leading-relaxed">
-              Arquivos, templates, planilhas e e-books com link assinado e liberação imediata.
-            </p>
-            <div className="flex items-center justify-between pt-1">
-              <Label htmlFor="instant-digital" className="text-xs text-foreground cursor-pointer font-medium">
-                Somente Download Imediato
-              </Label>
-              <Switch
-                id="instant-digital"
-                checked={onlyInstantDigital}
-                onCheckedChange={setOnlyInstantDigital}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Filtro de Cidades */}
-        <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2">
-          <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
-            Cidade / Região
-          </span>
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              onClick={() => setSelectedCity("todos")}
-              className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
-                selectedCity === "todos"
-                  ? "bg-foreground text-background font-bold"
-                  : "bg-muted/40 text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Todas
-            </button>
-            {CANONICAL_CITIES.slice(0, 5).map((city) => {
-              const isSelected = selectedCity === city.name;
-              return (
-                <button
-                  key={city.id}
-                  type="button"
-                  onClick={() => setSelectedCity(isSelected ? "todos" : city.name)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
-                    isSelected
-                      ? "bg-foreground text-background font-bold"
-                      : "bg-muted/40 text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {city.name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Preferências de Negócio */}
-        <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
-          <span className="text-[11px] font-bold font-mono uppercase text-muted-foreground tracking-wider block">
-            Condições
-          </span>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="trade-switch" className="text-xs text-foreground cursor-pointer">
-              Aceita Troca
-            </Label>
-            <Switch
-              id="trade-switch"
-              checked={onlyTrade}
-              onCheckedChange={setOnlyTrade}
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="card-switch" className="text-xs text-foreground cursor-pointer">
-              Parcela no Cartão
-            </Label>
-            <Switch
-              id="card-switch"
-              checked={onlyInstallments}
-              onCheckedChange={setOnlyInstallments}
-            />
-          </div>
-        </div>
-
-        {/* Aviso Proeminente de Segurança Antifraude */}
-        <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 space-y-2">
-          <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold text-xs uppercase tracking-wider">
-            <ShieldAlert className="size-4 shrink-0" />
-            <span>Negocie com Segurança</span>
-          </div>
-          <p className="text-xs text-foreground/80 leading-relaxed">
-            <strong>Não pague antecipadamente:</strong> Para bens físicos, veículos e imóveis, inspecione pessoalmente antes de efetuar transferências. Em produtos digitais, o download com link assinado é liberado de forma segura na confirmação.
-          </p>
-        </div>
-      </aside>
-
-      {/* ── COLUNA DIREITA (CONTEÚDO PRINCIPAL: BANNERS, HOTPAGES, BUSCA E ANÚNCIOS) ── */}
-      <main className="flex-1 min-w-0 w-full space-y-6">
+    <div className="w-full space-y-6 pb-20">
         {/* 1. Banners Contextuais no Topo da Área de Conteúdo */}
         {banners && banners.length > 0 && (
           <section aria-label="Banners de Classificados">
@@ -652,7 +384,6 @@ function ClassifiedsMasterPage() {
           viewMode={viewMode}
           onViewModeChange={setViewMode}
           allowedViewModes={["grid", "list", "feed"]}
-          resultsCount={filtered.length}
           fastFilters={[
             {
               id: "boosted",
@@ -677,7 +408,7 @@ function ClassifiedsMasterPage() {
         />
 
         {/* ── BARRA DE FILTROS CONTEXTUAIS POR NICHO NO MOBILE (Apple HIG & 3 Toques) ── */}
-        <div className="lg:hidden space-y-2 pt-0.5">
+        <div className="space-y-2 pt-0.5">
           {/* Linha de Ação Rápida + Pílulas Contextuais por Nicho */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
             {/* Botão Gatilho da Sheet de Filtros Completos */}
@@ -1074,7 +805,7 @@ function ClassifiedsMasterPage() {
           /* ── MODO LISTA ── */
           <section className="flex flex-col space-y-3 w-full">
             {filtered.map((item: any) => {
-              const img = item.images?.[0];
+              const img = getClassifiedCover(item);
               const isTemporada = item.deal_type === "temporada";
               const isAluguel = item.deal_type === "aluguel";
               const itemNiche = resolveClassifiedNiche(item);
@@ -1098,8 +829,8 @@ function ClassifiedsMasterPage() {
                         loading="lazy"
                       />
                     ) : (
-                      <div className="size-full bg-gradient-to-br from-primary/10 via-muted/40 to-muted flex items-center justify-center">
-                        <Tag size={28} className="text-primary/30" />
+                      <div className="size-full bg-muted/40 flex items-center justify-center">
+                        <Tag size={28} className="text-muted-foreground/30" />
                       </div>
                     )}
                     <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 flex-wrap z-10">
@@ -1207,7 +938,6 @@ function ClassifiedsMasterPage() {
                   key={catKey}
                   title={catTitle}
                   hideHeader={true}
-                  badge={`${catItems.length} ${catItems.length === 1 ? "anúncio" : "anúncios"}`}
                   actionLabel="Ver todos"
                   onAction={() => {
                     setSelectedCategory(catKey);
@@ -1215,20 +945,20 @@ function ClassifiedsMasterPage() {
                   }}
                 >
                   {catItems.map((item: any) => {
-                    const img = item.images?.[0];
+                    const img = getClassifiedCover(item);
                     const isTemporada = item.deal_type === "temporada";
                     const isAluguel = item.deal_type === "aluguel";
                     const targetPhone = item.contact_whatsapp || item.whatsapp || item.profiles?.phone;
 
                     return (
-                      <div key={item.id} className="w-72 sm:w-80 shrink-0">
+                      <div key={item.id} className="w-72 sm:w-80 shrink-0 h-full flex flex-col">
                         <div className="group rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 hover:shadow-md transition-all flex flex-col justify-between h-full">
                           <Link
                             to="/classificados/$id"
                             params={{ id: item.id }}
-                            className="flex-1 flex flex-col cursor-pointer"
+                            className="flex-1 flex flex-col cursor-pointer min-h-0"
                           >
-                            <div className="relative aspect-16/10 w-full overflow-hidden bg-muted/40 flex items-center justify-center">
+                            <div className="relative aspect-16/10 w-full overflow-hidden bg-muted/40 flex items-center justify-center shrink-0">
                               {img ? (
                                 <img
                                   src={img}
@@ -1237,8 +967,8 @@ function ClassifiedsMasterPage() {
                                   loading="lazy"
                                 />
                               ) : (
-                                <div className="size-full bg-gradient-to-br from-primary/10 via-muted/40 to-muted flex items-center justify-center">
-                                  <Tag size={28} className="text-primary/30" />
+                                <div className="size-full bg-muted/40 flex items-center justify-center">
+                                  <Tag size={28} className="text-muted-foreground/30" />
                                 </div>
                               )}
                               <div className="absolute top-2.5 left-2.5 flex items-center gap-1">
@@ -1253,7 +983,7 @@ function ClassifiedsMasterPage() {
                               </div>
                             </div>
 
-                            <div className="p-4 space-y-1.5 flex-1 flex flex-col justify-between">
+                            <div className="p-4 space-y-1.5 flex-1 flex flex-col justify-between min-h-0">
                               <div>
                                 <span className="text-lg sm:text-xl font-black text-foreground font-mono block">
                                   {formatMoney(item.price_cents || 0)}
@@ -1261,12 +991,12 @@ function ClassifiedsMasterPage() {
                                   {isTemporada && <span className="text-[10px] font-normal text-muted-foreground">/dia</span>}
                                 </span>
 
-                                <h3 className="text-xs sm:text-sm font-bold text-foreground line-clamp-2 leading-tight group-hover:underline mt-1">
+                                <h3 className="text-xs sm:text-sm font-bold text-foreground line-clamp-2 leading-tight group-hover:underline mt-1 h-9 overflow-hidden">
                                   {item.title}
                                 </h3>
                               </div>
 
-                              <div className="pt-2 text-[11px] text-muted-foreground font-mono flex items-center justify-between">
+                              <div className="pt-2 text-[11px] text-muted-foreground font-mono flex items-center justify-between h-4">
                                 <span className="flex items-center gap-1 truncate">
                                   <MapPin size={11} weight="bold" className="shrink-0 text-primary" />
                                   <span className="truncate">{item.location_name || item.location_text || "Regional"}</span>
@@ -1319,9 +1049,9 @@ function ClassifiedsMasterPage() {
           </section>
         ) : (
           /* ── MODO GRADE (Cards Grandes, Imersivos e com Ações Rápidas) ── */
-          <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
+          <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6 items-stretch">
             {filtered.map((item: any) => {
-              const img = item.images?.[0];
+              const img = getClassifiedCover(item);
               const isTemporada = item.deal_type === "temporada";
               const isAluguel = item.deal_type === "aluguel";
               const itemNiche = resolveClassifiedNiche(item);
@@ -1330,14 +1060,14 @@ function ClassifiedsMasterPage() {
               return (
                 <div
                   key={item.id}
-                  className="group rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 hover:shadow-md transition-all flex flex-col justify-between"
+                  className="group rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 hover:shadow-md transition-all flex flex-col justify-between h-full"
                 >
                   <Link
                     to="/classificados/$id"
                     params={{ id: item.id }}
-                    className="flex-1 flex flex-col cursor-pointer"
+                    className="flex-1 flex flex-col cursor-pointer min-h-0"
                   >
-                    <div className="relative aspect-16/10 w-full overflow-hidden bg-muted/40 flex items-center justify-center">
+                    <div className="relative aspect-16/10 w-full overflow-hidden bg-muted/40 flex items-center justify-center shrink-0">
                       {img ? (
                         <img
                           src={img}
@@ -1346,8 +1076,8 @@ function ClassifiedsMasterPage() {
                           loading="lazy"
                         />
                       ) : (
-                        <div className="size-full bg-gradient-to-br from-primary/10 via-muted/40 to-muted flex items-center justify-center">
-                          <Tag size={28} className="text-primary/30" />
+                        <div className="size-full bg-muted/40 flex items-center justify-center">
+                          <Tag size={28} className="text-muted-foreground/30" />
                         </div>
                       )}
                       <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 flex-wrap z-10">
@@ -1370,7 +1100,7 @@ function ClassifiedsMasterPage() {
                       </div>
                     </div>
 
-                    <div className="p-4 sm:p-5 space-y-2 flex-1 flex flex-col justify-between">
+                    <div className="p-4 sm:p-5 space-y-2 flex-1 flex flex-col justify-between min-h-0">
                       <div>
                         <span className="text-xl sm:text-2xl font-black text-foreground font-mono block">
                           {formatMoney(item.price_cents || 0)}
@@ -1378,12 +1108,12 @@ function ClassifiedsMasterPage() {
                           {isTemporada && <span className="text-xs font-normal text-muted-foreground">/dia</span>}
                         </span>
 
-                        <h3 className="text-sm sm:text-base font-bold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors mt-1">
+                        <h3 className="text-sm sm:text-base font-bold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors mt-1 h-11 sm:h-12 overflow-hidden">
                           {item.title}
                         </h3>
                       </div>
 
-                      <div className="pt-2 text-xs text-muted-foreground font-mono flex items-center justify-between">
+                      <div className="pt-2 text-xs text-muted-foreground font-mono flex items-center justify-between h-4">
                         <span className="flex items-center gap-1.5 truncate">
                           <MapPin size={13} weight="bold" className="shrink-0 text-primary" />
                           <span className="truncate">{item.location_name || item.location_text || "Regional"}</span>
@@ -1431,7 +1161,6 @@ function ClassifiedsMasterPage() {
             })}
           </section>
         )}
-      </main>
     </div>
   );
 }

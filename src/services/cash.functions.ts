@@ -192,6 +192,12 @@ export async function _addRegisterEntry(
  amountCents: number,
  method: CashEntryMethod,
  description: string,
+ options?: {
+   channelSource?: string;
+   marketplaceFeeCents?: number;
+   netPayoutCents?: number;
+   externalReferenceId?: string;
+ }
 ): Promise<{ status: "success" }> {
  const supabase = getServerClient();
  const identity = await getServerIdentity();
@@ -225,6 +231,10 @@ export async function _addRegisterEntry(
  entry_type: method,
  notes: description,
  created_by: identity.id,
+ channel_source: options?.channelSource || "storefront",
+ marketplace_fee_cents: options?.marketplaceFeeCents || 0,
+ net_payout_cents: options?.netPayoutCents || (amountCents - (options?.marketplaceFeeCents || 0)),
+ external_reference_id: options?.externalReferenceId || null,
  });
 
  if (error) throw new Error("Erro ao registrar movimentação: " + error.message);
@@ -329,10 +339,19 @@ export const addRegisterEntry = createServerFn({ method: "POST" })
  amountCents: z.number().int(),
  method: z.enum(["cash", "credit", "debit", "pix", "other"]),
  description: z.string().min(3),
+ channelSource: z.string().optional(),
+ marketplaceFeeCents: z.number().optional(),
+ netPayoutCents: z.number().optional(),
+ externalReferenceId: z.string().optional(),
  }),
  )
- .handler(async ({ data: { registerId, amountCents, method, description } }) => {
- return await _addRegisterEntry(registerId, amountCents, method, description);
+ .handler(async ({ data: { registerId, amountCents, method, description, channelSource, marketplaceFeeCents, netPayoutCents, externalReferenceId } }) => {
+ return await _addRegisterEntry(registerId, amountCents, method, description, {
+   channelSource,
+   marketplaceFeeCents,
+   netPayoutCents,
+   externalReferenceId,
+ });
  });
 
 export async function _processPOSSale(input: {

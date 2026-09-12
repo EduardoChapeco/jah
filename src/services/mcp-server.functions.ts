@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start';
+import { z } from 'zod';
 import { getServerClient } from '@/lib/supabase';
 import { executeSimLabBatchSimulation } from './simlab.functions';
 import { executeOrchestrateMarketingPost } from './squad-content.functions';
@@ -225,8 +226,14 @@ export async function executeMcpToolCall(data: McpToolCallRequest): Promise<McpT
   }
 }
 
+export const McpToolCallRequestSchema = z.object({
+  tool: z.string().min(1),
+  arguments: z.record(z.any()),
+  storeId: z.string(),
+});
+
 export const executeMcpTool = createServerFn({ method: 'POST' })
-  .validator((data: McpToolCallRequest) => data)
+  .validator(McpToolCallRequestSchema)
   .handler(async ({ data }) => {
     return executeMcpToolCall(data);
   });

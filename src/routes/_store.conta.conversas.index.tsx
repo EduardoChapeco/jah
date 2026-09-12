@@ -66,62 +66,66 @@ function CustomerConversationsIndexPage() {
   }, [threads, activeFilter, searchQuery]);
 
   return (
-    <div className="flex flex-col h-full min-h-[80vh] pb-20">
-      {/* ── Header limpo estilo Direct/WhatsApp ── */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/40 shrink-0">
-        <div className="flex items-center justify-between px-4 py-3">
-          <h1 className="text-base font-bold text-foreground">Mensagens</h1>
-          <div className="flex items-center gap-1">
-            <button
-              id="btn-search-messages"
-              onClick={() => setShowSearch((s) => !s)}
-              className="size-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-              aria-label="Buscar conversa"
-            >
-              <Search className="size-4" />
-            </button>
-            <button
-              id="btn-new-message"
-              onClick={() => navigate({ to: "/mercado" })}
-              className="size-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-              aria-label="Nova conversa"
-            >
-              <PenSquare className="size-4" />
-            </button>
-          </div>
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Mensagens
+          </h1>
+          {threads && (threads as any[]).length > 0 && (
+            <Badge variant="secondary" className="text-xs font-mono font-bold px-2 py-0.5 rounded-full">
+              {(threads as any[]).length}
+            </Badge>
+          )}
         </div>
 
-        {/* Campo de busca inline (aparece ao clicar no ícone) */}
-        {showSearch && (
-          <div className="px-4 pb-3">
-            <input
-              autoFocus
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar conversa..."
-              className="w-full h-9 px-3.5 rounded-xl text-xs bg-muted border-0 outline-none focus:ring-1 focus:ring-primary/40 text-foreground placeholder:text-muted-foreground"
-            />
-          </div>
-        )}
-
-        {/* Filtros tipo chips */}
-        <div className="flex gap-1.5 px-4 pb-3 overflow-x-auto no-scrollbar">
-          {FILTER_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              id={`filter-tab-${tab.id}`}
-              onClick={() => setActiveFilter(tab.id)}
-              className={`shrink-0 h-7 px-3.5 rounded-full text-xs font-semibold transition-all ${
-                activeFilter === tab.id
-                  ? "bg-foreground text-background"
-                  : "bg-muted text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="flex items-center gap-1.5">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setShowSearch((s) => !s)}
+            className="rounded-xl size-8 p-0 text-muted-foreground hover:text-foreground cursor-pointer"
+            aria-label="Buscar conversa"
+          >
+            <Search className="size-4" />
+          </Button>
+          <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-8 px-3.5 cursor-pointer">
+            <Link to="/mercado">Nova Conversa</Link>
+          </Button>
         </div>
+      </div>
+
+      {/* Campo de busca inline (aparece ao clicar no ícone) */}
+      {showSearch && (
+        <div>
+          <input
+            autoFocus
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar conversa..."
+            className="w-full h-9 px-3.5 rounded-xl text-xs bg-muted border-0 outline-none focus:ring-1 focus:ring-primary/40 text-foreground placeholder:text-muted-foreground"
+          />
+        </div>
+      )}
+
+      {/* Filtros tipo chips */}
+      <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+        {FILTER_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            id={`filter-tab-${tab.id}`}
+            onClick={() => setActiveFilter(tab.id)}
+            className={`shrink-0 h-7 px-3.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              activeFilter === tab.id
+                ? "bg-foreground text-background"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* ── Lista de Conversas ── */}

@@ -61,14 +61,14 @@ export const Route = createFileRoute('/workspace/simlab/focus-group')({
     return { store };
     } catch (err) {
       console.error("[loader:workspace.simlab.focus-group] Unhandled loader error:", err);
-      return null;
+      return { store: null };
     }
   },
   component: FocusGroupPage,
 });
 
 function FocusGroupPage() {
-  const { store } = Route.useLoaderData() as any;
+  const { store } = ((Route.useLoaderData?.() as any) || {});
   const storeId = store?.id || '';
   const [session, setSession] = useState<FocusGroupSession | null>(null);
   const [availablePersonas, setAvailablePersonas] = useState<SyntheticArchetype[]>([]);
@@ -517,7 +517,7 @@ function FocusGroupPage() {
 
       {/* ── SHEET 1: DOSSIÊ CURRICULAR & BALANÇO FINANCEIRO 360° DA PERSONA ── */}
       <Sheet open={!!inspectingPersona} onOpenChange={(open) => !open && setInspectingPersona(null)}>
-        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto p-6 space-y-6">
+        <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] overflow-y-auto p-6 space-y-6">
           {inspectingPersona && (
             <>
               <SheetHeader className="space-y-1">
@@ -667,7 +667,7 @@ function FocusGroupPage() {
 
       {/* ── SHEET 2: GOVERNANÇA DE CHAVES DE IA (GEMINI / GROQ / OPENAI) ── */}
       <Sheet open={isKeySheetOpen} onOpenChange={setIsKeySheetOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md p-6 space-y-5">
+        <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-6 space-y-5">
           <SheetHeader className="space-y-1">
             <div className="flex items-center gap-2">
               <Key className="size-4 text-primary" />

@@ -66,24 +66,26 @@ async function getOrCreateCartId(
  storeId = defaultStore?.id || null;
  }
 
- if (!storeId) {
- return { status: "error" as const, message: "Nenhuma loja disponível no momento." };
- }
+  if (!storeId) {
+    throw new Error("Nenhuma loja disponível no momento.");
+  }
 
- // 3. Create a new cart for this store
- const { data: newCart, error } = await supabase
- .from("carts")
- .insert({
- store_id: storeId,
- customer_id: identity.customer_id,
- session_token: identity.session_token,
- status: "active",
- })
- .select("id")
- .single();
+  // 3. Create a new cart for this store
+  const { data: newCart, error } = await supabase
+    .from("carts")
+    .insert({
+      store_id: storeId,
+      customer_id: identity.customer_id,
+      session_token: identity.session_token,
+      status: "active",
+    })
+    .select("id")
+    .single();
 
- if (error) return { status: "error" as const, message: "Falha ao criar carrinho: " + error.message };
- return newCart.id;
+  if (error || !newCart) {
+    throw new Error("Falha ao criar carrinho: " + (error?.message || "Erro desconhecido"));
+  }
+  return newCart.id;
 }
 
 // ---------------------------------------------------------------------------
@@ -360,14 +362,17 @@ export async function mapCartToDTO(cart: any): Promise<CartDTO> {
  };
 }
 
-export const getCart = createServerFn({ method: "GET" }).handler(
- async (): Promise<CartDTO | null> => {
- const identity = await getCurrentIdentity();
- const { resolveTenantStoreId } = await import("@/lib/tenant.server");
- const storeId = await resolveTenantStoreId();
- return fetchCartDTO(identity, storeId as string | undefined);
- },
-);
+export const getCart = createServerFn({ method: "GET" })
+  .validator(z.object({ storeId: z.string().uuid().optional() }).optional())
+  .handler(async ({ data }): Promise<CartDTO | null> => {
+    const identity = await getCurrentIdentity();
+    let storeId = data?.storeId;
+    if (!storeId) {
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
+      storeId = (await resolveTenantStoreId()) ?? undefined;
+    }
+    return fetchCartDTO(identity, storeId as string | undefined);
+  });
 
 export async function fetchAllGlobalCarts(identity: {
  customer_id: string | null;

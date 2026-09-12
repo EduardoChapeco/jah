@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
@@ -33,18 +33,19 @@ export const Route = createFileRoute("/_store/conta/colaborador")({
   head: () => ({ meta: [{ title: "Espaço do Colaborador | Wider Hub" }] }),
   loader: async () => {
     try {
-    const employee = await getMyEmployeeRecord().catch(() => null);
-    return { employee };
+      const employee = await getMyEmployeeRecord().catch(() => null);
+      return { employee: employee || null };
     } catch (err) {
       console.error("[loader:_store.conta.colaborador] Unhandled error:", err);
-      return null;
+      return { employee: null };
     }
   },
   component: ColaboradorPortalPage,
 });
 
 function ColaboradorPortalPage() {
-  const { employee } = Route.useLoaderData();
+  const data = Route.useLoaderData();
+  const employee = data?.employee || null;
   const [activeTab, setActiveTab] = useState("ponto");
   const [currentTime, setCurrentTime] = useState(new Date());
   const [requestType, setRequestType] = useState("salary_advance");
@@ -193,8 +194,8 @@ function ColaboradorPortalPage() {
                 Seu perfil ainda não está associado a uma folha de pagamento ativa. Solicite ao gestor da sua empresa para vincular seu perfil na equipe da loja.
               </p>
             </div>
-            <Button asChild variant="outline" size="sm" className="rounded-xl h-9 text-xs shrink-0">
-              <a href="/conta">Voltar para Conta</a>
+            <Button asChild variant="outline" size="sm" className="rounded-xl h-10 text-xs shrink-0">
+              <Link to="/conta">Voltar para Conta</Link>
             </Button>
           </div>
         </div>

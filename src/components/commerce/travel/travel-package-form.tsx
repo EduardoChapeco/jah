@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -183,7 +184,7 @@ export function TravelPackageForm({ value, onChange, priceCents }: TravelPackage
  setShowNewDestModal(false);
  setQuickDestName("");
  setQuickDestRegion("");
- toast.success(`Destino "${created.name}" cadastrado no banco canônico!`);
+ toast.success(`Destino "${created.name}" cadastrado no catálogo oficial!`);
  } catch (err: any) {
  toast.error(err?.message || "Erro ao salvar destino.");
  } finally {
@@ -1156,12 +1157,14 @@ export function TravelPackageForm({ value, onChange, priceCents }: TravelPackage
  </div>
 
  <div className="space-y-1">
- <Label className="text-[11px] font-semibold text-muted-foreground">Foto do Dia (URL)</Label>
- <Input
+ <Label className="text-[11px] font-semibold text-muted-foreground">Foto do Dia</Label>
+ <ImageUpload
  value={day.imageUrl || ""}
- onChange={(e) => updateItineraryDay(idx, "imageUrl", e.target.value)}
- placeholder="https://... URL da foto de destaque deste dia"
- className="h-8 rounded-xl text-xs bg-background font-mono"
+ onChange={(url) => updateItineraryDay(idx, "imageUrl", url)}
+ onRemove={() => updateItineraryDay(idx, "imageUrl", "")}
+ bucket="destination-media"
+ aspectPreset="widescreen"
+ helperText="Upload da foto das atividades do dia"
  />
  </div>
  </div>

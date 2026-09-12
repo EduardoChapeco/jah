@@ -43,14 +43,14 @@ export const Route = createFileRoute("/workspace/marketing/banners")({
  return { banners };
    } catch (err) {
      console.error("[loader:workspace.marketing.banners] Unhandled loader error:", err);
-     return null;
+     return { banners: null };
    }
  },
  component: WorkspaceStoreBannersPage,
 });
 
 function WorkspaceStoreBannersPage() {
- const { banners: initialBanners } = Route.useLoaderData();
+ const { banners: initialBanners } = ((Route.useLoaderData?.() as any) || {});
  const [banners, setBanners] = useState<BannerDTO[]>(initialBanners || []);
  const [isModalOpen, setIsModalOpen] = useState(false);
  const [editingId, setEditingId] = useState<string | null>(null);

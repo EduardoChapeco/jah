@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
+import { WorkspaceCanonicalToolbar } from "@/components/workspace/workspace-canonical-toolbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CurrencyField } from "@/components/ui/currency-field";
@@ -76,7 +77,7 @@ export const Route = createFileRoute("/workspace/catalogo/produtos/")({
  };
    } catch (err) {
      console.error("[loader:workspace.catalogo.produtos.index] Unhandled loader error:", err);
-     return null;
+     return { products: null, store: null };
    }
  },
  component: AdminProductsPage,
@@ -211,7 +212,7 @@ function EditableStockCell({
 }
 
 function AdminProductsPage() {
- const { products: initialProducts, store } = Route.useLoaderData();
+ const { products: initialProducts, store } = ((Route.useLoaderData?.() as any) || {});
  const semantics = getNicheSemantics(store);
  const nicheCtx = getNicheCatalogContext(store);
 
@@ -434,103 +435,70 @@ function AdminProductsPage() {
  );
 
  return (
- <div className="space-y-6">
- <PageHeader
- eyebrow="Catálogo"
- title={semantics.catalogTitle}
- actions={
- <div className="flex items-center gap-2">
- <Button
- variant="outline"
- size="sm"
- onClick={() => setIsImportModalOpen(true)}
- className="rounded-xl font-bold text-xs gap-1.5 cursor-pointer"
- >
- <Globe className="size-3.5 text-primary" aria-hidden />
- <span>
- {semantics.nicheId === "gastronomy" ? "Importar Cardápio" : "Importar por Link"}
- </span>
- </Button>
- <Button variant="outline" size="sm" onClick={handleExportJSON} className="rounded-xl font-bold text-xs gap-1.5 ">
- <Download className="size-3.5" aria-hidden />
- Exportar
- </Button>
- <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground h-11 min-h-[44px] px-4">
- <Link to="/workspace/catalogo/produtos/novo">
- <Plus className="size-3.5" aria-hidden />
- {semantics.newItemAction}
- </Link>
- </Button>
- </div>
- }
- />
+    <div className="space-y-6">
+      {/* Abas Principais do Catálogo (Estilo Apple HIG / Omnichannel) */}
+      <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-muted/40 border border-border/60 w-fit">
+        <button
+          type="button"
+          onClick={() => setMainTab("products")}
+          className={cn(
+            "px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+            mainTab === "products"
+              ? "bg-background text-foreground shadow-2xs font-black"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/40",
+          )}
+        >
+          {semantics.catalogTitle}
+        </button>
+        <button
+          type="button"
+          onClick={() => setMainTab("complements")}
+          className={cn(
+            "px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+            mainTab === "complements"
+              ? "bg-background text-foreground shadow-2xs font-black"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/40",
+          )}
+        >
+          {semantics.modifiersLabel || "Complementos & Adicionais"}
+        </button>
+      </div>
 
- {/* Abas Principais do Catálogo (Estilo Diggy / Omnichannel) */}
- <div className="flex items-center gap-2 border-b border-border/80 pb-2">
- <button
- type="button"
- onClick={() => setMainTab("products")}
- className={cn(
- "px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer",
- mainTab === "products"
- ? "bg-primary text-primary-foreground shadow-2xs"
- : "text-muted-foreground hover:text-foreground hover:bg-muted/40",
- )}
- >
- {semantics.catalogTitle}
- </button>
- <button
- type="button"
- onClick={() => setMainTab("complements")}
- className={cn(
- "px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer",
- mainTab === "complements"
- ? "bg-primary text-primary-foreground shadow-2xs"
- : "text-muted-foreground hover:text-foreground hover:bg-muted/40",
- )}
- >
- {semantics.modifiersLabel || "Complementos & Adicionais"}
- </button>
- </div>
-
- {mainTab === "complements" ? (
- <CatalogComplementsTab store={store} />
- ) : (
- <>
- {/* Toolbar & Filtros */}
- <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-card border border-border rounded-2xl px-4 py-3">
- <Tabs
- defaultValue="active"
- value={statusFilter}
- onValueChange={setStatusFilter}
- >
- <TabsList className="flex overflow-x-auto no-scrollbar h-8">
- <TabsTrigger value="active" className="text-xs shrink-0">
- Ativos ({products.filter((p) => p.status !== "archived").length})
- </TabsTrigger>
- <TabsTrigger value="published" className="text-xs shrink-0">
- Publicados ({products.filter((p) => p.status === "published").length})
- </TabsTrigger>
- <TabsTrigger value="draft" className="text-xs shrink-0">
- Rascunhos ({products.filter((p) => p.status === "draft").length})
- </TabsTrigger>
- <TabsTrigger value="archived" className="text-xs shrink-0">
- Arquivados ({products.filter((p) => p.status === "archived").length})
- </TabsTrigger>
- </TabsList>
- </Tabs>
-
- <div className="relative w-full sm:w-72">
- <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" aria-hidden />
- <Input
- type="search"
- placeholder={semantics.searchItemPlaceholder}
- className="pl-8 text-xs w-full rounded-xl h-8 bg-background"
- value={searchQuery}
- onChange={(e) => setSearchQuery(e.target.value)}
- />
- </div>
- </div>
+      {mainTab === "complements" ? (
+        <CatalogComplementsTab store={store} />
+      ) : (
+        <>
+          {/* ── TOOLBAR CANÔNICA SOBERANA JAH ── */}
+          <WorkspaceCanonicalToolbar
+            tabs={[
+              { id: "active", label: "Ativos", count: products.filter((p) => p.status !== "archived").length },
+              { id: "published", label: "Publicados", count: products.filter((p) => p.status === "published").length },
+              { id: "draft", label: "Rascunhos", count: products.filter((p) => p.status === "draft").length },
+              { id: "archived", label: "Arquivados", count: products.filter((p) => p.status === "archived").length },
+            ]}
+            activeTab={statusFilter}
+            onTabChange={setStatusFilter}
+            searchPlaceholder={semantics.searchItemPlaceholder}
+            searchValue={searchQuery}
+            onSearchChange={setSearchQuery}
+            secondaryActions={[
+              {
+                label: semantics.nicheId === "gastronomy" ? "Importar Cardápio" : "Importar por Link",
+                icon: Globe,
+                onClick: () => setIsImportModalOpen(true),
+              },
+              {
+                label: "Exportar",
+                icon: Download,
+                onClick: handleExportJSON,
+              },
+            ]}
+            primaryAction={{
+              label: semantics.newItemAction,
+              icon: Plus,
+              onClick: () => navigate({ to: "/workspace/catalogo/produtos/novo" }),
+            }}
+          />
 
  {/* Barra Flutuante de Ações em Lote */}
  {selectedIds.length > 0 && (

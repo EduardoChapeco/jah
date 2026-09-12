@@ -16,8 +16,8 @@ export const Route = createFileRoute("/_store/match-time")({
  return await generateMatchTimeOffers();
    } catch (err) {
      console.error("[loader:_store.match-time] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: MatchTimePage,
 });

@@ -96,6 +96,7 @@ const GROUP_OVERVIEW: NavGroup = {
   section: "master",
   items: [
     { path: "/workspace", label: "Dashboard Geral", icon: LayoutDashboard },
+    { path: "/workspace/onboarding", label: "Setup & Ativação", icon: Layers },
   ],
 };
 
@@ -305,7 +306,7 @@ const GROUP_TURISMO_OPERATIONS: NavGroup = {
   section: "niche",
   items: [
     { path: "/workspace/turismo/viagens", label: "Viagens & Reservas", icon: Compass },
-    { path: "/workspace/turismo/aereos", label: "Malha Aérea", icon: Plane },
+    { path: "/workspace/turismo/aereos", label: "Bilhetes Aéreos", icon: Plane },
     { path: "/workspace/turismo/incidentes", label: "Incidentes", icon: AlertTriangle },
     { path: "/workspace/turismo/reacomodacao", label: "Reacomodação ANAC", icon: ShieldAlert },
     { path: "/workspace/turismo/embarques", label: "Embarques & Calendário", icon: Calendar },
@@ -364,6 +365,7 @@ const GROUP_TURISMO_MARKETING: NavGroup = {
     { path: "/workspace/cms/bio", label: "Link da Bio", icon: Link2 },
     { path: "/workspace/marketing/banners", label: "Banners & Destaques", icon: ImageIcon },
     { path: "/workspace/marketing/promocoes", label: "Ofertas & Descontos", icon: Flame },
+    { path: "/workspace/marketing/concursos", label: "Sorteios da Loja", icon: Ticket },
     { path: "/workspace/marketing/anuncios", label: "Campanhas Publicitárias", icon: Megaphone },
   ],
 };
@@ -526,6 +528,7 @@ const GROUP_MARKETING_VITRINE: NavGroup = {
     { path: "/workspace/marketing/banners", label: "Banners & Topo", icon: ImageIcon },
     { path: "/workspace/marketing/hotpages", label: "Páginas de Destaque (Hotpages)", icon: Layers },
     { path: "/workspace/marketing/promocoes", label: "Promoções & Cupons", icon: Flame },
+    { path: "/workspace/marketing/concursos", label: "Sorteios da Loja", icon: Ticket },
     { path: "/workspace/marketing/fidelidade", label: "Programa de Fidelidade", icon: Award },
     { path: "/workspace/marketing/gift-cards", label: "Vales-Presente", icon: Gift },
     { path: "/workspace/cms/stories", label: "Stories & Mídia", icon: ImageIcon },

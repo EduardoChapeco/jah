@@ -16,6 +16,9 @@ import {
   PhoneCall,
   ExternalLink,
   Loader2,
+  User,
+  Plane,
+  Hash,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +29,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
 } from '@/components/ui/sheet';
 import { toast } from 'sonner';
 import { useWorkspaceStore } from '@/lib/store-context';
@@ -36,6 +40,8 @@ import {
   updateChangeCaseWorkflow,
   calculateAnacRights,
 } from '@/services/travel-reaccommodation.functions';
+import { listCustomers } from '@/services/crm.functions';
+import { listFlightItineraries } from '@/services/travel-flights.functions';
 import type {
   TravelFlightChangeCase,
   ChangeReason,
@@ -44,14 +50,14 @@ import type {
 } from '@/types/travel-reaccommodation';
 
 export const Route = createFileRoute('/workspace/turismo/reacomodacao')({
-  head: () => ({ meta: [{ title: 'Casos ANAC 400 | Workspace' }] }),
+  head: () => ({ meta: [{ title: 'Casos ANAC 400 & Reacomodação | Workspace Wider OS' }] }),
   loader: async () => {
     try {
-    const store = await getStoreSettings().catch(() => null);
-    return { store };
+      const store = await getStoreSettings().catch(() => null);
+      return { store };
     } catch (err) {
-      console.error("[loader:workspace.turismo.reacomodacao] Unhandled error:", err);
-      return null;
+      console.error('[loader:workspace.turismo.reacomodacao] Unhandled error:', err);
+      return { store: null };
     }
   },
   component: ReaccommodationPage,
@@ -67,6 +73,9 @@ export default function ReaccommodationPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   // Form State
+  const [selectedCustomerId, setSelectedCustomerId] = useState('');
+  const [selectedItineraryId, setSelectedItineraryId] = useState('');
+  const [passengerManualName, setPassengerManualName] = useState('');
   const [changeReason, setChangeReason] = useState<ChangeReason>('flight_cancelled');
   const [priority, setPriority] = useState<ReaccommodationPriority>('urgent');
   const [delayHours, setDelayHours] = useState(5);
@@ -81,6 +90,19 @@ export default function ReaccommodationPage() {
     enabled: Boolean(storeId),
   });
 
+  const { data: customersData } = useQuery({
+    queryKey: ['crm-customers-reacc', storeId],
+    queryFn: () => listCustomers({ data: { storeId } }).catch(() => ({ customers: [] })),
+    enabled: Boolean(storeId),
+  });
+  const customers = customersData?.customers || [];
+
+  const { data: itineraries = [] } = useQuery({
+    queryKey: ['travel-flight-itineraries-reacc', storeId],
+    queryFn: () => listFlightItineraries({ data: { storeId } }).catch(() => []),
+    enabled: Boolean(storeId),
+  });
+
   // Taxa de resolução calculada do banco real
   const resolvedCount = cases.filter(
     (c) => c.workflow_status === 'rebooking_confirmed' || c.workflow_status === 'closed'
@@ -90,13 +112,26 @@ export default function ReaccommodationPage() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
+      const selectedCust = customers.find((c: any) => c.id === selectedCustomerId);
+      const selectedItin = itineraries.find((it: any) => it.id === selectedItineraryId);
+      const pnr = selectedItin?.segments?.[0]?.record_locator;
+      const passengerHeader = selectedCust
+        ? `Passageiro: ${selectedCust.full_name} (${selectedCust.phone || selectedCust.whatsapp || 'sem telefone'})`
+        : passengerManualName
+        ? `Passageiro: ${passengerManualName}`
+        : null;
+      const itinHeader = pnr ? `PNR: ${pnr} (${selectedItin?.title})` : null;
+
+      const finalPassengerNotes = [passengerHeader, itinHeader, passengerNotes].filter(Boolean).join(' | ');
+
       return createFlightChangeCase({
         data: {
           store_id: storeId,
           change_reason: changeReason,
           priority,
           delay_hours: delayHours,
-          passenger_notes: passengerNotes,
+          original_itinerary_id: selectedItineraryId || null,
+          passenger_notes: finalPassengerNotes,
           internal_notes: internalNotes,
         },
       });
@@ -106,6 +141,9 @@ export default function ReaccommodationPage() {
       setIsSheetOpen(false);
       setPassengerNotes('');
       setInternalNotes('');
+      setSelectedCustomerId('');
+      setSelectedItineraryId('');
+      setPassengerManualName('');
       queryClient.invalidateQueries({ queryKey: ['travel-flight-change-cases', storeId] });
     },
     onError: (err: any) => {
@@ -158,10 +196,10 @@ export default function ReaccommodationPage() {
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <ShieldAlert className="size-5 text-amber-500" />
-            Casos ANAC 400
+            Casos ANAC 400 & Reacomodação Aérea
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Registro técnico de casos de reacomodação conforme Resolução ANAC 400/2016.{' '}
+            Registro e assistência ao passageiro em contingências de voo conforme Resolução ANAC 400/2016.{' '}
             <Link
               to="/workspace/turismo/incidentes"
               className="text-primary underline-offset-2 hover:underline inline-flex items-center gap-1"
@@ -173,10 +211,10 @@ export default function ReaccommodationPage() {
 
         <Button
           onClick={() => setIsSheetOpen(true)}
-          className="h-10 px-5 gap-2 text-sm font-semibold rounded-xl shadow-sm bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
+          className="h-10 px-5 gap-2 text-sm font-semibold rounded-xl shadow-xs bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
         >
           <Plus className="size-4" />
-          Registrar Caso
+          Registrar Novo Caso
         </Button>
       </div>
 
@@ -211,7 +249,7 @@ export default function ReaccommodationPage() {
             <CheckCircle2 className="size-4" />
           </div>
           <div>
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase">Resolvidos</p>
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase">Reacomodados</p>
             <p className="text-2xl font-bold text-foreground">{resolvedCount}</p>
           </div>
         </div>
@@ -222,40 +260,40 @@ export default function ReaccommodationPage() {
           </div>
           <div>
             <p className="text-[10px] font-semibold text-muted-foreground uppercase">Taxa de Resolução</p>
-            <p className="text-2xl font-bold text-foreground">
-              {cases.length > 0 ? `${resolutionRate}%` : '—'}
-            </p>
+            <p className="text-2xl font-bold text-foreground">{resolutionRate}%</p>
           </div>
         </div>
       </div>
 
-      {/* Search */}
+      {/* Busca */}
       <div className="relative">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <Input
-          placeholder="Buscar por motivo, relato ou notas..."
+          placeholder="Buscar por relato, passageiro ou notas do caso..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="h-11 pl-10 rounded-xl"
+          className="pl-10 h-11 bg-card rounded-xl text-sm"
         />
       </div>
 
-      {/* List */}
+      {/* Lista de Casos */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin mr-2" />
-          Carregando casos...
+        <div className="p-12 text-center text-sm text-muted-foreground animate-pulse">
+          Carregando casos de reacomodação...
         </div>
       ) : filteredCases.length === 0 ? (
         <div className="p-12 text-center rounded-2xl border border-dashed border-border bg-card">
-          <CheckCircle2 className="size-10 text-emerald-500 mx-auto mb-3 opacity-60" />
-          <h3 className="text-base font-semibold text-foreground">Nenhum caso ANAC ativo</h3>
+          <ShieldAlert className="size-10 text-muted-foreground mx-auto mb-3 opacity-40" />
+          <h3 className="text-base font-semibold text-foreground">Nenhum caso registrado</h3>
           <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Todos os voos estão dentro do prazo previsto.
+            Registre casos de voos cancelados ou atrasados para aplicar as diretrizes da ANAC 400.
           </p>
-          <Button onClick={() => setIsSheetOpen(true)} className="h-10 px-5 gap-2 rounded-xl cursor-pointer">
+          <Button
+            onClick={() => setIsSheetOpen(true)}
+            className="h-10 px-4 gap-2 text-xs font-semibold rounded-xl bg-amber-600 hover:bg-amber-700 text-white"
+          >
             <Plus className="size-4" />
-            Registrar Caso Preventivo
+            Registrar Primeiro Caso
           </Button>
         </div>
       ) : (
@@ -263,27 +301,29 @@ export default function ReaccommodationPage() {
           {filteredCases.map((c) => (
             <div
               key={c.id}
-              className="p-5 rounded-2xl border border-border bg-card hover:border-amber-500/40 transition-all flex flex-col gap-4"
+              className="p-5 rounded-2xl border border-border bg-card shadow-xs flex flex-col gap-4"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/50 pb-3">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600">
-                    <AlertTriangle className="size-4" />
+                    <ShieldAlert className="size-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-foreground">{getReasonLabel(c.change_reason)}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {c.created_at ? new Date(c.created_at).toLocaleString('pt-BR') : 'Hoje'}
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-foreground">{getReasonLabel(c.change_reason)}</h3>
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${getPriorityBadge(c.priority)}`}>
+                        {c.priority}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Aberto em {new Date(c.created_at).toLocaleString('pt-BR')}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getPriorityBadge(c.priority)}`}>
-                    {c.priority.toUpperCase()}
-                  </span>
                   <select
-                    className="h-8 px-2.5 text-xs rounded-lg border border-input bg-background font-medium focus:outline-none"
+                    className="h-8 px-2.5 rounded-lg border border-input bg-background text-xs font-medium focus:outline-none"
                     value={c.workflow_status}
                     onChange={(e) =>
                       updateStatusMutation.mutate({
@@ -293,7 +333,7 @@ export default function ReaccommodationPage() {
                     }
                   >
                     <option value="pending_analysis">Em Análise</option>
-                    <option value="alternatives_sent">Alternativas Enviadas</option>
+                    <option value="alternatives_sent">Opções Enviadas</option>
                     <option value="client_accepted">Aceito pelo Cliente</option>
                     <option value="client_rejected">Recusado pelo Cliente</option>
                     <option value="rebooking_confirmed">Reacomodação Confirmada</option>
@@ -303,59 +343,147 @@ export default function ReaccommodationPage() {
                 </div>
               </div>
 
-              {c.passenger_notes && (
-                <div className="p-3 rounded-xl bg-muted/40 text-xs text-foreground flex flex-col gap-1 border border-border/40">
-                  <strong className="text-muted-foreground font-semibold">Situação:</strong>
-                  <span>{c.passenger_notes}</span>
+              {/* Relato e Notas */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                {c.passenger_notes && (
+                  <div className="p-3 rounded-xl bg-muted/40 border border-border/40">
+                    <span className="font-semibold text-foreground block mb-1">Passageiro / Situação:</span>
+                    <p className="text-muted-foreground leading-relaxed">{c.passenger_notes}</p>
+                  </div>
+                )}
+                {c.internal_notes && (
+                  <div className="p-3 rounded-xl bg-muted/40 border border-border/40">
+                    <span className="font-semibold text-foreground block mb-1">Anotações da Agência:</span>
+                    <p className="text-muted-foreground leading-relaxed">{c.internal_notes}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Direitos Calculados */}
+              {c.anac_rights_summary && (
+                <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 flex flex-wrap items-center gap-4 text-xs">
+                  <span className="font-semibold text-amber-700 dark:text-amber-400">
+                    Direitos ANAC:
+                  </span>
+                  {c.anac_rights_summary.material_assistance?.food_voucher && (
+                    <span className="inline-flex items-center gap-1 text-emerald-600 font-medium">
+                      <Utensils className="size-3" /> Voucher Alimentação
+                    </span>
+                  )}
+                  {c.anac_rights_summary.material_assistance?.lodging_and_transfer && (
+                    <span className="inline-flex items-center gap-1 text-emerald-600 font-medium">
+                      <Hotel className="size-3" /> Hotel + Transfer
+                    </span>
+                  )}
+                  {c.anac_rights_summary.reaccommodation_options?.competitor_flights && (
+                    <span className="inline-flex items-center gap-1 text-emerald-600 font-medium">
+                      <RefreshCw className="size-3" /> Voo Congênere
+                    </span>
+                  )}
+                  {c.anac_rights_summary.reaccommodation_options?.full_refund_eligible && (
+                    <span className="inline-flex items-center gap-1 text-emerald-600 font-medium">
+                      <FileText className="size-3" /> Opção de Reembolso Integral
+                    </span>
+                  )}
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <ShieldAlert className="size-3.5 text-amber-500" />
-                  <span>Resolução ANAC 400/2016</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 px-3 gap-1.5 text-xs cursor-pointer"
-                    onClick={() => {
-                      const text = encodeURIComponent(
-                        `Olá! Identificamos uma alteração no seu voo e já estamos acionando os protocolos necessários para sua reacomodação.`
-                      );
-                      window.open(`https://wa.me/?text=${text}`, '_blank');
-                    }}
-                  >
-                    <PhoneCall className="size-3.5 text-emerald-500" />
-                    Acionar Passageiro
-                  </Button>
-                </div>
+              {/* Ações Rápidas */}
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-xs gap-1.5 rounded-lg cursor-pointer"
+                  onClick={() => {
+                    const text = encodeURIComponent(
+                      `Olá! Estamos acompanhando a contingência do seu voo (${getReasonLabel(c.change_reason)}). Conforme a Resolução ANAC 400, você possui direitos de assistência material garantidos. Estamos trabalhando na sua reacomodação agora.`
+                    );
+                    window.open(`https://wa.me/?text=${text}`, '_blank');
+                  }}
+                >
+                  <PhoneCall className="size-3.5 text-emerald-500" />
+                  Notificar Passageiro (WhatsApp)
+                </Button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Sheet de Novo Caso */}
+      {/* Sheet de Novo Caso Ampliada (size="wide" -> 70% viewport) */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent
-          side="right"
-          className="sm:max-w-xl md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto no-scrollbar bg-card flex flex-col h-full"
-        >
+        <SheetContent size="wide" className="p-0 flex flex-col h-full bg-card overflow-hidden">
           <SheetHeader className="px-6 py-4 border-b border-border/60 bg-muted/20 shrink-0">
-            <SheetTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-              <ShieldAlert className="size-4 text-amber-500" />
-              Registrar Caso ANAC 400
-            </SheetTitle>
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+                <ShieldAlert className="size-5" />
+              </div>
+              <div>
+                <SheetTitle className="text-base font-bold">Registrar Caso ANAC 400 (Contingência & Reacomodação)</SheetTitle>
+                <SheetDescription className="text-xs text-muted-foreground">
+                  Vincule o passageiro, bilhete aéreo e calcule a assistência material obrigatória por lei.
+                </SheetDescription>
+              </div>
+            </div>
           </SheetHeader>
 
-          <div className="flex-1 p-6 space-y-4 overflow-y-auto no-scrollbar">
+          <div className="flex-1 p-6 space-y-6 overflow-y-auto no-scrollbar">
+            {/* Vínculo de Passageiro e Voo */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5 md:col-span-2">
-                <Label>Motivo da Contingência</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Passageiro Titular (CRM)</Label>
                 <select
-                  className="w-full h-11 px-3 rounded-lg border border-input bg-background text-sm font-medium focus:outline-none"
+                  className="w-full h-11 px-3 rounded-xl border border-input bg-background text-sm focus:outline-none"
+                  value={selectedCustomerId}
+                  onChange={(e) => setSelectedCustomerId(e.target.value)}
+                >
+                  <option value="">Passageiro Avulso / Não cadastrado</option>
+                  {customers.map((c: any) => (
+                    <option key={c.id} value={c.id}>
+                      {c.full_name} {c.phone ? `(${c.phone})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Bilhete / Reserva Vinculada (GDS)</Label>
+                <select
+                  className="w-full h-11 px-3 rounded-xl border border-input bg-background text-sm focus:outline-none"
+                  value={selectedItineraryId}
+                  onChange={(e) => setSelectedItineraryId(e.target.value)}
+                >
+                  <option value="">Nenhum bilhete vinculado</option>
+                  {itineraries.map((it: any) => {
+                    const pnr = it.segments?.[0]?.record_locator;
+                    return (
+                      <option key={it.id} value={it.id}>
+                        {it.title} {pnr ? `[PNR: ${pnr}]` : ''}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {!selectedCustomerId && (
+                <div className="space-y-1.5 md:col-span-2">
+                  <Label className="text-xs font-semibold">Nome Completo do Passageiro (Manual)</Label>
+                  <Input
+                    placeholder="Ex: Maria Aparecida Santos"
+                    value={passengerManualName}
+                    onChange={(e) => setPassengerManualName(e.target.value)}
+                    className="h-11 rounded-xl"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Motivo e Horas de Atraso */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-1.5 md:col-span-1">
+                <Label className="text-xs font-semibold">Motivo da Contingência</Label>
+                <select
+                  className="w-full h-11 px-3 rounded-xl border border-input bg-background text-sm font-medium focus:outline-none"
                   value={changeReason}
                   onChange={(e) => setChangeReason(e.target.value as ChangeReason)}
                 >
@@ -363,116 +491,119 @@ export default function ReaccommodationPage() {
                   <option value="delay_over_4h">Atraso Superior a 4 Horas</option>
                   <option value="connection_lost">Perda de Conexão</option>
                   <option value="overbooking">Preterição (Overbooking)</option>
-                  <option value="schedule_change">Alteração de Malha</option>
+                  <option value="schedule_change">Alteração de Malha / Horário</option>
                 </select>
               </div>
 
-              <div className="space-y-1.5">
-                <Label>Prioridade</Label>
+              <div className="space-y-1.5 md:col-span-1">
+                <Label className="text-xs font-semibold">Prioridade Operacional</Label>
                 <select
-                  className="w-full h-11 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none"
+                  className="w-full h-11 px-3 rounded-xl border border-input bg-background text-sm focus:outline-none"
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as ReaccommodationPriority)}
                 >
-                  <option value="urgent">Urgente</option>
-                  <option value="high">Alta</option>
+                  <option value="urgent">Urgente (No Aeroporto)</option>
+                  <option value="high">Alta (Próximas 24h)</option>
                   <option value="normal">Normal</option>
                   <option value="low">Baixa</option>
                 </select>
               </div>
 
-              <div className="space-y-1.5">
-                <Label>Atraso Estimado (Horas)</Label>
+              <div className="space-y-1.5 md:col-span-1">
+                <Label className="text-xs font-semibold">Atraso Estimado (Horas)</Label>
                 <Input
                   type="number"
                   min={0}
                   value={delayHours}
                   onChange={(e) => setDelayHours(Number(e.target.value))}
-                  className="h-11"
+                  className="h-11 rounded-xl"
                 />
               </div>
+            </div>
 
-              {/* ANAC Rights Preview */}
-              <div className="md:col-span-2 p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 flex flex-col gap-2.5">
-                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-semibold text-xs uppercase tracking-wider">
-                  <ShieldAlert className="size-4" />
-                  Direitos ANAC 400/2016 (Preview)
+            {/* ANAC Rights Preview */}
+            <div className="p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 flex flex-col gap-2.5">
+              <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-semibold text-xs uppercase tracking-wider">
+                <ShieldAlert className="size-4" />
+                Direitos ANAC 400/2016 Calculados para {delayHours}h de atraso
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                <div className="p-2.5 rounded-xl bg-background/60 border border-border/40 flex items-center gap-2">
+                  <Utensils className="size-4 text-muted-foreground" />
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block">Alimentação</span>
+                    <strong className={previewRights.material_assistance.food_voucher ? 'text-emerald-600' : 'text-muted-foreground'}>
+                      {previewRights.material_assistance.food_voucher ? 'Obrigatório (>2h)' : 'Não obrigatório'}
+                    </strong>
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                  <div className="flex items-center gap-2">
-                    <Utensils className="size-3.5 text-muted-foreground" />
-                    <span>
-                      Alimentação:{' '}
-                      <strong className={previewRights.material_assistance.food_voucher ? 'text-emerald-600' : 'text-muted-foreground'}>
-                        {previewRights.material_assistance.food_voucher ? 'Obrigatório' : 'Não obrigatório'}
-                      </strong>
-                    </span>
+                <div className="p-2.5 rounded-xl bg-background/60 border border-border/40 flex items-center gap-2">
+                  <Hotel className="size-4 text-muted-foreground" />
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block">Hospedagem</span>
+                    <strong className={previewRights.material_assistance.lodging_and_transfer ? 'text-emerald-600' : 'text-muted-foreground'}>
+                      {previewRights.material_assistance.lodging_and_transfer ? 'Obrigatório (>4h)' : 'Não obrigatório'}
+                    </strong>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Hotel className="size-3.5 text-muted-foreground" />
-                    <span>
-                      Hospedagem:{' '}
-                      <strong className={previewRights.material_assistance.lodging_and_transfer ? 'text-emerald-600' : 'text-muted-foreground'}>
-                        {previewRights.material_assistance.lodging_and_transfer ? 'Obrigatório' : 'Não obrigatório'}
-                      </strong>
-                    </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-background/60 border border-border/40 flex items-center gap-2">
+                  <RefreshCw className="size-4 text-muted-foreground" />
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block">Voo Concorrente</span>
+                    <strong className={previewRights.reaccommodation_options.competitor_flights ? 'text-emerald-600' : 'text-muted-foreground'}>
+                      {previewRights.reaccommodation_options.competitor_flights ? 'Permitido Exigir' : 'Só própria CIA'}
+                    </strong>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <RefreshCw className="size-3.5 text-muted-foreground" />
-                    <span>
-                      Voo concorrente:{' '}
-                      <strong className={previewRights.reaccommodation_options.competitor_flights ? 'text-emerald-600' : 'text-muted-foreground'}>
-                        {previewRights.reaccommodation_options.competitor_flights ? 'Permitido' : 'Só própria CIA'}
-                      </strong>
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <FileText className="size-3.5 text-muted-foreground" />
-                    <span>
-                      Reembolso 100%:{' '}
-                      <strong className={previewRights.reaccommodation_options.full_refund_eligible ? 'text-emerald-600' : 'text-muted-foreground'}>
-                        {previewRights.reaccommodation_options.full_refund_eligible ? 'Direito' : 'Sujeito a regra'}
-                      </strong>
-                    </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-background/60 border border-border/40 flex items-center gap-2">
+                  <FileText className="size-4 text-muted-foreground" />
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block">Reembolso 100%</span>
+                    <strong className={previewRights.reaccommodation_options.full_refund_eligible ? 'text-emerald-600' : 'text-muted-foreground'}>
+                      {previewRights.reaccommodation_options.full_refund_eligible ? 'Direito Integral' : 'Sujeito a regra'}
+                    </strong>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className="space-y-1.5 md:col-span-2">
-                <Label>Relato do Passageiro / Situação</Label>
+            {/* Relato e Notas */}
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Relato do Passageiro / Detalhes da Ocorrência</Label>
                 <Textarea
-                  placeholder="Ex: Passageiro no aeroporto de Guarulhos, voo LA3214 cancelado por manutenção..."
+                  placeholder="Ex: Passageiro está no aeroporto de Guarulhos após cancelamento do voo LA3214 por manutenção. Cia não ofereceu voucher de alimentação..."
                   value={passengerNotes}
                   onChange={(e) => setPassengerNotes(e.target.value)}
-                  className="min-h-[70px]"
+                  className="min-h-[85px] rounded-xl text-xs"
                 />
               </div>
 
-              <div className="space-y-1.5 md:col-span-2">
-                <Label>Notas Internas da Agência</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Anotações Internas da Agência (Ações do Plantão)</Label>
                 <Input
-                  placeholder="Ex: Contatado plantão da consolidadora para solicitar reacomodação..."
+                  placeholder="Ex: Acionado plantão da RexturAdvance para emitir reacomodação no voo G3 1450..."
                   value={internalNotes}
                   onChange={(e) => setInternalNotes(e.target.value)}
-                  className="h-11"
+                  className="h-11 rounded-xl text-xs"
                 />
               </div>
             </div>
           </div>
 
           <div className="flex justify-end gap-3 px-6 py-4 border-t border-border bg-muted/20 shrink-0">
-            <Button variant="outline" onClick={() => setIsSheetOpen(false)} className="h-10 px-4 cursor-pointer">
+            <Button variant="outline" onClick={() => setIsSheetOpen(false)} className="h-11 px-5 rounded-xl cursor-pointer">
               Cancelar
             </Button>
             <Button
               onClick={() => createMutation.mutate()}
               disabled={createMutation.isPending}
-              className="h-10 px-6 font-semibold bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
+              className="h-11 px-6 font-bold rounded-xl bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
             >
               {createMutation.isPending ? (
-                <><Loader2 className="size-3 animate-spin mr-1.5" />Registrando...</>
+                <><Loader2 className="size-4 animate-spin mr-2" />Registrando...</>
               ) : (
-                'Registrar Caso'
+                'Registrar Caso ANAC'
               )}
             </Button>
           </div>

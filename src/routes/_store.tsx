@@ -112,7 +112,7 @@ function StoreRouteError({ error }: { error: Error }) {
 }
 
 function StoreLayout() {
- const { store, brand, carts, globalCarts, popups, session } = Route.useLoaderData() as any;
+ const { store, brand, carts, globalCarts, popups, session } = ((Route.useLoaderData?.() as any) || {});
  const { initCart } = useCartContext();
 
  useEffect(() => {

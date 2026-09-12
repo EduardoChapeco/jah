@@ -57,8 +57,8 @@ export const Route = createFileRoute("/_store/doacoes")({
  return {};
    } catch (err) {
      console.error("[loader:_store.doacoes] Unhandled error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: DoacoesPage,
  pendingComponent: PageSkeleton,

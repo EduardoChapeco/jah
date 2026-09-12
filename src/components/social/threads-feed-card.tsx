@@ -73,8 +73,13 @@ export function ThreadsFeedCard({
  const [reposted, setReposted] = useState(Boolean(post.has_reposted));
  const [repostsCount, setRepostsCount] = useState(post.reposts_count || 0);
  const [bookmarked, setBookmarked] = useState(Boolean(post.has_bookmarked));
+ const [isHidden, setIsHidden] = useState(false);
  const [pollData, setPollData] = useState(post.poll);
  const [isLiking, setIsLiking] = useState(false);
+
+ if (isHidden) {
+ return null;
+ }
 
  const handleLikeClick = async () => {
  if (isLiking) return;
@@ -218,7 +223,15 @@ export function ThreadsFeedCard({
  <span>Copiar Link do Post</span>
  </DropdownMenuItem>
  <DropdownMenuItem
- onClick={() => toast.info("Publicação oculta do seu feed.")}
+ onClick={() => {
+ setIsHidden(true);
+ toast.success("Publicação oculta do seu feed.", {
+ action: {
+ label: "Desfazer",
+ onClick: () => setIsHidden(false),
+ },
+ });
+ }}
  className="rounded-xl cursor-pointer text-xs font-semibold gap-2 text-rose-500"
  >
  <EyeOff className="size-3.5" />

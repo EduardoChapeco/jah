@@ -200,7 +200,7 @@ export const Route = createFileRoute("/workspace/pdv/")({
  return { activeRegister, catalog: catalog || [], priceTables: priceTables || [], store };
    } catch (err) {
      console.error("[loader:workspace.pdv.index] Unhandled loader error:", err);
-     return null;
+     return { activeRegister: null, catalog: null, priceTables: null, store: null };
    }
  },
  errorComponent: ({ error }) => {
@@ -262,7 +262,7 @@ interface SplitPayment {
 }
 
 function PdvTerminal() {
- const { activeRegister, catalog, priceTables, store } = Route.useLoaderData() as any;
+ const { activeRegister, catalog, priceTables, store } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch() as { mesa?: string; orderId?: string };
  const semantics = useMemo(() => getNicheSemantics(store), [store]);
  const availableModes = useMemo(
@@ -587,7 +587,7 @@ function PdvTerminal() {
  toast.success("Venda finalizada com sucesso!");
 
  setLastSaleReceipt({
- saleId: res?.receiptId || res?.orderId || Math.random().toString(36).slice(2, 8).toUpperCase(),
+ saleId: res?.receiptId || res?.orderId || `PDV${Date.now().toString(36).toUpperCase().slice(-6)}`,
  items: cart,
  subtotal: cartSubtotal,
  discount: discountCents,

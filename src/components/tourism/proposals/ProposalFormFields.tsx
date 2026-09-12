@@ -167,7 +167,7 @@ export function Card({ children, onRemove }: { children: React.ReactNode; onRemo
   );
 }
 
-import { supabase } from "@/integrations/supabase/client";
+import { uploadMediaUniversal } from "@/services/storage.functions";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { FormInput as Input } from "@/components/ui/input";
@@ -184,24 +184,35 @@ export function FileUploadList({
 }) {
   const [uploading, setUploading] = useState(false);
   async function upload(files: FileList | null) {
-    if (!files) return;
+    if (!files || files.length === 0) return;
     setUploading(true);
     const urls: string[] = [];
-    for (const file of Array.from(files)) {
-      const uidVal = crypto.randomUUID();
-      const path = `${agencyId}/${uidVal}-${file.name}`;
-      const { error } = await supabase.storage.from("proposal-attachments").upload(path, file);
-      if (error) {
-        toast.error(error.message);
-        continue;
+    try {
+      for (const file of Array.from(files)) {
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        const res = await uploadMediaUniversal({
+          data: {
+            fileName: file.name,
+            fileType: file.type || "application/octet-stream",
+            base64Data: base64,
+            bucket: "public_media",
+            folder: `proposals/${agencyId || "general"}`,
+          },
+        });
+        if (res?.url) urls.push(res.url);
       }
-      const { data: signed } = await supabase.storage
-        .from("proposal-attachments")
-        .createSignedUrl(path, 60 * 60 * 24 * 365);
-      if (signed?.signedUrl) urls.push(signed.signedUrl);
+      onChange([...images, ...urls]);
+      toast.success("Arquivos enviados com sucesso!");
+    } catch (err: any) {
+      toast.error(err.message || "Erro no upload");
+    } finally {
+      setUploading(false);
     }
-    onChange([...images, ...urls]);
-    setUploading(false);
   }
   return (
     <div className="mt-2">

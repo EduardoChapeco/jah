@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, isRedirect } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Store, ArrowLeft, ArrowRight, Loader2, Check, Sliders, Clock, Truck, FileText, Trash2, Plus, Users, Mail, Shield, CheckCircle2, Search, CheckCircle, Building2, ChevronRight, UserPlus, Bike, ShieldCheck, Zap, BadgePercent, Star, MapPin, Phone, Eye, Layers } from 'lucide-react';
@@ -40,14 +40,17 @@ import { getPublicLogisticsPresentation } from "@/services/master.functions";
 import { NeighborhoodsManager, type NeighborhoodItem } from "@/components/commerce/neighborhoods-manager";
 import { CHAPECO_NEIGHBORHOODS } from "@/lib/constants/cities";
 import { useMasterLocation } from "@/components/location/location-master-pill";
+import { FastCompanyOnboarding } from "@/components/onboarding/fast-company-onboarding";
 import { formatMoney } from "@/lib/money";
+import { SYSTEM_FLAGS } from "@/lib/constants/system-flags";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/criar-negocio")({
  head: () => ({ meta: [{ title: "Cadastrar Novo Negócio | Wider OS" }] }),
- validateSearch: (search: Record<string, unknown>): { segment?: string } => {
+ validateSearch: (search: Record<string, unknown>): { segment?: string; modo?: "expresso" | "avancado" } => {
  return {
  segment: (search.segment as string) || undefined,
+ modo: (search.modo as "expresso" | "avancado") || "expresso",
  };
  },
  beforeLoad: async ({ location }) => {
@@ -84,11 +87,12 @@ export const Route = createFileRoute("/_store/criar-negocio")({
 
  const logisticsInfo = await getPublicLogisticsPresentation().catch(() => null);
  return { logisticsInfo, session };
-   } catch (err) {
-     console.error("[loader:_store.criar-negocio] Unhandled loader error:", err);
-     return null;
-   }
- },
+    } catch (err) {
+      if (isRedirect(err)) throw err;
+      console.error("[loader:_store.criar-negocio] Unhandled loader error:", err);
+      return { logisticsInfo: null, session: null };
+    }
+  },
  component: CriarNegocioPage,
 });
 
@@ -101,8 +105,10 @@ interface InvitedTeamMember {
 }
 
 function CriarNegocioPage() {
- const { logisticsInfo, session } = Route.useLoaderData();
+  const { logisticsInfo = null, session = null } = (Route.useLoaderData() as any) || {};
  const search = Route.useSearch();
+ const defaultMode = SYSTEM_FLAGS.ADVANCED_ONBOARDING_DEFAULT ? "avancado" : "expresso";
+ const [mode, setMode] = useState<"expresso" | "avancado">((search as any)?.modo || defaultMode);
  const initialSegment = search?.segment || "";
  const foundInitial = BUSINESS_SEGMENTS.find((s) => s.id === initialSegment);
 
@@ -343,24 +349,67 @@ function CriarNegocioPage() {
  ];
 
  return (
- <div className="w-full max-w-6xl mx-auto py-2 space-y-6 animate-in fade-in duration-200">
- {/* ── Top Bar de Retorno / Atalho ao Workspace ou Início ── */}
- <div className="flex items-center justify-between">
- <Button asChild variant="ghost" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 text-muted-foreground hover:text-foreground">
- <Link to={session?.memberships && session.memberships.length > 0 ? "/workspace" : "/"}>
- <ArrowLeft className="size-3.5" />
- <span>{session?.memberships && session.memberships.length > 0 ? "Voltar ao Workspace" : "Voltar ao Início"}</span>
- </Link>
- </Button>
- </div>
- {step > 1 && (
- <div className="bg-card p-4 rounded-2xl border border-border/70 space-y-3">
- <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
- <div className="flex items-center gap-3">
- <Button
- variant="ghost"
- size="sm"
- onClick={() => setStep((prev) => Math.max(1, prev - 1) as OnboardingStep)}
+  <div className="w-full max-w-6xl mx-auto py-2 space-y-6 animate-in fade-in duration-200">
+  {/* ── Top Bar de Retorno / Atalho ao Workspace ou Início + Seletor de Modo ── */}
+  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+  <Button asChild variant="ghost" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 text-muted-foreground hover:text-foreground">
+  <Link to={session?.memberships && session.memberships.length > 0 ? "/workspace" : "/"}>
+  <ArrowLeft className="size-3.5" />
+  <span>{session?.memberships && session.memberships.length > 0 ? "Voltar ao Workspace" : "Voltar ao Início"}</span>
+  </Link>
+  </Button>
+
+  {/* SELETOR DE MODO APPLE HIG (Expresso vs Avançado) */}
+  <div className="flex items-center p-1 bg-muted/60 rounded-xl border border-border/60 self-start sm:self-auto">
+  <button
+  type="button"
+  onClick={() => setMode("expresso")}
+  className={cn(
+  "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5",
+  mode === "expresso"
+  ? "bg-background text-foreground shadow-xs"
+  : "text-muted-foreground hover:text-foreground"
+  )}
+  >
+  <Zap className="size-3.5 text-amber-500" />
+  <span>Modo Expresso (1 min)</span>
+  </button>
+  <button
+  type="button"
+  onClick={() => setMode("avancado")}
+  className={cn(
+  "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5",
+  mode === "avancado"
+  ? "bg-background text-foreground shadow-xs"
+  : "text-muted-foreground hover:text-foreground"
+  )}
+  >
+  <Sliders className="size-3.5 text-primary" />
+  <span>Modo Completo (6 Etapas)</span>
+  </button>
+  </div>
+  </div>
+
+  {mode === "expresso" ? (
+  <FastCompanyOnboarding
+  userId={session?.user?.id}
+  onSuccess={(storeId) => {
+  if (typeof window !== "undefined") {
+  window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
+  }
+  window.location.href = "/conta/empresa";
+  }}
+  />
+  ) : (
+  <>
+  {step > 1 && (
+  <div className="bg-card p-4 rounded-2xl border border-border/70 space-y-3">
+  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+  <div className="flex items-center gap-3">
+  <Button
+  variant="ghost"
+  size="sm"
+  onClick={() => setStep((prev) => Math.max(1, prev - 1) as OnboardingStep)}
  className="h-8 rounded-xl px-2.5 text-xs font-bold text-muted-foreground hover:text-foreground gap-1.5"
  >
  <ArrowLeft className="size-3.5" />
@@ -1297,6 +1346,8 @@ function CriarNegocioPage() {
  </div>
  </div>
  </div>
+ )}
+ </>
  )}
  </div>
  );

@@ -47,16 +47,18 @@ export const Route = createFileRoute("/admin-master/banners")({
  return { banners };
    } catch (err) {
      console.error("[loader:admin-master.banners] Unhandled loader error:", err);
-     return null;
+     return { banners: null };
    }
  },
  component: AdminMasterBannersPage,
 });
 
 export const PLACEMENT_OPTIONS: { id: BannerPlacement; label: string }[] = [
- { id: "all", label: "Todas as Vitrines" },
- { id: "home", label: "Início" },
- { id: "gastronomia", label: "Gastronomia" },
+  { id: "all", label: "Todas as Vitrines" },
+  { id: "home", label: "Início (Topo/Hero)" },
+  { id: "home_middle", label: "Início (Meio do Feed)" },
+  { id: "home_footer", label: "Início (Rodapé de Empresas)" },
+  { id: "gastronomia", label: "Gastronomia" },
  { id: "mercado", label: "Supermercado" },
  { id: "farmacia", label: "Farmácia" },
  { id: "bebidas", label: "Bebidas" },
@@ -73,6 +75,7 @@ export const PLACEMENT_OPTIONS: { id: BannerPlacement; label: string }[] = [
  { id: "livros", label: "Livros" },
  { id: "noticias", label: "Notícias" },
  { id: "agenda", label: "Agenda" },
+ { id: "eventos", label: "Eventos & Shows" },
  { id: "turismo", label: "Turismo" },
  { id: "empregos", label: "Empregos" },
  { id: "classificados", label: "Classificados" },
@@ -82,7 +85,7 @@ export const PLACEMENT_OPTIONS: { id: BannerPlacement; label: string }[] = [
 ];
 
 function AdminMasterBannersPage() {
- const { banners: initialBanners } = Route.useLoaderData();
+ const { banners: initialBanners } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch();
  const router = useRouter();
  const [banners, setBanners] = useState<BannerDTO[]>(initialBanners || []);

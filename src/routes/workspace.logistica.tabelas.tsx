@@ -161,7 +161,7 @@ function WorkspaceLogisticsPriceTablesPage() {
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  {tables.map((table: PriceTableItem) => (
  <div
- key={table.id}
+ key={table.service_type}
  className="rounded-2xl bg-card p-6 border border-border/60 space-y-5 shadow-none"
  >
  <div className="flex items-center justify-between pb-3 border-b border-border/40">
@@ -189,7 +189,7 @@ function WorkspaceLogisticsPriceTablesPage() {
  <input
  type="checkbox"
  checked={table.is_active}
- onChange={(e) => handleUpdate(table.id as string, "is_active", e.target.checked)}
+ onChange={(e) => handleUpdate(table.service_type, "is_active", e.target.checked)}
  className="rounded border-border text-primary size-4"
  />
  <span className={table.is_active ? "text-foreground" : "text-muted-foreground"}>
@@ -203,7 +203,7 @@ function WorkspaceLogisticsPriceTablesPage() {
  <Label className="text-xs font-bold text-muted-foreground">Tarifa de Saída (Base)</Label>
  <CurrencyField
  value={table.base_fee_cents}
- onChange={(cents) => handleUpdate(table.id as string, "base_fee_cents", cents || 0)}
+ onChange={(cents) => handleUpdate(table.service_type, "base_fee_cents", cents || 0)}
  placeholder="0,00"
  className="h-10 text-sm font-mono"
  />
@@ -214,7 +214,7 @@ function WorkspaceLogisticsPriceTablesPage() {
  <Label className="text-xs font-bold text-muted-foreground">Valor por KM Rodado</Label>
  <CurrencyField
  value={table.km_rate_cents}
- onChange={(cents) => handleUpdate(table.id as string, "km_rate_cents", cents || 0)}
+ onChange={(cents) => handleUpdate(table.service_type, "km_rate_cents", cents || 0)}
  placeholder="0,00"
  className="h-10 text-sm font-mono"
  />
@@ -225,7 +225,7 @@ function WorkspaceLogisticsPriceTablesPage() {
  <Label className="text-xs font-bold text-muted-foreground">Corrida Mínima</Label>
  <CurrencyField
  value={table.min_fare_cents}
- onChange={(cents) => handleUpdate(table.id as string, "min_fare_cents", cents || 0)}
+ onChange={(cents) => handleUpdate(table.service_type, "min_fare_cents", cents || 0)}
  placeholder="0,00"
  className="h-10 text-sm font-mono"
  />
@@ -236,7 +236,7 @@ function WorkspaceLogisticsPriceTablesPage() {
  <Label className="text-xs font-bold text-muted-foreground">Taxa de Ajudante / Carga</Label>
  <CurrencyField
  value={table.helper_fee_cents}
- onChange={(cents) => handleUpdate(table.id as string, "helper_fee_cents", cents || 0)}
+ onChange={(cents) => handleUpdate(table.service_type, "helper_fee_cents", cents || 0)}
  placeholder="0,00"
  className="h-10 text-sm font-mono"
  />

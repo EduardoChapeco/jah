@@ -4,6 +4,8 @@ import { z } from "zod";
 import { getServerIdentity } from "@/lib/server-access";
 import { getServerClient } from "@/lib/supabase";
 
+export { getServerIdentity };
+
 export const getIdentity = createServerFn({ method: "GET" }).handler(async () => {
  return await getServerIdentity();
 });

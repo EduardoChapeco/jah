@@ -94,7 +94,7 @@ function playNotificationChime() {
 }
 
 function WorkspaceAtendimentoPage() {
- const { threads: initialThreads, metrics, isSupervisor, store } = Route.useLoaderData() as any;
+ const { threads: initialThreads, metrics, isSupervisor, store } = ((Route.useLoaderData?.() as any) || {});
  const semantics = useMemo(() => getNicheSemantics(store), [store]);
  const departmentLabels = semantics.departmentLabels || DEPARTMENT_LABELS;
 
@@ -622,7 +622,7 @@ function WorkspaceAtendimentoPage() {
  {/* Sheet de Gestão de Ticket SAC / RMA */}
  {selectedTicket && (
  <Sheet open={ticketModalOpen} onOpenChange={setTicketModalOpen}>
- <SheetContent side="right" className="sm:max-w-md w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-6 overflow-y-auto no-scrollbar bg-card flex flex-col justify-between">
+ <SheetContent side="right" size="wide" className="sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-6 overflow-y-auto no-scrollbar bg-card flex flex-col justify-between">
  <div className="space-y-6">
  <SheetHeader>
  <SheetTitle className="text-base font-bold">

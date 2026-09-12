@@ -5,7 +5,7 @@ import {
   RotateCcw,
   FastForward,
   Rewind,
-  Sparkles,
+  Zap,
   Layers,
   Film,
   Maximize2,
@@ -198,7 +198,7 @@ export function MotionStudioViewport({
           {/* Store Logo Chip (if enabled) */}
           {showLogo && (
             <div className="absolute top-4 right-4 z-10 pointer-events-none flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/30 border border-white/10 backdrop-blur-md text-[10px] font-semibold text-white/80">
-              <Sparkles className="size-3 text-amber-400" />
+              <Zap className="size-3 text-amber-400" />
               <span>JAH Loja</span>
             </div>
           )}

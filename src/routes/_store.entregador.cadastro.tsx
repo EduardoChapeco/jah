@@ -55,14 +55,14 @@ export const Route = createFileRoute("/_store/entregador/cadastro")({
     return { existingApp, legalDoc };
     } catch (err) {
       console.error("[loader:_store.entregador.cadastro] Unhandled loader error:", err);
-      return null;
+      return { existingApp: null, legalDoc: null };
     }
   },
   component: CourierOnboardingPage,
 });
 
 function CourierOnboardingPage() {
-  const { existingApp: initialApp, legalDoc } = Route.useLoaderData();
+  const { existingApp: initialApp, legalDoc } = ((Route.useLoaderData?.() as any) || {});
   const navigate = useNavigate();
   const [isPending, startTransition] = useTransition();
 

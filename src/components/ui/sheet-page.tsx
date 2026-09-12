@@ -18,7 +18,7 @@ export interface SheetPageProps {
  description?: React.ReactNode;
  children: React.ReactNode;
  footer?: React.ReactNode;
- size?: "sm" | "default" | "lg" | "xl" | "2xl";
+ size?: "sm" | "default" | "lg" | "xl" | "2xl" | "wide" | "70" | "full";
  className?: string;
 }
 
@@ -33,11 +33,14 @@ export function SheetPage({
  className,
 }: SheetPageProps) {
  const sizeClasses = {
- sm: "sm:max-w-md",
- default: "sm:max-w-lg",
- lg: "sm:max-w-xl md:max-w-2xl",
- xl: "sm:max-w-2xl md:max-w-3xl",
- "2xl": "sm:max-w-3xl md:max-w-4xl",
+    sm: "w-full sm:max-w-xl md:max-w-2xl",
+    default: "w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw]",
+    lg: "w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw]",
+    xl: "w-full sm:max-w-3xl md:max-w-5xl lg:max-w-[70vw] xl:max-w-[70vw]",
+    "2xl": "w-full sm:max-w-3xl md:max-w-5xl lg:max-w-[70vw] xl:max-w-[70vw]",
+    wide: "w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw]",
+    "70": "w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw]",
+    full: "w-screen max-w-full",
  }[size];
 
  return (

@@ -1,10 +1,17 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { getServerClient } from '@/lib/supabase';
-import type { ClientWalletPass, TripMemory, PassType } from '@/types/client-wallet';
+import { getServerIdentity, assertStoreAccess } from '@/lib/server-access';
+import type { ClientWalletPass, TripMemory } from '@/types/client-wallet';
 
 export const listClientWalletPasses = createServerFn({ method: 'GET' })
-  .validator((data: { storeId?: string; clientId?: string; tripId?: string }) => data)
+  .validator(
+    z.object({
+      storeId: z.string().uuid().optional(),
+      clientId: z.string().uuid().optional(),
+      tripId: z.string().uuid().optional(),
+    }).optional()
+  )
   .handler(async ({ data }): Promise<ClientWalletPass[]> => {
     const db = getServerClient();
     let query = db
@@ -13,13 +20,13 @@ export const listClientWalletPasses = createServerFn({ method: 'GET' })
       .eq('status', 'active')
       .order('created_at', { ascending: false });
 
-    if (data.storeId) {
+    if (data?.storeId) {
       query = query.eq('store_id', data.storeId);
     }
-    if (data.clientId) {
+    if (data?.clientId) {
       query = query.eq('client_id', data.clientId);
     }
-    if (data.tripId) {
+    if (data?.tripId) {
       query = query.eq('trip_id', data.tripId);
     }
 
@@ -31,7 +38,7 @@ export const listClientWalletPasses = createServerFn({ method: 'GET' })
 export const createWalletPass = createServerFn({ method: 'POST' })
   .validator(
     z.object({
-      store_id: z.string().uuid(),
+      store_id: z.string().uuid().optional(),
       client_id: z.string().uuid().optional().nullable(),
       trip_id: z.string().uuid().optional().nullable(),
       pass_type: z.enum(['boarding_pass', 'ticket', 'insurance', 'voucher']),
@@ -44,11 +51,18 @@ export const createWalletPass = createServerFn({ method: 'POST' })
     })
   )
   .handler(async ({ data }): Promise<ClientWalletPass> => {
+    const identity = await getServerIdentity();
+    const effectiveStoreId = data.store_id || identity.store_id;
+    if (!effectiveStoreId) {
+      throw new Error("Identificador da loja não fornecido.");
+    }
+    assertStoreAccess(identity, ['owner', 'admin', 'manager', 'seller']);
+
     const db = getServerClient();
     const { data: row, error } = await db
       .from('client_wallet_passes')
       .insert({
-        store_id: data.store_id,
+        store_id: effectiveStoreId,
         client_id: data.client_id,
         trip_id: data.trip_id,
         pass_type: data.pass_type,
@@ -68,7 +82,7 @@ export const createWalletPass = createServerFn({ method: 'POST' })
   });
 
 export const listTripMemories = createServerFn({ method: 'GET' })
-  .validator((data: { tripId: string }) => data)
+  .validator(z.object({ tripId: z.string().uuid() }))
   .handler(async ({ data }): Promise<TripMemory[]> => {
     const db = getServerClient();
     const { data: rows, error } = await db
@@ -84,7 +98,7 @@ export const listTripMemories = createServerFn({ method: 'GET' })
 export const addTripMemory = createServerFn({ method: 'POST' })
   .validator(
     z.object({
-      store_id: z.string().uuid(),
+      store_id: z.string().uuid().optional(),
       trip_id: z.string().uuid(),
       uploader_name: z.string().default('Viajante'),
       media_url: z.string().url(),
@@ -98,7 +112,7 @@ export const addTripMemory = createServerFn({ method: 'POST' })
     const { data: row, error } = await db
       .from('trip_memories')
       .insert({
-        store_id: data.store_id,
+        store_id: data.store_id || null,
         trip_id: data.trip_id,
         uploader_name: data.uploader_name,
         media_url: data.media_url,

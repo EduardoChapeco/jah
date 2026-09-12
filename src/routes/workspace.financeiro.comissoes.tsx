@@ -33,14 +33,14 @@ export const Route = createFileRoute("/workspace/financeiro/comissoes")({
  return { commissions, sellers };
    } catch (err) {
      console.error("[loader:workspace.financeiro.comissoes] Unhandled loader error:", err);
-     return null;
+     return { commissions: null, sellers: null };
    }
  },
  component: CommissionsPage,
 });
 
 function CommissionsPage() {
- const { commissions, sellers } = Route.useLoaderData();
+ const { commissions, sellers } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
 
  const [editingSellerId, setEditingSellerId] = useState<string | null>(null);

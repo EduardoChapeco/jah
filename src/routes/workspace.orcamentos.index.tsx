@@ -36,7 +36,7 @@ export const Route = createFileRoute("/workspace/orcamentos/")({
     return { initialData: res };
     } catch (err) {
       console.error("[loader:workspace.orcamentos.index] Unhandled error:", err);
-      return null;
+      return { initialData: null };
     }
   },
   component: QuotesListPage,
@@ -75,7 +75,7 @@ const KANBAN_COLUMNS = [
 ];
 
 function QuotesListPage() {
-  const { initialData } = Route.useLoaderData();
+  const { initialData } = ((Route.useLoaderData?.() as any) || {});
   const router = useRouter();
   const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
   const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);

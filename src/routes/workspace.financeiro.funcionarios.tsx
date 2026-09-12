@@ -32,17 +32,18 @@ export const Route = createFileRoute("/workspace/financeiro/funcionarios")({
  head: () => ({ meta: [{ title: "Folha e Comissões | Workspace Wider OS" }] }),
  loader: async () => {
    try {
- return await listEmployeesBalance();
+     const data = await listEmployeesBalance();
+     return Array.isArray(data) ? data : [];
    } catch (err) {
      console.error("[loader:workspace.financeiro.funcionarios] Unhandled loader error:", err);
-     return null;
+     return [];
    }
  },
  component: HrFinancePage,
 });
 
 function HrFinancePage() {
- const staffBalances = Route.useLoaderData();
+ const staffBalances = (Route.useLoaderData() as any[]) || [];
  const router = useRouter();
 
  const [modalOpen, setModalOpen] = useState(false);
@@ -93,7 +94,7 @@ function HrFinancePage() {
 
  return (
  <div className="space-y-6">
- <PageHeader title="Gestão de RH & Comissões" />
+ <PageHeader title="Equipe & Comissões" />
 
  {staffBalances.length === 0 ? (
  <EmptyState title="Nenhum funcionário encontrado" />

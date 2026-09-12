@@ -31,8 +31,8 @@ export const Route = createFileRoute("/workspace/marketing/carrinhos")({
  return await listAbandonedCarts();
    } catch (err) {
      console.error("[loader:workspace.marketing.carrinhos] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: AbandonedCartsPage,
 });

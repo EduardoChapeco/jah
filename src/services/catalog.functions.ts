@@ -14,6 +14,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { getAnonServerClient, getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
+import { logSystemError } from "@/lib/logger";
 import type {
  ProductListResult,
  ProductCardDTO,
@@ -319,14 +320,18 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
  reason: "Nossa vitrine está passando por uma rápida atualização técnica.",
  };
  }
- console.error("[catalog.functions] unexpected error:", e);
+ logSystemError({
+ route: "catalog.getStoreCatalog",
+ error: e,
+ schemaName: "public",
+ tableName: "products",
+ contractName: "getStoreCatalog",
+ });
  return {
  status: "error",
  message:
  e instanceof Error
- ? e instanceof Error
  ? e.message
- : String(e)
  : "Erro inesperado ao carregar produtos.",
  };
  }
@@ -383,7 +388,13 @@ export const listPublishedCategories = createServerFn({ method: "GET" }).handler
  reason: "As categorias do catálogo estão sendo atualizadas.",
  };
  }
- console.error("[catalog.functions] listPublishedCategories unexpected error:", e);
+ logSystemError({
+ route: "catalog.listPublishedCategories",
+ error: e,
+ schemaName: "public",
+ tableName: "categories",
+ contractName: "listPublishedCategories",
+ });
  return [];
  }
 });

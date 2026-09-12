@@ -202,8 +202,8 @@ export const listDestinations = createServerFn({ method: "GET" }).handler(async 
 });
 
 export const getDestinationById = createServerFn({ method: "GET" })
- .validator((input: { id: string }) => input)
- .handler(async ({ data: { id } }) => {
+  .validator(z.object({ id: z.string().min(1) }))
+  .handler(async ({ data: { id } }) => {
  const db = getServerClient();
  const { data, error } = await db
  .from("destinations")
@@ -393,54 +393,67 @@ export const deleteDestination = createServerFn({ method: "POST" })
 
 // ─── 2. SERVIÇOS DO BANCO DE HOTÉIS & RESORTS ───────────────────────────────
 
+export const ListHotelsBankSchema = z
+  .object({
+    search: z.string().optional(),
+    query: z.string().optional(),
+    destination_id: z.string().optional(),
+    destinationId: z.string().optional(),
+  })
+  .optional();
+
 export const listHotelsBank = createServerFn({ method: "GET" })
- .validator((input?: { search?: string; destination_id?: string }) => input || {})
- .handler(async ({ data }) => {
- const db = getServerClient();
- const identity = await getServerIdentity().catch(() => null);
- const effectiveStoreId = identity?.store_id;
+  .validator(ListHotelsBankSchema)
+  .handler(async ({ data }) => {
+    const db = getServerClient();
+    const identity = await getServerIdentity().catch(() => null);
+    const effectiveStoreId = identity?.store_id;
 
- let query = db
- .from("hotels_bank")
- .select("*, destinations(name)")
- .order("name", { ascending: true });
+    let query = db
+      .from("hotels_bank")
+      .select("*, destinations(name)")
+      .order("name", { ascending: true });
 
- if (effectiveStoreId) {
- query = query.or(`store_id.eq.${effectiveStoreId},store_id.is.null`);
- }
+    if (effectiveStoreId) {
+      query = query.or(`store_id.eq.${effectiveStoreId},store_id.is.null`);
+    }
 
- if (data?.destination_id) {
- query = query.eq("destination_id", data.destination_id);
- }
+    const destId = data?.destination_id || data?.destinationId;
+    if (destId) {
+      query = query.eq("destination_id", destId);
+    }
 
- if (data?.search?.trim()) {
- const s = `%${data.search.trim()}%`;
- query = query.or(`name.ilike.${s},city.ilike.${s},state.ilike.${s}`);
- }
+    const sTerm = data?.search?.trim() || data?.query?.trim();
+    if (sTerm) {
+      const s = `%${sTerm}%`;
+      query = query.or(`name.ilike.${s},city.ilike.${s},state.ilike.${s}`);
+    }
 
- const { data: rows, error } = await query;
- if (error) {
- throw new Error(`[travel-catalog:listHotels] Falha ao consultar hotels_bank: ${error.message} (code: ${error.code})`);
- }
+    const { data: rows, error } = await query;
+    if (error) {
+      throw new Error(`[travel-catalog:listHotels] Falha ao consultar hotels_bank: ${error.message} (code: ${error.code})`);
+    }
 
- return (rows || []).map((row: any) => ({
- ...row,
- destination_name: row.destinations?.name || null,
- regime_options: row.regime_options || ["All Inclusive"],
- bio_bullets: row.bio_bullets || [],
- highlights: Array.isArray(row.highlights) ? row.highlights : [],
- badges: row.badges || [],
- photos: row.photos || [],
- room_categories: Array.isArray(row.room_categories) ? row.room_categories : [],
- policies: row.policies && typeof row.policies === "object" ? row.policies : {},
- structure: row.structure && typeof row.structure === "object" ? row.structure : {},
- tags: row.tags || [],
- })) as HotelBankDTO[];
- });
+    return (rows || []).map((row: any) => ({
+      ...row,
+      destination_name: row.destinations?.name || null,
+      regime_options: row.regime_options || ["All Inclusive"],
+      bio_bullets: row.bio_bullets || [],
+      highlights: Array.isArray(row.highlights) ? row.highlights : [],
+      badges: row.badges || [],
+      photos: row.photos || [],
+      room_categories: Array.isArray(row.room_categories) ? row.room_categories : [],
+      policies: row.policies && typeof row.policies === "object" ? row.policies : {},
+      structure: row.structure && typeof row.structure === "object" ? row.structure : {},
+      tags: row.tags || [],
+    })) as HotelBankDTO[];
+  });
+
+export const searchHotelsBank = listHotelsBank;
 
 export const getHotelById = createServerFn({ method: "GET" })
- .validator((input: { id: string }) => input)
- .handler(async ({ data: { id } }) => {
+  .validator(z.object({ id: z.string().min(1) }))
+  .handler(async ({ data: { id } }) => {
  const db = getServerClient();
  const { data, error } = await db
  .from("hotels_bank")

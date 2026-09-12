@@ -57,7 +57,7 @@ export const Route = createFileRoute("/_store/mapa")({
  return { mapData: data };
    } catch (err) {
      console.error("[loader:_store.mapa] Unhandled error:", err);
-     return null;
+     return { mapData: null };
    }
  },
  component: FullscreenMapaPage,
@@ -73,7 +73,7 @@ const VIBE_FILTERS = [
 ];
 
 function FullscreenMapaPage() {
- const { mapData: initialMapData } = Route.useLoaderData();
+ const { mapData: initialMapData } = ((Route.useLoaderData?.() as any) || {});
  const { location } = useMasterLocation();
  const [activeVibe, setActiveVibe] = useState("all");
  const [searchQuery, setSearchQuery] = useState("");

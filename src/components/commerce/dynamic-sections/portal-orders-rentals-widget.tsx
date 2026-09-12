@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Link } from "@tanstack/react-router";
 import { Package, RotateCcw, Calendar, CheckCircle2, Truck, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -109,13 +110,15 @@ export function PortalOrdersRentalsWidget({ content, design_tokens }: PortalOrde
 
  <div className="flex items-center gap-2 w-full md:w-auto">
  <Button
+ asChild
  size="sm"
  variant="outline"
  className="min-h-[44px] flex-1 md:flex-none gap-2 text-xs"
- onClick={() => toast.info("Solicitação de troca/devolução aberta para o pedido " + item.order_number)}
  >
+ <Link to="/conta/trocas">
  <RotateCcw className="w-3.5 h-3.5" />
  Trocar / Devolver
+ </Link>
  </Button>
  </div>
  </div>

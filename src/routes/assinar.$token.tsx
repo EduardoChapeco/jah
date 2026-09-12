@@ -42,7 +42,7 @@ export const Route = createFileRoute("/assinar/$token")({
 
 function SignContractPage() {
  const navigate = useNavigate();
- const { envelope, error } = Route.useLoaderData();
+ const { envelope, error } = ((Route.useLoaderData?.() as any) || {});
  const [consent, setConsent] = useState(false);
  const [signatureImage, setSignatureImage] = useState("");
  const [isSignedLocal, setIsSignedLocal] = useState(envelope?.status === "signed");

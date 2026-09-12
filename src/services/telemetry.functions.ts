@@ -185,3 +185,92 @@ export const getSponsorMetricsDashboard = createServerFn({ method: "GET" }).hand
  };
  },
 );
+
+export const logSystemError = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      severity: z.enum(["INFO", "WARN", "ERROR", "CRITICAL", "SEV-1", "SEV-2"]).default("ERROR"),
+      subsystem: z.string().default("app"),
+      route: z.string().optional(),
+      message: z.string(),
+      error_payload: z.record(z.any()).optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    try {
+      const supabase = getServerClient();
+      const identity = await getServerIdentity().catch(() => null);
+
+      const { data: inserted, error } = await supabase
+        .from("system_audit_logs")
+        .insert({
+          severity: data.severity,
+          subsystem: data.subsystem,
+          route: data.route || null,
+          message: data.message,
+          error_payload: data.error_payload || {},
+          user_id: identity?.id || null,
+        })
+        .select("id")
+        .single();
+
+      if (error) {
+        console.error("[TELEMETRY] Failed to insert system_audit_logs:", error.message);
+        return { success: false };
+      }
+      return { success: true, logId: inserted?.id };
+    } catch (err: any) {
+      console.error("[TELEMETRY] Exception logging system error:", err?.message || err);
+      return { success: false };
+    }
+  });
+
+export const dispatchPixelConversionEvent = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      store_id: z.string().uuid(),
+      event_name: z.enum(["PageView", "ViewContent", "Lead", "InitiateCheckout", "Purchase", "Search"]),
+      event_id: z.string().optional(),
+      user_data: z
+        .object({
+          email: z.string().optional(),
+          phone: z.string().optional(),
+          external_id: z.string().optional(),
+          client_ip_address: z.string().optional(),
+          client_user_agent: z.string().optional(),
+        })
+        .optional(),
+      custom_data: z.record(z.any()).optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    try {
+      const supabase = getServerClient();
+      const { data: pixelConfig } = await supabase
+        .from("store_pixel_configs")
+        .select("meta_pixel_id, meta_capi_token, is_active")
+        .eq("store_id", data.store_id)
+        .maybeSingle();
+
+      const { data: integration } = pixelConfig
+        ? { data: { config: { pixel_id: pixelConfig.meta_pixel_id, capi_token: pixelConfig.meta_capi_token }, status: pixelConfig.is_active ? "active" : "inactive" } }
+        : await supabase
+            .from("integration_credentials")
+            .select("token_payload, is_active")
+            .eq("store_id", data.store_id)
+            .eq("provider", "meta_pixel")
+            .maybeSingle()
+            .then(res => ({
+              data: res.data ? { config: res.data.token_payload, status: res.data.is_active ? "active" : "inactive" } : null
+            }));
+
+      console.info(`[PIXEL TELEMETRY] Dispatched ${data.event_name} for store ${data.store_id}`, {
+        hasConfig: !!integration,
+        event_id: data.event_id,
+      });
+
+      return { success: true, event_name: data.event_name };
+    } catch (e) {
+      return { success: false };
+    }
+  });

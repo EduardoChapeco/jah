@@ -133,6 +133,7 @@ export const convertProposalToTrip = createServerFn({ method: "POST" })
  contractId?: string;
  voucherId?: string;
  voucherToken?: string;
+ departureId?: string;
  }> => {
  const supabase = getServerClient();
  const identity = await getServerIdentity().catch(() => null);
@@ -369,14 +370,85 @@ export const convertProposalToTrip = createServerFn({ method: "POST" })
  }
  }
 
- return {
- success: true,
- tripId,
- tripNumber,
- contractId: contractRow?.id,
- voucherId: voucherRow?.id,
- voucherToken,
- };
+ // 5. Inserir no Kanban Operacional de Embarques (travel_departures_kanban) com checklist padrão
+  let departureId: string | undefined;
+  try {
+    const departureDate = meta.travel_start_date || (newTrip.travel_start_date) || new Date().toISOString();
+    const returnDate = meta.travel_end_date || (newTrip.travel_end_date) || null;
+    const destCity = meta.destination_city || "Destino";
+    const isInternational = Boolean(
+      (meta.destination_country && meta.destination_country.toLowerCase() !== "brasil" && meta.destination_country.toLowerCase() !== "brazil") ||
+      (/(canc[uú]n|orlando|disney|miami|paris|roma|lisboa|europa|italia|itália|chile|argentina|bariloche|punta cana)/i.test(destCity))
+    );
+
+    const { data: depCard } = await supabase
+      .from("travel_departures_kanban")
+      .insert({
+        store_id: effectiveStoreId,
+        trip_id: tripId,
+        client_name: clientName || "Passageiro Principal",
+        client_phone: clientPhone || null,
+        destination: destCity,
+        departure_date: departureDate,
+        return_date: returnDate,
+        stage: "booked",
+        passengers_count: (meta.adults_count || 1) + (meta.children_count || 0),
+        notes: `Originado da proposta ${quote.quote_number || data.proposalId} (Viagem ${tripNumber})`,
+        airline_code: meta.flights?.[0]?.airline_code || null,
+        flight_number: meta.flights?.[0]?.flight_number || null,
+        airline_locator: meta.flights?.[0]?.locator_code || meta.flights?.[0]?.flight_number || null,
+        hotel_name: meta.hotels?.[0]?.hotel_name || null,
+        destination_type: isInternational ? "international" : "domestic",
+      })
+      .select("id")
+      .maybeSingle();
+
+    if (depCard?.id) {
+      departureId = depCard.id;
+      const defaultItems = [
+        { label: "Documentos conferidos (RG/Passaporte)", category: "documentation", due_days_before: 30, is_required: true },
+        { label: "Contrato assinado pelo cliente", category: "documentation", due_days_before: 20, is_required: true },
+        { label: "Voucher de hotel emitido", category: "hotel", due_days_before: 7, is_required: true },
+        { label: "Check-in aéreo realizado", category: "airline", due_days_before: 1, is_required: true },
+        { label: "WhatsApp de boas-vindas enviado", category: "communication", due_days_before: 2, is_required: true },
+        { label: "Seguro viagem contratado", category: "insurance", due_days_before: 14, is_required: false },
+      ];
+      if (isInternational) {
+        defaultItems.push(
+          { label: "Passaporte com validade mínima de 6 meses", category: "documentation", due_days_before: 90, is_required: true },
+          { label: "Visto consular aprovado", category: "documentation", due_days_before: 60, is_required: true },
+          { label: "Seguro internacional com cobertura médica", category: "insurance", due_days_before: 30, is_required: true }
+        );
+      }
+      const checklistRows = defaultItems.map((item, idx) => ({
+        store_id: effectiveStoreId,
+        departure_id: depCard.id,
+        category: item.category,
+        label: item.label,
+        due_days_before: item.due_days_before,
+        is_required: item.is_required,
+        sort_order: idx,
+        is_completed: false,
+      }));
+      try {
+        await supabase.from("boarding_checklist_items").insert(checklistRows);
+      } catch (checkErr) {
+        console.warn("[travel-lifecycle] Erro ao inserir checklist:", checkErr);
+      }
+    }
+  } catch (depErr) {
+    console.warn("[travel-lifecycle] Erro ao injetar cartão no Kanban de Embarques:", depErr);
+  }
+
+  return {
+    success: true,
+    tripId,
+    tripNumber,
+    contractId: contractRow?.id,
+    voucherId: voucherRow?.id,
+    voucherToken,
+    departureId,
+  };
  });
 
 // ─── 2. Buscar Agregado Completo da Viagem ───────────────────────────────────
@@ -1392,8 +1464,9 @@ export const applyParsedVoucherToTrip = createServerFn({ method: "POST" })
       updated_at: new Date().toISOString(),
     };
 
+    const effectiveToken = existingVoucher?.public_token || voucherToken;
+
     if (existingVoucher) {
-      finalToken = existingVoucher.public_token;
       await supabase
         .from("tourism_vouchers")
         .update(voucherPayload)
@@ -1402,7 +1475,7 @@ export const applyParsedVoucherToTrip = createServerFn({ method: "POST" })
       await supabase.from("tourism_vouchers").insert({
         trip_id: targetTripId,
         store_id: effectiveStoreId,
-        public_token: voucherToken,
+        public_token: effectiveToken,
         voucher_code: voucherCode,
         voucher_type: "general",
         template: "a4-boarding",
@@ -1410,13 +1483,13 @@ export const applyParsedVoucherToTrip = createServerFn({ method: "POST" })
       });
     }
 
-    const voucherUrl = `/voucher/${finalToken}`;
+    const voucherUrl = `/voucher/${effectiveToken}`;
 
     return {
       success: true,
-      tripId: targetTripId,
+      tripId: targetTripId || "",
       tripNumber,
-      voucherToken: finalToken,
+      voucherToken: effectiveToken,
       voucherUrl,
     };
   });
@@ -1442,11 +1515,9 @@ export const listCustomerAgencyTrips = createServerFn({ method: "GET" }).handler
       `)
       .order("created_at", { ascending: false });
 
-    // Se o cliente estiver logado, filtra pelo seu id ou e-mail
-    if (identity?.customer_id && identity?.email) {
-      query = query.or(`customer_id.eq.${identity.customer_id},client_email.eq.${identity.email}`);
-    } else if (identity?.email) {
-      query = query.eq("client_email", identity.email);
+    // Se o cliente estiver logado, filtra pelo seu id
+    if (identity?.id) {
+      query = query.or(`customer_id.eq.${identity.id},client_id.eq.${identity.id}`);
     } else {
       // Caso não haja filtro restrito de sessão do cliente, retorna as viagens recentes da loja ativa
       if (identity?.store_id) {

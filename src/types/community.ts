@@ -91,6 +91,8 @@ export const classifiedCategorySchema = z.enum([
  "vehicle",
  "event",
  "donation",
+ "travel",
+ "equipment",
 ]);
 
 export type ClassifiedCategory = z.infer<typeof classifiedCategorySchema>;
@@ -108,11 +110,14 @@ export const CLASSIFIED_CATEGORY_LABELS: Record<ClassifiedCategory, string> = {
  vehicle: "Veículo",
  event: "Evento",
  donation: "Doação",
+ travel: "Viagem & Roteiro",
+ equipment: "Aluguel de Equipamentos",
 };
 
 export const classifiedSchema = z.object({
  id: z.string().uuid(),
  author_profile_id: z.string().uuid(),
+ store_id: z.string().uuid().nullable().optional(),
  category: classifiedCategorySchema,
  title: z.string().min(1, "Título é obrigatório"),
  content: z.string().min(1, "Conteúdo é obrigatório"),
@@ -210,6 +215,15 @@ export const CLASSIFIED_ATTRIBUTE_BLUEPRINTS: Record<
  { key: "venue", label: "Local", type: "text" },
  ],
  donation: [{ key: "pickup_location", label: "Local de Retirada", type: "text" }],
+ travel: [
+ { key: "destination", label: "Destino / Cidade", type: "text" },
+ { key: "departure_date", label: "Data de Partida", type: "text" },
+ { key: "duration_days", label: "Duração (dias)", type: "number" },
+ ],
+ equipment: [
+ { key: "equipment_type", label: "Tipo de Equipamento", type: "text" },
+ { key: "daily_rate", label: "Diária Estimada", type: "text" },
+ ],
 };
 
 // ==========================================

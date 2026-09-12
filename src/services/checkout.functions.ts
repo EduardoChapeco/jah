@@ -187,6 +187,20 @@ export const processCheckout = createServerFn({ method: "POST" })
  return { status: "error" as const, message: "Checkout falhou." };
  }
 
+ // Persist channel_origin, notes, and custom onboarding fields on the created order
+ if (result.orderId) {
+ try {
+ const updatePayload: Record<string, any> = {
+ channel_origin: "storefront",
+ };
+ if (params.notes) updatePayload.notes = params.notes;
+ if (params.customFields) updatePayload.custom_fields = params.customFields;
+ await db.from("orders").update(updatePayload).eq("id", result.orderId);
+ } catch (orderUpdateErr) {
+ console.warn("[checkout.functions] Falha não-bloqueante ao atualizar channel_origin/notes:", orderUpdateErr);
+ }
+ }
+
  // ── MCTU: Gerar Certificado de Transação (fire-and-forget, não bloqueia resposta) ──
  // O certificado é gerado SOMENTE após sucesso atômico confirmado.
  // Vinculado ao orderId real para rastreabilidade forense completa.

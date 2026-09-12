@@ -64,7 +64,7 @@ export const Route = createFileRoute("/admin-master/usuarios")({
 });
 
 function AdminUsuariosPage() {
- const { users: initialUsers } = Route.useLoaderData();
+ const { users: initialUsers } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
 
  const [search, setSearch] = useState("");
@@ -164,7 +164,7 @@ function AdminUsuariosPage() {
  <div>
  <h1 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
  <Users className="size-6 text-primary" />
- Gestão Global de Usuários & Sanções
+ Usuários
  </h1>
  <p className="text-sm text-muted-foreground">
  Controle de acessos, emissão de dossiês probatórios judiciais e punições graduais.

@@ -50,14 +50,14 @@ export const Route = createFileRoute("/_store/conta/viagens")({
  return { trips, agencyTrips };
    } catch (err) {
      console.error("[loader:_store.conta.viagens] Unhandled error:", err);
-     return null;
+     return { trips: null, agencyTrips: null };
    }
  },
  component: CustomerTripsPage,
 });
 
 function CustomerTripsPage() {
- const { trips, agencyTrips = [] } = Route.useLoaderData();
+ const { trips, agencyTrips = [] } = ((Route.useLoaderData?.() as any) || {});
  const [selectedBooking, setSelectedBooking] = useState<TourismBookingDTO | null>(null);
  const [isVoucherOpen, setIsVoucherOpen] = useState(false);
 
@@ -84,34 +84,25 @@ function CustomerTripsPage() {
  trips.filter((t) => t.status === "confirmed").length +
  agencyTrips.filter((t: any) => t.status === "confirmed").length;
 
- return (
- <div className="w-full max-w-4xl mx-auto space-y-6 pb-6 px-4 sm:px-0">
- {/* ── Breadcrumb & Header ── */}
- <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4">
- <div>
- <Link
- to="/conta"
- className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors mb-2"
- >
- <ArrowLeft size={14} weight="bold" />
- <span>Voltar para Minha Conta</span>
- </Link>
- <h1 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2.5">
- <Compass size={28} weight="bold" className="text-primary" />
- <span>Minhas Viagens & Vouchers</span>
- </h1>
- <p className="text-xs text-muted-foreground mt-1">
- Acompanhe suas passagens aéreas, reservas de hotéis, transfers e pacotes confirmados.
- </p>
- </div>
+  return (
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Viagens
+          </h1>
+          {totalBookingsCount > 0 && (
+            <Badge variant="secondary" className="text-xs font-mono font-bold px-2 py-0.5 rounded-full">
+              {totalBookingsCount}
+            </Badge>
+          )}
+        </div>
 
- <Button asChild className="rounded-xl font-bold text-xs gap-2 bg-foreground text-background ">
- <Link to="/turismo">
- <Compass size={16} weight="bold" />
- <span>Explorar Mais Roteiros</span>
- </Link>
- </Button>
- </div>
+        <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-8 px-3.5 cursor-pointer">
+          <Link to="/turismo">Explorar Roteiros</Link>
+        </Button>
+      </div>
 
  {/* ── Summary KPI Cards ── */}
  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

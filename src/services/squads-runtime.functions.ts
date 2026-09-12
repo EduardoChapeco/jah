@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createServerFn } from "@tanstack/react-start";
+import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
 import {
   AgentRegistryDTO,
   AgentRegistrySchema,
@@ -518,27 +519,53 @@ export async function approveSquadRun(
 
 // ── ENDPOINTS BFF COM createServerFn (Zero-Bundle no Client) ─────────────────
 export const listStoreSquadsFn = createServerFn({ method: "GET" })
-  .validator((d: { storeId: string }) => d)
+  .validator(z.object({ storeId: z.string().uuid() }))
   .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error("Acesso não autorizado para esta organização.");
+    }
     return listStoreSquads(data.storeId);
   });
 
 export const triggerSquadRunFn = createServerFn({ method: "POST" })
-  .validator((d: { storeId: string; squadId: string; options?: any }) => d)
-  .handler(async ({ data }) => {
+  .validator(
+    z.object({
+      storeId: z.string().uuid(),
+      squadId: z.string().uuid(),
+      options: z.record(z.any()).optional(),
+    })
+  )
+  .handler(async ({ data }): Promise<any> => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error("Acesso não autorizado para esta organização.");
+    }
     return triggerSquadRun(data.storeId, data.squadId, data.options);
   });
 
 export const approveSquadRunFn = createServerFn({ method: "POST" })
-  .validator((d: { storeId: string; runId: string }) => d)
-  .handler(async ({ data }) => {
+  .validator(
+    z.object({
+      storeId: z.string().uuid(),
+      runId: z.string().uuid(),
+    })
+  )
+  .handler(async ({ data }): Promise<any> => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error("Acesso não autorizado para esta organização.");
+    }
     return approveSquadRun(data.storeId, data.runId);
   });
 
 export const createCustomSquadFromArchitectFn = createServerFn({ method: "POST" })
   .validator(
     z.object({
-      storeId: z.string(),
+      storeId: z.string().uuid(),
       squadName: z.string().min(2),
       description: z.string(),
       pipeline: z.array(
@@ -551,6 +578,11 @@ export const createCustomSquadFromArchitectFn = createServerFn({ method: "POST" 
     }),
   )
   .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error("Acesso não autorizado para esta organização.");
+    }
     const sql = await getDb();
     try {
       const slug = data.squadName.toLowerCase().replace(/[^a-z0-9]+/g, "-");

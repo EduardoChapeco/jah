@@ -311,3 +311,194 @@ export const listSecurityEvents = createServerFn({ method: "GET" })
  if (error) throw new Error("Erro ao listar eventos de segurança: " + error.message);
  return rows || [];
  });
+
+// ============================================================================
+// 10. recordSecurityAttackIncident — Motor Server-Side de Registro de Ataques
+// ============================================================================
+
+const RecordAttackSchema = z.object({
+  attackType: z.string().min(2),
+  severity: z.enum(["low", "medium", "high", "critical", "emergency"]),
+  targetRoute: z.string().optional().nullable(),
+  payloadSnapshot: z.record(z.any()).optional().default({}),
+  headersSnapshot: z.record(z.any()).optional().default({}),
+  deviceFingerprint: z.string().max(128).optional().nullable(),
+  blocked: z.boolean().optional().default(false),
+});
+
+export const recordSecurityAttackIncident = createServerFn({ method: "POST" })
+  .validator(RecordAttackSchema)
+  .handler(async ({ data }) => {
+    const req = getRequest();
+    const db = getServerClient();
+    const ip = extractClientIp(req);
+    const ua = req?.headers.get("user-agent") || null;
+
+    let userId: string | null = null;
+    try {
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const identity = await getServerIdentity().catch(() => null);
+      userId = identity?.id || null;
+    } catch {
+      userId = null;
+    }
+
+    const { data: incidentId, error } = await db.rpc("log_security_attack_incident", {
+      p_attack_type: data.attackType,
+      p_severity: data.severity,
+      p_target_route: data.targetRoute || (req?.url ? new URL(req.url).pathname : null),
+      p_attacker_ip: ip,
+      p_user_agent: ua,
+      p_user_id: userId,
+      p_device_fingerprint: data.deviceFingerprint || null,
+      p_payload_snapshot: data.payloadSnapshot,
+      p_headers_snapshot: {
+        ...data.headersSnapshot,
+        referer: req?.headers.get("referer") || null,
+        origin: req?.headers.get("origin") || null,
+        sec_ch_ua: req?.headers.get("sec-ch-ua") || null,
+      },
+      p_blocked: data.blocked,
+    });
+
+    if (error) {
+      console.error("[security] Falha ao registrar incidente de ataque:", error.message);
+      return { success: false, incidentId: null };
+    }
+
+    return { success: true, incidentId: incidentId as string };
+  });
+
+// ============================================================================
+// 11. listSecurityAttackIncidents — Admin Master: Lista de Tentativas de Invasão
+// ============================================================================
+
+export const listSecurityAttackIncidents = createServerFn({ method: "GET" })
+  .validator(
+    z.object({
+      severity: z.enum(["all", "low", "medium", "high", "critical", "emergency"]).optional().default("all"),
+      status: z.enum(["all", "pending", "investigating", "mitigated", "blocked_ip", "false_positive"]).optional().default("all"),
+      search: z.string().optional().default(""),
+      limit: z.number().int().min(1).max(100).optional().default(50),
+      offset: z.number().int().min(0).optional().default(0),
+    }).optional(),
+  )
+  .handler(async ({ data }) => {
+    const db = getServerClient();
+
+    const limit = data?.limit || 50;
+    const offset = data?.offset || 0;
+
+    let query = db
+      .from("security_attack_incidents")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (data?.severity && data.severity !== "all") {
+      query = query.eq("severity", data.severity);
+    }
+    if (data?.status && data.status !== "all") {
+      query = query.eq("resolution_status", data.status);
+    }
+    if (data?.search && data.search.trim()) {
+      const q = `%${data.search.trim()}%`;
+      query = query.or(`attacker_ip.ilike.${q},attack_type.ilike.${q},target_route.ilike.${q}`);
+    }
+
+    const { data: rows, count, error } = await query;
+    if (error) throw new Error("Erro ao listar incidentes de ataque: " + error.message);
+
+    // Consulta de estatísticas rápidas
+    const { data: countsData } = await db
+      .from("security_attack_incidents")
+      .select("severity, blocked");
+
+    const stats = {
+      total: countsData?.length || 0,
+      critical: countsData?.filter(r => r.severity === "critical" || r.severity === "emergency").length || 0,
+      high: countsData?.filter(r => r.severity === "high").length || 0,
+      medium: countsData?.filter(r => r.severity === "medium").length || 0,
+      low: countsData?.filter(r => r.severity === "low").length || 0,
+      blocked: countsData?.filter(r => r.blocked).length || 0,
+    };
+
+    return {
+      incidents: rows || [],
+      totalCount: count || 0,
+      stats,
+    };
+  });
+
+// ============================================================================
+// 12. blockAttackerIp — Admin Master: Bloqueio manual de IP atacante
+// ============================================================================
+
+export const blockAttackerIp = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      ipAddress: z.string().min(3),
+      reason: z.string().min(3),
+      severity: z.enum(["low", "medium", "high", "critical", "emergency"]).optional().default("critical"),
+    })
+  )
+  .handler(async ({ data }) => {
+    const { requirePlatformAdmin } = await import("@/lib/server-access");
+    await requirePlatformAdmin();
+
+    const db = getServerClient();
+    const { error } = await db.from("blocked_attacker_ips").upsert({
+      ip_address: data.ipAddress.trim(),
+      reason: data.reason,
+      severity: data.severity,
+      created_at: new Date().toISOString(),
+    }, { onConflict: "ip_address" });
+
+    if (error) throw new Error("Erro ao bloquear IP: " + error.message);
+    return { success: true };
+  });
+
+// ============================================================================
+// 13. unblockAttackerIp — Admin Master: Desbloqueio de IP
+// ============================================================================
+
+export const unblockAttackerIp = createServerFn({ method: "POST" })
+  .validator(z.object({ ipAddress: z.string() }))
+  .handler(async ({ data }) => {
+    const { requirePlatformAdmin } = await import("@/lib/server-access");
+    await requirePlatformAdmin();
+
+    const db = getServerClient();
+    const { error } = await db.from("blocked_attacker_ips").delete().eq("ip_address", data.ipAddress.trim());
+    if (error) throw new Error("Erro ao desbloquear IP: " + error.message);
+    return { success: true };
+  });
+
+// ============================================================================
+// 14. resolveSecurityAttackIncident — Admin Master: Atualiza status do incidente
+// ============================================================================
+
+export const resolveSecurityAttackIncident = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      incidentId: z.string().uuid(),
+      status: z.enum(["pending", "investigating", "mitigated", "blocked_ip", "false_positive"]),
+      notes: z.string().optional().default(""),
+    })
+  )
+  .handler(async ({ data }) => {
+    const { requirePlatformAdmin } = await import("@/lib/server-access");
+    await requirePlatformAdmin();
+
+    const db = getServerClient();
+    const { error } = await db
+      .from("security_attack_incidents")
+      .update({
+        resolution_status: data.status,
+        resolution_notes: data.notes,
+      })
+      .eq("id", data.incidentId);
+
+    if (error) throw new Error("Erro ao atualizar incidente: " + error.message);
+    return { success: true };
+  });

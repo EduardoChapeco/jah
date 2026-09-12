@@ -332,12 +332,13 @@ export const processPosMultiPayment = createServerFn({ method: "POST" })
  }
  }
 
- // 4. Atualizar Pedido para 'paid'
+ // 4. Atualizar Pedido para 'paid' e atribuir canal de origem
  await supabase
  .from("orders")
  .update({
  payment_status: "paid",
  status: "processing",
+ channel_origin: data.tableId ? "table" : "pdv",
  updated_at: new Date().toISOString(),
  })
  .eq("id", data.orderId);

@@ -39,14 +39,14 @@ export const Route = createFileRoute("/workspace/turismo/propostas/$id")({
  return { proposal };
    } catch (err) {
      console.error("[loader:workspace.turismo.propostas.$id] Unhandled loader error:", err);
-     return null;
+     return { proposal: null };
    }
  },
  component: WorkspaceProposalStudioPage,
 });
 
 function WorkspaceProposalStudioPage() {
- const { proposal: initialProposal } = Route.useLoaderData();
+ const { proposal: initialProposal } = ((Route.useLoaderData?.() as any) || {});
  const [proposal, setProposal] = useState<TravelProposalDTO | null>(initialProposal);
  const [isExportingPdf, setIsExportingPdf] = useState(false);
  const [isExportingImage, setIsExportingImage] = useState(false);

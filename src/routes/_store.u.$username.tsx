@@ -9,41 +9,45 @@ export const Route = createFileRoute("/_store/u/$username")({
  ? (search.modo as "profissional" | "comercial")
  : "social",
  }),
- head: ({ loaderData, search }: { loaderData?: { data: any }; search?: MembroSearchParams }) => {
- const modo = search?.modo;
- const fullName = loaderData?.data?.profile?.full_name || "Membro";
- const username = loaderData?.data?.profile?.username ? `@${loaderData.data.profile.username}` : "";
- let title = `${fullName} (${username}) | Wider`;
- if (modo === "profissional") {
- title = `${fullName} — Perfil Profissional | Wider`;
- } else if (modo === "comercial") {
- title = `${fullName} — Catálogo & Desapegos | Wider`;
- }
- return {
- meta: [
- { title },
- {
- name: "description",
- content: loaderData?.data?.profile?.bio || "Perfil no ecossistema comunitário Wider.",
- },
- ],
- };
- },
- loader: async ({ params }): Promise<{ data: any }> => {
-  try {
-  const usernameParam = params.username;
-  const data = await getPublicMemberProfile({ data: { profileId: usernameParam } }).catch(() => null);
-  return { data };
-  } catch (err) {
-    console.error("[loader:_store.u.$username] Unhandled error:", err);
-    return { data: null };
-  }
- },
- component: MemberVanityPage,
+  head: ({ loaderData, search }: { loaderData?: { data: any }; search?: MembroSearchParams }) => {
+    const modo = search?.modo;
+    const isCreator = loaderData?.data?.isCreator;
+    const fullName = loaderData?.data?.profile?.full_name || "Membro";
+    const username = loaderData?.data?.profile?.username ? `@${loaderData.data.profile.username}` : "";
+    let title = `${fullName} (${username}) | Wider`;
+    if (isCreator && (modo === "comercial" || !modo)) {
+      title = `${fullName} — Vitrine & Parcerias | Wider`;
+    } else if (modo === "profissional") {
+      title = `${fullName} — Perfil Profissional | Wider`;
+    } else if (modo === "comercial") {
+      title = `${fullName} — Catálogo & Desapegos | Wider`;
+    }
+    return {
+      meta: [
+        { title },
+        {
+          name: "description",
+          content: loaderData?.data?.profile?.bio || "Perfil no ecossistema comunitário Wider.",
+        },
+      ],
+    };
+  },
+  loader: async ({ params }): Promise<{ data: any }> => {
+   try {
+   const usernameParam = params.username;
+   const data = await getPublicMemberProfile({ data: { profileId: usernameParam } }).catch(() => null);
+   return { data };
+   } catch (err) {
+     console.error("[loader:_store.u.$username] Unhandled error:", err);
+     return { data: null };
+   }
+  },
+  component: MemberVanityPage,
 });
 
 export default function MemberVanityPage() {
- const { data } = Route.useLoaderData();
- const search = Route.useSearch();
- return <MemberPublicProfileView data={data} activeMode={search.modo || "social"} />;
+  const { data } = ((Route.useLoaderData?.() as any) || {});
+  const search = Route.useSearch();
+  const defaultMode = data?.isCreator ? "comercial" : "social";
+  return <MemberPublicProfileView data={data} activeMode={search.modo || defaultMode} />;
 }

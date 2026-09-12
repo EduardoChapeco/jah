@@ -1,5 +1,8 @@
 import { createServerFn } from '@tanstack/react-start';
+import { z } from 'zod';
 import { getServerClient } from '@/lib/supabase';
+import { getServerIdentity, assertStoreAccess } from '@/lib/server-access';
+import { logSystemError } from '@/lib/logger';
 
 export type PostFormat = 'single' | 'carousel' | 'story_reels';
 export type VisualTemplate = 'minimal-dark' | 'bold-color' | 'editorial' | 'data-card' | 'testimonial' | 'clean-white';
@@ -291,15 +294,22 @@ export async function executeOrchestrateMarketingPost(data: {
   };
 }
 
+export const OrchestrateMarketingPostSchema = z.object({
+  storeId: z.string().uuid(),
+  companyName: z.string().min(1),
+  segment: z.string().optional(),
+  theme: z.string().min(1),
+  targetSin: z.string().optional(),
+});
+
 export const orchestrateMarketingPost = createServerFn({ method: 'POST' })
-  .validator((data: {
-    storeId: string;
-    companyName: string;
-    segment?: string;
-    theme: string;
-    targetSin?: string;
-  }) => data)
+  .validator(OrchestrateMarketingPostSchema)
   .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error("Acesso não autorizado para esta organização.");
+    }
     return executeOrchestrateMarketingPost(data);
   });
 
@@ -318,15 +328,26 @@ export async function executeListSquadGeneratedPosts(data: { storeId: string }):
       if (error) throw error;
       if (rows && rows.length > 0) return rows as SquadGeneratedPost[];
     }
+    return [];
   } catch (e: any) {
-    console.warn('[squad-content] listSquadGeneratedPosts fallback:', e.message);
+    logSystemError({
+      route: 'squad-content.executeListSquadGeneratedPosts',
+      error: e,
+      schemaName: 'public',
+      tableName: 'squad_generated_posts',
+      contractName: 'listSquadGeneratedPosts',
+    });
+    return [];
   }
-
-  return [];
 }
 
 export const listSquadGeneratedPosts = createServerFn({ method: 'GET' })
-  .validator((data: { storeId: string }) => data)
+  .validator(z.object({ storeId: z.string().uuid() }))
   .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+    if (data.storeId !== identity.storeId && !identity.isPlatformAdmin) {
+      throw new Error("Acesso não autorizado para esta organização.");
+    }
     return executeListSquadGeneratedPosts(data);
   });

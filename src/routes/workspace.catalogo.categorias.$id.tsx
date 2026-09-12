@@ -53,7 +53,7 @@ export const Route = createFileRoute("/workspace/catalogo/categorias/$id")({
 });
 
 function EditCategoryPage() {
- const { category, allCategories } = Route.useLoaderData();
+ const { category, allCategories } = ((Route.useLoaderData?.() as any) || {});
  const navigate = useNavigate();
  const [isSubmitting, setIsSubmitting] = useState(false);
 

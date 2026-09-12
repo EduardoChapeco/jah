@@ -50,7 +50,7 @@ export const Route = createFileRoute("/admin-master/vitrines")({
  return { surfaces };
    } catch (err) {
      console.error("[loader:admin-master.vitrines] Unhandled loader error:", err);
-     return null;
+     return { surfaces: null };
    }
  },
  component: AdminMasterVitrinesPage,
@@ -96,7 +96,7 @@ const LAYOUT_OPTIONS: Array<{ id: SurfaceLayoutVariant; label: string }> = [
 ];
 
 function AdminMasterVitrinesPage() {
- const { surfaces } = Route.useLoaderData();
+ const { surfaces } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch();
  const router = useRouter();
  const [selectedSurfaceSlug, setSelectedSurfaceSlug] = useState(search.surface || "home");

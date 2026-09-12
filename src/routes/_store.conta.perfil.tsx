@@ -31,20 +31,34 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { User, Camera, ExternalLink, Loader2, Image as ImageIcon, Trash2, Check, Briefcase, Link as LinkIcon, Plus, Building2, GraduationCap, Layers, Award, Store } from 'lucide-react';
+import { User, Camera, ExternalLink, Loader2, Image as ImageIcon, Trash2, Check, Briefcase, Link as LinkIcon, Plus, Building2, GraduationCap, Layers, Award, Store, ShieldCheck, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Switch } from "@/components/ui/switch";
 import { ProfessionalResumeEditor, ResumeDataDTO } from "@/components/profile/professional-resume-editor";
+import { CreatorNicheSelect } from "@/components/profile/creator-niche-select";
+import {
+  getMyCreatorProfilesList,
+  upsertCreatorProfile,
+  registerAffiliate,
+} from "@/services/affiliates.functions";
+import { getCreatorNicheLabel } from "@/lib/constants/creator-niches";
 
 export const Route = createFileRoute("/_store/conta/perfil")({
- head: () => ({ meta: [{ title: "Meu Perfil | Wider OS" }] }),
- loader: async () => {
- try {
- const res = await getProfile();
- return res || {};
- } catch {
- return {};
- }
- },
- component: ProfilePage,
+  head: () => ({ meta: [{ title: "Meu Perfil | Wider OS" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: typeof search.tab === "string" ? search.tab : undefined,
+  }),
+  loader: async () => {
+    try {
+      const [res, creatorProfiles] = await Promise.all([
+        getProfile().catch(() => null),
+        getMyCreatorProfilesList().catch(() => []),
+      ]);
+      return { profile: res || {}, creatorProfiles: creatorProfiles || [] };
+    } catch {
+      return { profile: {}, creatorProfiles: [] };
+    }
+  },
+  component: ProfilePage,
 });
 
 function maskCpf(value: string): string {
@@ -56,132 +70,162 @@ function maskCpf(value: string): string {
 }
 
 function ProfilePage() {
- const rawProfile = Route.useLoaderData() as any;
- const profile = rawProfile || {};
- const router = useRouter();
- const [isSubmitting, setIsSubmitting] = useState(false);
- const [deleteConfirm, setDeleteConfirm] = useState("");
- const [isDeleting, setIsDeleting] = useState(false);
+  const { profile: rawProfile, creatorProfiles = [] } = (Route.useLoaderData() as any) || {};
+  const profile = rawProfile || {};
+  const search = (Route.useSearch() as any) || {};
+  const defaultTab = search?.tab === "criador" ? "criador" : search?.tab === "profissional" ? "profissional" : search?.tab === "biolinks" ? "biolinks" : "dados";
+  const [activeTab, setActiveTab] = useState<string>(defaultTab);
 
- const avatarInputRef = useRef<HTMLInputElement>(null);
- const coverInputRef = useRef<HTMLInputElement>(null);
+  const primaryCreator = creatorProfiles[0] || null;
+  const [creatorHandle, setCreatorHandle] = useState(primaryCreator?.handle || (profile?.username ? `${profile.username}` : ""));
+  const [creatorStageName, setCreatorStageName] = useState(primaryCreator?.stage_name || primaryCreator?.name || profile?.fullName || "");
+  const [creatorCategory, setCreatorCategory] = useState(primaryCreator?.category || primaryCreator?.niche || "moda_estilo");
+  const [creatorBio, setCreatorBio] = useState(primaryCreator?.bio || "");
+  const [creatorAvatarUrl, setCreatorAvatarUrl] = useState(primaryCreator?.avatar_url || "");
+  const [creatorCoverUrl, setCreatorCoverUrl] = useState(primaryCreator?.cover_url || "");
+  const [creatorTiktok, setCreatorTiktok] = useState(primaryCreator?.social_links?.tiktok || "");
+  const [creatorYoutube, setCreatorYoutube] = useState(primaryCreator?.social_links?.youtube || "");
+  const [creatorWhatsapp, setCreatorWhatsapp] = useState(primaryCreator?.social_links?.whatsapp || "");
+  const [creatorPrivacyMode, setCreatorPrivacyMode] = useState<"public" | "unlisted" | "private">(primaryCreator?.privacy_mode || "public");
 
- // Estados de Recorte de Imagem (Faca Contextual Única)
- const [cropperOpen, setCropperOpen] = useState(false);
- const [cropperSrc, setCropperSrc] = useState<string | null>(null);
- const [cropperType, setCropperType] = useState<"avatar" | "cover">("avatar");
- const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const creatorAvatarInputRef = useRef<HTMLInputElement>(null);
+  const creatorCoverInputRef = useRef<HTMLInputElement>(null);
 
- const initialResume = profile?.resume_data || {};
- const [formData, setFormData] = useState({
- fullName: profile?.fullName || "",
- username: profile?.username || (profile?.email ? profile.email.split("@")[0].toLowerCase().replace(/[^a-z0-9._]/g, "") : "") || (profile?.fullName ? profile.fullName.toLowerCase().replace(/\s+/g, ".").replace(/[^a-z0-9._]/g, "") : "") || "",
- phone: profile?.phone || "",
- avatarUrl: profile?.avatarUrl || "",
- coverUrl: profile?.coverUrl || "",
- bio: profile?.bio || "",
- occupation: profile?.occupation || "",
- city: profile?.city || "",
- state: profile?.state || "SC",
- instagram: profile?.instagram || "",
- website: profile?.website || "",
- cpf: profile?.cpf ? maskCpf(profile.cpf) : "",
- birthDate: profile?.birthDate || "",
- gender: profile?.gender || "",
- newsletterOptIn: profile?.newsletterOptIn ?? false,
- featuredBannerUrl: profile?.featuredBannerUrl || "",
- featuredBannerLink: profile?.featuredBannerLink || "",
- });
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
- // Biolinks
- const [biolinks, setBiolinks] = useState<Array<{ id: string; label: string; url: string; imageUrl?: string; isHighlight?: boolean }>>(
- Array.isArray(profile?.biolinks) ? profile.biolinks : []
- );
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
- // Perfil Profissional / Currículo (Gupy / InfoJobs / LinkedIn Enterprise Style)
- const [resumeData, setResumeData] = useState<ResumeDataDTO>({
- headline: initialResume?.headline || "",
- summary: initialResume?.summary || "",
- hiringStatus: (initialResume?.hiringStatus as any) || "open_to_work",
- skills: Array.isArray(initialResume?.skills)
- ? initialResume.skills
- : typeof initialResume?.skillsString === "string"
- ? initialResume.skillsString.split(",").map((s: string) => s.trim()).filter(Boolean)
- : [],
- availability: initialResume?.availability || {},
- experiences: Array.isArray(initialResume?.experiences) ? initialResume.experiences : [],
- educations: Array.isArray(initialResume?.educations)
- ? initialResume.educations
- : Array.isArray(initialResume?.education)
- ? initialResume.education.map((e: any) => ({
- id: e.id || `edu_${Date.now()}`,
- school: e.institution || e.school || "",
- degree: e.degree || "",
- start_date: e.startDate || e.start_date || "",
- end_date: e.year || e.endDate || e.end_date || "",
- description: e.description || "",
- }))
- : [],
- certifications: Array.isArray(initialResume?.certifications) ? initialResume.certifications : [],
- projects: Array.isArray(initialResume?.projects) ? initialResume.projects : [],
- volunteering: Array.isArray(initialResume?.volunteering) ? initialResume.volunteering : [],
- causes: Array.isArray(initialResume?.causes) ? initialResume.causes : [],
- languages: Array.isArray(initialResume?.languages) ? initialResume.languages : [],
- });
+  // Estados de Recorte de Imagem (Faca Contextual Única)
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [cropperSrc, setCropperSrc] = useState<string | null>(null);
+  const [cropperType, setCropperType] = useState<"avatar" | "cover" | "creator_avatar" | "creator_cover">("avatar");
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
 
- const set = <K extends keyof typeof formData>(key: K, value: (typeof formData)[K]) =>
- setFormData((prev) => ({ ...prev, [key]: value }));
+  const initialResume = profile?.resume_data || {};
+  const [formData, setFormData] = useState({
+    fullName: profile?.fullName || "",
+    username: profile?.username || (profile?.email ? profile.email.split("@")[0].toLowerCase().replace(/[^a-z0-9._]/g, "") : "") || (profile?.fullName ? profile.fullName.toLowerCase().replace(/\s+/g, ".").replace(/[^a-z0-9._]/g, "") : "") || "",
+    phone: profile?.phone || "",
+    avatarUrl: profile?.avatarUrl || "",
+    coverUrl: profile?.coverUrl || "",
+    bio: profile?.bio || "",
+    occupation: profile?.occupation || "",
+    city: profile?.city || "",
+    state: profile?.state || "SC",
+    instagram: profile?.instagram || "",
+    website: profile?.website || "",
+    cpf: profile?.cpf ? maskCpf(profile.cpf) : "",
+    birthDate: profile?.birthDate || "",
+    gender: profile?.gender || "",
+    newsletterOptIn: profile?.newsletterOptIn ?? false,
+    featuredBannerUrl: profile?.featuredBannerUrl || "",
+    featuredBannerLink: profile?.featuredBannerLink || "",
+    isAnonymous: profile?.is_anonymous ?? profile?.isAnonymous ?? false,
+    privacyMode: (profile?.privacy_mode || profile?.privacyMode || "public") as "public" | "unlisted" | "private",
+  });
 
- const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover") => {
- const file = e.target.files?.[0];
- if (!file) return;
+  // Biolinks
+  const [biolinks, setBiolinks] = useState<Array<{ id: string; label: string; url: string; imageUrl?: string; isHighlight?: boolean }>>(
+    Array.isArray(profile?.biolinks) ? profile.biolinks : []
+  );
 
- const reader = new FileReader();
- reader.onload = () => {
- setCropperSrc(reader.result as string);
- setCropperType(type);
- setCropperOpen(true);
- };
- reader.readAsDataURL(file);
- e.target.value = "";
- };
+  // Perfil Profissional / Currículo (Gupy / InfoJobs / LinkedIn Enterprise Style)
+  const [resumeData, setResumeData] = useState<ResumeDataDTO>({
+    headline: initialResume?.headline || "",
+    summary: initialResume?.summary || "",
+    hiringStatus: (initialResume?.hiringStatus as any) || "open_to_work",
+    skills: Array.isArray(initialResume?.skills)
+      ? initialResume.skills
+      : typeof initialResume?.skillsString === "string"
+      ? initialResume.skillsString.split(",").map((s: string) => s.trim()).filter(Boolean)
+      : [],
+    availability: initialResume?.availability || {},
+    experiences: Array.isArray(initialResume?.experiences) ? initialResume.experiences : [],
+    educations: Array.isArray(initialResume?.educations)
+      ? initialResume.educations
+      : Array.isArray(initialResume?.education)
+      ? initialResume.education.map((e: any) => ({
+          id: e.id || `edu_${Date.now()}`,
+          school: e.institution || e.school || "",
+          degree: e.degree || "",
+          start_date: e.startDate || e.start_date || "",
+          end_date: e.year || e.endDate || e.end_date || "",
+          description: e.description || "",
+        }))
+      : [],
+    certifications: Array.isArray(initialResume?.certifications) ? initialResume.certifications : [],
+    projects: Array.isArray(initialResume?.projects) ? initialResume.projects : [],
+    volunteering: Array.isArray(initialResume?.volunteering) ? initialResume.volunteering : [],
+    causes: Array.isArray(initialResume?.causes) ? initialResume.causes : [],
+    languages: Array.isArray(initialResume?.languages) ? initialResume.languages : [],
+  });
 
- const handleCropComplete = async (croppedBlob: Blob) => {
- setCropperOpen(false);
- setIsUploadingMedia(true);
+  const set = <K extends keyof typeof formData>(key: K, value: (typeof formData)[K]) =>
+    setFormData((prev) => ({ ...prev, [key]: value }));
 
- try {
- const type = cropperType;
- const ext = "png";
- const file = new File([croppedBlob], `profile_${type}_${Date.now()}.${ext}`, {
- type: "image/png",
- });
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover" | "creator_avatar" | "creator_cover") => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
- const { signedUrl, publicUrl } = await getPostMediaSignedUrl({
- data: {
- fileName: file.name,
- contentType: "image/png",
- },
- });
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropperSrc(reader.result as string);
+      setCropperType(type);
+      setCropperOpen(true);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
 
- const uploadRes = await fetch(signedUrl, {
- method: "PUT",
- body: file,
- headers: { "Content-Type": "image/png" },
- });
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    setCropperOpen(false);
+    setIsUploadingMedia(true);
 
- if (!uploadRes.ok) throw new Error("Falha no upload para o Storage.");
+    try {
+      const type = cropperType;
+      const ext = "png";
+      const file = new File([croppedBlob], `profile_${type}_${Date.now()}.${ext}`, {
+        type: "image/png",
+      });
 
- if (type === "avatar") set("avatarUrl", publicUrl);
- else set("coverUrl", publicUrl);
+      const { signedUrl, publicUrl } = await getPostMediaSignedUrl({
+        data: {
+          fileName: file.name,
+          contentType: "image/png",
+        },
+      });
 
- toast.success(type === "avatar" ? "Foto de perfil atualizada!" : "Foto de capa atualizada!");
- } catch (err: unknown) {
- toast.error((err instanceof Error ? err.message : String(err)) || "Erro no upload da imagem.");
- } finally {
- setIsUploadingMedia(false);
- }
- };
+      const uploadRes = await fetch(signedUrl, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": "image/png" },
+      });
+
+      if (!uploadRes.ok) throw new Error("Falha no upload para o Storage.");
+
+      if (type === "avatar") {
+        set("avatarUrl", publicUrl);
+        toast.success("Foto de perfil atualizada!");
+      } else if (type === "cover") {
+        set("coverUrl", publicUrl);
+        toast.success("Foto de capa atualizada!");
+      } else if (type === "creator_avatar") {
+        setCreatorAvatarUrl(publicUrl);
+        toast.success("Foto/Logo da marca atualizada!");
+      } else if (type === "creator_cover") {
+        setCreatorCoverUrl(publicUrl);
+        toast.success("Capa panorâmica da marca atualizada!");
+      }
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : String(err)) || "Erro no upload da imagem.");
+    } finally {
+      setIsUploadingMedia(false);
+    }
+  };
 
  // Funções de Biolinks
  const addBiolink = (isBanner: boolean = false) => {
@@ -255,17 +299,51 @@ function ProfilePage() {
  },
  featuredBannerUrl: formData.featuredBannerUrl.trim() || undefined,
  featuredBannerLink: formData.featuredBannerLink.trim() || undefined,
+ isAnonymous: formData.isAnonymous,
+ privacyMode: formData.isAnonymous ? "unlisted" : "public",
  },
  });
- toast.success("Perfil e preferências salvos com sucesso!");
- router.invalidate();
- } catch (err) {
- const msg = err instanceof Error ? err.message : "Erro ao salvar perfil";
- toast.error(msg);
- } finally {
- setIsSubmitting(false);
- }
- };
+
+    // Sincroniza Perfil de Criador & Marca se preenchido
+    if (creatorHandle?.trim()) {
+      const cleanHandle = creatorHandle.trim().toLowerCase().replace(/^@/, "").replace(/[^a-z0-9_]/g, "");
+      if (cleanHandle) {
+        await upsertCreatorProfile({
+          data: {
+            id: primaryCreator?.id,
+            handle: cleanHandle,
+            stageName: creatorStageName.trim() || formData.fullName.trim() || cleanHandle,
+            category: creatorCategory || "moda_estilo",
+            bio: creatorBio.trim() || undefined,
+            avatarUrl: creatorAvatarUrl || undefined,
+            coverUrl: creatorCoverUrl || undefined,
+            socialLinks: {
+              instagram: formData.instagram.trim() || undefined,
+              tiktok: creatorTiktok.trim() || undefined,
+              youtube: creatorYoutube.trim() || undefined,
+              whatsapp: creatorWhatsapp.trim() || undefined,
+            },
+            privacyMode: creatorPrivacyMode,
+          },
+        }).catch((e) => console.warn("Creator profile save warning:", e));
+
+        await registerAffiliate({
+          data: {
+            niche: creatorCategory || "moda_estilo",
+          },
+        }).catch((e) => console.warn("Affiliate sync warning:", e));
+      }
+    }
+
+    toast.success("Perfil e preferências salvos com sucesso!");
+    router.invalidate();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Erro ao salvar perfil";
+    toast.error(msg);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
  const handleDeleteAccount = async () => {
  if (deleteConfirm !== "EXCLUIR") return;
@@ -284,93 +362,87 @@ function ProfilePage() {
 
  return (
  <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
- {/* ── 1. Top Header Unificado ── */}
- <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5 pt-2">
- <div className="space-y-1">
- <div className="flex items-center gap-2">
- <Link
- to="/conta"
- className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
- >
- Minha Conta
- </Link>
- <span className="text-xs text-muted-foreground">/</span>
- 
- </div>
- <h1 className="text-2xl font-bold tracking-tight text-foreground">
- Meu Perfil & Preferências
- </h1>
- <p className="text-xs text-muted-foreground">
- Gerencie suas informações pessoais, bio pública, currículo profissional e links sociais.
- </p>
- </div>
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Perfil
+          </h1>
+        </div>
 
- <div className="flex flex-wrap items-center gap-2 shrink-0">
- <Button
- asChild
- size="sm"
- variant="outline"
- className="rounded-xl text-xs font-semibold h-9 px-4 cursor-pointer"
- >
- <Link
- to="/membro/$id"
- params={{ id: formData.username || profile.username || profile.id }}
- target="_blank"
- >
- <ExternalLink className="size-3.5 mr-1.5" />
- <span>Ver Perfil Público</span>
- </Link>
- </Button>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <Button
+            asChild
+            size="sm"
+            variant="outline"
+            className="rounded-xl text-xs font-semibold h-8 px-3.5 cursor-pointer"
+          >
+            <Link
+              to="/membro/$id"
+              params={{ id: formData.username || profile.username || profile.id }}
+              target="_blank"
+            >
+              <ExternalLink className="size-3.5 mr-1.5" />
+              <span>Ver Perfil Público</span>
+            </Link>
+          </Button>
 
- <Button
- type="button"
- variant="outline"
- size="sm"
- className="rounded-xl text-xs font-semibold h-9 px-3 cursor-pointer"
- onClick={() => {
- if (typeof navigator !== "undefined" && navigator.clipboard) {
- const handle = formData.username || profile.username;
- const link = handle
- ? `${window.location.origin}/membro/@${handle}`
- : `${window.location.origin}/membro/${profile.id}`;
- navigator.clipboard.writeText(link);
- toast.success("Link do seu perfil copiado!");
- }
- }}
- >
- <LinkIcon className="size-3.5 mr-1.5" />
- <span>Copiar Link</span>
- </Button>
- </div>
- </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="rounded-xl text-xs font-semibold h-8 px-3 cursor-pointer"
+            onClick={() => {
+              if (typeof navigator !== "undefined" && navigator.clipboard) {
+                const handle = formData.username || profile.username;
+                const link = handle
+                  ? `${window.location.origin}/membro/@${handle}`
+                  : `${window.location.origin}/membro/${profile.id}`;
+                navigator.clipboard.writeText(link);
+                toast.success("Link do seu perfil copiado!");
+              }
+            }}
+          >
+            <LinkIcon className="size-3.5 mr-1.5" />
+            <span>Copiar Link</span>
+          </Button>
+        </div>
+      </div>
 
- <form onSubmit={handleSubmit} className="space-y-6">
- <Tabs defaultValue="dados" className="space-y-6">
- <div className="flex items-center overflow-x-auto no-scrollbar pb-1 ">
- <TabsList className="bg-transparent p-0 gap-2 h-auto flex flex-nowrap">
- <TabsTrigger
- value="dados"
- className="h-10 px-4 rounded-xl text-xs font-bold gap-1.5 data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]: text-muted-foreground hover:text-foreground cursor-pointer"
- >
- <User className="size-3.5" />
- <span>Dados & Identidade</span>
- </TabsTrigger>
- <TabsTrigger
- value="profissional"
- className="h-10 px-4 rounded-xl text-xs font-bold gap-1.5 data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]: text-muted-foreground hover:text-foreground cursor-pointer"
- >
- <Briefcase className="size-3.5" />
- <span>Perfil Profissional & Currículo</span>
- </TabsTrigger>
- <TabsTrigger
- value="biolinks"
- className="h-10 px-4 rounded-xl text-xs font-bold gap-1.5 data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]: text-muted-foreground hover:text-foreground cursor-pointer"
- >
- <LinkIcon className="size-3.5" />
- <span>Botões de Ação & Links</span>
- </TabsTrigger>
- </TabsList>
- </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <div className="flex items-center overflow-x-auto no-scrollbar pb-1">
+            <TabsList className="bg-transparent p-0 gap-2 h-auto flex flex-nowrap">
+              <TabsTrigger
+                value="dados"
+                className="h-10 px-4 rounded-xl text-xs font-bold gap-1.5 data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <User className="size-3.5" />
+                <span>Dados & Identidade</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="criador"
+                className="h-10 px-4 rounded-xl text-xs font-bold gap-1.5 data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <Sparkles className="size-3.5 text-amber-500" />
+                <span>Perfil de Criador & Marca</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="profissional"
+                className="h-10 px-4 rounded-xl text-xs font-bold gap-1.5 data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <Briefcase className="size-3.5" />
+                <span>Perfil Profissional & Currículo</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="biolinks"
+                className="h-10 px-4 rounded-xl text-xs font-bold gap-1.5 data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <LinkIcon className="size-3.5" />
+                <span>Botões de Ação & Links</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
         {/* ── ABA 1: Dados Pessoais & Fotos ── */}
         <TabsContent value="dados" className="space-y-5">
@@ -560,6 +632,56 @@ function ProfilePage() {
                   placeholder="https://..."
                   className="h-11 rounded-xl text-xs bg-background"
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Privacidade & Identidade Civil (CPF) */}
+          <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+            <div className="flex items-center justify-between pb-2.5 border-b border-border/40">
+              <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground">
+                <ShieldCheck className="size-4 text-primary shrink-0" />
+                <span>4. Privacidade & Identidade Civil (CPF)</span>
+              </div>
+              <Badge variant="outline" className="text-[10px] font-mono">
+                {formData.isAnonymous ? "Perfil Discreto" : "Perfil Público"}
+              </Badge>
+            </div>
+
+            <div className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-3">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <Label htmlFor="anonymous-switch" className="text-xs font-bold text-foreground flex items-center gap-1.5 cursor-pointer">
+                    {formData.isAnonymous ? <EyeOff className="size-3.5 text-amber-500" /> : <Eye className="size-3.5 text-primary" />}
+                    <span>Perfil Civil Discreto (Ocultar do Diretório e Busca Pública)</span>
+                  </Label>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Quando ativo, seus dados pessoais e perfil civil não aparecem em buscas abertas do diretório. Suas compras na loja, contratos assinados e saldo de tokens continuam 100% protegidos e ancorados ao seu CPF real.
+                  </p>
+                </div>
+
+                <Switch
+                  id="anonymous-switch"
+                  checked={formData.isAnonymous}
+                  onCheckedChange={(checked) => {
+                    set("isAnonymous", checked);
+                    set("privacyMode", checked ? "unlisted" : "public");
+                  }}
+                  className="shrink-0 mt-1"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-border/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  <span className="font-semibold text-foreground">Aviso Comunitário:</span> As publicações na comunidade nunca são anônimas. Para interagir e publicar sob uma marca ou nome artístico, acesse seu Perfil de Criador.
+                </p>
+
+                <Button asChild variant="outline" size="sm" className="h-9 px-3.5 rounded-xl text-xs font-semibold gap-1.5 shrink-0">
+                  <Link to="/afiliados">
+                    <Sparkles className="size-3.5 text-primary" />
+                    <span>Perfil de Marca / Criador</span>
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>
@@ -778,6 +900,282 @@ function ProfilePage() {
             </div>
           </div>
         </TabsContent>
+
+        {/* ── ABA: Perfil de Criador & Marca (Opções Avançadas) ── */}
+        <TabsContent value="criador" className="space-y-5">
+          {/* Inputs de arquivo ocultos para Marca */}
+          <input
+            type="file"
+            ref={creatorAvatarInputRef}
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFileSelected(e, "creator_avatar")}
+          />
+          <input
+            type="file"
+            ref={creatorCoverInputRef}
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFileSelected(e, "creator_cover")}
+          />
+
+          {/* Card 1: Fotos de Identidade Visual da Marca */}
+          <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground pb-2.5 border-b border-border/40">
+              <Camera className="size-4 text-primary shrink-0" />
+              <span>1. Fotos de Identidade Visual da Marca</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Foto / Logo da Marca (1:1) */}
+              <div className="space-y-2 p-3.5 rounded-xl bg-muted/30 border border-border/40">
+                <Label className="text-xs font-semibold text-foreground flex items-center justify-between">
+                  <span>Foto / Logo da Marca (1:1)</span>
+                  {creatorAvatarUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setCreatorAvatarUrl("")}
+                      className="text-[11px] text-destructive hover:underline cursor-pointer"
+                    >
+                      Remover
+                    </button>
+                  )}
+                </Label>
+                <div className="flex items-center gap-3">
+                  <div className="size-16 rounded-2xl ring-2 ring-border/60 bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                    {creatorAvatarUrl ? (
+                      <img src={creatorAvatarUrl} alt="Logo da Marca" className="size-full object-cover" />
+                    ) : (
+                      <Sparkles className="size-6 text-muted-foreground/50" />
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={isUploadingMedia}
+                      className="rounded-xl text-xs font-semibold h-9 gap-1.5 w-full cursor-pointer"
+                      onClick={() => creatorAvatarInputRef.current?.click()}
+                    >
+                      <Camera className="size-3.5" />
+                      <span>{creatorAvatarUrl ? "Alterar Logo/Foto" : "Carregar Foto/Logo"}</span>
+                    </Button>
+                    <p className="text-[10px] text-muted-foreground">
+                      Resolução quadrada (500x500px). Exibido na vitrine e cards de parcerias.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Capa Panorâmica da Marca (1090x144 px) */}
+              <div className="space-y-2 p-3.5 rounded-xl bg-muted/30 border border-border/40">
+                <Label className="text-xs font-semibold text-foreground flex items-center justify-between">
+                  <span>Capa Panorâmica da Marca</span>
+                  {creatorCoverUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setCreatorCoverUrl("")}
+                      className="text-[11px] text-destructive hover:underline cursor-pointer"
+                    >
+                      Remover
+                    </button>
+                  )}
+                </Label>
+                <div className="space-y-2">
+                  <div className="h-16 w-full rounded-xl ring-1 ring-border/40 bg-muted overflow-hidden flex items-center justify-center">
+                    {creatorCoverUrl ? (
+                      <img src={creatorCoverUrl} alt="Capa da Marca" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground">Sem capa definida (padrão panorâmico)</span>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isUploadingMedia}
+                    className="rounded-xl text-xs font-semibold h-9 gap-1.5 w-full cursor-pointer"
+                    onClick={() => creatorCoverInputRef.current?.click()}
+                  >
+                    <ImageIcon className="size-3.5" />
+                    <span>{creatorCoverUrl ? "Alterar Capa Panorâmica" : "Carregar Capa da Marca"}</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Identificação da Marca & Nicho Estruturado */}
+          <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground pb-2.5 border-b border-border/40">
+              <Sparkles className="size-4 text-primary shrink-0" />
+              <span>2. Identificação da Marca & Nicho de Atuação</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground">
+                  Handle Público da Marca (@) <span className="text-destructive">*</span>
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">@</span>
+                  <Input
+                    value={creatorHandle}
+                    onChange={(e) => setCreatorHandle(e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, ""))}
+                    placeholder="suamarca"
+                    className="h-11 rounded-xl pl-7 text-xs font-mono bg-background"
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  Identificador único da sua vitrine pública (ex: wider.app/membro/@{creatorHandle || "suamarca"}).
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground">
+                  Nome Artístico / Nome da Marca <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  value={creatorStageName}
+                  onChange={(e) => setCreatorStageName(e.target.value)}
+                  placeholder="Ex: Eduardo Ramos / Atelier Du"
+                  className="h-11 rounded-xl text-xs bg-background"
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Nome público exibido no topo da sua vitrine e nos destaques de criadores.
+                </p>
+              </div>
+            </div>
+
+            {/* Nicho / Categoria de Mercado com Select Estruturado */}
+            <div className="space-y-1.5 pt-1">
+              <Label className="text-xs font-semibold text-foreground">
+                Nicho / Categoria Principal <span className="text-destructive">*</span>
+              </Label>
+              <CreatorNicheSelect
+                value={creatorCategory}
+                onValueChange={setCreatorCategory}
+              />
+              <p className="text-[10px] text-muted-foreground">
+                Selecione o nicho oficial para conectar sua vitrine aos catálogos de marcas e lojistas parceiros.
+              </p>
+            </div>
+
+            {/* Mini Biografia da Marca */}
+            <div className="space-y-1.5 pt-1">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold text-foreground">
+                  Mini Bio / Apresentação Comercial
+                </Label>
+                <span className="text-[10px] text-muted-foreground font-mono">
+                  {creatorBio.length}/300
+                </span>
+              </div>
+              <Textarea
+                value={creatorBio}
+                onChange={(e) => setCreatorBio(e.target.value.slice(0, 300))}
+                placeholder="Conte sobre sua linha editorial, estilo, o que você recomenda e propostas de parcerias comerciais..."
+                rows={3}
+                className="rounded-xl text-xs bg-background resize-none"
+              />
+              <p className="text-[10px] text-muted-foreground">
+                Exibida logo abaixo do título na sua vitrine comercial e em propostas de colaboração.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 3: Canais Sociais & Contato Comercial */}
+          <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground pb-2.5 border-b border-border/40">
+              <LinkIcon className="size-4 text-primary shrink-0" />
+              <span>3. Canais Oficiais & Contato para Parcerias</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground">TikTok</Label>
+                <Input
+                  value={creatorTiktok}
+                  onChange={(e) => setCreatorTiktok(e.target.value)}
+                  placeholder="@seutiktok"
+                  className="h-10 rounded-xl text-xs bg-background"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground">YouTube</Label>
+                <Input
+                  value={creatorYoutube}
+                  onChange={(e) => setCreatorYoutube(e.target.value)}
+                  placeholder="@seucanal"
+                  className="h-10 rounded-xl text-xs bg-background"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground">WhatsApp Comercial</Label>
+                <Input
+                  value={creatorWhatsapp}
+                  onChange={(e) => setCreatorWhatsapp(e.target.value)}
+                  placeholder="(00) 00000-0000"
+                  className="h-10 rounded-xl text-xs bg-background"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Opções Avançadas & Governança da Vitrine */}
+          <div className="bg-card rounded-2xl p-4 sm:p-5 space-y-4 border border-border/60 shadow-2xs">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground pb-2.5 border-b border-border/40">
+              <ShieldCheck className="size-4 text-primary shrink-0" />
+              <span>4. Governança & Visibilidade da Vitrine</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground">Visibilidade Pública</Label>
+                <Select
+                  value={creatorPrivacyMode}
+                  onValueChange={(val: any) => setCreatorPrivacyMode(val)}
+                >
+                  <SelectTrigger className="h-11 rounded-xl text-xs bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl">
+                    <SelectItem value="public">Pública (Indexada em Afiliados & Diretório)</SelectItem>
+                    <SelectItem value="unlisted">Não listada (Apenas com link direto)</SelectItem>
+                    <SelectItem value="private">Privada / Rascunho (Apenas você)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground">
+                  Define se marcas parceiras podem encontrar você nas listas de criadores.
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-muted/30 border border-border/40 space-y-2 flex flex-col justify-between">
+                <div>
+                  <h4 className="text-xs font-bold text-foreground">Vitrine de Afiliados</h4>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    Conecte produtos de lojistas à sua vitrine e ganhe comissão por cada venda gerada.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 pt-1">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-xl text-xs font-semibold cursor-pointer"
+                  >
+                    <Link to="/afiliados">
+                      <span>Acessar Painel de Afiliados</span>
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
         </Tabs>
 
  {/* ── Botão Salvar Principal ── */}
@@ -810,10 +1208,26 @@ function ProfilePage() {
  if (!v) setCropperOpen(false);
  }}
  imageSrc={cropperSrc}
- aspect={cropperType === "avatar" ? 1 : 1090 / 144}
- cropShape={cropperType === "avatar" ? "round" : "rect"}
+ aspect={
+   cropperType === "avatar" || cropperType === "creator_avatar"
+     ? 1
+     : 1090 / 144
+ }
+ cropShape={
+   cropperType === "avatar" || cropperType === "creator_avatar"
+     ? "round"
+     : "rect"
+ }
  lockAspect={true}
- title={cropperType === "avatar" ? "Recortar Foto de Perfil" : "Recortar Capa Panorâmica (1090px)"}
+ title={
+   cropperType === "avatar"
+     ? "Recortar Foto de Perfil"
+     : cropperType === "creator_avatar"
+     ? "Recortar Foto/Logo da Marca (1:1)"
+     : cropperType === "creator_cover"
+     ? "Recortar Capa da Marca (1090px)"
+     : "Recortar Capa Panorâmica (1090px)"
+ }
  onCropComplete={handleCropComplete}
  />
  )}

@@ -51,6 +51,8 @@ import { getUserSession } from "@/services/auth.functions";
 import { formatMoney } from "@/lib/money";
 import { toast } from "sonner";
 import { trackAndOpenWhatsApp } from "@/lib/whatsapp";
+import { ProtectedContactButton } from "@/components/common/protected-contact-button";
+import { ProductTelemetry } from "@/components/commerce/product-telemetry";
 
 export const Route = createFileRoute("/_store/turismo/$id")({
  head: ({
@@ -83,7 +85,7 @@ export const Route = createFileRoute("/_store/turismo/$id")({
 });
 
 function TourismDetailPage() {
- const { experience, session } = Route.useLoaderData();
+ const { experience, session } = ((Route.useLoaderData?.() as any) || {});
  const navigate = useNavigate();
 
  if (!experience) {
@@ -192,6 +194,17 @@ function TourismDetailPage() {
 
  return (
  <div className="w-full max-w-6xl mx-auto space-y-8 pb-6 px-4 sm:px-0">
+ <ProductTelemetry
+   storeId={experience.store_id}
+   productId={experience.id}
+   productTitle={experience.title}
+   description={experience.description || "Experiência turística e passeios"}
+   priceCents={experience.price_cents || 0}
+   imageUrl={experience.image_url}
+   slug={experience.id}
+   category={experience.category || "Turismo"}
+ />
+
  {/* ── 1. Top Navigation & Breadcrumb ── */}
  <div className="flex items-center justify-between pt-2">
  <Link
@@ -612,26 +625,20 @@ function TourismDetailPage() {
  <span>Personalizar Viagem / Cotar Outras Datas</span>
  </Button>
 
- {/* WhatsApp do Provedor — Rastreado */}
+ {/* WhatsApp do Provedor — Rastreado e Protegido por Login */}
  {experience.contact_whatsapp && (
- <Button
- type="button"
+ <ProtectedContactButton
+ phone={experience.contact_whatsapp}
+ storeId={(experience as any).store_id || null}
+ entityType="tourism"
+ entityId={experience.id}
+ entityTitle={experience.title}
+ niche={experience.category || "turismo"}
  variant="outline"
- onClick={() =>
- trackAndOpenWhatsApp({
- phone: experience.contact_whatsapp!,
- storeId: (experience as any).store_id || null,
- entityType: "tourism",
- entityId: experience.id,
- entityTitle: experience.title,
- niche: experience.category || "turismo",
- })
- }
- className="w-full rounded-xl font-bold h-11 text-xs border-border gap-2 cursor-pointer"
- >
- <WhatsappLogo size={18} weight="bold" className="text-emerald-500" />
- <span>Conversar no WhatsApp</span>
- </Button>
+ size="lg"
+ label="Conversar no WhatsApp"
+ className="w-full rounded-xl font-bold h-11 text-xs border-border gap-2"
+ />
  )}
 
  <div className="pt-3 space-y-2 text-[11px] text-muted-foreground">

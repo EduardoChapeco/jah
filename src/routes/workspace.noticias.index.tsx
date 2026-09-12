@@ -51,14 +51,14 @@ export const Route = createFileRoute("/workspace/noticias/")({
  return { articles: articles || [], tips: tips || [], mined: mined.items || [] };
    } catch (err) {
      console.error("[loader:workspace.noticias.index] Unhandled loader error:", err);
-     return null;
+     return { articles: null, tips: null, mined: null };
    }
  },
  component: WorkspaceNoticiasIndexPage,
 });
 
 function WorkspaceNoticiasIndexPage() {
- const { articles: initialArticles, tips, mined: initialMined } = Route.useLoaderData() as any;
+ const { articles: initialArticles, tips, mined: initialMined } = ((Route.useLoaderData?.() as any) || {});
  const [articles, setArticles] = useState<NewsArticleDTO[]>(initialArticles || []);
  const [minedArticles, setMinedArticles] = useState<MinedArticleDTO[]>(initialMined || []);
  const [activeTab, setActiveTab] = useState("materias");

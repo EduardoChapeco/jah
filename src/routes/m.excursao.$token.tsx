@@ -34,7 +34,7 @@ export const Route = createFileRoute("/m/excursao/$token")({
  return { formData };
    } catch (err) {
      console.error("[loader:m.excursao.$token] Unhandled loader error:", err);
-     return null;
+     return { error: null };
    }
  },
  component: PublicPassengerRegistrationPage,

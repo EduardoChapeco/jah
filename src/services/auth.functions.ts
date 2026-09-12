@@ -789,6 +789,8 @@ const UpdateProfileSchema = z.object({
  resumeData: z.record(z.any()).optional(),
  featuredBannerUrl: z.string().optional().or(z.literal("")),
  featuredBannerLink: z.string().optional().or(z.literal("")),
+ isAnonymous: z.boolean().optional(),
+ privacyMode: z.enum(["public", "unlisted", "private"]).optional(),
 });
 
 export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
@@ -861,6 +863,8 @@ export async function _updateProfile(data: UpdateProfileInput) {
  if (data.resumeData !== undefined) profileUpdate.resume_data = data.resumeData;
  if (data.featuredBannerUrl !== undefined) profileUpdate.featured_banner_url = data.featuredBannerUrl || null;
  if (data.featuredBannerLink !== undefined) profileUpdate.featured_banner_link = data.featuredBannerLink || null;
+ if (data.isAnonymous !== undefined) profileUpdate.is_anonymous = data.isAnonymous;
+ if (data.privacyMode !== undefined) profileUpdate.privacy_mode = data.privacyMode;
 
  // Realiza UPSERT no Supabase com onConflict id
  const { error: dbError } = await supabase

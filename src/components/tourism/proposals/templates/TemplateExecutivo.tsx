@@ -38,14 +38,15 @@ export default function TemplateExecutivo({ proposal: p, agency }: TemplateProps
 
       {/* JANELA CENTRAL (Capa) */}
       <div className="w-full h-[250px] rounded-3xl overflow-hidden relative mb-12 flex items-center justify-center break-inside-avoid border border-slate-200">
-        <img
-          src={
-            p.cover_image_url ||
-            "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1200&q=80"
-          }
-          crossOrigin="anonymous"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        {p.cover_image_url ? (
+          <img
+            src={p.cover_image_url}
+            crossOrigin="anonymous"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 w-full h-full bg-slate-900" />
+        )}
         <div className="absolute inset-0 bg-slate-900/40" />
         <h1 className="relative text-white text-4xl font-semibold tracking-tight text-center px-8">
           {p.title || "Proposta de Viagem"}

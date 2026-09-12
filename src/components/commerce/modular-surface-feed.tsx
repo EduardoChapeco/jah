@@ -188,7 +188,7 @@ export function ModularSurfaceFeed({ sections, className = "", onAddToCart }: Mo
 
  <HorizontalRail hideHeader={true} title={section.title}>
  {section.items.map((offer: any) => (
- <div key={offer.id} className="min-w-[200px] sm:min-w-[230px] max-w-[240px] shrink-0">
+ <div key={offer.id} className="w-[320px] sm:w-[350px] shrink-0 snap-start">
  <OfferCard {...offer} />
  </div>
  ))}
@@ -228,7 +228,7 @@ export function ModularSurfaceFeed({ sections, className = "", onAddToCart }: Mo
 
  <HorizontalRail hideHeader={true} title={section.title}>
  {section.items.map((store: any) => (
- <div key={store.id} className="min-w-[220px] sm:min-w-[250px] max-w-[260px] shrink-0">
+ <div key={store.id} className="w-[280px] sm:w-[320px] shrink-0 snap-start">
  <StoreCard
  id={store.id}
  name={store.name}
@@ -273,35 +273,31 @@ export function ModularSurfaceFeed({ sections, className = "", onAddToCart }: Mo
  );
  }
 
- // ── 4. Seção Bento Box (Bento Grid) ──
- if (section.layout_variant === "bento_3" && section.items.length >= 3) {
- const [hero, side1, side2] = section.items;
+  // ── 4. Seção Destaques Triplos (Grade Homogênea 3-Col) ──
+  if (section.layout_variant === "bento_3" && section.items.length >= 3) {
+    const items = section.items.slice(0, 3);
 
- return (
- <section key={section.id} aria-label={section.title} className="space-y-3">
- <div className="flex items-center justify-between px-1">
- <div className="flex items-center gap-2">
- <span className="size-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
- <Lightning size={14} weight="fill" />
- </span>
- <h2 className="text-sm sm:text-base font-bold text-foreground leading-tight">
- {section.title}
- </h2>
- </div>
- </div>
+    return (
+      <section key={section.id} aria-label={section.title} className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <span className="size-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+              <Lightning size={14} weight="fill" />
+            </span>
+            <h2 className="text-sm sm:text-base font-bold text-foreground leading-tight">
+              {section.title}
+            </h2>
+          </div>
+        </div>
 
- <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
- <div className="md:col-span-2">
- <OfferCard {...hero} />
- </div>
- <div className="grid grid-cols-1 gap-3 sm:gap-4">
- <OfferCard {...side1} />
- <OfferCard {...side2} />
- </div>
- </div>
- </section>
- );
- }
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+          {items.map((prod: any) => (
+            <OfferCard key={prod.id} {...prod} />
+          ))}
+        </div>
+      </section>
+    );
+  }
 
  // ── 5. Padrão: Trilho Horizontal de Produtos (Product Rail Snap) ──
  return (
@@ -326,7 +322,7 @@ export function ModularSurfaceFeed({ sections, className = "", onAddToCart }: Mo
 
  <HorizontalRail hideHeader={true} title={section.title}>
  {section.items.map((prod: any) => (
- <div key={prod.id} className="min-w-[190px] sm:min-w-[220px] max-w-[230px] shrink-0">
+ <div key={prod.id} className="w-[320px] sm:w-[350px] shrink-0 snap-start">
  <OfferCard {...prod} />
  </div>
  ))}

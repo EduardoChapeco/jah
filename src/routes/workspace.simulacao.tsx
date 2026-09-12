@@ -70,7 +70,7 @@ export const Route = createFileRoute("/workspace/simulacao")({
     };
     } catch (err) {
       console.error("[loader:workspace.simulacao] Unhandled loader error:", err);
-      return null;
+      return { personas: null, status: null, store: null };
     }
   },
   component: SimulacaoPage,

@@ -71,7 +71,7 @@ export const Route = createFileRoute("/_store/agendar/$id")({
       return await getBookingServiceById({ data: { id: params.id } });
     } catch (err) {
       console.error("[loader:_store.agendar.$id] Unhandled loader error:", err);
-      return null;
+      return {} as any;
     }
   },
   component: ServiceDetailPage,
@@ -691,7 +691,7 @@ function ServiceDetailPage() {
 
               <div className="pt-2">
                 <Button asChild variant="outline" className="w-full h-10 rounded-xl text-xs font-bold border-border/60">
-                  <Link to="/loja/$slug" params={{ slug: store.slug || store.id }}>
+                  <Link to="/c/$storeSlug" params={{ storeSlug: store.slug || store.id }}>
                     <Storefront size={15} className="mr-1.5" />
                     Ver Perfil Completo da Loja
                   </Link>
@@ -721,7 +721,7 @@ function ServiceDetailPage() {
 
       {/* ── SHEET LATERAL DE AGENDAMENTO (Desktop e Mobile Drawer) ── */}
       <Sheet open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col justify-between bg-card">
+        <SheetContent side="right" size="wide" className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-[70vw] xl:max-w-[70vw] p-0 flex flex-col justify-between bg-card">
           <div className="p-6 overflow-y-auto space-y-6 flex-1">
             <SheetHeader className="text-left space-y-1">
               <SheetTitle className="text-lg font-bold text-foreground flex items-center gap-2">

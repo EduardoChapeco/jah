@@ -38,14 +38,14 @@ export const Route = createFileRoute("/workspace/financeiro/afiliados")({
  return { initialPerformance: performance, initialSummary: summary };
    } catch (err) {
      console.error("[loader:workspace.financeiro.afiliados] Unhandled error:", err);
-     return null;
+     return { initialPerformance: null, initialSummary: null };
    }
  },
  component: AfiliadosFinanceiroPage,
 });
 
 function AfiliadosFinanceiroPage() {
- const { initialPerformance, initialSummary } = Route.useLoaderData();
+ const { initialPerformance, initialSummary } = ((Route.useLoaderData?.() as any) || {});
  const queryClient = useQueryClient();
  const [search, setSearch] = useState("");
 

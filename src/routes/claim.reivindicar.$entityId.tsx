@@ -95,7 +95,7 @@ function ClaimReivindicarPage() {
  </div>
  <Button 
  className="w-full mt-6 h-12 rounded-2xl font-bold text-sm"
- onClick={() => navigate({ to: '/claim/reputacao/' + entityId as any })}
+ onClick={() => navigate({ to: '/claim/reputacao/$entityId', params: { entityId } })}
  >
  Ver Reputação Pública do Perfil
  </Button>

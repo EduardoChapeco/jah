@@ -102,8 +102,7 @@ export const Route = createFileRoute("/workspace/advocacia/")({
 
 function WorkspaceAdvocaciaPage() {
  const router = useRouter();
- const { demands, lawsuits, monitors, analytics, deadlines, deadlinesDigest } =
- Route.useLoaderData();
+ const { demands, lawsuits, monitors, analytics, deadlines, deadlinesDigest } = ((Route.useLoaderData?.() as any) || {});
  const [activeMainTab, setActiveMainTab] = useState<
  "prazos" | "acervo" | "monitoramentos" | "demandas"
  >("prazos");

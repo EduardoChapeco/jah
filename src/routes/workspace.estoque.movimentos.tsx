@@ -22,8 +22,8 @@ export const Route = createFileRoute("/workspace/estoque/movimentos")({
  return (await getStockMovements({ data: { limit: 100 } })) || [];
    } catch (err) {
      console.error("[loader:workspace.estoque.movimentos] Unhandled error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: MovementsPage,
 });

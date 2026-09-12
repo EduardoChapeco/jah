@@ -39,14 +39,14 @@ export const Route = createFileRoute("/workspace/configuracoes/fretes/cotacoes")
  };
    } catch (err) {
      console.error("[loader:workspace.configuracoes.fretes.cotacoes] Unhandled loader error:", err);
-     return null;
+     return { zones: null, pendingOrders: null };
    }
  },
  component: FretesCotacoesPage,
 });
 
 function FretesCotacoesPage() {
- const { zones, pendingOrders } = Route.useLoaderData();
+ const { zones, pendingOrders } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
 
  // Simulating states

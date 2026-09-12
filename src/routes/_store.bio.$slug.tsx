@@ -16,8 +16,8 @@ export const Route = createFileRoute("/_store/bio/$slug")({
  return res;
    } catch (err) {
      console.error("[loader:_store.bio.$slug] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  head: ({ loaderData }) => {
  if (!loaderData || !loaderData.title) return { meta: [{ title: "Biolink não encontrado" }] };

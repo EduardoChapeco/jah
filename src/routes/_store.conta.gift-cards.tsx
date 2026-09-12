@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -43,7 +43,7 @@ const CheckBalanceSchema = z.object({
 });
 
 function CustomerGiftCardsPage() {
- const { giftCards } = Route.useLoaderData();
+ const { giftCards } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
  const [isLoading, setIsLoading] = useState(false);
 
@@ -74,16 +74,24 @@ function CustomerGiftCardsPage() {
  };
 
  return (
- <div className="space-y-6 w-full text-foreground">
- <div className=" pb-4">
- <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2.5 text-foreground">
- <Gift className="size-6 text-primary" />
- Meus Vales-Presente
- </h1>
- <p className="mt-1 text-sm text-muted-foreground">
- Gerencie seus créditos ou resgate novos vales-presente para usar no checkout.
- </p>
- </div>
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Vales-Presente
+          </h1>
+          {giftCards.length > 0 && (
+            <Badge variant="secondary" className="text-xs font-mono font-bold px-2 py-0.5 rounded-full">
+              {giftCards.length}
+            </Badge>
+          )}
+        </div>
+
+        <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-8 px-3.5 cursor-pointer">
+          <Link to="/mercado">Explorar Lojas</Link>
+        </Button>
+      </div>
 
  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
  {/* Resgatar Vale */}

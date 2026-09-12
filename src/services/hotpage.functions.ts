@@ -10,6 +10,7 @@ export type HotpageModule =
  | "noticias"
  | "agenda"
  | "events"
+ | "eventos"
  | "diretorio"
  | "turismo"
  | "empregos"
@@ -40,6 +41,7 @@ export const HotpageModuleSchema = z.enum([
  "noticias",
  "agenda",
  "events",
+ "eventos",
  "diretorio",
  "turismo",
  "empregos",
@@ -121,29 +123,35 @@ export const listHotpages = createServerFn({ method: "GET" })
  })
  .optional(),
  )
- .handler(async ({ data }): Promise<HotpageDTO[]> => {
- const supabase = getAnonServerClient();
- const reqModule = data?.module;
- const normalizedModule =
- reqModule === "marketplace" ? "mercado" : reqModule === "events" ? "agenda" : reqModule;
+  .handler(async ({ data }): Promise<HotpageDTO[]> => {
+    const supabase = getAnonServerClient();
+    const reqModule = data?.module;
 
- let query = supabase
- .from("hotpages")
- .select("*")
- .eq("is_active", true)
- .order("sort_order", { ascending: true })
- .order("created_at", { ascending: false });
+    let query = supabase
+      .from("hotpages")
+      .select("*")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false });
 
- if (data?.template_type) {
- query = query.eq("template_type", data.template_type);
- } else if (normalizedModule === "home") {
- // Por padrão na home, não mistura category_hub
- query = query.or("template_type.is.null,template_type.neq.category_hub");
- }
+    if (data?.template_type) {
+      query = query.eq("template_type", data.template_type);
+    } else if (reqModule === "home") {
+      // Por padrão na home, não mistura category_hub
+      query = query.or("template_type.is.null,template_type.neq.category_hub");
+    }
 
- if (normalizedModule && normalizedModule !== "all") {
- query = query.eq("module", normalizedModule);
- }
+    if (reqModule && reqModule !== "all") {
+      if (reqModule === "eventos" || reqModule === "events" || reqModule === "agenda") {
+        query = query.in("module", ["eventos", "events", "agenda"]);
+      } else if (reqModule === "marketplace" || reqModule === "mercado") {
+        query = query.in("module", ["mercado", "marketplace"]);
+      } else if (reqModule === "classificados" || reqModule === "classifieds") {
+        query = query.in("module", ["classificados", "classifieds"]);
+      } else {
+        query = query.eq("module", reqModule);
+      }
+    }
 
  const { data: records, error } = await query;
  if (error || !records) {
@@ -523,109 +531,110 @@ export const saveHotpage = createServerFn({ method: "POST" })
  });
 
 export const syncDefaultHotpages = createServerFn({ method: "POST" }).handler(
- async () => {
- await requireAdmin();
- const supabase = getServerClient();
+  async () => {
+    await requireAdmin();
+    const supabase = getServerClient();
 
- // ── 1. CARDS HERÓI DE MÓDULOS PRINCIPAIS (100% LIMPOS - SEM TEXTO/BADGES POR PADRÃO) ──
- const CANONICAL_HERO_MODULES = [
- {
- slug: "home-classificados",
- title: "Classificados & Autos",
- cover_image_url: null,
- target_route: "/classificados",
- template_type: "hero_module" as const,
- module: "home" as const,
- sort_order: 1,
- show_title: false,
- show_badge: false,
- show_overlay: false,
- },
- {
- slug: "home-mercado",
- title: "Supermercado & Feira",
- cover_image_url: null,
- target_route: "/mercado",
- template_type: "hero_module" as const,
- module: "home" as const,
- sort_order: 2,
- show_title: false,
- show_badge: false,
- show_overlay: false,
- },
- {
- slug: "home-gastronomia",
- title: "Gastronomia & Delivery",
- cover_image_url: null,
- target_route: "/gastronomia",
- template_type: "hero_module" as const,
- module: "home" as const,
- sort_order: 3,
- show_title: false,
- show_badge: false,
- show_overlay: false,
- },
- {
- slug: "home-empregos",
- title: "Vagas & Carreiras",
- cover_image_url: null,
- target_route: "/empregos",
- template_type: "hero_module" as const,
- module: "home" as const,
- sort_order: 4,
- show_title: false,
- show_badge: false,
- show_overlay: false,
- },
- {
- slug: "home-agenda",
- title: "Agenda & Eventos Culturais",
- cover_image_url: null,
- target_route: "/agenda",
- template_type: "hero_module" as const,
- module: "home" as const,
- sort_order: 5,
- show_title: false,
- show_badge: false,
- show_overlay: false,
- },
- {
- slug: "home-turismo",
- title: "Turismo & Hospedagem",
- cover_image_url: null,
- target_route: "/turismo",
- template_type: "hero_module" as const,
- module: "home" as const,
- sort_order: 6,
- show_title: false,
- show_badge: false,
- show_overlay: false,
- },
- {
- slug: "home-noticias",
- title: "Notícias & Jornalismo",
- cover_image_url: null,
- target_route: "/noticias",
- template_type: "hero_module" as const,
- module: "home" as const,
- sort_order: 7,
- show_title: false,
- show_badge: false,
- show_overlay: false,
- },
- {
- slug: "home-mobilidade",
- title: "Mobilidade & MotoLink",
- cover_image_url: null,
- target_route: "/mobilidade",
- template_type: "hero_module" as const,
- module: "home" as const,
- sort_order: 8,
- show_title: false,
- show_badge: false,
- show_overlay: false,
- },
- ];
+    // ── 1. CARDS HERÓI DE MÓDULOS PRINCIPAIS (SEPARADOS E SEM FALLBACKS EXTERNOS) ──
+    const CANONICAL_HERO_MODULES = [
+    {
+      slug: "home-places",
+      title: "Places (Lista Telefônica)",
+      cover_image_url: null,
+      target_route: "/diretorio",
+      template_type: "hero_module" as const,
+      module: "home" as const,
+      sort_order: 1,
+      show_title: true,
+      show_badge: false,
+      show_overlay: true,
+    },
+    {
+      slug: "home-classificados",
+      title: "Classificados",
+      cover_image_url: null,
+      target_route: "/classificados",
+      template_type: "hero_module" as const,
+      module: "home" as const,
+      sort_order: 2,
+      show_title: true,
+      show_badge: false,
+      show_overlay: true,
+    },
+    {
+      slug: "home-feed",
+      title: "Feed",
+      cover_image_url: null,
+      target_route: "/feed",
+      template_type: "hero_module" as const,
+      module: "home" as const,
+      sort_order: 3,
+      show_title: true,
+      show_badge: false,
+      show_overlay: true,
+    },
+    {
+      slug: "home-noticias",
+      title: "Notícias",
+      cover_image_url: null,
+      target_route: "/noticias",
+      template_type: "hero_module" as const,
+      module: "home" as const,
+      sort_order: 4,
+      show_title: true,
+      show_badge: false,
+      show_overlay: true,
+    },
+    {
+      slug: "home-empregos",
+      title: "Empregos",
+      cover_image_url: null,
+      target_route: "/empregos",
+      template_type: "hero_module" as const,
+      module: "home" as const,
+      sort_order: 5,
+      show_title: true,
+      show_badge: false,
+      show_overlay: true,
+    },
+    {
+      slug: "home-eventos",
+      title: "Eventos",
+      cover_image_url: null,
+      target_route: "/eventos",
+      template_type: "hero_module" as const,
+      module: "home" as const,
+      sort_order: 6,
+      show_title: true,
+      show_badge: false,
+      show_overlay: true,
+    },
+    {
+      slug: "home-agenda",
+      title: "Agenda",
+      cover_image_url: null,
+      target_route: "/agenda",
+      template_type: "hero_module" as const,
+      module: "home" as const,
+      sort_order: 7,
+      show_title: true,
+      show_badge: false,
+      show_overlay: true,
+    },
+    {
+      slug: "home-afiliados",
+      title: "Afiliados",
+      cover_image_url: null,
+      target_route: "/afiliados",
+      template_type: "hero_module" as const,
+      module: "home" as const,
+      sort_order: 8,
+      show_title: true,
+      show_badge: false,
+      show_overlay: true,
+    },
+  ];
+
 
  // ── 2. BOTÕES / CHIPS DE SUPERCATEGORIAS (CONTINUAÇÃO - NÃO REPETE O TOPO) ──
  const CANONICAL_SUBCATEGORY_CHIPS = [

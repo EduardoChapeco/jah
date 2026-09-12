@@ -48,7 +48,7 @@ export const Route = createFileRoute("/_store/conta/seguranca")({
 });
 
 function SecurityAndDevicesPage() {
- const { session, logs: initialLogs, devices: initialDevices } = Route.useLoaderData() as any;
+ const { session, logs: initialLogs, devices: initialDevices } = ((Route.useLoaderData?.() as any) || {});
  const router = useRouter();
 
  const [devices, setDevices] = useState(initialDevices || []);
@@ -105,35 +105,26 @@ function SecurityAndDevicesPage() {
  };
 
  return (
- <div className="min-h-screen bg-background text-foreground py-6 px-4 sm:px-6 max-w-4xl mx-auto space-y-6">
- {/* Header com Navegação */}
- <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
- <div>
- <div className="flex items-center gap-2 mb-1.5">
- <Link
- to="/conta"
- className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
- >
- <ArrowLeft className="size-3.5" />
- Minha Conta
- </Link>
- </div>
- <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
- Segurança
- </h1>
- </div>
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Segurança
+          </h1>
+        </div>
 
- <Button
- variant="outline"
- size="sm"
- onClick={handleRefresh}
- disabled={isRefreshing}
- className="self-start sm:self-auto gap-2 rounded-xl text-xs"
- >
- <RefreshCw className={`size-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
- Atualizar
- </Button>
- </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="rounded-xl text-xs font-semibold h-8 px-3.5 gap-1.5 cursor-pointer"
+        >
+          <RefreshCw className={`size-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+          <span>Atualizar</span>
+        </Button>
+      </div>
 
  {/* ── 1. Seção de Dispositivos Conectados ── */}
  <section className="space-y-3">

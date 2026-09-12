@@ -28,8 +28,8 @@ export const Route = createFileRoute("/workspace/estoque/alertas")({
  return (res || []).filter((v: any) => v.stock_on_hand <= 5);
    } catch (err) {
      console.error("[loader:workspace.estoque.alertas] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: StockAlertsPage,
 });
@@ -66,7 +66,7 @@ function StockAlertsPage() {
 
  return (
  <div className="space-y-6">
- <PageHeader title="Alertas de Estoque & Fila de Espera" />
+ <PageHeader title="Alertas de Estoque" />
 
  {variants.length === 0 ? (
  <EmptyState title="Nenhum alerta de estoque crítico" />

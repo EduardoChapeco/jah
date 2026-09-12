@@ -80,7 +80,7 @@ export const Route = createFileRoute("/_store/imoveis")({
  };
    } catch (err) {
      console.error("[loader:_store.imoveis] Unhandled error:", err);
-     return null;
+     return { banners: null, hotpages: null, marketplaceFeed: null };
    }
  },
  component: ImoveisVerticalPage,
@@ -88,7 +88,7 @@ export const Route = createFileRoute("/_store/imoveis")({
 });
 
 function ImoveisVerticalPage() {
- const { banners, hotpages, marketplaceFeed } = Route.useLoaderData();
+ const { banners, hotpages, marketplaceFeed } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch();
  const navigate = useNavigate({ from: Route.fullPath });
 

@@ -84,7 +84,7 @@ export const Route = createFileRoute("/_store/casa")({
  };
    } catch (err) {
      console.error("[loader:_store.casa] Unhandled error:", err);
-     return null;
+     return { banners: null, hotpages: null, marketplaceFeed: null, catalogProducts: null };
    }
  },
  component: CasaVerticalPage,
@@ -92,7 +92,7 @@ export const Route = createFileRoute("/_store/casa")({
 });
 
 function CasaVerticalPage() {
- const { banners, hotpages, marketplaceFeed } = Route.useLoaderData();
+ const { banners, hotpages, marketplaceFeed } = ((Route.useLoaderData?.() as any) || {});
  const search = Route.useSearch();
  const navigate = useNavigate({ from: Route.fullPath });
 
@@ -206,7 +206,6 @@ function CasaVerticalPage() {
  onSelectCategory={handleDepartmentChange}
  viewMode={viewMode}
  onViewModeChange={handleViewModeChange}
- resultsCount={filteredProducts.length}
  />
 
  {/* ── 4. Renderização do Feed Modular ou Grade Filtrada ── */}

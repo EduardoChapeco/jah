@@ -39,14 +39,14 @@ export const Route = createFileRoute("/workspace/configuracoes/privacidade-loja"
     return { settings };
     } catch (err) {
       console.error("[loader:workspace.configuracoes.privacidade-loja] Unhandled loader error:", err);
-      return null;
+      return { settings: null };
     }
   },
   component: StorePrivacySettingsPage,
 });
 
 function StorePrivacySettingsPage() {
-  const { settings: initialSettings } = Route.useLoaderData();
+  const { settings: initialSettings } = ((Route.useLoaderData?.() as any) || {});
   const [isPending, startTransition] = useTransition();
 
   const { data: settings, refetch } = useQuery({

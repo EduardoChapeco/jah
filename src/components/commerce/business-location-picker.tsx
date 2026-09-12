@@ -22,6 +22,7 @@ import {
  Sliders,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getStoredLocation } from "@/components/location/location-master-pill";
 import { toast } from "sonner";
 
 export type BusinessModelType =
@@ -229,9 +230,10 @@ export function BusinessLocationPicker({
    let isMounted = true;
    let cleanupResize: (() => void) | undefined;
 
-   // Coordenadas padrão (Chapecó / Oeste Catarinense ou valor atual)
-   const initialLat = value.latitude || -27.1004;
-   const initialLng = value.longitude || -52.6152;
+   // Coordenadas dinâmicas (Localização do usuário ou valor atual)
+   const stored = typeof window !== "undefined" ? getStoredLocation() : null;
+   const initialLat = value.latitude || stored?.lat || -27.1004;
+   const initialLng = value.longitude || stored?.lng || -52.6152;
 
    import("maplibre-gl").then((maplibreglModule) => {
      if (!isMounted || !mapContainer.current || map.current) return;

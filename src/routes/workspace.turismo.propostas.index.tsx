@@ -17,6 +17,7 @@ import {
  DollarSign,
  TrendingUp,
  MoreVertical,
+ Plane,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,7 @@ import {
  deleteTravelProposal,
  type TravelProposalDTO,
 } from "@/services/travel-proposal.functions";
+import { convertProposalToTrip } from "@/services/travel-lifecycle.functions";
 import { getStoreSettings } from "@/services/store.functions";
 import { NicheOperationalGuard } from "@/components/workspace/niche-operational-guard";
 import { NewTravelProposalSheet } from "@/components/tourism/new-travel-proposal-sheet";
@@ -62,14 +64,14 @@ export const Route = createFileRoute("/workspace/turismo/propostas/")({
  return { proposals: proposals || [], store };
    } catch (err) {
      console.error("[loader:workspace.turismo.propostas.index] Unhandled error:", err);
-     return null;
+     return { proposals: null, store: null };
    }
  },
  component: WorkspaceProposalsIndexPage,
 });
 
 function WorkspaceProposalsIndexPage() {
- const { proposals: initialProposals, store } = Route.useLoaderData();
+ const { proposals: initialProposals, store } = ((Route.useLoaderData?.() as any) || {});
  const searchParams = Route.useSearch();
  const navigate = useNavigate();
  const queryClient = useQueryClient();
@@ -101,12 +103,23 @@ function WorkspaceProposalsIndexPage() {
  });
 
  const deleteMutation = useMutation({
- mutationFn: (id: string) => deleteTravelProposal({ data: { id } }),
- onSuccess: () => {
- toast.success("Proposta excluída!");
- queryClient.invalidateQueries({ queryKey: ["agency-proposals"] });
- },
- onError: (err: any) => toast.error(err?.message || "Erro ao excluir proposta."),
+   mutationFn: (id: string) => deleteTravelProposal({ data: { id } }),
+   onSuccess: () => {
+     toast.success("Proposta excluída!");
+     queryClient.invalidateQueries({ queryKey: ["agency-proposals"] });
+   },
+   onError: (err: any) => toast.error(err?.message || "Erro ao excluir proposta."),
+ });
+
+ const convertMutation = useMutation({
+   mutationFn: (proposalId: string) => convertProposalToTrip({ data: { proposalId } }),
+   onSuccess: (res) => {
+     toast.success(`Viagem gerada com sucesso! Código: ${res.tripNumber}`);
+     queryClient.invalidateQueries({ queryKey: ["agency-proposals"] });
+     queryClient.invalidateQueries({ queryKey: ["tourism-trips"] });
+     navigate({ to: "/workspace/turismo/viagens/$id", params: { id: res.tripId } });
+   },
+   onError: (err: any) => toast.error(err?.message || "Erro ao converter proposta em viagem."),
  });
 
  const handleCopyLink = (publicToken: string) => {
@@ -232,10 +245,9 @@ function WorkspaceProposalsIndexPage() {
  <div className="space-y-2 pt-2 border-t border-border/40">
  <div className="flex items-center gap-2">
  <Button
- asChild
  size="sm"
  variant="outline"
- className="flex-1 rounded-xl text-xs font-bold h-9"
+ className="flex-1 rounded-xl text-xs font-bold h-9 cursor-pointer"
  >
  <Link to="/proposta/$token" params={{ token: p.public_token }} target="_blank">
  <ExternalLink className="mr-1.5 size-3" />
@@ -243,15 +255,28 @@ function WorkspaceProposalsIndexPage() {
  </Link>
  </Button>
  <Button
- asChild
  size="sm"
- className="flex-1 rounded-xl text-xs font-bold h-9 bg-primary text-primary-foreground hover:bg-primary/90"
+ className="flex-1 rounded-xl text-xs font-bold h-9 bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer"
  >
  <Link to="/workspace/turismo/propostas/$id" params={{ id: p.id }}>
  Abrir Studio
  </Link>
  </Button>
  </div>
+
+ {/* Botão de 1-Clique para Converter em Viagem Operacional */}
+ {p.status === "approved" && (
+   <Button
+     type="button"
+     size="sm"
+     onClick={() => convertMutation.mutate(p.id)}
+     disabled={convertMutation.isPending}
+     className="w-full rounded-xl text-xs font-bold h-9 bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 cursor-pointer shadow-xs"
+   >
+     <Plane className="size-3.5" />
+     {convertMutation.isPending ? "Gerando Viagem..." : "Gerar Viagem & Vouchers"}
+   </Button>
+ )}
 
  {/* Ações secundárias táteis */}
  <div className="flex items-center justify-between pt-1 text-[11px] text-muted-foreground">
@@ -263,6 +288,19 @@ function WorkspaceProposalsIndexPage() {
  <Copy className="size-3" />
  Copiar Link
  </button>
+
+ {p.status !== "approved" && (
+   <button
+     type="button"
+     onClick={() => convertMutation.mutate(p.id)}
+     disabled={convertMutation.isPending}
+     className="hover:text-emerald-600 flex items-center gap-1 cursor-pointer transition-colors"
+     title="Converter proposta em viagem operacional"
+   >
+     <Plane className="size-3" />
+     Converter
+   </button>
+ )}
 
  <button
  type="button"

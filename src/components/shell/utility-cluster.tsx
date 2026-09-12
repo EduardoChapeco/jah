@@ -181,7 +181,7 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
 
  {/* 6. Perfil / Auth Menu (Oculto no mobile pois já existe na MobileNav com suporte a gestos) */}
  {session ? (
- <div className="hidden sm:inline-flex">
+ <div className="inline-flex">
  <DropdownMenu>
  <DropdownMenuTrigger asChild>
  <button
@@ -254,6 +254,18 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
 
  <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
  <Link to="/conta/classificados">Meus Desapegos</Link>
+ </DropdownMenuItem>
+
+ <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
+ <Link to="/conta/concursos">Meus Sorteios & Cupons</Link>
+ </DropdownMenuItem>
+
+ <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
+ <Link to="/convite">Convites & Membro Fundador</Link>
+ </DropdownMenuItem>
+
+ <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
+ <Link to="/conta/criadores">Criadores & Vitrines</Link>
  </DropdownMenuItem>
 
  <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
@@ -401,7 +413,7 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
  <Button
  asChild
  size="sm"
- className="hidden sm:inline-flex h-8 rounded-xl px-3.5 text-xs font-bold bg-primary text-primary-foreground"
+ className="h-8 rounded-xl px-3 text-xs font-bold bg-primary text-primary-foreground"
  >
  <Link to="/entrar">Entrar</Link>
  </Button>

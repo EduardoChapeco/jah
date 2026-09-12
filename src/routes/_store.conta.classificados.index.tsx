@@ -14,7 +14,6 @@ import {
   Handshake,
   PauseCircle,
   PlayCircle,
-  Sparkles,
   Check,
   Copy,
   ExternalLink,
@@ -256,26 +255,23 @@ function ClassificadosIndex() {
   const gatewayAvailable = gatewayStatus?.available ?? false;
 
   return (
-    <div className="space-y-6 pb-20">
-      {/* ── Toolbar Operacional ─────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/40">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">
-              Meus Anúncios
-            </h1>
-            <Badge variant="outline" className="font-mono text-[10px] font-bold px-2 py-0.5">
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Clean Minimalist Header ── */}
+      <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-1">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Meus Anúncios
+          </h1>
+          {(classifieds || []).length > 0 && (
+            <Badge variant="secondary" className="text-xs font-mono font-bold px-2 py-0.5 rounded-full">
               {(classifieds || []).length}
             </Badge>
-          </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Gerencie, edite e impulsione seus classificados publicados.
-          </p>
+          )}
         </div>
 
-        <Button asChild size="sm" className="rounded-xl h-11 sm:h-9 px-4 text-xs font-bold gap-1.5 bg-foreground text-background hover:bg-foreground/90 shrink-0 shadow-sm cursor-pointer">
+        <Button asChild size="sm" className="rounded-xl h-8 px-3.5 text-xs font-semibold gap-1.5 bg-foreground text-background hover:bg-foreground/90 shrink-0 shadow-xs cursor-pointer">
           <Link to="/conta/classificados/novo">
-            <Plus className="size-4" />
+            <Plus className="size-3.5" />
             <span>Novo Anúncio</span>
           </Link>
         </Button>
@@ -614,7 +610,7 @@ function ClassificadosIndex() {
                     </>
                   ) : (
                     <>
-                      <Sparkles className="size-4" />
+                      <Flame className="size-4" />
                       <span>Ir para Pagamento</span>
                     </>
                   )}

@@ -120,7 +120,7 @@ export function ContentActionsMenu({
  try {
  if (navigator.clipboard && navigator.clipboard.writeText) {
  await navigator.clipboard.writeText(fullUrl);
- toast.success("Link canônico copiado!");
+ toast.success("Link oficial copiado!");
  } else {
  const textArea = document.createElement("textarea");
  textArea.value = fullUrl;
@@ -128,7 +128,7 @@ export function ContentActionsMenu({
  textArea.select();
  document.execCommand("copy");
  document.body.removeChild(textArea);
- toast.success("Link canônico copiado!");
+ toast.success("Link oficial copiado!");
  }
  } catch {
  toast.error("Erro ao copiar link.");
@@ -339,30 +339,29 @@ export function ContentActionsMenu({
  </>
  )}
 
- {/* Seção 3: Ações para Visitantes */}
- {!isOwner && (
- <>
- <DropdownMenuSeparator className="my-1" />
- <DropdownMenuItem
- onClick={handleToggleSave}
- className="text-xs font-medium rounded-xl py-2 cursor-pointer gap-2"
- >
- <Bookmark
- className={`size-3.5 ${isSaved ? "text-primary fill-primary" : "text-muted-foreground"}`}
- />
- <span>{isSaved ? "Remover dos Salvos" : "Salvar Anúncio"}</span>
- </DropdownMenuItem>
+          {/* Seção 3: Salvar nos Favoritos (Disponível para todos os usuários) */}
+          <DropdownMenuSeparator className="my-1" />
+          <DropdownMenuItem
+            onClick={handleToggleSave}
+            className="text-xs font-medium rounded-xl py-2 cursor-pointer gap-2"
+          >
+            <Bookmark
+              className={`size-3.5 ${isSaved ? "text-primary fill-primary" : "text-muted-foreground"}`}
+            />
+            <span>{isSaved ? "Remover dos Salvos" : "Salvar nos Favoritos"}</span>
+          </DropdownMenuItem>
 
- <DropdownMenuItem
- onClick={handleReport}
- className="text-xs font-medium rounded-xl py-2 cursor-pointer gap-2 text-destructive/80 focus:bg-destructive/10 focus:text-destructive"
- >
- <Flag className="size-3.5" />
- <span>Denunciar Publicação</span>
- </DropdownMenuItem>
- </>
- )}
- </DropdownMenuContent>
+          {/* Seção 4: Denúncia (Visitantes apenas) */}
+          {!isOwner && (
+            <DropdownMenuItem
+              onClick={handleReport}
+              className="text-xs font-medium rounded-xl py-2 cursor-pointer gap-2 text-destructive/80 focus:bg-destructive/10 focus:text-destructive"
+            >
+              <Flag className="size-3.5" />
+              <span>Denunciar Publicação</span>
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
  </DropdownMenu>
 
  {/* Modal de Compartilhamento Canônico */}

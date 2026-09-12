@@ -27,8 +27,8 @@ export const Route = createFileRoute("/workspace/financeiro/pagamentos")({
  return res || [];
    } catch (err) {
      console.error("[loader:workspace.financeiro.pagamentos] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: AdminPaymentsPage,
 });

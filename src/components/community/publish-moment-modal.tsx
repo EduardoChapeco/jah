@@ -23,6 +23,7 @@ import {
  Check,
 } from "@phosphor-icons/react";
 import { publishLiveMoment } from "@/services/social.functions";
+import { getStoredLocation } from "@/components/location/location-master-pill";
 import { toast } from "sonner";
 
 export interface PublishMomentModalProps {
@@ -58,8 +59,14 @@ export function PublishMomentModal({
  const [caption, setCaption] = useState("");
  const [mediaUrl, setMediaUrl] = useState("");
  const [locationName, setLocationName] = useState("");
- const [lat, setLat] = useState<number>(defaultLocation?.lat || -27.1004);
- const [lng, setLng] = useState<number>(defaultLocation?.lng || -52.6152);
+ const [lat, setLat] = useState<number>(() => {
+    const stored = typeof window !== "undefined" ? getStoredLocation() : null;
+    return defaultLocation?.lat || stored?.lat || -27.1004;
+  });
+  const [lng, setLng] = useState<number>(() => {
+    const stored = typeof window !== "undefined" ? getStoredLocation() : null;
+    return defaultLocation?.lng || stored?.lng || -52.6152;
+  });
  const [isBillSplitOpen, setIsBillSplitOpen] = useState(false);
  const [tableSize, setTableSize] = useState(6);
  const [vibe, setVibe] = useState<

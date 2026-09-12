@@ -50,10 +50,12 @@ export const Route = createFileRoute("/workspace/turismo/cotacoes")({
     leadName?: string;
     leadPhone?: string;
     leadEmail?: string;
+    clientId?: string;
   } => ({
     leadName: (search.leadName as string) || undefined,
     leadPhone: (search.leadPhone as string) || undefined,
     leadEmail: (search.leadEmail as string) || undefined,
+    clientId: (search.clientId as string) || undefined,
   }),
  loader: async () => {
  try {
@@ -88,7 +90,7 @@ const TRIP_TYPE_OPTIONS = [
 ];
 
 export default function AgencyQuotesPage() {
- const { quotes: initialQuotes, destinations: initialDestinations, store } = Route.useLoaderData();
+ const { quotes: initialQuotes, destinations: initialDestinations, store } = ((Route.useLoaderData?.() as any) || {});
  const searchParams = Route.useSearch();
  const queryClient = useQueryClient();
  const navigate = useNavigate();
@@ -100,7 +102,7 @@ export default function AgencyQuotesPage() {
  const [viewMode, setViewMode] = useState<"kanban" | "grid">("kanban");
 
  // Modais
- const [isNewSheetOpen, setIsNewSheetOpen] = useState(Boolean(searchParams?.leadName));
+ const [isNewSheetOpen, setIsNewSheetOpen] = useState(Boolean(searchParams?.leadName || searchParams?.clientId));
  const [managingQuote, setManagingQuote] = useState<TravelQuoteRequestDTO | null>(null);
 
  // Edit State: Gestão de Lead Existente
@@ -685,110 +687,142 @@ export default function AgencyQuotesPage() {
  }}
  />
 
- {/* ── 6. Sheet: Gestão de Lead Existente ── */}
+ {/* ── 6. Sheet: Gestão de Lead Existente (size="wide" -> 70% viewport) ── */}
  <Sheet open={!!managingQuote} onOpenChange={(o) => !o && setManagingQuote(null)}>
- <SheetContent
- side="right"
- className="sm:max-w-md w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto no-scrollbar bg-card flex flex-col justify-between"
- >
- <div className="p-6 space-y-4">
- <SheetHeader>
- <SheetTitle className="text-base font-bold">
- Gerenciar Lead: {managingQuote?.contact_name}
- </SheetTitle>
- <SheetDescription className="text-xs text-muted-foreground">
- Atualize o status da negociação, proposta orçada e notas de atendimento.
- </SheetDescription>
- </SheetHeader>
+   <SheetContent
+     size="wide"
+     className="p-0 flex flex-col h-full bg-card overflow-hidden"
+   >
+     <SheetHeader className="px-6 py-4 border-b border-border/60 bg-muted/20 shrink-0">
+       <div className="flex items-center justify-between">
+         <div>
+           <SheetTitle className="text-base font-bold text-foreground">
+             Gerenciar Cotação / Lead: {managingQuote?.contact_name}
+           </SheetTitle>
+           <SheetDescription className="text-xs text-muted-foreground">
+             Atualize a fase do pipeline comercial, proposta financeira e histórico de atendimento.
+           </SheetDescription>
+         </div>
+         {managingQuote?.contact_whatsapp && (
+           <Button
+             variant="outline"
+             size="sm"
+             className="h-9 px-3 gap-1.5 text-xs text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/10 rounded-xl"
+             asChild
+           >
+             <a
+               href={`https://wa.me/${managingQuote.contact_whatsapp.replace(/\D/g, "")}`}
+               target="_blank"
+               rel="noopener noreferrer"
+             >
+               <WhatsappLogo size={14} weight="bold" />
+               <span>Conversar no WhatsApp</span>
+             </a>
+           </Button>
+         )}
+       </div>
+     </SheetHeader>
 
- <div className="space-y-3 text-xs">
- <div className="p-3 rounded-xl bg-muted/40 border border-border/40 space-y-1">
- <span className="text-[11px] font-bold block text-foreground">
- {managingQuote?.destination_city} ({managingQuote?.adults_count} adultos)
- </span>
- <span className="text-[10px] font-mono text-muted-foreground block">
- {managingQuote?.contact_whatsapp}
- </span>
- </div>
+     <div className="flex-1 p-6 space-y-6 overflow-y-auto no-scrollbar">
+       {/* Card Resumo do Lead */}
+       <div className="p-4 rounded-2xl bg-muted/40 border border-border/40 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+         <div>
+           <span className="text-[10px] uppercase font-bold text-muted-foreground block">Destino Desejado</span>
+           <strong className="text-foreground text-sm font-semibold">{managingQuote?.destination_city || "A Definir"}</strong>
+         </div>
+         <div>
+           <span className="text-[10px] uppercase font-bold text-muted-foreground block">Passageiros</span>
+           <strong className="text-foreground text-sm font-semibold">{managingQuote?.adults_count || 1} adultos {managingQuote?.children_count ? `+ ${managingQuote.children_count} crianças` : ""}</strong>
+         </div>
+         <div>
+           <span className="text-[10px] uppercase font-bold text-muted-foreground block">WhatsApp / Contato</span>
+           <strong className="text-foreground text-sm font-mono font-medium">{managingQuote?.contact_whatsapp || "Não informado"}</strong>
+         </div>
+         <div>
+           <span className="text-[10px] uppercase font-bold text-muted-foreground block">Data de Solicitação</span>
+           <strong className="text-foreground text-sm font-medium">{managingQuote?.created_at ? formatDate(managingQuote.created_at) : "Recente"}</strong>
+         </div>
+       </div>
 
- <div className="space-y-1">
- <Label className="text-xs font-bold">Fase / Status do Lead</Label>
- <Select value={editStatus} onValueChange={(v: any) => setEditStatus(v)}>
- <SelectTrigger className="h-9 text-xs rounded-xl">
- <SelectValue />
- </SelectTrigger>
- <SelectContent className="rounded-xl">
- <SelectItem value="new">Nova Cotação</SelectItem>
- <SelectItem value="analyzing">Em Análise / Montando Roteiro</SelectItem>
- <SelectItem value="quoted">Orçamento Enviado ao Cliente</SelectItem>
- <SelectItem value="won">Fechada / Venda Concretizada</SelectItem>
- <SelectItem value="lost">Perdida / Sem Interesse</SelectItem>
- </SelectContent>
- </Select>
- </div>
+       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+         <div className="space-y-1.5">
+           <Label className="text-xs font-bold">Fase / Status no Funil de Vendas</Label>
+           <Select value={editStatus} onValueChange={(v: any) => setEditStatus(v)}>
+             <SelectTrigger className="h-11 text-xs rounded-xl">
+               <SelectValue />
+             </SelectTrigger>
+             <SelectContent className="rounded-xl">
+               <SelectItem value="new">Nova Cotação (Não iniciada)</SelectItem>
+               <SelectItem value="analyzing">Em Análise / Montando Roteiro</SelectItem>
+               <SelectItem value="quoted">Orçamento Enviado ao Cliente</SelectItem>
+               <SelectItem value="won">Fechada / Venda Concretizada (Ganha)</SelectItem>
+               <SelectItem value="lost">Perdida / Sem Interesse</SelectItem>
+             </SelectContent>
+           </Select>
+         </div>
 
- <div className="space-y-1">
- <Label className="text-xs font-bold">Valor do Orçamento Final (R$)</Label>
- <Input
- value={editQuoteAmount}
- onChange={(e) => setEditQuoteAmount(e.target.value)}
- placeholder="Ex: 5890.00"
- className="h-9 rounded-xl text-xs"
- />
- </div>
+         <div className="space-y-1.5">
+           <Label className="text-xs font-bold">Valor do Orçamento Final (R$)</Label>
+           <Input
+             value={editQuoteAmount}
+             onChange={(e) => setEditQuoteAmount(e.target.value)}
+             placeholder="Ex: 5890.00"
+             className="h-11 rounded-xl text-xs font-mono"
+           />
+         </div>
 
- <div className="space-y-1">
- <Label className="text-xs font-bold">Notas Internas da Negociação</Label>
- <Textarea
- value={editAgencyNotes}
- onChange={(e) => setEditAgencyNotes(e.target.value)}
- placeholder="Ex: Cliente fechou voo com seguro. Enviado voucher."
- className="rounded-xl text-xs resize-none"
- rows={3}
- />
- </div>
- </div>
- </div>
+         <div className="space-y-1.5 md:col-span-2">
+           <Label className="text-xs font-bold">Notas Internas da Negociação & Preferências</Label>
+           <Textarea
+             value={editAgencyNotes}
+             onChange={(e) => setEditAgencyNotes(e.target.value)}
+             placeholder="Ex: Cliente prefere voo direto pela manhã. Hotel com café incluso e seguro viagem internacional."
+             className="rounded-xl text-xs resize-none"
+             rows={4}
+           />
+         </div>
+       </div>
+     </div>
 
- <div className="p-4 border-t border-border/60 bg-muted/20 flex items-center justify-between gap-2">
- <Button
- type="button"
- variant="ghost"
- size="sm"
- disabled={deleteQuoteMutation.isPending}
- onClick={() => {
- if (confirm("Deseja realmente remover esta cotação?")) {
- deleteQuoteMutation.mutate(managingQuote!.id);
- }
- }}
- className="text-destructive text-xs rounded-xl h-9 hover:bg-destructive/10"
- >
- <Trash size={14} className="mr-1" />
- <span>Excluir</span>
- </Button>
+     <div className="p-4 border-t border-border/60 bg-muted/20 flex items-center justify-between gap-2 shrink-0">
+       <Button
+         type="button"
+         variant="ghost"
+         size="sm"
+         disabled={deleteQuoteMutation.isPending}
+         onClick={() => {
+           if (confirm("Deseja realmente remover esta cotação?")) {
+             deleteQuoteMutation.mutate(managingQuote!.id);
+           }
+         }}
+         className="text-destructive text-xs rounded-xl h-10 hover:bg-destructive/10 cursor-pointer"
+       >
+         <Trash size={14} className="mr-1" />
+         <span>Excluir Cotação</span>
+       </Button>
 
- <div className="flex items-center gap-2">
- <Button
- type="button"
- variant="outline"
- size="sm"
- onClick={() => setManagingQuote(null)}
- className="rounded-xl text-xs h-9"
- >
- Cancelar
- </Button>
- <Button
- type="button"
- size="sm"
- disabled={updateQuoteMutation.isPending}
- onClick={() => updateQuoteMutation.mutate()}
- className="rounded-xl text-xs h-9 font-bold bg-primary text-primary-foreground"
- >
- {updateQuoteMutation.isPending ? "Salvando..." : "Atualizar Lead"}
- </Button>
- </div>
- </div>
- </SheetContent>
+       <div className="flex items-center gap-2">
+         <Button
+           type="button"
+           variant="outline"
+           size="sm"
+           onClick={() => setManagingQuote(null)}
+           className="rounded-xl text-xs h-10 px-4 cursor-pointer"
+         >
+           Cancelar
+         </Button>
+         <Button
+           type="button"
+           size="sm"
+           disabled={updateQuoteMutation.isPending}
+           onClick={() => updateQuoteMutation.mutate()}
+           className="rounded-xl text-xs h-10 px-5 font-bold bg-primary text-primary-foreground cursor-pointer"
+         >
+           {updateQuoteMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+         </Button>
+       </div>
+     </div>
+   </SheetContent>
  </Sheet>
 
  {/* ── Painel de Métricas de CRM & Cotações ── */}

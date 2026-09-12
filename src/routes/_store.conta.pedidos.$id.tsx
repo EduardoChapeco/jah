@@ -24,6 +24,7 @@ import { formatDate } from "@/lib/datetime";
 import { getCustomerOrder, getOrderPaymentInstructions } from "@/services/order.functions";
 import { uploadPaymentReceipt } from "@/services/payment.functions";
 import { getDeliveryProofsByOrderId, type DeliveryProof } from "@/services/dispatch.functions";
+import { DealDeliveryTrackingCard } from "@/components/commercial/deal-delivery-tracking-card";
 
 export const Route = createFileRoute("/_store/conta/pedidos/$id")({
  head: () => ({ meta: [{ title: "Detalhes do Pedido | Wider OS" }] }),
@@ -45,8 +46,8 @@ export const Route = createFileRoute("/_store/conta/pedidos/$id")({
  };
    } catch (err) {
      console.error("[loader:_store.conta.pedidos.$id] Unhandled loader error:", err);
-     return null;
-   }
+     return {} as any;
+    }
  },
  component: CustomerOrderDetailPage,
 });
@@ -258,6 +259,9 @@ function CustomerOrderDetailPage() {
  )}
  </div>
  )}
+
+ {/* Rastreamento ao Vivo do Motoboy */}
+ <DealDeliveryTrackingCard orderId={order.id} />
 
  {/* Delivery Proofs if any */}
  {proofs && proofs.length > 0 && (

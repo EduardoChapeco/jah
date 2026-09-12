@@ -43,14 +43,14 @@ export const Route = createFileRoute("/workspace/turismo/vouchers/")({
     return { store };
     } catch (err) {
       console.error("[loader:workspace.turismo.vouchers.index] Unhandled loader error:", err);
-      return null;
+      return { store: null };
     }
   },
   component: WorkspaceVouchersPage,
 });
 
 export default function WorkspaceVouchersPage() {
-  const { store } = Route.useLoaderData() as any;
+  const { store } = ((Route.useLoaderData?.() as any) || {});
   const storeId = store?.id || "";
 
   const [search, setSearch] = useState("");

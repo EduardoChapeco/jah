@@ -106,7 +106,7 @@ export default function WorkspaceQualidadePage() {
  {/* Header Silencioso */}
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
  <div>
- <h1 className="text-xl font-bold tracking-tight">Qualidade & Curadoria</h1>
+ <h1 className="text-xl font-bold tracking-tight">Qualidade</h1>
  <p className="text-xs text-muted-foreground mt-0.5">
  Inspeções de qualidade, auditorias anônimas e programa de apoio solidário.
  </p>
