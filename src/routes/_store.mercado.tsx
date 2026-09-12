@@ -30,6 +30,8 @@ import { ModularSurfaceFeed } from "@/components/commerce/modular-surface-feed";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { PromotionalFlyersRail } from "@/components/commerce/flyers/promotional-flyers-rail";
+import { listActiveStoreFlyers } from "@/services/store-flyers.functions";
 import type { ProductCardDTO } from "@/types/catalog";
 import { formatMoney } from "@/lib/money";
 import { resolveNicheDepartments } from "@/lib/niche-helpers";
@@ -90,7 +92,7 @@ export const Route = createFileRoute("/_store/mercado")({
  loader: async ({ location }) => {
    try {
  const search = location.search as CatalogSearch;
- const [productsRes, categoriesRes, attributesRes, feedRes, bannersRes, hotpagesRes] = await Promise.all([
+ const [productsRes, categoriesRes, attributesRes, feedRes, bannersRes, hotpagesRes, flyersRes] = await Promise.all([
  listPublishedProducts({
  data: {
  categorySlug: search.categoria,
@@ -107,6 +109,7 @@ export const Route = createFileRoute("/_store/mercado")({
  getModularSurfaceFeed({ data: { surfaceSlug: search.niche || "mercado" } }).catch(() => ({ sections: [], allProducts: [] })),
  listActiveBanners({ data: { placement: "mercado" } }).catch(() => []),
  listHotpages({ data: { module: "mercado" } }).catch(() => []),
+ listActiveStoreFlyers({ data: {} }).catch(() => []),
  ]);
 
       return {
@@ -116,6 +119,7 @@ export const Route = createFileRoute("/_store/mercado")({
         feed: feedRes || { sections: [], allProducts: [] },
         banners: bannersRes || [],
         hotpages: hotpagesRes || [],
+        flyers: flyersRes || [],
       };
     } catch (err) {
       console.error("[loader:_store.mercado] Unhandled error:", err);
@@ -126,6 +130,7 @@ export const Route = createFileRoute("/_store/mercado")({
         feed: { sections: [], allProducts: [] },
         banners: [],
         hotpages: [],
+        flyers: [],
       };
     }
   },
@@ -141,7 +146,8 @@ function SupermarketMasterPage() {
   const feed = loaderData.feed || { sections: [], allProducts: [] };
   const banners = loaderData.banners || [];
   const hotpages = loaderData.hotpages || [];
- const search = Route.useSearch();
+  const flyers = loaderData.flyers || [];
+  const search = Route.useSearch();
  const navigate = useNavigate();
 
  const currentView = (search.view || "grid") as ViewModeType;
@@ -236,6 +242,15 @@ function SupermarketMasterPage() {
  {/* ── 1. Top Banners do Mercado ── */}
  {banners && banners.length > 0 && (
  <BannerHeroCarousel banners={banners} className="w-full" />
+ )}
+
+ {/* ── 1.5. Encartes & Tabloides da Semana (Grandinhos, Retrô Mercadista ou Clean) ── */}
+ {flyers && flyers.length > 0 && (
+ <PromotionalFlyersRail
+ flyers={flyers}
+ title="Encartes & Tabloides da Semana"
+ subtitle="Folhetos das redes e atacados locais com ofertas válidas por tempo limitado"
+ />
  )}
 
  {/* ── 2. Stories Rápidos & Ofertas em Vídeo dos Mercados Parceiros ── */}

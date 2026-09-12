@@ -16,6 +16,7 @@ import { getIdentity } from "@/services/identity.functions";
 import { getMuralFeed, getCompanyEmployerStats } from "@/services/social.functions";
 import { listStorePublicReviews } from "@/services/cms.functions";
 import { listStorePublicSponsors } from "@/services/news.functions";
+import { listActiveStoreFlyers } from "@/services/store-flyers.functions";
 import { CanonicalStoreProfileView } from "@/components/commerce/canonical-store-profile-view";
 import { UnconfiguredState } from "@/components/state/states";
 
@@ -75,6 +76,7 @@ export const Route = createFileRoute("/_store/loja/$slug")({
         jobsRes,
         hotpagesRes,
         bannersRes,
+        flyersRes,
         postsRes,
         reviewsRes,
         sponsorsRes,
@@ -89,6 +91,7 @@ export const Route = createFileRoute("/_store/loja/$slug")({
         listPublicJobs({ data: { storeId: targetStore } }).catch(() => []),
         listHotpages({ data: { storeId: targetStore } }).catch(() => []),
         listActiveBanners({ data: { storeId: targetStore } }).catch(() => []),
+        listActiveStoreFlyers({ data: { storeSlug: targetStore } }).catch(() => []),
         getMuralFeed({ data: { storeId: targetStore } }).catch(() => []),
         listStorePublicReviews({ data: { storeId: targetStore } }).catch(() => []),
         listStorePublicSponsors({ data: { storeId: targetStore } }).catch(() => []),
@@ -104,6 +107,7 @@ export const Route = createFileRoute("/_store/loja/$slug")({
         jobs: jobsRes || [],
         hotpages: hotpagesRes || [],
         banners: bannersRes || [],
+        flyers: flyersRes || [],
         posts: postsRes || [],
         reviews: reviewsRes || [],
         sponsors: sponsorsRes || [],
@@ -121,6 +125,7 @@ export const Route = createFileRoute("/_store/loja/$slug")({
         jobs: [],
         hotpages: [],
         banners: [],
+        flyers: [],
         posts: [],
         reviews: [],
         sponsors: [],
@@ -201,6 +206,7 @@ function StoreSlugCanonicalPage() {
       catalog={data.catalog}
       categories={data.categories}
       banners={data.banners}
+      flyers={data.flyers}
       hotpages={data.hotpages}
       jobs={data.jobs}
       posts={data.posts}

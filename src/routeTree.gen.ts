@@ -253,6 +253,7 @@ import { Route as WorkspaceMarketingBriefingRouteImport } from './routes/workspa
 import { Route as WorkspaceMarketingCanvasPecadosRouteImport } from './routes/workspace.marketing.canvas-pecados'
 import { Route as WorkspaceMarketingCarrinhosRouteImport } from './routes/workspace.marketing.carrinhos'
 import { Route as WorkspaceMarketingConcursosRouteImport } from './routes/workspace.marketing.concursos'
+import { Route as WorkspaceMarketingEncartesRouteImport } from './routes/workspace.marketing.encartes'
 import { Route as WorkspaceMarketingFidelidadeRouteImport } from './routes/workspace.marketing.fidelidade'
 import { Route as WorkspaceMarketingGiftCardsRouteImport } from './routes/workspace.marketing.gift-cards'
 import { Route as WorkspaceMarketingHotpagesRouteImport } from './routes/workspace.marketing.hotpages'
@@ -1605,6 +1606,12 @@ const WorkspaceMarketingConcursosRoute =
     path: '/marketing/concursos',
     getParentRoute: () => WorkspaceRoute,
   } as any)
+const WorkspaceMarketingEncartesRoute =
+  WorkspaceMarketingEncartesRouteImport.update({
+    id: '/marketing/encartes',
+    path: '/marketing/encartes',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
 const WorkspaceMarketingFidelidadeRoute =
   WorkspaceMarketingFidelidadeRouteImport.update({
     id: '/marketing/fidelidade',
@@ -2344,6 +2351,7 @@ export interface FileRoutesByFullPath {
   '/workspace/marketing/canvas-pecados': typeof WorkspaceMarketingCanvasPecadosRoute
   '/workspace/marketing/carrinhos': typeof WorkspaceMarketingCarrinhosRoute
   '/workspace/marketing/concursos': typeof WorkspaceMarketingConcursosRoute
+  '/workspace/marketing/encartes': typeof WorkspaceMarketingEncartesRoute
   '/workspace/marketing/fidelidade': typeof WorkspaceMarketingFidelidadeRoute
   '/workspace/marketing/gift-cards': typeof WorkspaceMarketingGiftCardsRoute
   '/workspace/marketing/hotpages': typeof WorkspaceMarketingHotpagesRoute
@@ -2672,6 +2680,7 @@ export interface FileRoutesByTo {
   '/workspace/marketing/canvas-pecados': typeof WorkspaceMarketingCanvasPecadosRoute
   '/workspace/marketing/carrinhos': typeof WorkspaceMarketingCarrinhosRoute
   '/workspace/marketing/concursos': typeof WorkspaceMarketingConcursosRoute
+  '/workspace/marketing/encartes': typeof WorkspaceMarketingEncartesRoute
   '/workspace/marketing/fidelidade': typeof WorkspaceMarketingFidelidadeRoute
   '/workspace/marketing/gift-cards': typeof WorkspaceMarketingGiftCardsRoute
   '/workspace/marketing/hotpages': typeof WorkspaceMarketingHotpagesRoute
@@ -3009,6 +3018,7 @@ export interface FileRoutesById {
   '/workspace/marketing/canvas-pecados': typeof WorkspaceMarketingCanvasPecadosRoute
   '/workspace/marketing/carrinhos': typeof WorkspaceMarketingCarrinhosRoute
   '/workspace/marketing/concursos': typeof WorkspaceMarketingConcursosRoute
+  '/workspace/marketing/encartes': typeof WorkspaceMarketingEncartesRoute
   '/workspace/marketing/fidelidade': typeof WorkspaceMarketingFidelidadeRoute
   '/workspace/marketing/gift-cards': typeof WorkspaceMarketingGiftCardsRoute
   '/workspace/marketing/hotpages': typeof WorkspaceMarketingHotpagesRoute
@@ -3346,6 +3356,7 @@ export interface FileRouteTypes {
     | '/workspace/marketing/canvas-pecados'
     | '/workspace/marketing/carrinhos'
     | '/workspace/marketing/concursos'
+    | '/workspace/marketing/encartes'
     | '/workspace/marketing/fidelidade'
     | '/workspace/marketing/gift-cards'
     | '/workspace/marketing/hotpages'
@@ -3674,6 +3685,7 @@ export interface FileRouteTypes {
     | '/workspace/marketing/canvas-pecados'
     | '/workspace/marketing/carrinhos'
     | '/workspace/marketing/concursos'
+    | '/workspace/marketing/encartes'
     | '/workspace/marketing/fidelidade'
     | '/workspace/marketing/gift-cards'
     | '/workspace/marketing/hotpages'
@@ -4010,6 +4022,7 @@ export interface FileRouteTypes {
     | '/workspace/marketing/canvas-pecados'
     | '/workspace/marketing/carrinhos'
     | '/workspace/marketing/concursos'
+    | '/workspace/marketing/encartes'
     | '/workspace/marketing/fidelidade'
     | '/workspace/marketing/gift-cards'
     | '/workspace/marketing/hotpages'
@@ -5867,6 +5880,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceMarketingConcursosRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/workspace/marketing/encartes': {
+      id: '/workspace/marketing/encartes'
+      path: '/marketing/encartes'
+      fullPath: '/workspace/marketing/encartes'
+      preLoaderRoute: typeof WorkspaceMarketingEncartesRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
     '/workspace/marketing/fidelidade': {
       id: '/workspace/marketing/fidelidade'
       path: '/marketing/fidelidade'
@@ -7023,6 +7043,7 @@ interface WorkspaceRouteChildren {
   WorkspaceMarketingCanvasPecadosRoute: typeof WorkspaceMarketingCanvasPecadosRoute
   WorkspaceMarketingCarrinhosRoute: typeof WorkspaceMarketingCarrinhosRoute
   WorkspaceMarketingConcursosRoute: typeof WorkspaceMarketingConcursosRoute
+  WorkspaceMarketingEncartesRoute: typeof WorkspaceMarketingEncartesRoute
   WorkspaceMarketingFidelidadeRoute: typeof WorkspaceMarketingFidelidadeRoute
   WorkspaceMarketingGiftCardsRoute: typeof WorkspaceMarketingGiftCardsRoute
   WorkspaceMarketingHotpagesRoute: typeof WorkspaceMarketingHotpagesRoute
@@ -7171,6 +7192,7 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceMarketingCanvasPecadosRoute: WorkspaceMarketingCanvasPecadosRoute,
   WorkspaceMarketingCarrinhosRoute: WorkspaceMarketingCarrinhosRoute,
   WorkspaceMarketingConcursosRoute: WorkspaceMarketingConcursosRoute,
+  WorkspaceMarketingEncartesRoute: WorkspaceMarketingEncartesRoute,
   WorkspaceMarketingFidelidadeRoute: WorkspaceMarketingFidelidadeRoute,
   WorkspaceMarketingGiftCardsRoute: WorkspaceMarketingGiftCardsRoute,
   WorkspaceMarketingHotpagesRoute: WorkspaceMarketingHotpagesRoute,

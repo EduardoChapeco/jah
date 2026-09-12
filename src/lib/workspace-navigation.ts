@@ -433,6 +433,7 @@ const GROUP_SUPERMARKET: NavGroup = {
   icon: ShoppingCart,
   section: "niche",
   items: [
+    { path: "/workspace/marketing/encartes", label: "Encartes da Semana", icon: Flame },
     { path: "/workspace/catalogo/produtos", label: "Produtos (KG e Unidade)", icon: Package },
     { path: "/workspace/catalogo/categorias", label: "Sessões do Mercado", icon: Tags },
     { path: "/workspace/estoque/alertas", label: "Validades & Reposição", icon: AlertTriangle },
@@ -526,6 +527,7 @@ const GROUP_MARKETING_VITRINE: NavGroup = {
     { path: "/workspace/cms/paginas", label: "Páginas & Landing Pages", icon: FileText },
     { path: "/workspace/cms/bio", label: "Link da Bio & Perfil", icon: Link2 },
     { path: "/workspace/marketing/banners", label: "Banners & Topo", icon: ImageIcon },
+    { path: "/workspace/marketing/encartes", label: "Encartes & Tabloides", icon: Flame },
     { path: "/workspace/marketing/hotpages", label: "Páginas de Destaque (Hotpages)", icon: Layers },
     { path: "/workspace/marketing/promocoes", label: "Promoções & Cupons", icon: Flame },
     { path: "/workspace/marketing/concursos", label: "Sorteios da Loja", icon: Ticket },

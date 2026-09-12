@@ -48,6 +48,7 @@ export interface VitrineSectionConfig {
 
 export const DEFAULT_STORE_VITRINE_SECTIONS: VitrineSectionConfig[] = [
   { id: "sec_banners", type: "banners", title: "Banners Principais da Loja", enabled: true },
+  { id: "sec_flyers", type: "promotional_flyers", title: "Encartes & Tabloides da Semana", enabled: true },
   {
     id: "sec_cards",
     type: "custom_cards",

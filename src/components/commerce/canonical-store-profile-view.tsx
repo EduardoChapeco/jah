@@ -86,6 +86,8 @@ import { participateInRaffle } from "@/services/invite.functions";
 import { upsertStorePageSection, saveStorePageSectionsOrder } from "@/services/store.functions";
 import { useCartContext } from "@/lib/cart-context";
 import { SocialCardGeneratorModal } from "@/components/studio/SocialCardGeneratorModal";
+import { PromotionalFlyersRail } from "@/components/commerce/flyers/promotional-flyers-rail";
+import { listActiveStoreFlyers, type PromotionalFlyerDTO } from "@/services/store-flyers.functions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -95,6 +97,7 @@ export interface CanonicalStoreProfileViewProps {
   catalog?: any[];
   categories?: any[];
   banners?: any[];
+  flyers?: PromotionalFlyerDTO[];
   hotpages?: any[];
   jobs?: any[];
   posts?: any[];
@@ -116,6 +119,7 @@ export function CanonicalStoreProfileView({
   catalog = [],
   categories = [],
   banners = [],
+  flyers,
   hotpages = [],
   jobs = [],
   posts = [],
@@ -165,6 +169,21 @@ export function CanonicalStoreProfileView({
   const [isSectionsEditorOpen, setIsSectionsEditorOpen] = useState(false);
   const [postViewMode, setPostViewMode] = useState<"grid" | "feed">("grid");
   const [isSocialStudioOpen, setIsSocialStudioOpen] = useState(false);
+
+  // Encartes Promocionais da Semana / Mês
+  const [flyersList, setFlyersList] = useState<PromotionalFlyerDTO[]>(flyers || []);
+
+  useEffect(() => {
+    if (flyers && flyers.length > 0) {
+      setFlyersList(flyers);
+    } else if (store?.id) {
+      listActiveStoreFlyers({ data: { storeId: store.id } })
+        .then((res) => {
+          if (res && res.length > 0) setFlyersList(res);
+        })
+        .catch(() => {});
+    }
+  }, [store?.id, flyers]);
 
   // Modal de Orçamento
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
@@ -1034,6 +1053,18 @@ export function CanonicalStoreProfileView({
                 </div>
               )}
 
+              {/* Encartes da Semana Automáticos (Se houver encartes ativos e a seção não estiver configurada) */}
+              {flyersList.length > 0 &&
+                !vitrineSections.some((s) => s.type === "promotional_flyers" && s.enabled) && (
+                  <div className="space-y-2">
+                    <PromotionalFlyersRail
+                      flyers={flyersList}
+                      storeName={store.name || store.business_name}
+                      storeSlug={store.slug}
+                    />
+                  </div>
+                )}
+
               {/* Renderização Dinâmica das Seções Configuradas */}
               {vitrineSections
                 .filter((s) => s.enabled)
@@ -1043,6 +1074,20 @@ export function CanonicalStoreProfileView({
                     return (
                       <div key={section.id} className="space-y-2">
                         <BannerHeroCarousel banners={banners} className="w-full rounded-2xl overflow-hidden shadow-xs" />
+                      </div>
+                    );
+                  }
+
+                  if (section.type === "promotional_flyers") {
+                    if (!flyersList || flyersList.length === 0) return null;
+                    return (
+                      <div key={section.id} className="space-y-2">
+                        <PromotionalFlyersRail
+                          flyers={flyersList}
+                          title={section.title || "Encartes & Tabloides da Semana"}
+                          storeName={store.name || store.business_name}
+                          storeSlug={store.slug}
+                        />
                       </div>
                     );
                   }
