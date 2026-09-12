@@ -100,7 +100,7 @@ runCommand("npm run build");
 
 // 3. Deploy Final para Cloudflare Pages
 console.log("\n3. Realizando Deploy para o Cloudflare Pages...");
-runCommand(`npx wrangler pages deploy dist --project-name wider --commit-dirty=true`);
+runCommand(`npx wrangler pages deploy dist --project-name usewaesy --commit-dirty=true`);
 
 console.log("\n==========================================");
 console.log("Deploy Finalizado com Sucesso!");

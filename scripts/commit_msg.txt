@@ -1,1 +1,1 @@
-chore: maintain production project target wider for Cloudflare Pages
+feat(config): rename project to usewaesy and deploy to usewaesy.pages.dev on Cloudflare Pages
