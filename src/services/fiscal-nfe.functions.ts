@@ -264,3 +264,25 @@ export const listStoreNFeInvoices = createServerFn({ method: "GET" })
 
     return (rows || []) as StoreNFeInvoiceDTO[];
   });
+
+/**
+ * Obtém a NF-e vinculada a um pedido específico.
+ */
+export const getOrderInvoice = createServerFn({ method: "GET" })
+  .validator(z.object({ orderId: z.string().min(1) }))
+  .handler(async ({ data }): Promise<StoreNFeInvoiceDTO | null> => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "operator"]);
+
+    const { data: row, error } = await supabase
+      .from("store_nfe_invoices")
+      .select("*")
+      .eq("order_id", data.orderId)
+      .order("created_at", { ascending: false })
+      .maybeSingle();
+
+    if (error || !row) return null;
+    return row as StoreNFeInvoiceDTO;
+  });
+

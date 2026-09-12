@@ -22,36 +22,68 @@ import {
  AlertDialogTrigger,
  AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
-import { Printer, Banknote, Landmark, AlertTriangle, Truck, ExternalLink, Package, User, MapPin, Phone, Mail, MessageSquare, Layers } from 'lucide-react';
 import {
- getOrderById,
- updateOrderStatus,
- updateOrderShipment,
- updateOrderShippingQuote,
+  Printer,
+  Banknote,
+  Landmark,
+  AlertTriangle,
+  Truck,
+  ExternalLink,
+  Package,
+  User,
+  MapPin,
+  Phone,
+  Mail,
+  MessageSquare,
+  Layers,
+  FileText,
+  Download,
+  Tag,
+  CheckCircle2,
+  Copy,
+} from "lucide-react";
+import {
+  getOrderById,
+  updateOrderStatus,
+  updateOrderShipment,
+  updateOrderShippingQuote,
 } from "@/services/order.functions";
 import { approvePayment, rejectPayment } from "@/services/payment.functions";
 import { getDeliveryProofsByOrderId, type DeliveryProof } from "@/services/dispatch.functions";
+import {
+  emitNFeInvoice,
+  getOrderInvoice,
+  type StoreNFeInvoiceDTO,
+} from "@/services/fiscal-nfe.functions";
+import {
+  buildZplShippingLabel,
+  buildEscPosReceipt,
+  sendZplToSerialPrinter,
+  sendBytesToSerialPrinter,
+} from "@/lib/thermal-printer";
+import { ChannelBadge, getChannelInfo } from "@/components/commerce/channel-badge";
 import { PickingWizard } from "@/components/admin/orders/picking-wizard";
 import { RmaRequestWizard } from "@/components/admin/orders/rma-request-wizard";
 import { OrderEditWizard } from "@/components/admin/orders/order-edit-wizard";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/pedidos/$id")({
- head: ({ loaderData }) => ({
- meta: [{ title: `Pedido #${loaderData?.order?.public_token?.slice(0, 8) || "Detalhes"} | Workspace Wider OS` }],
- }),
- loader: async ({ params }: { params: { id: string } }) => {
- try {
- const [order, proofs] = await Promise.all([
- getOrderById({ data: { orderId: params.id } }),
- getDeliveryProofsByOrderId({ data: { orderId: params.id } }).catch(() => []),
- ]);
- return { order, proofs: (proofs || []) as DeliveryProof[] };
- } catch {
- return { order: null, proofs: [] as DeliveryProof[] };
- }
- },
- component: AdminOrderDetailPage,
+  head: ({ loaderData }) => ({
+    meta: [{ title: `Pedido #${loaderData?.order?.public_token?.slice(0, 8) || "Detalhes"} | Workspace Wider OS` }],
+  }),
+  loader: async ({ params }: { params: { id: string } }) => {
+    try {
+      const [order, proofs, invoice] = await Promise.all([
+        getOrderById({ data: { orderId: params.id } }),
+        getDeliveryProofsByOrderId({ data: { orderId: params.id } }).catch(() => []),
+        getOrderInvoice({ data: { orderId: params.id } }).catch(() => null),
+      ]);
+      return { order, proofs: (proofs || []) as DeliveryProof[], invoice };
+    } catch {
+      return { order: null, proofs: [] as DeliveryProof[], invoice: null };
+    }
+  },
+  component: AdminOrderDetailPage,
 });
 
 function getStatusLabel(status: string) {
@@ -81,41 +113,184 @@ function getStatusLabel(status: string) {
 }
 
 function AdminOrderDetailPage() {
- const { order, proofs } = Route.useLoaderData() as { order: any; proofs: DeliveryProof[] };
- const router = useRouter();
- const [isConfirming, setIsConfirming] = useState(false);
- const [isRejecting, setIsRejecting] = useState(false);
- const [isUpdating, setIsUpdating] = useState(false);
- const [showCancelConfirm, setShowCancelConfirm] = useState(false);
- const [shippingQuoteCents, setShippingQuoteCents] = useState<string>("");
- const [isSavingQuote, setIsSavingQuote] = useState(false);
+  const { order, proofs, invoice: initialInvoice } = Route.useLoaderData() as {
+    order: any;
+    proofs: DeliveryProof[];
+    invoice: StoreNFeInvoiceDTO | null;
+  };
+  const router = useRouter();
+  const [invoice, setInvoice] = useState<StoreNFeInvoiceDTO | null>(initialInvoice);
+  const [isEmittingNFe, setIsEmittingNFe] = useState(false);
+  const [isPrintingZpl, setIsPrintingZpl] = useState(false);
+  const [isPrintingEscPos, setIsPrintingEscPos] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [shippingQuoteCents, setShippingQuoteCents] = useState<string>("");
+  const [isSavingQuote, setIsSavingQuote] = useState(false);
 
- const [pickingModalOpen, setPickingModalOpen] = useState(false);
- const [trackingModalOpen, setTrackingModalOpen] = useState(false);
- const [returnModalOpen, setReturnModalOpen] = useState(false);
- const [editModalOpen, setEditModalOpen] = useState(false);
- const [trackingForm, setTrackingForm] = useState({
- trackingCode: "",
- carrierName: "Transportadora",
- trackingUrl: "",
- });
- const [isSavingTracking, setIsSavingTracking] = useState(false);
+  const [pickingModalOpen, setPickingModalOpen] = useState(false);
+  const [trackingModalOpen, setTrackingModalOpen] = useState(false);
+  const [returnModalOpen, setReturnModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [trackingForm, setTrackingForm] = useState({
+    trackingCode: "",
+    carrierName: "Transportadora",
+    trackingUrl: "",
+  });
+  const [isSavingTracking, setIsSavingTracking] = useState(false);
 
- if (!order) {
- return (
- <div className="py-16 text-center text-muted-foreground space-y-3">
- <p className="font-bold text-base text-foreground">Pedido não encontrado ou sem permissão de acesso.</p>
- <Link to="/workspace/pedidos" className="text-primary text-xs font-bold underline inline-block">
- ← Voltar para lista de pedidos
- </Link>
- </div>
- );
- }
+  if (!order) {
+    return (
+      <div className="py-16 text-center text-muted-foreground space-y-3">
+        <p className="font-bold text-base text-foreground">Pedido não encontrado ou sem permissão de acesso.</p>
+        <Link to="/workspace/pedidos" className="text-primary text-xs font-bold underline inline-block">
+          ← Voltar para lista de pedidos
+        </Link>
+      </div>
+    );
+  }
 
- const date = formatDate(order.created_at);
- const customer = order.customer_snapshot || {};
- const customFields = order.custom_fields || {};
- const hasCustomFields = Object.keys(customFields).length > 0;
+  const date = formatDate(order.created_at);
+  const customer = order.customer_snapshot || {};
+  const address = order.shipping_address_snapshot || order.shipping_address || customer.address || {};
+  const customFields = order.custom_fields || {};
+  const hasCustomFields = Object.keys(customFields).length > 0;
+
+  // Emissão de NF-e / NFC-e 1-Clique
+  const handleEmitNFe = async () => {
+    setIsEmittingNFe(true);
+    try {
+      const customerDoc = (customer.document || "").replace(/\D/g, "");
+      const res = await emitNFeInvoice({
+        data: {
+          storeId: order.store_id,
+          orderId: order.id,
+          invoiceType: "nfe",
+          valorTotalCents: order.total_cents || 100,
+          tomadorDocumento: customerDoc.length >= 11 ? customerDoc : "00000000000",
+          tomadorNome: customer.name || customer.fullName || "Consumidor Final",
+          tomadorEmail: customer.email || undefined,
+        },
+      });
+      setInvoice(res);
+      toast.success(`NF-e #${res.nfe_number} emitida com sucesso!`);
+      router.invalidate();
+    } catch (err: any) {
+      toast.error(err?.message || "Falha ao emitir NF-e");
+    } finally {
+      setIsEmittingNFe(false);
+    }
+  };
+
+  // Impressão Térmica Direta (ESC/POS 80mm) via Web Serial
+  const handlePrintEscPos = async () => {
+    setIsPrintingEscPos(true);
+    try {
+      const receiptData = {
+        storeName: order.store?.name || "Wider Platform",
+        storeCnpj: order.store?.cnpj,
+        storeAddress: order.store?.address_street,
+        orderNumber: order.public_token || order.id.slice(0, 8),
+        orderDate: formatDate(order.created_at),
+        customerName: customer.name || customer.fullName,
+        customerPhone: customer.phone,
+        items: (order.order_items || []).map((it: any) => ({
+          name: it.product_title || "Item",
+          qty: it.qty || 1,
+          priceCents: it.unit_price_cents || 0,
+        })),
+        subtotalCents: order.subtotal_cents || order.total_cents,
+        deliveryFeeCents: order.shipping_cents || 0,
+        discountCents: order.discount_cents || 0,
+        totalCents: order.total_cents || 0,
+        paymentMethod: order.payment_method || "PIX",
+        channelSource: order.channel_source || order.metadata?.channel || "Loja",
+        notes: order.notes,
+        width: "80mm" as const,
+      };
+
+      const bytes = buildEscPosReceipt(receiptData);
+
+      if (typeof navigator !== "undefined" && "serial" in navigator) {
+        try {
+          await sendBytesToSerialPrinter(bytes);
+          toast.success("Cupom enviado diretamente para a impressora térmica!");
+          return;
+        } catch (serialErr: any) {
+          if (serialErr.message?.includes("Nenhuma porta")) return;
+        }
+      }
+
+      window.open(`/workspace/pedidos/${order.id}/recibo`, "_blank");
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao imprimir cupom térmico");
+    } finally {
+      setIsPrintingEscPos(false);
+    }
+  };
+
+  // Impressão de Etiqueta Adesiva ZPL (100x150mm)
+  const handlePrintZpl = async () => {
+    setIsPrintingZpl(true);
+    try {
+      const sender = {
+        storeName: order.store?.name || "Wider Hub",
+        city: order.store?.address_city || "São Miguel do Oeste",
+        state: order.store?.address_state || "SC",
+        zipCode: order.store?.address_zip || "89900-000",
+      };
+
+      const recipient = {
+        name: customer.name || customer.fullName || "Cliente Wider",
+        street: address.street || address.logradouro || "Rua do Cliente",
+        number: address.number || address.numero || "S/N",
+        complement: address.complement || address.complemento,
+        neighborhood: address.neighborhood || address.bairro || "Centro",
+        city: address.city || address.cidade || "São Miguel do Oeste",
+        state: address.state || address.uf || "SC",
+        zipCode: address.zip || address.cep || "89900-000",
+        phone: customer.phone,
+      };
+
+      const zpl = buildZplShippingLabel({
+        carrierName: order.shipping_method === "pickup" ? "Retirada Balcão" : "Transportadora / MotoLink",
+        serviceType: order.shipping_method === "pickup" ? "BALCÃO" : "EXPRESSO",
+        trackingNumber: order.tracking_code || order.public_token?.slice(0, 10).toUpperCase() || "WD99000001BR",
+        orderNumber: order.public_token || order.id.slice(0, 8),
+        recipient,
+        sender,
+        channelSource: order.channel_source || order.metadata?.channel || "Loja Online",
+        totalItemsCount: (order.order_items || []).reduce((acc: number, it: any) => acc + (it.qty || 1), 0) || 1,
+      });
+
+      if (typeof navigator !== "undefined" && "serial" in navigator) {
+        try {
+          await sendZplToSerialPrinter(zpl);
+          toast.success("Etiqueta ZPL enviada diretamente para a impressora térmica!");
+          return;
+        } catch (serialErr: any) {
+          if (serialErr.message?.includes("Nenhuma porta")) return;
+        }
+      }
+
+      const blob = new Blob([zpl], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `etiqueta-pedido-${order.public_token || order.id.slice(0, 6)}.zpl`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Arquivo de etiqueta ZPL gerado com sucesso!");
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao processar etiqueta ZPL");
+    } finally {
+      setIsPrintingZpl(false);
+    }
+  };
 
  const handleSaveTracking = async (e: React.FormEvent) => {
  e.preventDefault();
@@ -216,26 +391,49 @@ function AdminOrderDetailPage() {
  }
  };
 
- return (
- <div className="space-y-6 max-w-6xl mx-auto w-full pb-20">
- <div className="flex justify-between items-start flex-wrap gap-3">
- <PageHeader eyebrow="Vendas" title={`Pedido #${order.public_token}`} />
- <div className="flex items-center gap-2">
- {["draft", "awaiting_payment", "paid"].includes(order.status) && (
- <Button variant="outline" size="sm" className="rounded-xl text-xs font-semibold" onClick={() => setEditModalOpen(true)}>
- Editar Pedido
- </Button>
- )}
- <Button
- variant="outline"
- size="sm"
- className="rounded-xl text-xs font-semibold"
- onClick={() => window.open(`/workspace/pedidos/${order.id}/recibo`, "_blank")}
- >
- <Printer className="mr-1.5 h-3.5 w-3.5" /> Imprimir Recibo
- </Button>
- </div>
- </div>
+  return (
+    <div className="space-y-6 max-w-6xl mx-auto w-full pb-20">
+      <div className="flex justify-between items-start flex-wrap gap-3">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <PageHeader eyebrow="Vendas" title={`Pedido #${order.public_token}`} />
+            <ChannelBadge source={order.channel_source || order.metadata?.channel} />
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {["draft", "awaiting_payment", "paid"].includes(order.status) && (
+            <Button variant="outline" size="sm" className="rounded-xl text-xs font-semibold" onClick={() => setEditModalOpen(true)}>
+              Editar Pedido
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-xl text-xs font-semibold"
+            onClick={handlePrintEscPos}
+            disabled={isPrintingEscPos}
+          >
+            <Printer className="mr-1.5 h-3.5 w-3.5" /> Térmica 80mm
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-xl text-xs font-semibold"
+            onClick={handlePrintZpl}
+            disabled={isPrintingZpl}
+          >
+            <Tag className="mr-1.5 h-3.5 w-3.5" /> Etiqueta ZPL
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-xl text-xs font-semibold"
+            onClick={() => window.open(`/workspace/pedidos/${order.id}/recibo`, "_blank")}
+          >
+            <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> Recibo A4
+          </Button>
+        </div>
+      </div>
 
  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
  {/* Left Column: Items, Customer Info, Custom Fields, Notes */}
@@ -357,24 +555,100 @@ function AdminOrderDetailPage() {
 
  {/* Sidebar */}
  <div className="space-y-6">
- {/* Summary */}
- <div className=" p-6 bg-card text-card-foreground ">
- <h3 className="font-semibold text-lg mb-4 text-foreground">Resumo</h3>
- <div className="space-y-3 text-sm">
- <div className="flex justify-between">
- <span className="text-muted-foreground">Subtotal</span>
- <span className="text-foreground">{formatMoney(order.subtotal_cents)}</span>
- </div>
- <div className="flex justify-between">
- <span className="text-muted-foreground">Frete</span>
- <span className="text-foreground">{formatMoney(order.shipping_cents)}</span>
- </div>
- <div className="flex justify-between font-bold text-base pt-3 mt-1 text-foreground">
- <span>Total</span>
- <span>{formatMoney(order.total_cents)}</span>
- </div>
- </div>
- </div>
+  {/* Summary */}
+  <div className="p-6 bg-card text-card-foreground rounded-2xl border border-border/80">
+    <div className="flex items-center justify-between mb-4">
+      <h3 className="font-semibold text-base text-foreground">Resumo Financeiro</h3>
+      <ChannelBadge source={order.channel_source || order.metadata?.channel} />
+    </div>
+    <div className="space-y-3 text-sm">
+      <div className="flex justify-between">
+        <span className="text-muted-foreground">Subtotal</span>
+        <span className="text-foreground">{formatMoney(order.subtotal_cents)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-muted-foreground">Frete</span>
+        <span className="text-foreground">{formatMoney(order.shipping_cents)}</span>
+      </div>
+      {order.metadata?.marketplace_fee_cents > 0 && (
+        <div className="flex justify-between text-xs text-amber-600 dark:text-amber-400">
+          <span>Taxa ({getChannelInfo(order.channel_source || order.metadata?.channel).label})</span>
+          <span>-{formatMoney(order.metadata.marketplace_fee_cents)}</span>
+        </div>
+      )}
+      <div className="flex justify-between font-bold text-base pt-3 mt-1 text-foreground border-t border-border/40">
+        <span>Total</span>
+        <span>{formatMoney(order.total_cents)}</span>
+      </div>
+    </div>
+  </div>
+
+  {/* Documento Fiscal NF-e / NFC-e */}
+  <div className="p-6 bg-card text-card-foreground rounded-2xl border border-border/80 space-y-4">
+    <div className="flex items-center justify-between">
+      <h3 className="font-semibold text-base text-foreground flex items-center gap-2">
+        <FileText className="size-4 text-primary" />
+        <span>Documento Fiscal</span>
+      </h3>
+      {invoice ? (
+        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30 text-[10px] font-bold">
+          NF-e Emitida
+        </Badge>
+      ) : (
+        <Badge variant="outline" className="text-[10px] text-muted-foreground">
+          Pendente
+        </Badge>
+      )}
+    </div>
+
+    {invoice ? (
+      <div className="space-y-3 text-xs">
+        <div className="p-3 rounded-xl bg-muted/30 border border-border/60 space-y-1.5 font-mono">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Número:</span>
+            <span className="font-bold text-foreground">#{invoice.nfe_number} (Série {invoice.nfe_serie})</span>
+          </div>
+          {invoice.nfe_key && (
+            <div className="space-y-0.5">
+              <span className="text-muted-foreground text-[10px] block">Chave de Acesso:</span>
+              <span className="text-[10px] text-foreground break-all">{invoice.nfe_key}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 pt-1">
+          {invoice.danfe_pdf_url && (
+            <Button asChild variant="outline" size="sm" className="flex-1 rounded-xl text-xs font-bold">
+              <a href={invoice.danfe_pdf_url} target="_blank" rel="noopener noreferrer">
+                <Download className="mr-1.5 size-3.5" /> DANFE (PDF)
+              </a>
+            </Button>
+          )}
+          {invoice.xml_url && (
+            <Button asChild variant="ghost" size="sm" className="rounded-xl text-xs font-mono">
+              <a href={invoice.xml_url} target="_blank" rel="noopener noreferrer">
+                XML
+              </a>
+            </Button>
+          )}
+        </div>
+      </div>
+    ) : (
+      <div className="space-y-3">
+        <p className="text-xs text-muted-foreground">
+          Emita a NF-e nacional ou NFC-e deste pedido com 1 clique.
+        </p>
+        <Button
+          onClick={handleEmitNFe}
+          disabled={isEmittingNFe}
+          size="sm"
+          className="w-full rounded-xl font-bold text-xs"
+        >
+          {isEmittingNFe ? "Emitindo NF-e..." : "Emitir NF-e (1-Clique)"}
+        </Button>
+      </div>
+    )}
+  </div>
 
  {/* Status & Actions */}
  <div className=" p-6 bg-card text-card-foreground ">

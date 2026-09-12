@@ -207,3 +207,96 @@ export function trackAddToCartEvent({
     }).catch(() => {});
   }
 }
+
+/**
+ * Disparador unificado de evento Purchase para telas de confirmação de pedido e gateways de pagamento
+ */
+export function trackPurchaseEvent({
+  storeId,
+  orderId,
+  orderToken,
+  totalCents,
+  items = [],
+  currency = "BRL",
+  customerEmail,
+  customerPhone,
+}: {
+  storeId?: string | null;
+  orderId: string;
+  orderToken?: string;
+  totalCents: number;
+  items?: Array<{
+    productId?: string;
+    productTitle?: string;
+    priceCents?: number;
+    quantity?: number;
+  }>;
+  currency?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+}) {
+  const valueNum = totalCents ? totalCents / 100 : 0;
+  const contentIds = items.map((it) => it.productId).filter(Boolean) as string[];
+  const numItems = items.reduce((acc, it) => acc + (it.quantity || 1), 0);
+
+  // 1. Browser Meta Pixel
+  if (typeof (window as any).fbq === "function") {
+    (window as any).fbq("track", "Purchase", {
+      content_ids: contentIds.length > 0 ? contentIds : [orderId],
+      content_type: "product",
+      value: valueNum,
+      currency,
+      num_items: numItems,
+    });
+  }
+
+  // 2. Browser Google Analytics 4 (purchase)
+  if (typeof (window as any).gtag === "function") {
+    (window as any).gtag("event", "purchase", {
+      transaction_id: orderToken || orderId,
+      value: valueNum,
+      currency,
+      items: items.map((it) => ({
+        item_id: it.productId || orderId,
+        item_name: it.productTitle || "Produto",
+        price: it.priceCents ? it.priceCents / 100 : 0,
+        quantity: it.quantity || 1,
+      })),
+    });
+  }
+
+  // 3. Browser TikTok Pixel
+  if (typeof (window as any).ttq === "object" && typeof (window as any).ttq.track === "function") {
+    (window as any).ttq.track("CompletePayment", {
+      content_id: orderId,
+      value: valueNum,
+      currency,
+    });
+  }
+
+  // 4. Server-Side Meta CAPI
+  if (storeId) {
+    dispatchMetaCapiEvent({
+      data: {
+        storeId,
+        eventName: "Purchase",
+        eventSourceUrl: typeof window !== "undefined" ? window.location.href : undefined,
+        customData: {
+          order_id: orderId,
+          order_token: orderToken,
+          value: valueNum,
+          currency,
+          content_ids: contentIds.length > 0 ? contentIds : [orderId],
+          num_items: numItems,
+        },
+        userData: {
+          email: customerEmail,
+          phone: customerPhone,
+        },
+      },
+    }).catch((err) => {
+      console.debug("[telemetry] CAPI Purchase fallback:", err);
+    });
+  }
+}
+

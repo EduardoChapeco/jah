@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
  CheckCircle2,
  Package,
@@ -20,8 +20,8 @@ import { getOrderByToken } from "@/services/checkout.functions";
 import { formatMoney } from "@/lib/money";
 import { PostOrderAuditModal } from "@/components/commerce/post-order-audit-modal";
 import { getBrowserClient } from "@/lib/supabase";
+import { trackPurchaseEvent } from "@/components/commerce/product-telemetry";
 import { toast } from "sonner";
-import { useEffect } from "react";
 
 export const Route = createFileRoute("/_store/pedido/$publicToken/confirmacao")({
  head: () => ({
@@ -43,6 +43,35 @@ function ConfirmationPage() {
   const { order: initialOrder } = ((Route.useLoaderData() as any) || {});
  const [order, setOrder] = useState<any>(initialOrder);
  const [isAuditOpen, setIsAuditOpen] = useState(false);
+ const trackedPurchaseRef = useRef<string | null>(null);
+
+ // Telemetria Comercial — Disparo de Purchase (Meta Pixel, GA4, TikTok e Server-Side CAPI)
+ useEffect(() => {
+   if (!order?.id) return;
+   const isPaid = ["paid", "processing", "shipped", "delivered"].includes(order.status);
+   if (isPaid && trackedPurchaseRef.current !== order.id) {
+     trackedPurchaseRef.current = order.id;
+
+     const rawItems = order.items_snapshot || order.order_items || [];
+     const mappedItems = rawItems.map((item: any) => ({
+       productId: item.product_id || item.productId || item.id,
+       productTitle: item.product_title || item.productName || item.title || "Produto",
+       priceCents: item.unit_price_cents || item.price_snapshot_cents || item.priceCents || 0,
+       quantity: item.qty || item.quantity || 1,
+     }));
+
+     trackPurchaseEvent({
+       storeId: order.store_id || order.stores?.id,
+       orderId: order.id,
+       orderToken: order.public_token,
+       totalCents: order.total_cents || 0,
+       items: mappedItems,
+       currency: "BRL",
+       customerEmail: order.customer_snapshot?.email,
+       customerPhone: order.customer_snapshot?.phone,
+     });
+   }
+ }, [order?.id, order?.status, order?.total_cents, order?.store_id]);
 
  // Polling híbrido resiliente (4s) + Supabase Realtime para confirmação instantânea no mobile
  useEffect(() => {

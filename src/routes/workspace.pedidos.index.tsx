@@ -15,6 +15,7 @@ import {
  TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { ChannelBadge } from "@/components/commerce/channel-badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
  DropdownMenu,
@@ -90,93 +91,106 @@ function getStatusLabel(status: string, semantics?: any) {
 
 function AdminOrdersPage() {
   const { orders: initialOrders = [], store = null } = ((Route.useLoaderData() as any) || {});
- const semantics = useMemo(() => getNicheSemantics(store), [store]);
- const router = useRouter();
- const [orders, setOrders] = useState<any[]>(initialOrders);
- const [searchQuery, setSearchQuery] = useState("");
- const [statusTab, setStatusTab] = useState<string>("all");
+  const semantics = useMemo(() => getNicheSemantics(store), [store]);
+  const router = useRouter();
+  const [orders, setOrders] = useState<any[]>(initialOrders);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusTab, setStatusTab] = useState<string>("all");
+  const [channelFilter, setChannelFilter] = useState<string>("all");
 
- const isTourism = semantics.nicheId === "tourism";
- const isGastro = semantics.nicheId === "gastronomy";
- const isServices = semantics.nicheId === "services";
- const isRetail = semantics.nicheId === "retail" || semantics.nicheId === "supermarket" || semantics.nicheId === "wholesale";
+  const isTourism = semantics.nicheId === "tourism";
+  const isGastro = semantics.nicheId === "gastronomy";
+  const isServices = semantics.nicheId === "services";
+  const isRetail = semantics.nicheId === "retail" || semantics.nicheId === "supermarket" || semantics.nicheId === "wholesale";
 
- // Determina os modos de visualização permitidos para o nicho
- const availableViewModes = useMemo(() => {
- if (isTourism) {
- return [
- { id: "emissions" as ViewMode, label: "Kanban de Emissões", icon: Compass },
- { id: "table" as ViewMode, label: "Tabela de Vendas", icon: List },
- ];
- }
- if (isGastro) {
- return [
- { id: "kitchen" as ViewMode, label: "Cozinha (KDS)", icon: ChefHat },
- { id: "table" as ViewMode, label: "Tabela de Pedidos", icon: List },
- ];
- }
- if (isRetail) {
- return [
- { id: "picking" as ViewMode, label: "Separação & Expedição", icon: ShoppingBag },
- { id: "table" as ViewMode, label: "Tabela de Vendas", icon: List },
- ];
- }
- if (isServices) {
- return [
- { id: "service_flow" as ViewMode, label: "Fila de Atendimento", icon: Layers },
- { id: "table" as ViewMode, label: "Tabela de Atendimentos", icon: List },
- ];
- }
- return [
- { id: "table" as ViewMode, label: "Tabela Geral", icon: List },
- ];
- }, [isTourism, isGastro, isRetail, isServices]);
+  // Determina os modos de visualização permitidos para o nicho
+  const availableViewModes = useMemo(() => {
+    if (isTourism) {
+      return [
+        { id: "emissions" as ViewMode, label: "Kanban de Emissões", icon: Compass },
+        { id: "table" as ViewMode, label: "Tabela de Vendas", icon: List },
+      ];
+    }
+    if (isGastro) {
+      return [
+        { id: "kitchen" as ViewMode, label: "Cozinha (KDS)", icon: ChefHat },
+        { id: "table" as ViewMode, label: "Tabela de Pedidos", icon: List },
+      ];
+    }
+    if (isRetail) {
+      return [
+        { id: "picking" as ViewMode, label: "Separação & Expedição", icon: ShoppingBag },
+        { id: "table" as ViewMode, label: "Tabela de Vendas", icon: List },
+      ];
+    }
+    if (isServices) {
+      return [
+        { id: "service_flow" as ViewMode, label: "Fila de Atendimento", icon: Layers },
+        { id: "table" as ViewMode, label: "Tabela de Atendimentos", icon: List },
+      ];
+    }
+    return [
+      { id: "table" as ViewMode, label: "Tabela Geral", icon: List },
+    ];
+  }, [isTourism, isGastro, isRetail, isServices]);
 
- const [viewMode, setViewMode] = useState<ViewMode>(() => {
- if (isTourism) return "emissions";
- if (isGastro) return "kitchen";
- if (isRetail) return "picking";
- if (isServices) return "service_flow";
- return "table";
- });
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (isTourism) return "emissions";
+    if (isGastro) return "kitchen";
+    if (isRetail) return "picking";
+    if (isServices) return "service_flow";
+    return "table";
+  });
 
- const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
- const [isProcessing, setIsProcessing] = useState(false);
- const [soundEnabled, setSoundEnabled] = useState(true);
+  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
- // Filter orders by search & tab
- const filteredOrders = useMemo(() => {
- return orders.filter((order) => {
- const tokenStr = `#${order.public_token || ""}`.toLowerCase();
- const customerName = (order.customer_snapshot?.name || "").toLowerCase();
- const customerEmail = (order.customer_snapshot?.email || "").toLowerCase();
- const customerPhone = (order.customer_snapshot?.phone || "").toLowerCase();
- const itemsStr = (order.items_snapshot || [])
- .map((i: any) => i.title || i.product_name || "")
- .join(" ")
- .toLowerCase();
- const query = searchQuery.toLowerCase();
+  // Filter orders by search, status tab & sales channel
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      const tokenStr = `#${order.public_token || ""}`.toLowerCase();
+      const customerName = (order.customer_snapshot?.name || "").toLowerCase();
+      const customerEmail = (order.customer_snapshot?.email || "").toLowerCase();
+      const customerPhone = (order.customer_snapshot?.phone || "").toLowerCase();
+      const itemsStr = (order.items_snapshot || [])
+        .map((i: any) => i.title || i.product_name || "")
+        .join(" ")
+        .toLowerCase();
+      const query = searchQuery.toLowerCase();
 
- const matchesSearch =
- tokenStr.includes(query) ||
- customerName.includes(query) ||
- customerEmail.includes(query) ||
- customerPhone.includes(query) ||
- itemsStr.includes(query);
+      const matchesSearch =
+        tokenStr.includes(query) ||
+        customerName.includes(query) ||
+        customerEmail.includes(query) ||
+        customerPhone.includes(query) ||
+        itemsStr.includes(query);
 
- let matchesTab = true;
- if (statusTab === "awaiting")
- matchesTab = order.status === "awaiting_payment" || order.status === "payment_processing";
- else if (statusTab === "processing")
- matchesTab = order.status === "processing" || order.status === "paid";
- else if (statusTab === "shipped")
- matchesTab = order.status === "shipped" || order.status === "ready_for_pickup";
- else if (statusTab === "delivered") matchesTab = order.status === "delivered";
- else if (statusTab === "cancelled") matchesTab = order.status === "cancelled";
+      let matchesTab = true;
+      if (statusTab === "awaiting")
+        matchesTab = order.status === "awaiting_payment" || order.status === "payment_processing";
+      else if (statusTab === "processing")
+        matchesTab = order.status === "processing" || order.status === "paid";
+      else if (statusTab === "shipped")
+        matchesTab = order.status === "shipped" || order.status === "ready_for_pickup";
+      else if (statusTab === "delivered") matchesTab = order.status === "delivered";
+      else if (statusTab === "cancelled") matchesTab = order.status === "cancelled";
 
- return matchesSearch && matchesTab;
- });
- }, [orders, searchQuery, statusTab]);
+      let matchesChannel = true;
+      if (channelFilter !== "all") {
+        const rawChannel = (order.channel_source || order.metadata?.channel || "pos").toLowerCase();
+        if (channelFilter === "mercadolivre") matchesChannel = rawChannel.includes("mercado");
+        else if (channelFilter === "ifood") matchesChannel = rawChannel.includes("ifood");
+        else if (channelFilter === "shopee") matchesChannel = rawChannel.includes("shopee");
+        else if (channelFilter === "amazon") matchesChannel = rawChannel.includes("amazon");
+        else if (channelFilter === "magalu") matchesChannel = rawChannel.includes("magalu") || rawChannel.includes("luiza");
+        else if (channelFilter === "online_store") matchesChannel = rawChannel.includes("online") || rawChannel.includes("store") || rawChannel.includes("vitrine");
+        else if (channelFilter === "pos") matchesChannel = rawChannel.includes("pos") || rawChannel.includes("pdv") || rawChannel.includes("balcao") || rawChannel === "manual";
+      }
+
+      return matchesSearch && matchesTab && matchesChannel;
+    });
+  }, [orders, searchQuery, statusTab, channelFilter]);
 
  // Update status action
  const handleStatusChange = async (orderId: string, newStatus: any) => {
@@ -1109,7 +1123,23 @@ function AdminOrdersPage() {
  </TabsList>
  </Tabs>
 
- <div className="relative w-full sm:w-72">
+ <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+ <select
+ value={channelFilter}
+ onChange={(e) => setChannelFilter(e.target.value)}
+ className="h-8 rounded-xl border border-border bg-card px-2.5 text-xs font-semibold text-foreground focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-40 shrink-0"
+ >
+ <option value="all">Todos os Canais</option>
+ <option value="mercadolivre">Mercado Livre</option>
+ <option value="ifood">iFood</option>
+ <option value="shopee">Shopee</option>
+ <option value="amazon">Amazon</option>
+ <option value="magalu">Magalu</option>
+ <option value="online_store">Loja Online</option>
+ <option value="pos">Balcão / PDV</option>
+ </select>
+
+ <div className="relative w-full sm:w-64">
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
  <Input
  placeholder={isTourism ? "Buscar passageiro, roteiro ou token..." : "Buscar por código, cliente ou item..."}
@@ -1119,12 +1149,14 @@ function AdminOrdersPage() {
  />
  </div>
  </div>
+ </div>
 
  <div className="bg-card overflow-hidden rounded-2xl border border-border">
  <Table>
  <TableHeader>
  <TableRow className="bg-muted/40">
  <TableHead>{isTourism ? "Reserva / Token" : "Pedido"}</TableHead>
+ <TableHead>Canal</TableHead>
  <TableHead>Data & Hora</TableHead>
  <TableHead>{isTourism ? "Passageiro / Titular" : "Cliente"}</TableHead>
  <TableHead>{isTourism ? "Roteiro / Detalhes" : "Meio / Envio"}</TableHead>
@@ -1136,7 +1168,7 @@ function AdminOrdersPage() {
  <TableBody>
  {filteredOrders.length === 0 ? (
  <TableRow>
- <TableCell colSpan={7} className="h-32 text-center text-xs text-muted-foreground">
+ <TableCell colSpan={8} className="h-32 text-center text-xs text-muted-foreground">
  Nenhum registro encontrado para este filtro.
  </TableCell>
  </TableRow>
@@ -1150,6 +1182,10 @@ function AdminOrdersPage() {
  <TableRow key={order.id} className="hover:bg-muted/30 transition-colors">
  <TableCell className="font-mono text-xs font-bold text-foreground">
  #{order.public_token || order.id.slice(0, 6)}
+ </TableCell>
+
+ <TableCell>
+ <ChannelBadge source={order.channel_source || order.metadata?.channel} />
  </TableCell>
 
  <TableCell className="text-xs text-muted-foreground whitespace-nowrap">

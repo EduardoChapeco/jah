@@ -12,6 +12,7 @@ import {
  TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { ChannelBadge } from "@/components/commerce/channel-badge";
 import { EmptyState } from "@/components/state/states";
 import { getStockMovements } from "@/services/stock.functions";
 
@@ -63,6 +64,7 @@ function MovementsPage() {
  <TableHeader>
  <TableRow>
  <TableHead>Data</TableHead>
+ <TableHead>Canal / Origem</TableHead>
  <TableHead>Produto / SKU</TableHead>
  <TableHead>Tipo</TableHead>
  <TableHead className="text-right">Qtd</TableHead>
@@ -70,10 +72,31 @@ function MovementsPage() {
  </TableRow>
  </TableHeader>
  <TableBody>
- {movements.map((mov: any) => (
+ {movements.map((mov: any) => {
+ const inferredChannel =
+   mov.metadata?.channel_source ||
+   mov.metadata?.channel ||
+   (mov.note?.toLowerCase().includes("mercado livre")
+     ? "mercadolivre"
+     : mov.note?.toLowerCase().includes("ifood")
+     ? "ifood"
+     : mov.note?.toLowerCase().includes("shopee")
+     ? "shopee"
+     : mov.note?.toLowerCase().includes("amazon")
+     ? "amazon"
+     : mov.note?.toLowerCase().includes("magalu")
+     ? "magalu"
+     : mov.reference_type === "order"
+     ? "online_store"
+     : "pos");
+
+ return (
  <TableRow key={mov.id}>
  <TableCell className="whitespace-nowrap">
  {format(new Date(mov.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+ </TableCell>
+ <TableCell>
+ <ChannelBadge source={inferredChannel} />
  </TableCell>
  <TableCell>
  <div className="font-medium">
@@ -96,7 +119,8 @@ function MovementsPage() {
  </div>
  </TableCell>
  </TableRow>
- ))}
+ );
+ })}
  </TableBody>
  </Table>
  </div>
